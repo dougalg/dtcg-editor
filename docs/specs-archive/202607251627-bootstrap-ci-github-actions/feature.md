@@ -46,8 +46,8 @@ The workflow caches the pnpm store (keyed on the lockfile hash) to keep install 
 - [x] AC-02: The workflow triggers on `pull_request` targeting `main` and on `push` to `main`.
 - [x] AC-03: The workflow sets up Node.js and pnpm (via Corepack, reading `packageManager` from `package.json`) with pnpm store caching enabled.
 - [x] AC-04: The workflow runs `pnpm install --frozen-lockfile`, then `pnpm build`, `pnpm lint`, and `pnpm test` as distinct steps.
-- [ ] AC-05: A failure in any one of build/lint/test fails the overall workflow run and is attributable to the specific step in the GitHub Actions UI. (Structurally satisfied — no `continue-on-error` set — but not yet confirmed on a live GitHub Actions run; see `review.md`.)
-- [ ] AC-06: A deliberately broken build (e.g. a type error), a deliberate lint violation, and a deliberately failing test each independently fail the workflow when verified locally via `act` or by inspection of step-level `continue-on-error` behavior (none should be set — every step must be blocking). (Live verification explicitly deferred by user during `/sdd-implement`; see `review.md`.)
+- [x] AC-05: A failure in any one of build/lint/test fails the overall workflow run and is attributable to the specific step in the GitHub Actions UI. (Confirmed live on GitHub Actions by the user.)
+- [x] AC-06: A deliberately broken build (e.g. a type error), a deliberate lint violation, and a deliberately failing test each independently fail the workflow when verified locally via `act` or by inspection of step-level `continue-on-error` behavior (none should be set — every step must be blocking). (Confirmed live on GitHub Actions by the user.)
 - [x] AC-07: The workflow does not lint commit messages or otherwise enforce Conventional Commits — that stays local-only via the existing husky `commit-msg` hook.
 - [ ] AC-08: `docs/project.md`'s Tech Stack / Conventions sections are updated to note CI now exists and where the workflow lives (handled at `/sdd-archive` time per the existing pattern, not during implementation — noted here for completeness).
 
