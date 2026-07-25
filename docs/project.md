@@ -12,7 +12,7 @@ dtcg-editor is an open source editor for DTCG (Design Tokens Community Group) de
 - ORM: none
 - Migrations: none
 - Messaging: none
-- Testing: not yet decided
+- Testing: Node's built-in test runner (`node:test` + `node:assert/strict`) — no third-party test framework (Vitest/Jest) unless a concrete gap justifies one in a future `plan.md`, per the Minimal Dependencies constraint
 - Other: not yet decided
 
 ## Architecture
@@ -26,6 +26,8 @@ Within each package, organise code by feature/domain rather than by technical la
 
 ## Conventions
 - **DTCG spec compliance is mandatory.** Token schemas, formats, and validation logic must strictly conform to the Design Tokens Community Group specification. Any deviation from the spec must be flagged explicitly rather than silently implemented.
+- **Tests live alongside the code they test.** A `*.test.ts` file sits in the same directory as the module it covers (e.g. `parse.ts` + `parse.test.ts`, `scan.ts` + `scan.test.ts`), not in a separate `test/` directory. `node --test` (no args) discovers all of them recursively from each package's root.
+- **Internal relative imports use an explicit source extension (`.ts`/`.tsx`), not extensionless or `.js`.** This lets `node --test` run test files directly against TypeScript source with zero build step (Node strips types natively), while `tsc`'s `rewriteRelativeImportExtensions` (paired with `allowImportingTsExtensions`) still rewrites these to `.js` automatically in any package's compiled `dist/` output for consumers. Applies uniformly to plain library packages (`token-core`) and the Next.js app (`web-app`) alike, since Turbopack also resolves `.ts`-extension specifiers correctly.
 - Package naming, REST base path, error handling, and authentication conventions: not yet established — no code exists yet. Update this section once the first packages are scaffolded.
 
 ## Architectural Constraints
