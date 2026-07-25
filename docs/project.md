@@ -93,6 +93,7 @@ Anything outside this list requires a flag before adding.
 
 ## Features
 - **Configured Token Directory Viewer**: scans a configured directory for DTCG token files, parses each with `token-core`, and lets the user browse valid files as a navigable token tree via the Next.js web app; invalid files are flagged individually without blocking the rest. (`docs/specs-archive/202607251128-configured-token-directory-viewer/`)
+- **Enforce Conventional Commits**: local `commit-msg` git hook (commitlint) and an interactive `pnpm commit` CLI (commitizen) enforce a fixed Conventional Commits type/scope standard, both reading one shared config so they can't drift; documented in `CONTRIBUTING.md`. CI-level enforcement is deferred (`docs/backlog.md`). (`docs/specs-archive/202607251245-enforce-conventional-commits/`)
 
 ## Architecture Decisions
 
@@ -102,6 +103,8 @@ Anything outside this list requires a flag before adding.
 | 2026-07-25 | Startup config validation runs in Next.js's `instrumentation.ts` `register()` hook, failing fast with `process.exit(1)` on a missing/invalid config | App Router has no traditional server "main" function; `instrumentation.ts` is the idiomatic one-time startup hook (Node runtime only) | [Configured Token Directory Viewer](docs/specs-archive/202607251128-configured-token-directory-viewer/) |
 | 2026-07-25 | Route Handlers use standard `Response.json()`, not `NextResponse.json()` | `next/server` has no ESM `exports` map, so `NextResponse` only resolves under Node's legacy CJS resolution — this broke `node --test` importing route modules directly; `Response.json()` is a standard Fetch API method needing no import | [Configured Token Directory Viewer](docs/specs-archive/202607251128-configured-token-directory-viewer/) |
 | 2026-07-25 | `token-core`'s Round-Trip Fidelity constraint is only partially applied so far: `serialize()` and round-trip tests are not yet built | This feature is read-only, so there's nothing to round-trip yet; the internal model already preserves an unrecognized-field "extension bag" per node so `serialize()` can be added later without re-touching the parse model — flagged here as a deliberate, temporary gap, not an oversight | [Configured Token Directory Viewer](docs/specs-archive/202607251128-configured-token-directory-viewer/) |
+| 2026-07-25 | Turborepo's `//#<task>` root-task syntax is the standing pattern for wiring root-only scripts into `pnpm build`/`lint`/`test`, since `pnpm-workspace.yaml` only globs `packages/*`/`apps/*` and the repo root is otherwise invisible to Turborepo's pipeline | Established via `//#test:commits` and `//#lint:root`; reusable for any future root-level tooling, not just this feature | [Enforce Conventional Commits](docs/specs-archive/202607251245-enforce-conventional-commits/) |
+| 2026-07-25 | `eslint.config.mjs` exempts `**/*.cjs` files from `@typescript-eslint/no-require-imports` | Root-level tooling configs (commitlint, cz-customizable) must be plain CommonJS for third-party `require()`-based config loading to work, unlike every TS package in this monorepo | [Enforce Conventional Commits](docs/specs-archive/202607251245-enforce-conventional-commits/) |
 
 ## API
 | Method | Path | Description | Auth Required |
