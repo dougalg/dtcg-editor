@@ -1,7 +1,10 @@
 # Backlog
 
 Planned features not yet in progress. Pick one and run `/sdd-feature` to start it.
+Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
-- [ ] Refactor to use the Result-pattern error/logging standards (`docs/project.md`'s Error Handling constraint) — migrate `token-core`'s `parseTokenFile`/`parseNode` and the `web-app` consumers (`read.ts`, `scan.ts`, `path-safety.ts`, the API route, and `page.tsx`) off thrown errors onto `neverthrow` `Result`s, and stand up the new `@dtcg-editor/errors` package (`UnknownError`, injected `Logger`).
-- [ ] Enforce conventional commits (in progress — local git hook + CLI; see `feature.md`)
+- [ ] Refactor to use the Result-pattern error/logging standards (`docs/project.md`'s Error Handling constraint) — migrate `token-core`'s `parseTokenFile`/`parseNode` and the `web-app` consumers (`read.ts`, `scan.ts`, `path-safety.ts`, the API route, and `page.tsx`) off thrown errors onto `neverthrow` `Result`s, and stand up the new `@dtcg-editor/errors` package (`UnknownError`, injected `Logger`). (in progress — see `feature.md`)
 - [ ] Bootstrap CI (GitHub Actions) — including CI-level conventional commit enforcement once CI exists, plus build/lint/test checks on PRs
+- [ ] Inject dependencies by default (e.g. `fs.readFile`, etc.) — establish a convention for passing I/O/platform calls in as explicit parameters rather than importing and calling them directly, for testability and consistency; interacts with the Result-pattern refactor's Logger-injection approach.
+- [ ] Migrate `apps/web-app/lib/config.ts`'s `ConfigError`/`loadConfig` to the Result pattern — separate call path (startup config loading via `instrumentation.ts`), out of scope for the token-read-chain Result-pattern migration but the same constraint applies.
+- [ ] Define UI-layer `Result` consumption conventions (React hooks, error boundaries) once real client-side component code exists — `docs/project.md`'s Error Handling constraint explicitly defers this; also covers giving `FileNotFoundError` its own distinct message in `page.tsx` instead of the generic fallback.

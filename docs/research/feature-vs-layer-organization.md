@@ -1,0 +1,22 @@
+# Feature-based vs. layer-based code organization, for a pluggable token-type architecture
+
+## Distilled rationale
+
+dtcg-editor's token-type packages are a microkernel/plugin arrangement: the core engine hosts a fixed contract (`@dtcg-editor/token-type-contract`), and each token type (color, dimension, ...) is added or removed as an independent unit that implements it. In that shape, a package's **contract boundary and its code-organization boundary should be the same boundary**. If a token-type package internally splits its own code across shared `components/`, `services/`, `validators/` folders, every change to one token type still touches only that package — but the *moment two token types were ever merged into one package* (or a new type added), it would touch N shared directories instead of one. Feature-based organization keeps "add a token type" and "remove a token type" as a single-directory operation with a small, predictable blast radius, matching the plugin architecture's own promise that a plugin "can be added or removed at any point with little to no effect on the core application or other modules" (Richards, *Software Architecture Patterns*). Because validation, rendering, and serialization for one token type are colocated, "files that change together live together" (Bogard's coupling heuristic) inside each package, and a contributor implementing a new token type never needs to touch, or understand, another token type's code.
+
+## Sources
+
+1. **Jimmy Bogard, "Vertical Slice Architecture"** (jimmybogard.com, 2018) — https://www.jimmybogard.com/vertical-slice-architecture/
+   Core mechanism cited: "Minimize coupling between slices, and maximize coupling in a slice." Bogard argues layered/technical organization means a single feature change touches every layer ("touching many different layers"), whereas vertical slices couple vertically so "new features only add code, you're not changing shared code and worrying about side effects." This is the direct justification for keeping a token-type package's validation/render/serialize code together rather than split by technical role.
+
+2. **Robert C. Martin ("Uncle Bob"), "Screaming Architecture"** (blog.cleancoder.com, 2011) — https://blog.cleancoder.com/uncle-bob/2011/09/30/Screaming-Architecture.html
+   Core mechanism cited: "If your architecture is based on frameworks, then it cannot be based on your use cases." Structure should reveal domain intent at a glance rather than technical mechanics. Applied here: opening `packages/color/` should reveal everything about the color token type, not require tracing across `components/`, `services/`, `validators/` to reconstruct what "color" does.
+
+3. **Mark Richards, "Software Architecture Patterns" (Microkernel/Plug-in Architecture)** (O'Reilly, free report) — https://www.oreilly.com/content/software-architecture-patterns/
+   Core mechanism cited: the microkernel pattern's core system holds only minimal shared functionality, while "plug-in modules are stand-alone, independent components... meant to enhance or extend the core system," addable/removable "with little to no effect on the core application or other modules." This is the named pattern dtcg-editor's core-engine + token-type-package split already is; feature-based internal organization is what lets each plug-in module actually stay stand-alone in practice, not just at the interface level.
+
+4. **Package-by-feature vs. package-by-layer discussion** (general software-engineering consensus, e.g. summarized in community writing such as https://medium.com/sahibinden-technology/package-by-layer-vs-package-by-feature-7e89cde2ae3a) — cohesion-inside-package / coupling-between-packages framing: "in Package by Feature style, you ideally change classes only in a single package... so cohesion is high, and there are only a few dependencies between features, so coupling is low." Cited as corroborating, non-primary evidence for the same mechanism Bogard and Richards describe from different angles (DDD/CQRS practice vs. plugin-architecture practice).
+
+## Net takeaway
+
+All three independent lines of argument (vertical-slice/DDD practice, screaming-architecture/Clean Architecture, and the named microkernel/plugin pattern) converge on the same mechanism: **organizing by feature/domain makes the code's module boundary match the system's actual extension boundary**, so adding or removing a pluggable unit is a single-directory operation with contained blast radius — which is exactly the shape of dtcg-editor's token-type-package contract.

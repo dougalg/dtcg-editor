@@ -2,7 +2,8 @@
 name: sdd-archive
 description: >
   SDD step 7. Archive feature.md and plan.md into docs/specs-archive/<yyyymmddHHMM>-<feature-name>/ directory,
-  then update docs/project.md with the new feature, and any architecture decisions made. 
+  then update docs/project.md with the new feature, and any architecture decisions made,
+  and move any matching item out of docs/backlog.md into docs/backlog-completed.md.
   Use after /sdd-review is complete and the feature is ready to merge.
 argument-hint: <feature-name> (optional, derived from feature.md if omitted)
 ---
@@ -108,8 +109,32 @@ If the feature introduced new environment variables, configuration keys, add the
 | JWT_EXPIRY_MINUTES | Access token TTL in minutes | No | 15 |
 ```
 
-### 4. Show the project.md Changes
-Before writing, present a summary of every change you are about to make to `project.md`:
+#### 3e. Related Backlog Items
+If `docs/backlog.md` exists, scan its unchecked items (`- [ ] ...`) for any that describe
+the feature being archived — match on feature name, description, or an existing
+"(in progress — ...)" pointer left by `/sdd-feature`. A match doesn't have to be an exact
+string; use judgment (e.g. a backlog line like "Enforce conventional commits" matches a
+feature named "Enforce Conventional Commits").
+
+For each match, prepare (don't write yet) a move rather than an in-place edit: the item is
+removed entirely from `docs/backlog.md` and appended to `docs/backlog-completed.md` (creating
+it if it doesn't exist, with a one-line heading/intro — see an existing entry for the
+convention), rewritten as `- [x]` with a pointer to the archive directory, replacing any stale
+in-progress note:
+
+```markdown
+- [x] Enforce conventional commits — done, see `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/`
+```
+
+Do not leave a `[x]` copy behind in `docs/backlog.md` — the line moves, it isn't duplicated.
+
+If nothing in `docs/backlog.md` matches, that's fine — note "no matching backlog item found"
+in the Step 4 preview rather than silently skipping it or inventing a match. If
+`docs/backlog.md` doesn't exist at all, skip this substep entirely (don't create either file).
+
+### 4. Show the project.md and Backlog Changes
+Before writing, present a summary of every change you are about to make — to `project.md`
+and, if applicable, `docs/backlog.md` / `docs/backlog-completed.md`:
 
 ```
 ## Proposed project.md Updates
@@ -130,10 +155,18 @@ Before writing, present a summary of every change you are about to make to `proj
 
 ### No changes to
 - Tech Stack, Architecture overview, Conventions
+
+## Proposed Backlog Changes
+- Removing from docs/backlog.md: "JWT Authentication"
+- Adding to docs/backlog-completed.md: "JWT Authentication" — done, pointing at the archive directory
 ```
 
+(If no backlog item matched, replace the last section with `## Proposed Backlog Changes` /
+`- No matching backlog item found — left unchanged.` so the user can confirm that's expected
+rather than an oversight.)
+
 Ask the user to confirm before writing. If they request changes to the proposed
-updates, apply their corrections first, then write.
+updates, apply their corrections first, then write both files.
 
 ### 5. Archive
 Run the following operations:
@@ -163,4 +196,5 @@ Implemented on: <date>
 Report the final summary to the user:
 - Files archived to `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/` (`feature.md`, `plan.md`, `review.md`, and `impl-summary.md` if it existed)
 - Sections updated in `docs/project.md`
-- Remind them to commit both `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/` and `docs/project.md` to version control
+- Backlog item moved from `docs/backlog.md` to `docs/backlog-completed.md`, if a match was found (or a note that none was)
+- Remind them to commit `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/`, `docs/project.md`, `docs/backlog.md`, and `docs/backlog-completed.md` (if changed) to version control

@@ -22,11 +22,11 @@ Feature-based modules, organised as a monorepo with three kinds of packages:
 2. **Token-type packages** — subpackages implementing the UI/validation/etc. layer for specific DTCG token types (e.g. `color`, `dimension`). Each token type is its own module/package rather than being handled by shared generic code.
 3. **Web app** — composes the core engine and token-type packages into a UI for editing a set of DTCG files, requiring minimal configuration from the user.
 
-Within each package, organise code by feature/domain rather than by technical layer (e.g. a `color` token package owns its own components, validation, and logic together, rather than being split across shared `components/`, `services/`, `validators/` directories).
+Within each package, organise code by feature/domain rather than by technical layer (e.g. a `color` token package owns its own components, validation, and logic together, rather than being split across shared `components/`, `services/`, `validators/` directories). This mirrors the plugin/microkernel shape of the Token-Type Package Contract below: the code-organization boundary matches the plugin boundary, so adding or removing a token type stays a single-directory operation instead of requiring edits across several shared directories (see `docs/research/feature-vs-layer-organization.md` for the supporting architecture literature).
 
 ## Conventions
-- **DTCG spec compliance is mandatory.** Token schemas, formats, and validation logic must strictly conform to the Design Tokens Community Group specification. Any deviation from the spec must be flagged explicitly rather than silently implemented.
-- **Tests live alongside the code they test.** A `*.test.ts` file sits in the same directory as the module it covers (e.g. `parse.ts` + `parse.test.ts`, `scan.ts` + `scan.test.ts`), not in a separate `test/` directory. `node --test` (no args) discovers all of them recursively from each package's root.
+- **DTCG spec compliance is mandatory.** Token schemas, formats, and validation logic must strictly conform to the Design Tokens Community Group specification. Any deviation from the spec must be flagged explicitly rather than silently implemented. Interoperability with other DTCG tooling (Figma plugins, Style Dictionary, other editors) is this project's entire value proposition, so a silent spec deviation is silent data corruption in files the user owns — not a cosmetic bug.
+- **Tests live alongside the code they test.** A `*.test.ts` file sits in the same directory as the module it covers (e.g. `parse.ts` + `parse.test.ts`, `scan.ts` + `scan.test.ts`), not in a separate `test/` directory. `node --test` (no args) discovers all of them recursively from each package's root. This follows directly from the feature/domain organization principle in Architecture above: a test is part of the feature bundle it verifies, and a separate `test/` tree would reintroduce the technical-layer split that principle exists to avoid.
 - **Internal relative imports use an explicit source extension (`.ts`/`.tsx`), not extensionless or `.js`.** This lets `node --test` run test files directly against TypeScript source with zero build step (Node strips types natively), while `tsc`'s `rewriteRelativeImportExtensions` (paired with `allowImportingTsExtensions`) still rewrites these to `.js` automatically in any package's compiled `dist/` output for consumers. Applies uniformly to plain library packages (`token-core`) and the Next.js app (`web-app`) alike, since Turbopack also resolves `.ts`-extension specifiers correctly.
 - Package naming, REST base path, and authentication conventions: not yet established — no code exists yet. Update this section once the first packages are scaffolded.
 
@@ -45,7 +45,7 @@ Validation happens once, at the true edges of the system — where data enters f
 - A token-type package validates with Zod only at its *own* external edges — e.g. if it exposes a standalone public API a third party could call directly, bypassing the core engine. Values passed to it through the core engine's standard internal contract (already-typed `TokenValue`s) are trusted as-is.
 
 ### Error Handling (Result Pattern)
-All fallible operations return a `Result<T, E>` (or `ResultAsync<T, E>` for async) from `neverthrow`, composed via `.andThen`/`.map`, rather than throwing. Errors fall into two categories:
+A thrown exception is invisible to the type checker — a function's signature gives no indication it can fail — which defeats the same "can't be silently bypassed" guarantee the TypeScript Strictness constraint above establishes for types. All fallible operations therefore return a `Result<T, E>` (or `ResultAsync<T, E>` for async) from `neverthrow`, composed via `.andThen`/`.map`, rather than throwing, so a caller cannot ignore the failure case without explicitly unwrapping it. Errors fall into two categories:
 
 - **Named errors** (e.g. `TokenParseError`) — specific to an operation, defined as a discriminated union local to the module that produces them. The caller is expected to branch on and handle these.
 - **`UnknownError`** — a single shared type (in a new `@dtcg-editor/errors` package) wrapping anything unexpected surfacing from code outside our control. Not meant to be handled/branched on — only logged and surfaced.
@@ -81,7 +81,7 @@ Because the DTCG spec permits extensions and tool-specific fields, the `token-co
 - React
 - Next.js (`apps/web-app`) — chosen over hand-rolling a Node server so Route Handlers + Server Components give typed, colocated server-side `fs` access without a bespoke HTTP layer.
 - ESLint + `typescript-eslint` — `tsc` has no flag that bans explicit `any`; a lint tool is required to actually enforce the "no `any`" rule in TypeScript Strictness, not just convenient. `eslint-config-next` is pulled in automatically by Next's scaffolding and kept as the standard pairing for a Next.js app.
-- Zod (schema validation/parsing at all package edges)
+- Zod (schema validation/parsing at all package edges — chosen because `z.infer` derives the static TypeScript type directly from the schema, making the schema the single source of truth for both runtime validation and the type; a hand-rolled validator plus a separately maintained interface could silently drift apart)
 - neverthrow (`Result`/`ResultAsync` error handling — core, cross-cutting infrastructure per the Error Handling constraint above; justified here rather than per-feature)
 - pnpm (package manager / workspaces)
 - Turborepo (build orchestration)
@@ -90,6 +90,10 @@ Because the DTCG spec permits extensions and tool-specific fields, the `token-co
 - `husky` (installs the local `commit-msg` git hook automatically on `pnpm install`)
 
 Anything outside this list requires a flag before adding.
+
+## Backlog & History
+- `docs/backlog.md` — planned features not yet started; pick one and run `/sdd-feature` to start it.
+- `docs/backlog-completed.md` — backlog items closed out by `/sdd-archive` once their feature has merged, moved out of `docs/backlog.md` so the active backlog only shows what's still open.
 
 ## Features
 - **Configured Token Directory Viewer**: scans a configured directory for DTCG token files, parses each with `token-core`, and lets the user browse valid files as a navigable token tree via the Next.js web app; invalid files are flagged individually without blocking the rest. (`docs/specs-archive/202607251128-configured-token-directory-viewer/`)

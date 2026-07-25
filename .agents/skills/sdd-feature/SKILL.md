@@ -25,7 +25,7 @@ Before starting, collect these inputs. If any are missing, ask for them now — 
 
 Check the conversation for `feature_description`.
 - If present → proceed to Step 1.
-- If missing → ask: "What feature would you like to build?" Do NOT proceed until the user provides it.
+- If missing → read `docs/backlog.md` (if it exists) and check for open (unchecked) items. If there are any, list them as candidate suggestions alongside asking: "What feature would you like to build? Here are some open items from the backlog you could pick instead: ...". If the backlog is empty, missing, or has no open items, just ask: "What feature would you like to build?" Do NOT proceed until the user provides a `feature_description`.
 
 ---
 
@@ -37,6 +37,11 @@ Always start by reading `docs/project.md` to understand:
 - The tech stack in use
 - Architecture patterns and constraints
 - Any existing conventions
+
+Also read `docs/backlog.md` (if it exists) and check whether the feature request matches or overlaps an existing backlog item:
+- If it matches an open item, pull in any context/scope notes already captured there (e.g. specific files, constraints, or out-of-scope calls already made) rather than re-deriving them from scratch.
+- If it overlaps a different in-progress or completed item, flag the overlap to the user before proceeding, so scope isn't duplicated.
+- Use the backlog to inform recommendations during Step 2/3 (e.g. surfacing a related deferred concern as a clarifying question or an Out of Scope candidate) rather than treating the request in isolation.
 
 ### 2. Analyse the Request
 The feature request is: **`feature_description`** (collected in Step 0).
