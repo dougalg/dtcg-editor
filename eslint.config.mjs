@@ -16,5 +16,14 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-explicit-any": "error"
     }
+  },
+  {
+    // Root-level tooling config files are plain CommonJS by necessity (the
+    // third-party tools that load them — commitlint, cz-customizable —
+    // require() them directly), unlike every TS package in this monorepo.
+    files: ["**/*.cjs"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off"
+    }
   }
 );

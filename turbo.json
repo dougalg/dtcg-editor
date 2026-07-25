@@ -10,10 +10,16 @@
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "//#lint:root"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "//#test:commits"]
+    },
+    "//#lint:root": {
+      "outputs": []
+    },
+    "//#test:commits": {
+      "outputs": []
     }
   }
 }

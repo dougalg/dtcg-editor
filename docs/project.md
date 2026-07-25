@@ -85,6 +85,9 @@ Because the DTCG spec permits extensions and tool-specific fields, the `token-co
 - neverthrow (`Result`/`ResultAsync` error handling — core, cross-cutting infrastructure per the Error Handling constraint above; justified here rather than per-feature)
 - pnpm (package manager / workspaces)
 - Turborepo (build orchestration)
+- `@commitlint/cli` + `@commitlint/config-conventional` (commit message validation against the full Conventional Commits spec — see the Enforce Conventional Commits feature)
+- `commitizen` + `cz-customizable` (interactive commit CLI, sharing the same type/scope config as commitlint)
+- `husky` (installs the local `commit-msg` git hook automatically on `pnpm install`)
 
 Anything outside this list requires a flag before adding.
 

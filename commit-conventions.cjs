@@ -1,0 +1,27 @@
+/**
+ * Single source of truth for allowed Conventional Commits types and scopes.
+ * Consumed by both commitlint.config.cjs (enforcement) and .cz-config.cjs
+ * (the interactive `pnpm commit` CLI) so the two never drift apart.
+ */
+const types = [
+  { value: "feat", description: "A new feature" },
+  { value: "fix", description: "A bug fix" },
+  { value: "docs", description: "Documentation only changes" },
+  { value: "style", description: "Formatting changes with no code meaning change (whitespace, semicolons, etc.)" },
+  { value: "refactor", description: "A code change that neither fixes a bug nor adds a feature" },
+  { value: "perf", description: "A code change that improves performance" },
+  { value: "test", description: "Adding or correcting tests" },
+  { value: "build", description: "Changes to the build system or external dependencies" },
+  { value: "ci", description: "Changes to CI configuration and scripts" },
+  { value: "chore", description: "Other changes that don't modify src or test files" },
+  { value: "revert", description: "Reverts a previous commit" },
+];
+
+const scopes = [
+  { value: "token-core", description: "packages/token-core" },
+  { value: "web-app", description: "apps/web-app" },
+  { value: "root", description: "Repo-root tooling/config not tied to a single package" },
+  { value: "docs", description: "Documentation-only changes" },
+];
+
+module.exports = { types, scopes };
