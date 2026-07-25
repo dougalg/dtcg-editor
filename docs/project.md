@@ -77,12 +77,36 @@ Because the DTCG spec permits extensions and tool-specific fields, the `token-co
 - Round-trip tests are mandatory for `token-core`: parse → serialize (no edits) → re-parse and deep-equal against the original parse is a required test case for every DTCG-spec fixture file used in the test suite (comparing parsed data, not raw text, since formatting is allowed to normalize).
 
 ## Approved Dependencies
-No dependencies have been added yet. Proposed baseline (to be confirmed as packages are scaffolded):
 - TypeScript
 - React
+- Next.js (`apps/web-app`) — chosen over hand-rolling a Node server so Route Handlers + Server Components give typed, colocated server-side `fs` access without a bespoke HTTP layer.
+- ESLint + `typescript-eslint` — `tsc` has no flag that bans explicit `any`; a lint tool is required to actually enforce the "no `any`" rule in TypeScript Strictness, not just convenient. `eslint-config-next` is pulled in automatically by Next's scaffolding and kept as the standard pairing for a Next.js app.
 - Zod (schema validation/parsing at all package edges)
 - neverthrow (`Result`/`ResultAsync` error handling — core, cross-cutting infrastructure per the Error Handling constraint above; justified here rather than per-feature)
 - pnpm (package manager / workspaces)
 - Turborepo (build orchestration)
 
 Anything outside this list requires a flag before adding.
+
+## Features
+- **Configured Token Directory Viewer**: scans a configured directory for DTCG token files, parses each with `token-core`, and lets the user browse valid files as a navigable token tree via the Next.js web app; invalid files are flagged individually without blocking the rest. (`docs/specs-archive/202607251128-configured-token-directory-viewer/`)
+
+## Architecture Decisions
+
+| Date | Decision | Rationale | Feature |
+|------|----------|-----------|---------|
+| 2026-07-25 | `packages/*` (installable libraries, e.g. `token-core`) vs `apps/*` (deployable apps, e.g. `web-app`) directory split | Matches the "installable module" framing already used for engine/parsing packages vs. the one deployable web app surface | [Configured Token Directory Viewer](docs/specs-archive/202607251128-configured-token-directory-viewer/) |
+| 2026-07-25 | Startup config validation runs in Next.js's `instrumentation.ts` `register()` hook, failing fast with `process.exit(1)` on a missing/invalid config | App Router has no traditional server "main" function; `instrumentation.ts` is the idiomatic one-time startup hook (Node runtime only) | [Configured Token Directory Viewer](docs/specs-archive/202607251128-configured-token-directory-viewer/) |
+| 2026-07-25 | Route Handlers use standard `Response.json()`, not `NextResponse.json()` | `next/server` has no ESM `exports` map, so `NextResponse` only resolves under Node's legacy CJS resolution — this broke `node --test` importing route modules directly; `Response.json()` is a standard Fetch API method needing no import | [Configured Token Directory Viewer](docs/specs-archive/202607251128-configured-token-directory-viewer/) |
+| 2026-07-25 | `token-core`'s Round-Trip Fidelity constraint is only partially applied so far: `serialize()` and round-trip tests are not yet built | This feature is read-only, so there's nothing to round-trip yet; the internal model already preserves an unrecognized-field "extension bag" per node so `serialize()` can be added later without re-touching the parse model — flagged here as a deliberate, temporary gap, not an oversight | [Configured Token Directory Viewer](docs/specs-archive/202607251128-configured-token-directory-viewer/) |
+
+## API
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|----------------|
+| GET | /api/tokens | Lists discovered token files under the configured directory, each marked valid/invalid | No |
+| GET | /api/tokens/[...path] | Returns a single parsed token document; 400 (path traversal), 404 (not found), or 422 (parse failure) on error | No |
+
+## Environment & Configuration
+| Key | Description | Required | Default |
+|-----|-------------|----------|---------|
+| `dtcg-editor.config.json` (`tokensDir` field) | Config file (not an env var) read from the process working directory at startup; `tokensDir` is the absolute/relative path to the directory of DTCG token files to serve | Yes | — |

@@ -30,12 +30,12 @@ Selecting a valid file shows a navigable tree of its tokens: token name (includi
 The backend Route Handlers built for this feature only read files. No endpoint modifies file content. (The underlying Node backend is capable of read/write access in principle, but write/edit functionality is explicitly not implemented or exposed here.)
 
 ## Acceptance Criteria
-- [ ] AC-01: If the config file is missing, unreadable, or its directory field fails Zod validation, the app fails to start and prints a clear error identifying the problem (missing file, invalid path, schema violation) rather than starting in a broken state.
-- [ ] AC-02: Given a configured directory containing `*.json` files at multiple nesting depths, every one of them is discovered by the scan.
-- [ ] AC-03: Each discovered file is parsed with `parseTokenFile`; valid files render as a token tree (name, `$type`, `$value`) and invalid files show a per-file error without affecting the display of any other file.
-- [ ] AC-04: The folder overview lists every discovered file (valid and invalid) with its relative path, and selecting a valid file opens its token tree.
-- [ ] AC-05: No route, handler, or UI action in this feature writes to or modifies any file in the configured directory.
-- [ ] AC-06: The app runs as a standalone Next.js app (`next build` / `next start`) reading the config file from its working directory at boot.
+- [x] AC-01: If the config file is missing, unreadable, or its directory field fails Zod validation, the app fails to start and prints a clear error identifying the problem (missing file, invalid path, schema violation) rather than starting in a broken state.
+- [x] AC-02: Given a configured directory containing `*.json` files at multiple nesting depths, every one of them is discovered by the scan.
+- [x] AC-03: Each discovered file is parsed with `parseTokenFile`; valid files render as a token tree (name, `$type`, `$value`) and invalid files show a per-file error without affecting the display of any other file.
+- [x] AC-04: The folder overview lists every discovered file (valid and invalid) with its relative path, and selecting a valid file opens its token tree.
+- [x] AC-05: No route, handler, or UI action in this feature writes to or modifies any file in the configured directory.
+- [x] AC-06: The app runs as a standalone Next.js app (`next build` / `next start`) reading the config file from its working directory at boot.
 
 ## Technical Scope
 

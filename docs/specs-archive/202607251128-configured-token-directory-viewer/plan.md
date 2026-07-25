@@ -24,11 +24,11 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 ## Implementation Steps
 
 ### Step 1: Monorepo Bootstrap
-- [ ] Root `package.json` (private, `"packageManager": "pnpm@..."`, workspace scripts: `build`, `dev`, `lint`, `test` delegating to `turbo run ...`)
-- [ ] `pnpm-workspace.yaml` — `packages: ["packages/*", "apps/*"]`
-- [ ] `turbo.json` — pipeline tasks for `build`, `dev`, `lint`, `test`, with `build`/`test` depending on upstream package `build`
-- [ ] `tsconfig.base.json` at root — `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noImplicitReturns`, plus `target`/`module`/`moduleResolution` set for Node16+/ESM
-- [ ] Root ESLint flat config (`eslint.config.mjs`) using `typescript-eslint`'s `strict`/`recommended-type-checked` presets, with the rule that bans explicit `any` (`@typescript-eslint/no-explicit-any`) turned on across all packages
+- [x] Root `package.json` (private, `"packageManager": "pnpm@..."`, workspace scripts: `build`, `dev`, `lint`, `test` delegating to `turbo run ...`)
+- [x] `pnpm-workspace.yaml` — `packages: ["packages/*", "apps/*"]`
+- [x] `turbo.json` — pipeline tasks for `build`, `dev`, `lint`, `test`, with `build`/`test` depending on upstream package `build`
+- [x] `tsconfig.base.json` at root — `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noImplicitReturns`, plus `target`/`module`/`moduleResolution` set for Node16+/ESM
+- [x] Root ESLint flat config (`eslint.config.mjs`) using `typescript-eslint`'s `strict`/`recommended-type-checked` presets, with the rule that bans explicit `any` (`@typescript-eslint/no-explicit-any`) turned on across all packages
 - Files: `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `tsconfig.base.json`, `eslint.config.mjs`
 
 ### Step 2: `token-core` — Parsing/Domain Layer
