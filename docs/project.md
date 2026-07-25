@@ -28,7 +28,7 @@ Within each package, organise code by feature/domain rather than by technical la
 - **DTCG spec compliance is mandatory.** Token schemas, formats, and validation logic must strictly conform to the Design Tokens Community Group specification. Any deviation from the spec must be flagged explicitly rather than silently implemented.
 - **Tests live alongside the code they test.** A `*.test.ts` file sits in the same directory as the module it covers (e.g. `parse.ts` + `parse.test.ts`, `scan.ts` + `scan.test.ts`), not in a separate `test/` directory. `node --test` (no args) discovers all of them recursively from each package's root.
 - **Internal relative imports use an explicit source extension (`.ts`/`.tsx`), not extensionless or `.js`.** This lets `node --test` run test files directly against TypeScript source with zero build step (Node strips types natively), while `tsc`'s `rewriteRelativeImportExtensions` (paired with `allowImportingTsExtensions`) still rewrites these to `.js` automatically in any package's compiled `dist/` output for consumers. Applies uniformly to plain library packages (`token-core`) and the Next.js app (`web-app`) alike, since Turbopack also resolves `.ts`-extension specifiers correctly.
-- Package naming, REST base path, error handling, and authentication conventions: not yet established — no code exists yet. Update this section once the first packages are scaffolded.
+- Package naming, REST base path, and authentication conventions: not yet established — no code exists yet. Update this section once the first packages are scaffolded.
 
 ## Architectural Constraints
 
@@ -43,6 +43,18 @@ Validation happens once, at the true edges of the system — where data enters f
 
 - `parseTokenFile(raw: unknown): TokenDocument` (backed by a Zod schema) is the only sanctioned entry point for token JSON; nothing else calls `JSON.parse` on token content.
 - A token-type package validates with Zod only at its *own* external edges — e.g. if it exposes a standalone public API a third party could call directly, bypassing the core engine. Values passed to it through the core engine's standard internal contract (already-typed `TokenValue`s) are trusted as-is.
+
+### Error Handling (Result Pattern)
+All fallible operations return a `Result<T, E>` (or `ResultAsync<T, E>` for async) from `neverthrow`, composed via `.andThen`/`.map`, rather than throwing. Errors fall into two categories:
+
+- **Named errors** (e.g. `TokenParseError`) — specific to an operation, defined as a discriminated union local to the module that produces them. The caller is expected to branch on and handle these.
+- **`UnknownError`** — a single shared type (in a new `@dtcg-editor/errors` package) wrapping anything unexpected surfacing from code outside our control. Not meant to be handled/branched on — only logged and surfaced.
+
+Throwing calls (`JSON.parse`, `fetch`, third-party libraries, etc.) are wrapped into a `Result` exactly once, at the point they're called, using `fromThrowable`/`ResultAsync.fromPromise` — never left to propagate as an exception. Internal functions compose `Result`s end-to-end rather than mixing thrown and returned errors.
+
+An `UnknownError` is logged immediately at creation — inside the same wrap helper that catches the throw — via an injected `Logger` (pino-shaped call signature; currently just `error(obj, msg?)`, with more levels expected later). The logger is passed explicitly as a parameter/context, never a module-level singleton, so it can be swapped in tests and by host apps embedding the core engine; call sites that don't supply one fall back to a `console`-backed default. Named errors are not auto-logged — that's up to whichever code handles them.
+
+Scope: this governs engine/library code only. UI-layer consumption of `Result`s (React hooks, error boundaries) is undefined for now — revisit once component code exists.
 
 ### Token-Type Package Contract
 The core engine never hard-codes knowledge of specific token types (color, dimension, etc.); every token-type package implements a shared interface that the core engine hosts generically, so adding a new token type never requires changing the core engine. The contract itself must conform to the DTCG token format spec ([designtokens.org/tr/2025.10/format](https://www.designtokens.org/tr/2025.10/format/)); when the spec introduces breaking changes in a future version, the contract evolves in a backwards-compatible way rather than dropping support for tokens written against an earlier spec version.
@@ -69,6 +81,7 @@ No dependencies have been added yet. Proposed baseline (to be confirmed as packa
 - TypeScript
 - React
 - Zod (schema validation/parsing at all package edges)
+- neverthrow (`Result`/`ResultAsync` error handling — core, cross-cutting infrastructure per the Error Handling constraint above; justified here rather than per-feature)
 - pnpm (package manager / workspaces)
 - Turborepo (build orchestration)
 
