@@ -98,6 +98,7 @@ Anything outside this list requires a flag before adding.
 ## Features
 - **Configured Token Directory Viewer**: scans a configured directory for DTCG token files, parses each with `token-core`, and lets the user browse valid files as a navigable token tree via the Next.js web app; invalid files are flagged individually without blocking the rest. (`docs/specs-archive/202607251128-configured-token-directory-viewer/`)
 - **Enforce Conventional Commits**: local `commit-msg` git hook (commitlint) and an interactive `pnpm commit` CLI (commitizen) enforce a fixed Conventional Commits type/scope standard, both reading one shared config so they can't drift; documented in `CONTRIBUTING.md`. CI-level enforcement is deferred (`docs/backlog.md`). (`docs/specs-archive/202607251245-enforce-conventional-commits/`)
+- **Migrate to Result-Pattern Error Handling**: the token read chain (`token-core` parsing + all `web-app` consumers) returns `Result`/`ResultAsync` instead of throwing, per the Error Handling constraint above; a new `@dtcg-editor/errors` package provides the shared `UnknownError`/`Logger`; closes a previously-unhandled `readdir`-crash gap in `scanTokenDirectory` along the way. (`docs/specs-archive/202607251455-migrate-to-result-pattern-error-handling/`)
 
 ## Architecture Decisions
 
@@ -109,12 +110,14 @@ Anything outside this list requires a flag before adding.
 | 2026-07-25 | `token-core`'s Round-Trip Fidelity constraint is only partially applied so far: `serialize()` and round-trip tests are not yet built | This feature is read-only, so there's nothing to round-trip yet; the internal model already preserves an unrecognized-field "extension bag" per node so `serialize()` can be added later without re-touching the parse model — flagged here as a deliberate, temporary gap, not an oversight | [Configured Token Directory Viewer](docs/specs-archive/202607251128-configured-token-directory-viewer/) |
 | 2026-07-25 | Turborepo's `//#<task>` root-task syntax is the standing pattern for wiring root-only scripts into `pnpm build`/`lint`/`test`, since `pnpm-workspace.yaml` only globs `packages/*`/`apps/*` and the repo root is otherwise invisible to Turborepo's pipeline | Established via `//#test:commits` and `//#lint:root`; reusable for any future root-level tooling, not just this feature | [Enforce Conventional Commits](docs/specs-archive/202607251245-enforce-conventional-commits/) |
 | 2026-07-25 | `eslint.config.mjs` exempts `**/*.cjs` files from `@typescript-eslint/no-require-imports` | Root-level tooling configs (commitlint, cz-customizable) must be plain CommonJS for third-party `require()`-based config loading to work, unlike every TS package in this monorepo | [Enforce Conventional Commits](docs/specs-archive/202607251245-enforce-conventional-commits/) |
+| 2026-07-25 | Known-vs-unknown error classification (per the Error Handling constraint) is decided by auditing what the code *currently* handles, not a speculative taxonomy | Evidence-based, not invented — every error path already deliberately handled today (e.g. `TokenParseError`, ENOENT) stays a named error; only genuinely-unhandled-today paths (e.g. `readdir` failures) become `UnknownError`. Reusable methodology for future Result-pattern migrations, e.g. the still-open "migrate `config.ts`" backlog item | [Migrate to Result-Pattern Error Handling](docs/specs-archive/202607251455-migrate-to-result-pattern-error-handling/) |
+| 2026-07-25 | A Next.js Route Handler needing an injectable dependency (e.g. a `Logger`) for testing splits its logic into a separately-exported, injectable function that the exported `GET`/`POST`/etc. wraps, rather than changing the handler's own signature | Next.js's generated route types constrain the exported HTTP-verb functions to their exact expected signature (`next build` fails type-checking otherwise) — confirmed by trying to add a second parameter directly to `GET` first. Directly relevant to the open "inject dependencies by default" backlog item | [Migrate to Result-Pattern Error Handling](docs/specs-archive/202607251455-migrate-to-result-pattern-error-handling/) |
 
 ## API
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|----------------|
-| GET | /api/tokens | Lists discovered token files under the configured directory, each marked valid/invalid | No |
-| GET | /api/tokens/[...path] | Returns a single parsed token document; 400 (path traversal), 404 (not found), or 422 (parse failure) on error | No |
+| GET | /api/tokens | Lists discovered token files under the configured directory, each marked valid/invalid; 500 on scan failure | No |
+| GET | /api/tokens/[...path] | Returns a single parsed token document; 400 (path traversal), 404 (not found), 422 (parse failure), or 500 (unexpected failure) on error | No |
 
 ## Environment & Configuration
 | Key | Description | Required | Default |

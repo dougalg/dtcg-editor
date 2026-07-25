@@ -1,0 +1,47 @@
+# Code Review: Migrate to Result-Pattern Error Handling
+
+## Summary
+This is a clean, careful migration that does exactly what it says: every throw in the token read chain becomes a `Result`/`ResultAsync`, the known/unknown error split is evidence-based (derived from what the code already handled, not invented), and the one genuinely new bit of behavior (closing the completely-unhandled `readdir`-crash gap) is well-isolated and well-tested. Behavioral parity with the pre-migration code is verified both by test and by a real `curl` pass against a running server. The only real gaps are one AC with no automated coverage (consistent with this project's existing precedent for React-rendering checks) and a couple of very small consistency nits — nothing here blocks merging on correctness grounds.
+
+## Findings
+
+### 🔴 Critical
+
+| Done | Location | Category | Problem | Suggestion |
+|------|----------|----------|---------|------------|
+| [ ] | `apps/web-app/app/page.tsx`, `apps/web-app/app/tokens/[...path]/page.tsx` | AC Coverage | AC-06 (page rendering unchanged) has no automated test — only manual `curl`-based HTTP/SSR verification (documented in `impl-summary.md`), the same standing gap this project already has for React-rendering checks (no `jsdom`/RTL dependency per the original feature's Architecture Decisions). | Accept as this project's documented policy for React-rendering ACs (consistent with precedent), or add `jsdom`/React Testing Library if automated coverage becomes a priority — flag the new dependency for justification if you go that route. |
+
+### 🟠 Major
+
+*(none)*
+
+### 🟡 Minor
+
+| Done | Location | Category | Problem | Suggestion |
+|------|----------|----------|---------|------------|
+| [x] | `apps/web-app/lib/tokens/read.ts:3,7` | Code Consistency | `TokenParseError` and `PathTraversalError` are imported as values but used only in type position (the `ResultAsync<...>` return-type union) — inconsistent with this same file's own `import type { Logger, UnknownError }` / `import type { TokenDocument }` pattern immediately alongside them. | **Fixed:** both moved to type-only imports (`TokenParseError` joins the existing `import type { TokenDocument, ... }`; `PathTraversalError` split into its own `import type` from `path-safety.ts`). |
+
+### 🔵 Info / Suggestions
+
+| Done | Location | Category | Problem | Suggestion |
+|------|----------|----------|---------|------------|
+| [x] | `packages/errors/src/unknown-error.ts:24` | Code Cleanliness | The logged object always includes a `context` key, even as `undefined`, when `context` wasn't provided (`{ cause, context: undefined }`) — slightly noisier log payload than necessary. | **Fixed:** the logged payload is now built with the same conditional-key construction already used for the `UnknownError` value itself. |
+| [x] | `apps/web-app/app/api/tokens/route.test.ts` (new 500 test) | Test Quality | This is the one new test in the diff that doesn't inject a fake `Logger` — it uses the real default `consoleLogger`, so it prints genuine `console.error` output during the test run. | **Fixed, more thoroughly than suggested:** `GET`'s route-handler signature turned out to be constrained by Next.js's own generated type-checker (repurposing its second argument broke `next build`'s type validation), so the handler logic was split into an exported `listTokenFiles(logger)` — `GET` now just calls it with the default logger, and the test calls `listTokenFiles` directly with a fake logger, asserting it was called exactly once. The former "exports only GET" test was updated to check "no *other* HTTP-verb export exists" instead of exact export-list equality, since that's what it was actually protecting against. |
+
+## Acceptance Criteria Coverage
+| AC | Test | Status |
+|----|------|--------|
+| AC-01: `parseTokenFile` returns `Result` | `packages/token-core/src/parse.test.ts` | ✅ Covered |
+| AC-02: `resolveSafeTokenPath` returns `Result` | `apps/web-app/lib/tokens/path-safety.test.ts` | ✅ Covered |
+| AC-03: `readAndParseTokenFile`'s full error union | `apps/web-app/lib/tokens/read.test.ts` | ✅ Covered |
+| AC-04: `scanTokenDirectory` `readdir` failure handling | `apps/web-app/lib/tokens/scan.test.ts` | ✅ Covered |
+| AC-05: Route status codes unchanged | `apps/web-app/app/api/tokens/[...path]/route.test.ts`, `apps/web-app/app/api/tokens/route.test.ts` | ✅ Covered |
+| AC-06: Page rendering unchanged | — (manual `curl` verification only) | ❌ No automated test |
+| AC-07: `UnknownError` logged at creation | `packages/errors/src/unknown-error.test.ts` | ✅ Covered |
+| AC-08: Full suite passes + new coverage | `pnpm build`/`lint`/`test` (42 tests, all green) | ✅ Covered |
+
+## Verdict
+- [x] ✅ Ready to merge (Minor + both Info findings fixed and re-verified — `pnpm build`/`lint`/`test` all pass, 42 tests, no stray console output; the 1 Critical finding, AC-06's lack of automated coverage, is a pre-existing project-wide gap, not something introduced here)
+- [ ] 🟡 Merge after minor fixes (no re-review needed)
+- [ ] 🟠 Requires fixes and re-review
+- [ ] 🔴 Do not merge — significant issues found

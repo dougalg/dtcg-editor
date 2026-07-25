@@ -1,9 +1,22 @@
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { Logger } from "@dtcg-editor/errors";
 import * as listRoute from "./route.ts";
+
+function fakeLogger(): { logger: Logger; state: { calls: number } } {
+  const state = { calls: 0 };
+  return {
+    logger: {
+      error() {
+        state.calls += 1;
+      },
+    },
+    state,
+  };
+}
 
 let fixtureDir: string;
 let originalCwd: string;
@@ -34,6 +47,23 @@ test("GET lists discovered files", async () => {
   );
 });
 
-test("exports only GET", () => {
-  assert.deepEqual(Object.keys(listRoute), ["GET"]);
+test("returns 500 when the token directory can't be scanned, logging the failure", async () => {
+  const tokensDir = join(fixtureDir, "tokens");
+  await chmod(tokensDir, 0o000);
+  try {
+    const { logger, state } = fakeLogger();
+    const response = await listRoute.listTokenFiles(logger);
+    assert.equal(response.status, 500);
+    assert.equal(state.calls, 1);
+  } finally {
+    await chmod(tokensDir, 0o755);
+  }
+});
+
+test("does not export any HTTP method handler other than GET", () => {
+  const otherHttpMethods = ["POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
+  assert.ok("GET" in listRoute);
+  for (const method of otherHttpMethods) {
+    assert.ok(!(method in listRoute), `unexpected route handler export: ${method}`);
+  }
 });

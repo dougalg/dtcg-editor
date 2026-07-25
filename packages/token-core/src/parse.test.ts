@@ -10,10 +10,13 @@ test("parses a simple valid token file", () => {
     },
   });
 
-  const document = parseTokenFile(raw);
+  const result = parseTokenFile(raw);
+  if (!result.isOk()) {
+    assert.fail("expected parseTokenFile to succeed");
+  }
 
-  assert.equal(document.root.kind, "group");
-  const colorGroup = document.root.children.get("color");
+  assert.equal(result.value.root.kind, "group");
+  const colorGroup = result.value.root.children.get("color");
   assert.ok(colorGroup && colorGroup.kind === "group");
   const red = colorGroup.children.get("red") as TokenNode;
   assert.equal(red.kind, "token");
@@ -31,8 +34,12 @@ test("parses nested groups with an inherited $type declared on an ancestor", () 
     },
   });
 
-  const document = parseTokenFile(raw);
-  const spacingGroup = document.root.children.get("spacing") as GroupNode;
+  const result = parseTokenFile(raw);
+  if (!result.isOk()) {
+    assert.fail("expected parseTokenFile to succeed");
+  }
+
+  const spacingGroup = result.value.root.children.get("spacing") as GroupNode;
   assert.equal(spacingGroup.declaredType, "dimension");
 
   const small = spacingGroup.children.get("small") as TokenNode;
@@ -54,19 +61,27 @@ test("preserves unrecognized $-prefixed fields as extensions, including $extensi
     },
   });
 
-  const document = parseTokenFile(raw);
-  const colorGroup = document.root.children.get("color") as GroupNode;
+  const result = parseTokenFile(raw);
+  if (!result.isOk()) {
+    assert.fail("expected parseTokenFile to succeed");
+  }
+
+  const colorGroup = result.value.root.children.get("color") as GroupNode;
   const red = colorGroup.children.get("red") as TokenNode;
 
   assert.deepEqual(red.extensions["$extensions"], { "com.example.tool": { foo: "bar" } });
   assert.equal(red.extensions["$customField"], 42);
 });
 
-test("throws TokenParseError on invalid JSON", () => {
-  assert.throws(() => parseTokenFile("{not valid json"), TokenParseError);
+test("returns TokenParseError on invalid JSON", () => {
+  const result = parseTokenFile("{not valid json");
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof TokenParseError);
+  }
 });
 
-test("throws TokenParseError when a token node mixes $value with child keys", () => {
+test("returns TokenParseError when a token node mixes $value with child keys", () => {
   const raw = JSON.stringify({
     color: {
       $value: "#ff0000",
@@ -74,19 +89,31 @@ test("throws TokenParseError when a token node mixes $value with child keys", ()
     },
   });
 
-  assert.throws(() => parseTokenFile(raw), TokenParseError);
+  const result = parseTokenFile(raw);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof TokenParseError);
+  }
 });
 
-test("throws TokenParseError when $type is not a string", () => {
+test("returns TokenParseError when $type is not a string", () => {
   const raw = JSON.stringify({
     color: {
       red: { $type: 123, $value: "#ff0000" },
     },
   });
 
-  assert.throws(() => parseTokenFile(raw), TokenParseError);
+  const result = parseTokenFile(raw);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof TokenParseError);
+  }
 });
 
-test("throws TokenParseError when the input is not a string", () => {
-  assert.throws(() => parseTokenFile({ not: "a string" }), TokenParseError);
+test("returns TokenParseError when the input is not a string", () => {
+  const result = parseTokenFile({ not: "a string" });
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof TokenParseError);
+  }
 });

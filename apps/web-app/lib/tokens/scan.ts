@@ -1,20 +1,33 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
-import { parseTokenFile, TokenParseError } from "@dtcg-editor/token-core";
+import { err, ok, ResultAsync, type Result } from "neverthrow";
+import { TokenParseError } from "@dtcg-editor/token-core";
+import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
+import type { Logger, UnknownError } from "@dtcg-editor/errors";
+import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
+import { PathTraversalError } from "./path-safety.ts";
 
 export type TokenFileSummary =
   | { readonly relativePath: string; readonly valid: true }
   | { readonly relativePath: string; readonly valid: false; readonly error: string };
 
-function describeCause(cause: unknown): string {
-  return cause instanceof Error ? cause.message : String(cause);
+function describeError(error: PathTraversalError | FileNotFoundError | TokenParseError | UnknownError): string {
+  if (error instanceof PathTraversalError || error instanceof FileNotFoundError || error instanceof TokenParseError) {
+    return error.message;
+  }
+  return error.context !== undefined ? `Unexpected error (${error.context})` : "Unexpected error";
 }
 
-async function collectJsonFiles(currentDir: string): Promise<string[]> {
-  const entries = await readdir(currentDir, { withFileTypes: true });
-  const files: string[] = [];
+async function collectJsonFiles(currentDir: string, logger: Logger): Promise<Result<string[], UnknownError>> {
+  const entriesResult = await ResultAsync.fromPromise(readdir(currentDir, { withFileTypes: true }), (cause) =>
+    toLoggedUnknownError(logger, cause, "collectJsonFiles"),
+  );
+  if (entriesResult.isErr()) {
+    return err(entriesResult.error);
+  }
 
-  for (const entry of entries) {
+  const files: string[] = [];
+  for (const entry of entriesResult.value) {
     if (entry.isSymbolicLink()) {
       // Symlinks (files or directories) are skipped entirely: skipping
       // symlinked directories avoids unbounded recursion through a
@@ -24,37 +37,43 @@ async function collectJsonFiles(currentDir: string): Promise<string[]> {
 
     const entryPath = join(currentDir, entry.name);
     if (entry.isDirectory()) {
-      files.push(...(await collectJsonFiles(entryPath)));
+      const subResult = await collectJsonFiles(entryPath, logger);
+      if (subResult.isErr()) {
+        return subResult;
+      }
+      files.push(...subResult.value);
     } else if (entry.isFile() && entry.name.endsWith(".json")) {
       files.push(entryPath);
     }
   }
 
-  return files;
+  return ok(files);
 }
 
 /**
  * Recursively scans `rootDir` for `*.json` files at any depth (skipping
  * symlinks) and attempts to parse each one as a DTCG token file. A file
  * that fails to read or parse is recorded as invalid rather than aborting
- * the scan — one bad file never affects any other file's result.
+ * the scan — one bad file never affects any other file's result. A
+ * directory that fails to read (e.g. permission denied) aborts the whole
+ * scan with a logged `UnknownError`, since there's no file list left to
+ * report on for that subtree.
  */
-export async function scanTokenDirectory(rootDir: string): Promise<TokenFileSummary[]> {
-  const absolutePaths = await collectJsonFiles(rootDir);
+export function scanTokenDirectory(
+  rootDir: string,
+  logger: Logger = consoleLogger,
+): ResultAsync<TokenFileSummary[], UnknownError> {
+  return new ResultAsync(collectJsonFiles(rootDir, logger)).map(async (absolutePaths) => {
+    const summaries = await Promise.all(
+      absolutePaths.map(async (absolutePath): Promise<TokenFileSummary> => {
+        const relativePath = relative(rootDir, absolutePath);
+        const result = await readAndParseTokenFile(rootDir, relativePath, logger);
+        return result.isOk()
+          ? { relativePath, valid: true }
+          : { relativePath, valid: false, error: describeError(result.error) };
+      }),
+    );
 
-  const summaries = await Promise.all(
-    absolutePaths.map(async (absolutePath): Promise<TokenFileSummary> => {
-      const relativePath = relative(rootDir, absolutePath);
-      try {
-        const contents = await readFile(absolutePath, "utf-8");
-        parseTokenFile(contents);
-        return { relativePath, valid: true };
-      } catch (cause) {
-        const error = cause instanceof TokenParseError ? cause.message : describeCause(cause);
-        return { relativePath, valid: false, error };
-      }
-    }),
-  );
-
-  return summaries.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+    return summaries.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+  });
 }

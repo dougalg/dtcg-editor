@@ -19,10 +19,11 @@ export default async function TokenFilePage({ params }: PageProps) {
   let node: PlainDtcgNode | undefined;
   let errorMessage: string | undefined;
 
-  try {
-    const document = await readAndParseTokenFile(config.tokensDir, relativePath);
-    node = toPlainNode(document.root);
-  } catch (error) {
+  const result = await readAndParseTokenFile(config.tokensDir, relativePath);
+  if (result.isOk()) {
+    node = toPlainNode(result.value.root);
+  } else {
+    const error = result.error;
     errorMessage =
       error instanceof PathTraversalError || error instanceof TokenParseError
         ? error.message

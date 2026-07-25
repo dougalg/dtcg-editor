@@ -10,13 +10,17 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const config = getConfig();
-  const files = await scanTokenDirectory(config.tokensDir);
+  const result = await scanTokenDirectory(config.tokensDir);
 
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem" }}>
       <h1>Token Files</h1>
       <p style={{ opacity: 0.7 }}>{config.tokensDir}</p>
-      <FolderOverview files={files} />
+      {result.isOk() ? (
+        <FolderOverview files={result.value} />
+      ) : (
+        <p role="alert">Could not scan the configured token directory.</p>
+      )}
     </main>
   );
 }
