@@ -21,7 +21,6 @@ const scopes = [
   { value: "token-core", description: "packages/token-core" },
   { value: "web-app", description: "apps/web-app" },
   { value: "root", description: "Repo-root tooling/config not tied to a single package" },
-  { value: "docs", description: "Documentation-only changes" },
 ];
 
 module.exports = { types, scopes };

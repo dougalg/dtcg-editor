@@ -70,7 +70,7 @@ fix(token-core): correct $type inheritance for nested groups without a declared 
 ```
 
 ```
-docs(docs): document the Error Handling constraint in project.md
+docs(root): document the Error Handling constraint in project.md
 ```
 
 ```
