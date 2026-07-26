@@ -18,9 +18,9 @@ This repo enforces [Conventional Commits](https://www.conventionalcommits.org/) 
 - **scope** — optional, but if present must be one of the list below.
 - **subject** — required, a short summary in the imperative mood (e.g. "add", not "added"/"adds").
 
-### Easiest way: `pnpm commit`
+### Guided commits
 
-Run `pnpm commit` instead of `git commit` and you'll be prompted step by step for type, scope, subject, body, and breaking-change info — it assembles a valid message for you. This is the recommended way to commit.
+Just run `git commit` (no `-m`) and you'll be prompted step by step for type, scope, subject, body, and breaking-change info — a `prepare-commit-msg` hook launches the same wizard `pnpm commit` uses, so there's no need to remember a separate command. `git commit -m "..."` still works and skips straight to the commitlint check, same as before.
 
 ### Types
 
@@ -45,7 +45,6 @@ Run `pnpm commit` instead of `git commit` and you'll be prompted step by step fo
 | `token-core` | `packages/token-core` |
 | `web-app` | `apps/web-app` |
 | `root` | Repo-root tooling/config not tied to a single package |
-| `docs` | Documentation-only changes |
 
 This list grows as new packages are added — see `commit-conventions.cjs`, the single source of truth both the git hook and `pnpm commit` read from.
 
