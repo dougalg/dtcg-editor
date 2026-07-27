@@ -16,7 +16,7 @@
   "dependencies": {
     "@dtcg-editor/token-type-contract": "workspace:*",
     "react": "19.2.8",
-    "zod": "^3.25.76"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
