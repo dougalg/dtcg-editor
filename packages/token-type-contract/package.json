@@ -15,12 +15,12 @@
   },
   "dependencies": {
     "neverthrow": "^8.2.0",
-    "react": "19.2.4",
-    "zod": "^3.24.1"
+    "react": "19.2.8",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "@types/react": "^19",
-    "typescript": "^5.7.2"
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.2.17",
+    "typescript": "^5.9.3"
   }
 }
