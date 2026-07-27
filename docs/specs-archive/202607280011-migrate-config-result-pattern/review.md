@@ -1,0 +1,52 @@
+# Code Review: Migrate config.ts to Result Pattern (commit `cde1a4c`)
+
+## Summary
+This is a clean, tightly-scoped refactor that does exactly what `feature.md`/`plan.md` describe: `loadConfig` now returns `Result<Config, ConfigError>` via `fromThrowable`/`.andThen`, `instrumentation.ts` branches on the `Result` instead of `try`/`catch`, and `getConfig()`'s public signature and all four call sites are untouched. Independently re-ran `pnpm build`/`lint`/`test` with Turborepo cache forced off (not trusting `impl-summary.md`'s cached numbers) — all green, 50/50 tests, no new `any`/lint suppressions, `packages/errors` untouched. No critical or major issues found. Two minor/info items below are test-coverage gaps that were explicitly called out and accepted as risks in `plan.md` itself, not regressions introduced silently. **Ready to merge.**
+
+## Findings
+
+### 🔴 Critical
+None.
+
+### 🟠 Major
+None.
+
+### 🟡 Minor
+
+| Done | Location | Category | Problem | Suggestion |
+|------|----------|----------|---------|------------|
+| [ ] | `apps/web-app/lib/config.ts:92-96` (`getConfig()`'s `ConfigNotInitializedError` branch) | Test Coverage | AC-07's fallback branch (should-be-unreachable cache-miss path) has zero automated test coverage — verified only by code review, per plan.md's own accepted risk — so a future typo (e.g. wrong error class, swapped message) would go unnoticed until it actually fires in production. | A short test could force this path deterministically (e.g. call `getConfig()` in a fresh module/test context before any `setConfigCache`/`loadConfig(cwd)` call resolves, or refactor to accept an injectable `loadConfig` for the test) — low cost given the branch is only ~5 lines. |
+| [ ] | `apps/web-app/instrumentation.ts:1-15` (`register()`) | Test Coverage | No automated test exists for `register()`'s two branches (`Ok`/`Err`); only a manual sanity check was performed per `plan.md` Step 4. This is a pre-existing gap (no test existed before this migration either), but the new `Result`-based branching is now trivially unit-testable without needing to mock/swallow a thrown exception, which wasn't true before. | Consider a follow-up backlog item: extract `register()`'s branching logic into a small pure function `(result: Result<Config, ConfigError>) => { didExit: boolean; ... }` that a Vitest test can exercise directly, without needing to mock `process.exit`/dynamic `import()`. |
+
+### 🔵 Info / Suggestions
+
+| Done | Location | Category | Problem | Suggestion |
+|------|----------|----------|---------|------------|
+| [ ] | `feature.md` (all AC checkboxes) | Process | Per this review's instructions it was run read-only, so `feature.md`'s `- [ ]` AC checkboxes were deliberately **not** flipped to `- [x]` despite all 7 being verified below (that would normally be this skill's Dimension 1 step). | A separate step/agent should mark AC-01 through AC-07 complete in `feature.md` before `sdd-archive`. |
+
+## Acceptance Criteria Coverage
+
+| AC | Test / Verification | Status | How Verified |
+|----|--------|--------|--------------|
+| AC-01: `loadConfig` returns `Result<Config, ConfigError>`, never throws | `config.test.ts` (4 failure-case tests) + code read of `config.ts:48-72` | ✅ Covered | **Independently verified** — read the full `andThen` chain confirming every prior throw site (`readFileSync`, `JSON.parse`, `safeParse`) is wrapped; ran `vitest run` fresh (forced, no cache), 5/5 `config.test.ts` tests pass |
+| AC-02: `register()` has no `try`/`catch`, same log message + `process.exit(1)` | `instrumentation.ts:1-15` | ✅ Covered | **Independently verified** via diff/code read — confirmed no `try`/`catch` remains, log message format `[dtcg-editor] Fatal startup error: ${result.error.message}` matches the original `ConfigError` branch exactly, `process.exit(1)` preserved. Did not myself execute `register()` with a mocked `process.exit` (relied on static inspection + the fact `pnpm build` type-checks it) |
+| AC-03: `getConfig()` keeps `(): Config`; 4 call sites unchanged | `app/page.tsx`, both `route.ts` files, `app/tokens/[...path]/page.tsx` | ✅ Covered | **Independently verified** — `git diff main...HEAD --name-only` confirms these 4 files are absent from the diff entirely; grepped all 4 to confirm they still call `getConfig()`; fresh `pnpm turbo build --force` compiled successfully |
+| AC-04: all 5 `config.test.ts` tests pass, Result-based only | `config.test.ts` | ✅ Covered | **Independently verified** — read the file (no `assert.throws` remains), ran `vitest run` forced/uncached: 5/5 pass |
+| AC-05: `build`/`lint`/`test` pass, no new `any`/type gaps | Turborepo | ✅ Covered | **Independently verified** — ran `pnpm turbo build/lint/test --force` (cache bypassed, not trusting `impl-summary.md`'s numbers): all green, 50/50 tests across 8 files, no new lint errors; grepped the diff for `any`/`ts-ignore`/`eslint-disable`/non-null `!` — none found |
+| AC-06: no `UnknownError` added, `packages/errors` unchanged | diff scope | ✅ Covered | **Independently verified** — `git diff main...HEAD --name-only -- packages/errors` is empty; full diff touches exactly the 3 expected files |
+| AC-07: unreachable fallback throws `ConfigNotInitializedError`, not bare `Error` | `config.ts:32-37, 92-96` | ✅ Covered (by code review only, no test — see Minor finding above) | **Independently verified by code read only** — confirmed the class is a named, dedicated `Error` subclass with `name = "ConfigNotInitializedError"`, thrown (not returned) exactly where `plan.md` specifies. No automated test exercises this path (consistent with `impl-summary.md`'s own claim — nothing over-trusted beyond what it asserted) |
+
+### Architectural Constraints (docs/project.md) — independently checked
+- **TypeScript Strictness**: no `any`, no `ts-ignore`/`ts-expect-error`, no unjustified non-null assertions in the diff (grepped). Fresh `tsc`/`next build` type-check passes.
+- **Validation at the Edges**: unchanged — `ConfigFileSchema.safeParse` (Zod) remains the sole validation point for the config file edge; no re-validation introduced elsewhere.
+- **Error Handling (Result Pattern)**: matches the constraint precisely — `fromThrowable` wraps both throw sites once, composed via `.andThen`; no new `UnknownError` (correctly, since no new unhandled-today throw site was introduced); named error (`ConfigError`) not auto-logged, left to the caller (`register()`), consistent with the constraint's own text.
+- **Minimal Dependencies**: no new `package.json` entries (confirmed no `package.json` in diff); `neverthrow` already a direct dependency (`apps/web-app/package.json:18`) and already an Approved Dependency.
+- **Round-Trip Fidelity**: not applicable — no `token-core` parse/serialize path touched.
+
+## Verdict
+- [x] ✅ Ready to merge
+- [ ] 🟡 Merge after minor fixes (no re-review needed)
+- [ ] 🟠 Requires fixes and re-review
+- [ ] 🔴 Do not merge — significant issues found
+
+Both Minor findings are pre-accepted test-coverage gaps already named in `plan.md`'s own Risks section, not new defects. They're worth a human decision on whether to close now or leave as follow-up, but neither blocks merge.
