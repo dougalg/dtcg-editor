@@ -3,16 +3,13 @@ export async function register(): Promise<void> {
     return;
   }
 
-  const { getConfig, ConfigError } = await import("./lib/config.ts");
+  const { loadConfig, setConfigCache } = await import("./lib/config.ts");
 
-  try {
-    getConfig();
-  } catch (error) {
-    if (error instanceof ConfigError) {
-      console.error(`[dtcg-editor] Fatal startup error: ${error.message}`);
-    } else {
-      console.error("[dtcg-editor] Fatal startup error while loading configuration:", error);
-    }
+  const result = loadConfig();
+  if (result.isErr()) {
+    console.error(`[dtcg-editor] Fatal startup error: ${result.error.message}`);
     process.exit(1);
+    return;
   }
+  setConfigCache(result.value);
 }

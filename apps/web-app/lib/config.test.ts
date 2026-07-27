@@ -14,37 +14,56 @@ async function withTempDir(fn: (dir: string) => Promise<void>): Promise<void> {
   }
 }
 
-test("throws ConfigError when the config file is missing", async () => {
+test("returns ConfigError when the config file is missing", async () => {
   await withTempDir(async (dir) => {
-    assert.throws(() => loadConfig(dir), ConfigError);
+    const result = loadConfig(dir);
+    assert.equal(result.isErr(), true);
+    if (result.isErr()) {
+      assert.ok(result.error instanceof ConfigError);
+    }
   });
 });
 
-test("throws ConfigError on invalid JSON", async () => {
+test("returns ConfigError on invalid JSON", async () => {
   await withTempDir(async (dir) => {
     await writeFile(join(dir, "dtcg-editor.config.json"), "{not valid json");
-    assert.throws(() => loadConfig(dir), ConfigError);
+    const result = loadConfig(dir);
+    assert.equal(result.isErr(), true);
+    if (result.isErr()) {
+      assert.ok(result.error instanceof ConfigError);
+    }
   });
 });
 
-test("throws ConfigError when tokensDir is missing", async () => {
+test("returns ConfigError when tokensDir is missing", async () => {
   await withTempDir(async (dir) => {
     await writeFile(join(dir, "dtcg-editor.config.json"), JSON.stringify({}));
-    assert.throws(() => loadConfig(dir), ConfigError);
+    const result = loadConfig(dir);
+    assert.equal(result.isErr(), true);
+    if (result.isErr()) {
+      assert.ok(result.error instanceof ConfigError);
+    }
   });
 });
 
-test("throws ConfigError when tokensDir is an empty string", async () => {
+test("returns ConfigError when tokensDir is an empty string", async () => {
   await withTempDir(async (dir) => {
     await writeFile(join(dir, "dtcg-editor.config.json"), JSON.stringify({ tokensDir: "" }));
-    assert.throws(() => loadConfig(dir), ConfigError);
+    const result = loadConfig(dir);
+    assert.equal(result.isErr(), true);
+    if (result.isErr()) {
+      assert.ok(result.error instanceof ConfigError);
+    }
   });
 });
 
 test("resolves a relative tokensDir to an absolute path", async () => {
   await withTempDir(async (dir) => {
     await writeFile(join(dir, "dtcg-editor.config.json"), JSON.stringify({ tokensDir: "./tokens" }));
-    const config = loadConfig(dir);
-    assert.equal(config.tokensDir, join(dir, "tokens"));
+    const result = loadConfig(dir);
+    assert.equal(result.isOk(), true);
+    if (result.isOk()) {
+      assert.equal(result.value.tokensDir, join(dir, "tokens"));
+    }
   });
 });
