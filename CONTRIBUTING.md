@@ -2,7 +2,7 @@
 
 ## Commit Messages
 
-This repo enforces [Conventional Commits](https://www.conventionalcommits.org/) on every commit via a local git hook. A commit that doesn't conform is rejected before it's created.
+This repo enforces [Conventional Commits](https://www.conventionalcommits.org/) on every commit via a local git hook, *and* CI re-checks every commit's message on `pull_request` and `push` runs against the same config, so a bypassed or missing local hook can't slip a non-conforming commit onto `main`.
 
 ### Format
 
@@ -61,6 +61,17 @@ feat(token-core): change parseTokenFile's return type
 
 BREAKING CHANGE: parseTokenFile now returns a Result instead of throwing.
 ```
+
+### Merge Commits & Rebasing
+
+Merge commits are **forbidden in feature branches**. This repo rebase-merges PRs into `main`, so every individual commit in your branch lands permanently on `main`'s history — a `Merge branch 'main' into feature/x` commit would land there too, and it isn't a Conventional Commit message. If your branch falls behind `main`, rebase onto it instead of merging it in:
+
+```
+git fetch origin
+git rebase origin/main
+```
+
+CI's commit-message check (see above) tolerates/skips merge-commit-shaped messages defensively, so an accidental merge commit won't spuriously fail the build — but that tolerance is a backstop, not an invitation to merge freely. Rebase is the required workflow.
 
 ### Examples
 
