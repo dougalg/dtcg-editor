@@ -3,7 +3,6 @@
 Planned features not yet in progress. Pick one and run `/sdd-feature` to start it.
 Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
-- [ ] CI-level Conventional Commit enforcement — lint actual commit messages/PR commit range in CI (not just the commitlint config's own unit tests); local husky `commit-msg` hook remains the only enforcement today. Deferred from the Bootstrap CI feature.
 - [ ] Inject dependencies by default (e.g. `fs.readFile`, etc.) — establish a convention for passing I/O/platform calls in as explicit parameters rather than importing and calling them directly, for testability and consistency; interacts with the Result-pattern refactor's Logger-injection approach.
 - [ ] Define UI-layer `Result` consumption conventions (React hooks, error boundaries) once real client-side component code exists — `docs/project.md`'s Error Handling constraint explicitly defers this; also covers giving `FileNotFoundError` its own distinct message in `page.tsx` instead of the generic fallback.
 - [ ] CLI to bootstrap `dtcg-editor.config.json` — interactive/flag-driven command that scaffolds the web app's config file (currently just `tokensDir`) for a new user instead of hand-writing JSON; should validate against the same schema `instrumentation.ts` uses at startup.

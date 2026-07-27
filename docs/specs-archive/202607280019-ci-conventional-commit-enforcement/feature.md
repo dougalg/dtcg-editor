@@ -36,16 +36,16 @@ The husky `commit-msg` hook and `pnpm commit` (commitizen) CLI are unchanged. Th
 **Resolved (was part of Open Question 2):** since merge commits are excluded from CI linting (FR-02) rather than validated, `CONTRIBUTING.md` (or wherever contributor workflow is documented) is updated to explicitly state that merge commits are forbidden in feature branches and that contributors must rebase onto `main` instead of merging it in. This closes the gap defensively: the CI lint tolerates/excludes merge commits (so they can't cause false-positive failures), but the accompanying policy means contributors shouldn't be relying on that exclusion in normal practice — it's a backstop, not an invitation to merge freely.
 
 ## Acceptance Criteria
-- [ ] AC-01: A PR containing a commit whose message doesn't conform to `commitlint.config.cjs` (e.g. wrong type, out-of-enum scope, missing subject) fails CI, with the failing step's log showing which commit and which commitlint rule failed.
-- [ ] AC-02: A PR where every commit conforms passes this new CI step (no false positives on well-formed commits).
-- [ ] AC-03: A PR containing a normal `git merge`-generated merge commit (e.g. from merging `main` into the feature branch) does not spuriously fail CI — merge commits are excluded from linting (FR-02).
-- [ ] AC-04: The new CI step reuses `commitlint.config.cjs` directly (no duplicated/parallel rule definitions) — verified by inspecting the workflow step's invocation.
-- [ ] AC-05: The existing local `commit-msg` hook, `pnpm commit` CLI, and `test:commits` task continue to work unchanged (regression check — this feature adds to `ci.yml` only).
-- [ ] AC-06: `docs/project.md` is updated at `/sdd-archive` time to note CI now also lints real commit messages, per the existing pattern used for prior features.
-- [ ] AC-07: `CONTRIBUTING.md`'s Scopes table and `commit-conventions.cjs`'s `scopes` array are verified to still match (no `docs`-scope drift reintroduced) — a regression check only; no code change is expected since `9005d5a` already fixed this prior to this branch (FR-05).
-- [ ] AC-08: A direct `push` to `main` containing a non-conforming commit message fails CI the same way a PR would (FR-03); a `push` to `main` where all pushed commits conform passes.
-- [ ] AC-09: `CONTRIBUTING.md` (or the relevant contributor-workflow doc) states that merge commits are forbidden in feature branches and that contributors must rebase onto `main` instead (FR-07).
-- [ ] AC-10: The commitlint invocation is hand-rolled against the existing `@commitlint/cli` devDependency — no third-party GitHub Action is introduced (FR-02/FR-03, Technical Scope).
+- [x] AC-01: A PR containing a commit whose message doesn't conform to `commitlint.config.cjs` (e.g. wrong type, out-of-enum scope, missing subject) fails CI, with the failing step's log showing which commit and which commitlint rule failed.
+- [x] AC-02: A PR where every commit conforms passes this new CI step (no false positives on well-formed commits).
+- [x] AC-03: A PR containing a normal `git merge`-generated merge commit (e.g. from merging `main` into the feature branch) does not spuriously fail CI — merge commits are excluded from linting (FR-02).
+- [x] AC-04: The new CI step reuses `commitlint.config.cjs` directly (no duplicated/parallel rule definitions) — verified by inspecting the workflow step's invocation.
+- [x] AC-05: The existing local `commit-msg` hook, `pnpm commit` CLI, and `test:commits` task continue to work unchanged (regression check — this feature adds to `ci.yml` only).
+- [x] AC-06: `docs/project.md` is updated at `/sdd-archive` time to note CI now also lints real commit messages, per the existing pattern used for prior features.
+- [x] AC-07: `CONTRIBUTING.md`'s Scopes table and `commit-conventions.cjs`'s `scopes` array are verified to still match (no `docs`-scope drift reintroduced) — a regression check only; no code change is expected since `9005d5a` already fixed this prior to this branch (FR-05).
+- [x] AC-08: A direct `push` to `main` containing a non-conforming commit message fails CI the same way a PR would (FR-03); a `push` to `main` where all pushed commits conform passes.
+- [x] AC-09: `CONTRIBUTING.md` (or the relevant contributor-workflow doc) states that merge commits are forbidden in feature branches and that contributors must rebase onto `main` instead (FR-07).
+- [x] AC-10: The commitlint invocation is hand-rolled against the existing `@commitlint/cli` devDependency — no third-party GitHub Action is introduced (FR-02/FR-03, Technical Scope).
 
 ## Technical Scope
 

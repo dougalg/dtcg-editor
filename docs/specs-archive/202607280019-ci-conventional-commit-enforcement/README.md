@@ -1,0 +1,13 @@
+# CI-Level Conventional Commit Enforcement
+
+Implemented on: 2026-07-28
+
+Adds a second, parallel `commitlint` job to `.github/workflows/ci.yml` (sibling to the existing `ci` build/lint/test job) that lints the *actual* commit messages introduced by a PR or push, closing the gap left by both the Bootstrap CI and Enforce Conventional Commits features: until now, Conventional Commit compliance was enforced only by the local husky `commit-msg` hook (bypassable with `--no-verify`, or skipped entirely without a local `pnpm install`) and by `pnpm test`'s `//#test:commits` task, which only re-validates the commitlint config's own behavior against fixed example strings, never real commit history.
+
+The new job hand-rolls `pnpm exec commitlint --from/--to` against the repo's existing `commitlint.config.cjs` (no new config, no third-party GitHub Action) — for `pull_request` events it lints `github.event.pull_request.base.sha`..`head.sha`; for `push` events it lints `github.event.before`..`github.event.after`, falling back to `git rev-list --max-parents=0` when `before` is the all-zeros SHA (new branch's first push). Ordinary `git merge` commits are silently excluded from linting by commitlint's own default-ignore behavior (empirically verified, not assumed), paired with a new `CONTRIBUTING.md` section forbidding merge commits in feature branches and requiring rebase onto `main` instead — this repo rebase-merges PRs, so every individual commit lands permanently on `main`'s history.
+
+Key files: `.github/workflows/ci.yml`, `CONTRIBUTING.md`.
+
+Notable decisions (recorded in `docs/project.md`'s Architecture Decisions table): hand-rolling against the existing `@commitlint/cli` devDependency rather than a third-party Action (e.g. `wagoid/commitlint-github-action`); a new sibling job rather than a new step in the existing `ci` job, to get an independently-attributable PR check and an isolated `fetch-depth: 0` checkout; the merge-commit/rebase-required contributor policy; and a workflow-level `concurrency` group (`bc297a3`) added after `/sdd-review` flagged its absence.
+
+`/sdd-review` found 0 Critical, 0 Major, 3 Minor, and 3 Info findings. One Minor (missing `concurrency` group) was fixed and committed separately (`bc297a3`) per human decision. One Minor (missing `timeout-minutes`) was explicitly left as-is per human decision — not a regression, a deliberate scope call. One Minor (duplicated checkout/setup steps between the two jobs) was already pre-accepted in `plan.md`'s own Risks & Mitigations section. Verdict: Ready to merge. All 10 acceptance criteria were independently re-verified by the reviewer against a real scratch-repo `commitlint` binary, not just re-read from `impl-summary.md`'s claims.
