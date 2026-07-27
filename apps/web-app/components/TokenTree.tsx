@@ -1,22 +1,119 @@
 "use client";
 
 import { useState } from "react";
+import type { ChangeEvent } from "react";
+import { DimensionEditor } from "@dtcg-editor/token-type-dimension";
+import type { DimensionValue } from "@dtcg-editor/token-type-dimension";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
+import {
+  applyEditsToPlainNode,
+  checkRenameAvailable,
+  findSiblings,
+  validateDimensionValue,
+} from "../lib/tokens/edit-state.ts";
+import type { ClientEdit } from "../lib/tokens/edit-state.ts";
 import styles from "./TokenTree.module.css";
 
 function formatValue(value: unknown): string {
   return typeof value === "string" ? value : JSON.stringify(value);
 }
 
-function TreeNode({ node }: { node: PlainDtcgNode }) {
+function pathKey(path: readonly string[]): string {
+  return path.join(".");
+}
+
+interface FieldErrors {
+  readonly name: string | undefined;
+  readonly value: string | undefined;
+}
+
+type EditablePatch = Partial<Pick<ClientEdit, "name" | "value" | "description">>;
+
+interface TreeNodeProps {
+  readonly node: PlainDtcgNode;
+  readonly root: PlainDtcgNode;
+  readonly pendingEdits: ReadonlyMap<string, ClientEdit>;
+  readonly fieldErrors: ReadonlyMap<string, FieldErrors>;
+  readonly onStageEdit: (path: readonly string[], patch: EditablePatch) => void;
+  readonly onFieldError: (path: readonly string[], errors: FieldErrors) => void;
+}
+
+function TreeNode({ node, root, pendingEdits, fieldErrors, onStageEdit, onFieldError }: TreeNodeProps) {
   const [expanded, setExpanded] = useState(true);
 
   if (node.kind === "token") {
+    const key = pathKey(node.path);
+    const pending = pendingEdits.get(key);
+    const errors = fieldErrors.get(key);
+    const isDimension = node.effectiveType === "dimension";
+    const existingValueValidation = isDimension ? validateDimensionValue(node.value) : undefined;
+    const canEdit = existingValueValidation?.ok === true;
+
+    if (!canEdit) {
+      return (
+        <li className={styles.token}>
+          <span className={styles.name}>{node.name}</span>
+          {node.effectiveType !== undefined && <span className={styles.type}>{node.effectiveType}</span>}
+          <span className={styles.value}>{formatValue(node.value)}</span>
+        </li>
+      );
+    }
+
+    const currentName = pending?.name ?? node.name;
+    // Safe: the only place that stages `pending.value` is `handleValueChange`
+    // below, which validates it against `DimensionValueSchema` before ever
+    // calling `onStageEdit` — nothing else writes to `pendingEdits`.
+    const currentValue = (pending?.value as DimensionValue | undefined) ?? existingValueValidation.value;
+    const currentDescription = pending?.description ?? node.description ?? "";
+
+    function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
+      const nextName = event.target.value;
+      // Reflects other tokens' staged-but-unsaved renames too, so freeing up
+      // a name via one pending edit lets another pending edit claim it in
+      // the same session, without waiting for a save round-trip.
+      const effectiveRoot = applyEditsToPlainNode(root, Array.from(pendingEdits.values()));
+      const siblings = findSiblings(effectiveRoot, node.path);
+      if (!checkRenameAvailable(siblings, nextName, node.name)) {
+        onFieldError(node.path, { name: `"${nextName}" already exists here`, value: errors?.value });
+        return;
+      }
+      onFieldError(node.path, { name: undefined, value: errors?.value });
+      onStageEdit(node.path, { name: nextName });
+    }
+
+    function handleValueChange(nextValue: DimensionValue) {
+      const validation = validateDimensionValue(nextValue);
+      if (!validation.ok) {
+        onFieldError(node.path, { name: errors?.name, value: validation.error });
+        return;
+      }
+      onFieldError(node.path, { name: errors?.name, value: undefined });
+      onStageEdit(node.path, { value: validation.value });
+    }
+
+    function handleDescriptionChange(event: ChangeEvent<HTMLInputElement>) {
+      onStageEdit(node.path, { description: event.target.value });
+    }
+
     return (
       <li className={styles.token}>
-        <span className={styles.name}>{node.name}</span>
+        <input
+          className={styles.name}
+          value={currentName}
+          onChange={handleNameChange}
+          aria-label={`${node.name} name`}
+        />
         {node.effectiveType !== undefined && <span className={styles.type}>{node.effectiveType}</span>}
-        <span className={styles.value}>{formatValue(node.value)}</span>
+        <DimensionEditor value={currentValue} onChange={handleValueChange} />
+        <input
+          className={styles.value}
+          value={currentDescription}
+          onChange={handleDescriptionChange}
+          aria-label={`${node.name} description`}
+          placeholder="Description"
+        />
+        {errors?.name !== undefined && <span role="alert">{errors.name}</span>}
+        {errors?.value !== undefined && <span role="alert">{errors.value}</span>}
       </li>
     );
   }
@@ -29,7 +126,15 @@ function TreeNode({ node }: { node: PlainDtcgNode }) {
       {expanded && (
         <ul className={styles.children}>
           {node.children.map((child) => (
-            <TreeNode key={child.path.join(".")} node={child} />
+            <TreeNode
+              key={child.path.join(".")}
+              node={child}
+              root={root}
+              pendingEdits={pendingEdits}
+              fieldErrors={fieldErrors}
+              onStageEdit={onStageEdit}
+              onFieldError={onFieldError}
+            />
           ))}
         </ul>
       )}
@@ -37,10 +142,82 @@ function TreeNode({ node }: { node: PlainDtcgNode }) {
   );
 }
 
-export function TokenTree({ node }: { node: PlainDtcgNode }) {
+export function TokenTree({ node, relativePath }: { node: PlainDtcgNode; relativePath: string }) {
+  const [treeState, setTreeState] = useState(node);
+  const [pendingEdits, setPendingEdits] = useState<Map<string, ClientEdit>>(new Map());
+  const [fieldErrors, setFieldErrors] = useState<Map<string, FieldErrors>>(new Map());
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "error">("idle");
+  const [saveError, setSaveError] = useState<string | undefined>(undefined);
+
+  function stageEdit(path: readonly string[], patch: EditablePatch) {
+    const key = pathKey(path);
+    setPendingEdits((prev) => {
+      const next = new Map(prev);
+      const existing = next.get(key) ?? { path };
+      next.set(key, { ...existing, ...patch });
+      return next;
+    });
+  }
+
+  function setFieldError(path: readonly string[], errors: FieldErrors) {
+    const key = pathKey(path);
+    setFieldErrors((prev) => {
+      const next = new Map(prev);
+      if (errors.name !== undefined || errors.value !== undefined) {
+        next.set(key, errors);
+      } else {
+        next.delete(key);
+      }
+      return next;
+    });
+  }
+
+  async function handleSave() {
+    setSaveState("saving");
+    setSaveError(undefined);
+    const edits = Array.from(pendingEdits.values());
+
+    try {
+      const response = await fetch(`/api/tokens/${relativePath}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ edits }),
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => ({}))) as { error?: string };
+        setSaveState("error");
+        setSaveError(body.error ?? `Save failed with status ${response.status}`);
+        return;
+      }
+
+      setTreeState((current) => applyEditsToPlainNode(current, edits));
+      setPendingEdits(new Map());
+      setSaveState("idle");
+    } catch (error) {
+      setSaveState("error");
+      setSaveError(error instanceof Error ? error.message : "Save failed");
+    }
+  }
+
+  const hasPendingEdits = pendingEdits.size > 0;
+
   return (
-    <ul className={styles.root}>
-      <TreeNode node={node} />
-    </ul>
+    <div>
+      <ul className={styles.root}>
+        <TreeNode
+          node={treeState}
+          root={treeState}
+          pendingEdits={pendingEdits}
+          fieldErrors={fieldErrors}
+          onStageEdit={stageEdit}
+          onFieldError={setFieldError}
+        />
+      </ul>
+      <button type="button" onClick={handleSave} disabled={!hasPendingEdits || saveState === "saving"}>
+        {saveState === "saving" ? "Saving…" : "Save"}
+      </button>
+      {saveState === "error" && saveError !== undefined && <p role="alert">{saveError}</p>}
+    </div>
   );
 }

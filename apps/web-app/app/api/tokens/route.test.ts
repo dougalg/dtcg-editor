@@ -1,4 +1,4 @@
-import { after, before, test } from "node:test";
+import { afterAll, beforeAll, test } from "vitest";
 import assert from "node:assert/strict";
 import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -21,7 +21,7 @@ function fakeLogger(): { logger: Logger; state: { calls: number } } {
 let fixtureDir: string;
 let originalCwd: string;
 
-before(async () => {
+beforeAll(async () => {
   originalCwd = process.cwd();
   fixtureDir = await mkdtemp(join(tmpdir(), "dtcg-tokens-route-"));
   const tokensDir = join(fixtureDir, "tokens");
@@ -32,7 +32,7 @@ before(async () => {
   process.chdir(fixtureDir);
 });
 
-after(async () => {
+afterAll(async () => {
   process.chdir(originalCwd);
   await rm(fixtureDir, { recursive: true, force: true });
 });

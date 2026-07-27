@@ -36,7 +36,7 @@ export default async function TokenFilePage({ params }: PageProps) {
         <Link href="/">&larr; Back to folder overview</Link>
       </p>
       <h1>{relativePath}</h1>
-      {node !== undefined ? <TokenTree node={node} /> : <p role="alert">{errorMessage}</p>}
+      {node !== undefined ? <TokenTree node={node} relativePath={relativePath} /> : <p role="alert">{errorMessage}</p>}
     </main>
   );
 }
