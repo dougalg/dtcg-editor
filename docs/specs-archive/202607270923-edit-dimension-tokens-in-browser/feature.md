@@ -33,13 +33,13 @@ Saving re-serializes the file's full token document — not just the edited toke
 If the save request fails for any reason (write error on the server, network failure, etc.), the pending edits remain in the browser exactly as staged — nothing is discarded — and the user sees a clear indication that the save failed, so they can retry.
 
 ## Acceptance Criteria
-- [ ] AC-01: Viewing a file containing a Dimension token shows editable controls for that token's name, value, and description; a token of any other type shows no edit controls.
-- [ ] AC-02: Entering a `$value` that doesn't conform to the Dimension type's spec shape is rejected with a visible error and is not staged as a pending edit.
-- [ ] AC-03: Renaming a Dimension token to a name already used by a sibling is rejected with a visible error and is not staged as a pending edit.
-- [ ] AC-04: Staging edits to multiple Dimension tokens in the same file, then clicking Save, writes all of them to that file in a single write.
-- [ ] AC-05: After a successful save, re-reading the file from disk shows the edited name/value/description, and all other tokens/fields in the file (including any unrecognized/extension fields) are byte-for-data unchanged from before the edit.
-- [ ] AC-06: Simulating a save failure (e.g. a write error) leaves the pending edits visible and still editable in the browser, with a visible failure indication.
-- [ ] AC-07: `token-core` gains a `serialize()` (or equivalently named) function with round-trip tests: parse → serialize (no edits) → re-parse is deep-equal to the original parse, for every existing DTCG fixture file in the test suite.
+- [x] AC-01: Viewing a file containing a Dimension token shows editable controls for that token's name, value, and description; a token of any other type shows no edit controls.
+- [x] AC-02: Entering a `$value` that doesn't conform to the Dimension type's spec shape is rejected with a visible error and is not staged as a pending edit.
+- [x] AC-03: Renaming a Dimension token to a name already used by a sibling is rejected with a visible error and is not staged as a pending edit.
+- [x] AC-04: Staging edits to multiple Dimension tokens in the same file, then clicking Save, writes all of them to that file in a single write.
+- [x] AC-05: After a successful save, re-reading the file from disk shows the edited name/value/description, and all other tokens/fields in the file (including any unrecognized/extension fields) are byte-for-data unchanged from before the edit.
+- [x] AC-06: Simulating a save failure (e.g. a write error) leaves the pending edits visible and still editable in the browser, with a visible failure indication.
+- [x] AC-07: `token-core` gains a `serialize()` (or equivalently named) function with round-trip tests: parse → serialize (no edits) → re-parse is deep-equal to the original parse, for every existing DTCG fixture file in the test suite.
 
 ## Technical Scope
 ### Affected Modules

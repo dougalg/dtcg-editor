@@ -12,7 +12,7 @@ dtcg-editor is an open source editor for DTCG (Design Tokens Community Group) de
 - ORM: none
 - Migrations: none
 - Messaging: none
-- Testing: Node's built-in test runner (`node:test` + `node:assert/strict`) — no third-party test framework (Vitest/Jest) unless a concrete gap justifies one in a future `plan.md`, per the Minimal Dependencies constraint
+- Testing: Node's built-in test runner (`node:test` + `node:assert/strict`) for `packages/*` (`token-core`, `errors`, `token-type-contract`, `token-type-dimension`) — none of these render JSX. `apps/web-app` uses Vitest + `@testing-library/react` (`jsdom` environment) instead, since `node:test`'s native TypeScript support only strips type syntax and cannot execute `.tsx`/JSX at all (confirmed empirically) — the "concrete gap" this line's own carve-out anticipated. See the Edit Dimension Tokens in Browser feature.
 - Other: not yet decided
 
 ## Architecture
@@ -88,6 +88,10 @@ Because the DTCG spec permits extensions and tool-specific fields, the `token-co
 - `@commitlint/cli` + `@commitlint/config-conventional` (commit message validation against the full Conventional Commits spec — see the Enforce Conventional Commits feature)
 - `commitizen` + `cz-customizable` (interactive commit CLI, sharing the same type/scope config as commitlint)
 - `husky` (installs the local `commit-msg` git hook automatically on `pnpm install`)
+- `vitest` (`apps/web-app` only — `node:test` cannot execute `.tsx`/JSX at all, confirmed empirically; see the Edit Dimension Tokens in Browser feature)
+- `@vitejs/plugin-react` (Vitest's standard React-JSX transform, needed alongside `vitest` since the default esbuild transform alone doesn't reliably match the automatic JSX runtime Next.js/React 19 expect)
+- `jsdom` (the DOM environment Vitest renders `apps/web-app` components into — no built-in Node alternative exists)
+- `@testing-library/react` (renders/queries components the way a user would; the standard pairing with Vitest for component tests, avoiding a hand-rolled DOM-assertion harness)
 
 Anything outside this list requires a flag before adding.
 
@@ -100,6 +104,7 @@ Anything outside this list requires a flag before adding.
 - **Enforce Conventional Commits**: local `commit-msg` git hook (commitlint) and an interactive `pnpm commit` CLI (commitizen) enforce a fixed Conventional Commits type/scope standard, both reading one shared config so they can't drift; documented in `CONTRIBUTING.md`. CI-level enforcement is deferred (`docs/backlog.md`). (`docs/specs-archive/202607251245-enforce-conventional-commits/`)
 - **Migrate to Result-Pattern Error Handling**: the token read chain (`token-core` parsing + all `web-app` consumers) returns `Result`/`ResultAsync` instead of throwing, per the Error Handling constraint above; a new `@dtcg-editor/errors` package provides the shared `UnknownError`/`Logger`; closes a previously-unhandled `readdir`-crash gap in `scanTokenDirectory` along the way. (`docs/specs-archive/202607251455-migrate-to-result-pattern-error-handling/`)
 - **Bootstrap CI (GitHub Actions)**: a GitHub Actions workflow runs `pnpm build`/`lint`/`test` (via Turborepo) on pull requests into `main` and on pushes to `main`; type checking is covered by `build` alone (`tsc`/`next build`), so no separate typecheck step exists. CI-level Conventional Commit enforcement remains deferred (`docs/backlog.md`). (`docs/specs-archive/202607251627-bootstrap-ci-github-actions/`)
+- **Edit Dimension Tokens in Browser**: Dimension tokens' name/`$value`/description are editable in the web app's token tree view and saved back to their file's JSON on disk in one batch write; every other token type stays read-only. First implementation of `token-core`'s `serialize()`/round-trip path and of the Token-Type Package Contract (`@dtcg-editor/token-type-contract` + `@dtcg-editor/token-type-dimension`, the first concrete token-type package). (`docs/specs-archive/202607270923-edit-dimension-tokens-in-browser/`)
 
 ## Architecture Decisions
 
@@ -115,12 +120,17 @@ Anything outside this list requires a flag before adding.
 | 2026-07-25 | A Next.js Route Handler needing an injectable dependency (e.g. a `Logger`) for testing splits its logic into a separately-exported, injectable function that the exported `GET`/`POST`/etc. wraps, rather than changing the handler's own signature | Next.js's generated route types constrain the exported HTTP-verb functions to their exact expected signature (`next build` fails type-checking otherwise) — confirmed by trying to add a second parameter directly to `GET` first. Directly relevant to the open "inject dependencies by default" backlog item | [Migrate to Result-Pattern Error Handling](docs/specs-archive/202607251455-migrate-to-result-pattern-error-handling/) |
 | 2026-07-25 | GitHub Actions workflows install pnpm via `corepack enable` (reading the `packageManager` field) plus `actions/setup-node`'s built-in `cache: pnpm`, rather than a third-party action like `pnpm/action-setup` or manual `actions/cache` wiring | Keeps the workflow's action surface limited to GitHub-maintained actions, consistent with the Minimal Dependencies constraint applied to CI tooling as well as package dependencies; reusable pattern for any future workflow (release, docs deploy, etc.) added to this repo | [Bootstrap CI (GitHub Actions)](docs/specs-archive/202607251627-bootstrap-ci-github-actions/) |
 | 2026-07-25 | CI relies on `pnpm build` as the sole type-checking gate (no separate `tsc --noEmit`/typecheck step) | Every package's `build` script already fails on type errors — `tsc -p tsconfig.json` for `token-core`/`errors`, `next build` for `web-app` — so a dedicated step would redundantly re-check the same source; load-bearing assumption that breaks silently if a future `next.config.ts` change sets `typescript.ignoreBuildErrors` | [Bootstrap CI (GitHub Actions)](docs/specs-archive/202607251627-bootstrap-ci-github-actions/) |
+| 2026-07-27 | Round-Trip Fidelity is satisfied by rebuilding the tree and `JSON.stringify`-ing it, not by source-preserving/AST-based editing | The constraint only requires the *data* to round-trip, not formatting/key ordering — closes the gap flagged as deliberate-but-temporary when the read-only viewer shipped without `serialize()` | [Edit Dimension Tokens in Browser](docs/specs-archive/202607270923-edit-dimension-tokens-in-browser/) |
+| 2026-07-27 | `token-core` stays completely type-agnostic even for editing: the "is this token's type currently editable" policy lives in `apps/web-app`, not `token-core` | Matches the Token-Type Package Contract principle that the core engine never hard-codes a specific type; adding the next editable token type is an app-layer change only | [Edit Dimension Tokens in Browser](docs/specs-archive/202607270923-edit-dimension-tokens-in-browser/) |
+| 2026-07-27 | `apps/web-app` is the only package on Vitest; `packages/*` (including the new `token-type-*` packages) stay on `node:test` | Scoped to exactly where the concrete gap exists — only `apps/web-app` renders/tests JSX components | [Edit Dimension Tokens in Browser](docs/specs-archive/202607270923-edit-dimension-tokens-in-browser/) |
+| 2026-07-27 | Client-side token edits apply optimistically to a local copy of the tree rather than via a full Server Component refresh | Avoids a timing race between clearing "pending" UI state and a server re-fetch landing, at the cost of a second, parallel "apply an edit immutably" implementation (client array-based `PlainDtcgNode`, server `Map`-based `TokenDocument`) — mirrors the existing `DtcgNode`/`PlainDtcgNode` split already in the codebase | [Edit Dimension Tokens in Browser](docs/specs-archive/202607270923-edit-dimension-tokens-in-browser/) |
 
 ## API
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|----------------|
 | GET | /api/tokens | Lists discovered token files under the configured directory, each marked valid/invalid; 500 on scan failure | No |
 | GET | /api/tokens/[...path] | Returns a single parsed token document; 400 (path traversal), 404 (not found), 422 (parse failure), or 500 (unexpected failure) on error | No |
+| PATCH | /api/tokens/[...path] | Applies a batch of Dimension-token edits (rename/value/description) to the file and writes it back in one operation; 400 (invalid request/value, rename collision, non-editable type, path traversal), 404 (not found), 422 (parse failure), or 500 (write failure) on error | No |
 
 ## Environment & Configuration
 | Key | Description | Required | Default |
