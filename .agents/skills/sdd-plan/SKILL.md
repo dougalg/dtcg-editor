@@ -107,4 +107,10 @@ Brief description of the implementation approach.
 Low / Medium / High — brief justification
 ```
 
-After writing the file, present a summary of the plan and ask the user to approve before proceeding to `/sdd-implement`.
+### 4. Stop and Wait for Review
+
+After writing the file, present a summary of the plan.
+
+**Do NOT invoke `/sdd-implement` (or any other step) in this same turn, automatically, or "since it's next in the pipeline."** This is a hard stop, not a formality — it applies even if you're confident the plan is obviously correct or low-risk, and even if the instructions that led you here said to run the SDD steps "in order" or "always": that means always run `/sdd-plan` before `/sdd-implement`, never that they should run back-to-back without a human checkpoint in between. Low perceived risk in the plan itself is not a reason to skip this step — the review gate exists so the user can catch a wrong assumption before it's built and committed, not just to resolve open questions.
+
+Wait for the user's explicit go-ahead (e.g. "looks good", "proceed", "go ahead") before invoking `/sdd-implement`. If the user responds with change requests instead, apply them directly, then re-present the updated plan for review rather than proceeding.
