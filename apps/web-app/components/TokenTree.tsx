@@ -14,6 +14,7 @@ import {
 import type { ClientEdit } from "../lib/tokens/edit-state.ts";
 import type { SaveError } from "../lib/tokens/save-error.ts";
 import { useSaveTokenEdits } from "../hooks/useSaveTokenEdits.ts";
+import { SaveButton } from "./SaveButton.tsx";
 import styles from "./TokenTree.module.css";
 
 /** Renders a `SaveError` (see `hooks/useSaveTokenEdits.ts`) as a single display string. */
@@ -251,13 +252,11 @@ export function TokenTree({
 					onFieldError={setFieldError}
 				/>
 			</ul>
-			<button
-				type="button"
+			<SaveButton
 				onClick={handleSave}
 				disabled={!hasPendingEdits || saveState === "pending"}
-			>
-				{saveState === "pending" ? "Saving…" : "Save"}
-			</button>
+				pending={saveState === "pending"}
+			/>
 			{saveState === "error" && saveError !== undefined && (
 				<p role="alert">{describeSaveError(saveError)}</p>
 			)}

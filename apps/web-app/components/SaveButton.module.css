@@ -1,0 +1,38 @@
+.button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.65rem 1.4rem;
+	border: none;
+	border-radius: 0.5rem;
+	background: var(--accent);
+	color: var(--accent-foreground);
+	font-size: 1rem;
+	font-weight: 600;
+	font-family: inherit;
+	cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+	background: var(--accent-hover);
+}
+
+.button:focus-visible {
+	outline: 2px solid var(--accent-hover);
+	outline-offset: 2px;
+}
+
+.button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.icon {
+	width: 1.15em;
+	height: 1.15em;
+	flex-shrink: 0;
+}
+
+.label {
+	line-height: 1;
+}
