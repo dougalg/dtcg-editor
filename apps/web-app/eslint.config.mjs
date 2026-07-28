@@ -6,6 +6,11 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
+    settings: {
+      react: {
+        version: "19",
+      },
+    },
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
     },
