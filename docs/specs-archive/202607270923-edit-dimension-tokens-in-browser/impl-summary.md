@@ -1,6 +1,7 @@
 ## Implementation Complete
 
 ### Files Created
+
 - `packages/token-core/src/serialize.ts` + `serialize.test.ts` — `serializeTokenFile`, round-trip tests
 - `packages/token-core/src/edit.ts` + `edit.test.ts` — `applyTokenEdits`, `TokenEditError`
 - `packages/token-type-contract/` (new package) — `TokenTypeContract`, `validateTokenValue`, `contract.test.ts`
@@ -12,6 +13,7 @@
 - `apps/web-app/components/TokenTree.test.tsx` — component test (Vitest + Testing Library)
 
 ### Files Modified
+
 - `packages/token-core/src/resolve-type.ts` — added `findNode`
 - `packages/token-core/src/index.ts` — new exports
 - `apps/web-app/package.json` — new workspace deps (`token-type-contract`, `token-type-dimension`), new devDeps (`vitest`, `@vitejs/plugin-react`, `jsdom`, `@testing-library/react`), `test` script → `vitest run`
@@ -22,6 +24,7 @@
 - `apps/web-app/app/tokens/[...path]/page.tsx` — passes `relativePath` to `TokenTree`
 
 ### Acceptance Criteria
+
 - [x] AC-01: Passed — `apps/web-app/components/TokenTree.test.tsx`
 - [x] AC-02: Passed — `packages/token-type-dimension/src/dimension.test.ts` + `route.test.ts` ("PATCH returns 400 for an invalid dimension value")
 - [x] AC-03: Passed — `edit-state.test.ts`, `edit.test.ts`, `route.test.ts`, `TokenTree.test.tsx`
@@ -33,13 +36,15 @@
 Full monorepo `pnpm build`/`pnpm lint`/`pnpm test` all pass (10/10 Turborepo tasks green; 50 web-app tests, 19 token-core, 5 token-type-dimension, 2 token-type-contract, 3 errors).
 
 ### Review Fixes (`/sdd-review`, see `review.md`)
+
 - Fixed (Major): `route.ts`'s inline rename-collision pre-check validated against the pre-batch document and could wrongly reject a same-batch rename that another edit in the batch had just freed up — removed; `applyTokenEdits` already handles this correctly and sequentially. Regression test added.
-- Fixed (Major): `TokenTree.tsx`'s `handleNameChange` had the identical bug client-side (checked only against the last-*saved* tree, ignoring other tokens' pending renames) — now builds an effective tree from `pendingEdits` before checking availability; `findSiblings` tightened to exclude the node itself by path. Regression test added.
+- Fixed (Major): `TokenTree.tsx`'s `handleNameChange` had the identical bug client-side (checked only against the last-_saved_ tree, ignoring other tokens' pending renames) — now builds an effective tree from `pendingEdits` before checking availability; `findSiblings` tightened to exclude the node itself by path. Regression test added.
 - Fixed (Minor): `edit.ts`'s `rebuildAncestorChain` threw plain `Error`s for "impossible" states inside a `Result`-returning API — changed to return `undefined` instead, surfaced as a `TokenEditError` by its caller. (My first-pass fix used a non-null assertion; reverted after discovering `@typescript-eslint/no-non-null-assertion` is fully banned by this repo's ESLint config, not just discouraged.)
 - Fixed (Minor): kept the `parent === undefined` guard in `edit.ts` (review had called it dead code to remove) — same lint constraint means an explicit check is the only compliant way to narrow `T | undefined` here; re-scoped to a kept-with-clarifying-comment fix instead.
 - Fixed (Minor): added a justifying comment to the `as DimensionValue` cast in `TokenTree.tsx`.
 
 ### Notes
+
 - Deviation: `writeAndSerializeTokenFile` takes a `TokenDocument` (not a pre-serialized string) and calls `serializeTokenFile` internally — mirrors `readAndParseTokenFile`'s "read, then parse" combo symmetrically, refining the plan's literal signature.
 - Deviation: `token-type-dimension`'s schema (`dimension.ts`) and its assembled `dimensionTokenType` contract object (`token-type.ts`) were split into two files. `dimension.ts` originally also built the contract object, which imports `editor.tsx` (JSX) — meaning `dimension.test.ts` transitively loaded a `.tsx` file, which `node --test` cannot handle at all (confirmed empirically), not just its JSX content. Splitting keeps the schema (and its test) free of any JSX dependency.
 - Addition beyond plan text: `contract.test.ts` in `token-type-contract` (so the package's `test` script has something to run, consistent with every other package); `findSiblings` helper and `fieldErrors` component state (needed for rename-collision UI feedback); a safety fallback where a token declared `dimension` but holding a pre-existing malformed value renders read-only instead of crashing.

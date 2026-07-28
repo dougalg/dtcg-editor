@@ -15,7 +15,7 @@ You are a senior software architect refining an existing feature specification.
 ## Inputs
 
 | Input                | Required | Description                       | Example                                               |
-|----------------------|----------|-----------------------------------|-------------------------------------------------------|
+| -------------------- | -------- | --------------------------------- | ----------------------------------------------------- |
 | `refinement_request` | Optional | What to change or add to the spec | "Add rate limiting — max 5 login attempts per minute" |
 
 ## Steps
@@ -28,33 +28,40 @@ Check the conversation for `refinement_request` and for `feature.md` in the proj
 - If `refinement_request` is present → proceed to Step 1.
 - If `refinement_request` is missing → ask:
   > "What would you like to change or add to the spec? Is this a scope change, a clarification, or new edge cases?"
-  Do NOT proceed until the user provides it.
+  > Do NOT proceed until the user provides it.
 
 ---
 
 ## Pre-conditions
+
 Verify `feature.md` exists in the project root.
 If it does not exist, tell the user to run `/sdd-feature` first.
 
 ### 1. Read Current State
+
 Read these files before doing anything:
+
 - `feature.md` — the existing spec to be refined
 - `docs/project.md` — project context and constraints
 - `plan.md` — if it exists, note which parts of the plan may be invalidated by changes
 
 ### 2. Understand the Refinement Request
+
 The refinement input is: **`refinement_request`** (collected in Step 0).
 
 Analyse `refinement_request` against the current `feature.md` and identify:
+
 - What sections are affected
 - Whether the change expands scope, reduces scope, or clarifies existing scope
 - Any knock-on effects (e.g., changing a requirement may invalidate other ACs)
 
 ### 3. Ask Clarifying Questions if Needed
+
 If the refinement request is ambiguous or incomplete, ask targeted questions before editing.
 Keep questions to 3 or fewer. Wait for answers.
 
 ### 4. Show a Diff Summary Before Editing
+
 Before modifying the file, present a brief plan of changes:
 
 ```
@@ -78,7 +85,9 @@ Before modifying the file, present a brief plan of changes:
 Ask the user to confirm before applying.
 
 ### 5. Apply the Refinements
+
 Update `feature.md` in place. Preserve:
+
 - Existing section structure and numbering where possible
 - Completed checkboxes on ACs if any exist
 - The `## Open Questions` section — resolve any questions answered by this refinement,
@@ -87,6 +96,7 @@ Update `feature.md` in place. Preserve:
 Increment requirement IDs sequentially (do not reuse deleted IDs).
 
 ### 6. Impact Assessment
+
 After updating `feature.md`, check if `plan.md` exists.
 If it does, analyse the impact:
 
@@ -105,6 +115,7 @@ Recommendation: Run /sdd-plan again to regenerate the plan before implementing.
 If `plan.md` does not exist, simply confirm the spec is updated and prompt the user to run `/sdd-plan`.
 
 ### 7. Changelog Entry
+
 Append a refinement record at the bottom of `feature.md`:
 
 ```markdown
@@ -112,9 +123,9 @@ Append a refinement record at the bottom of `feature.md`:
 
 ## Revision History
 
-| Date | Change Summary |
-|------|----------------|
-| <date> | Initial spec |
+| Date   | Change Summary                        |
+| ------ | ------------------------------------- |
+| <date> | Initial spec                          |
 | <date> | <One-line summary of this refinement> |
 ```
 

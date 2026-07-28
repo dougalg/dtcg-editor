@@ -16,8 +16,8 @@ Every finding must reference the exact file and line range.
 
 ## Inputs
 
-| Input         | Required | Description                                                               | Example                           |
-|---------------|----------|---------------------------------------------------------------------------|-----------------------------------|
+| Input         | Required | Description                                                               | Example     |
+| ------------- | -------- | ------------------------------------------------------------------------- | ----------- |
 | `review_path` | Optional | File, package, or module path to review. Defaults to full git diff scope. | `src/auth/` |
 
 ## Steps
@@ -28,17 +28,20 @@ Every finding must reference the exact file and line range.
 - If `review_path` is missing → determine scope automatically:
   1. Run `git diff main...HEAD --name-only` to find files changed in this branch.
   2. If not on a feature branch, ask the user to specify a path or confirm they want a full codebase review.
-  Proceed to Step 1 once scope is resolved.
+     Proceed to Step 1 once scope is resolved.
 
 ---
 
 ## Pre-conditions
+
 Read the following before starting:
+
 - `docs/project.md` — tech stack, architecture, conventions
 - `feature.md` — acceptance criteria and functional requirements (if present)
 - `plan.md` — intended implementation approach (if present)
 
 ## Scope
+
 Review the path or file set resolved in Step 0. Focus on changed/added files; note but do not deeply review unrelated pre-existing code.
 
 ---
@@ -55,6 +58,7 @@ Work through each dimension below in order. For each finding, add one row to the
 - Keep **Problem** and **Suggestion** to a single sentence; no code blocks inside table cells.
 
 Severity levels:
+
 - 🔴 **CRITICAL** — Must fix before merging (security holes, data loss risk, broken ACs)
 - 🟠 **MAJOR** — Should fix before merging (significant bugs, serious design flaws)
 - 🟡 **MINOR** — Fix soon but not a blocker (code smell, minor inefficiency)
@@ -63,7 +67,9 @@ Severity levels:
 ---
 
 ### Dimension 1: Acceptance Criteria Verification
+
 If `feature.md` is present, go through every AC:
+
 - Confirm there is a test that directly covers it
 - Confirm the implementation actually satisfies it (not just that a test exists)
 - Flag any AC with no test coverage as 🔴 CRITICAL
@@ -73,10 +79,11 @@ If `feature.md` is present, go through every AC:
 
 ### Dimension 2: Language & Framework Best Practices
 
-Review against the conventions and idiomatic patterns for the tech stack declared in `docs/project.md`. 
+Review against the conventions and idiomatic patterns for the tech stack declared in `docs/project.md`.
 Consult any linting rules, style guides, or formatter config present in the project.
 
 #### Language
+
 - Code is idiomatic for the language in use — modern language features used appropriately
 - No antipatterns common to this language (resource leaks, unsafe type coercions, ignored errors, etc.)
 - Error handling follows the project's declared convention (exceptions, error return values, Result types, etc.)
@@ -84,6 +91,7 @@ Consult any linting rules, style guides, or formatter config present in the proj
 - Immutability or value semantics preferred where the language supports it
 
 #### Framework
+
 - Follows the framework's recommended layer responsibilities — no business logic in the presentation/controller layer
 - Configuration is centralised per the framework's conventions — no scattered inline config values
 - Dependency injection or service wiring uses the framework's standard mechanism
@@ -92,6 +100,7 @@ Consult any linting rules, style guides, or formatter config present in the proj
 - Tests use the narrowest test scope available — prefer unit or slice tests over full-stack tests where sufficient
 
 #### Data Access
+
 - No unbounded queries on potentially large datasets — pagination applied where appropriate
 - N+1 query risks identified and addressed (eager loading, batching, or explicit joins)
 - Queries use the framework's safe parameterisation mechanism — no string concatenation in queries
@@ -170,38 +179,41 @@ Write the review to `review.md` in the project root using this structure:
 # Code Review: <Feature Name or Path>
 
 ## Summary
+
 <2-3 sentence overall assessment. Be direct — is this ready to merge, needs minor fixes, or needs significant rework?>
 
 ## Findings
 
 ### 🔴 Critical
 
-| Done | Location | Category | Problem | Suggestion |
-|------|----------|----------|---------|------------|
-| [ ] | `src/service/AuthService.java:42` | Null Safety | `user` may be null; NPE at runtime | Add null guard before line 42 |
+| Done | Location                          | Category    | Problem                            | Suggestion                    |
+| ---- | --------------------------------- | ----------- | ---------------------------------- | ----------------------------- |
+| [ ]  | `src/service/AuthService.java:42` | Null Safety | `user` may be null; NPE at runtime | Add null guard before line 42 |
 
 ### 🟠 Major
 
 | Done | Location | Category | Problem | Suggestion |
-|------|----------|----------|---------|------------|
+| ---- | -------- | -------- | ------- | ---------- |
 
 ### 🟡 Minor
 
 | Done | Location | Category | Problem | Suggestion |
-|------|----------|----------|---------|------------|
+| ---- | -------- | -------- | ------- | ---------- |
 
 ### 🔵 Info / Suggestions
 
 | Done | Location | Category | Problem | Suggestion |
-|------|----------|----------|---------|------------|
+| ---- | -------- | -------- | ------- | ---------- |
 
 ## Acceptance Criteria Coverage
-| AC         | Test               | Status          |
-|------------|--------------------|-----------------|
+
+| AC         | Test               | Status           |
+| ---------- | ------------------ | ---------------- |
 | AC-01: ... | `FooTest#test_...` | ✅ Covered       |
 | AC-02: ... | —                  | ❌ No test found |
 
 ## Verdict
+
 - [ ] ✅ Ready to merge
 - [ ] 🟡 Merge after minor fixes (no re-review needed)
 - [ ] 🟠 Requires fixes and re-review
@@ -216,6 +228,7 @@ Then show the **Summary** and **Verdict** sections inline so the user gets immed
 ## After the Review
 
 Ask the user:
+
 > "Would you like me to fix any of these findings now? You can say 'fix all critical and major' or call out specific items."
 
 If the user asks for fixes, address them and then re-run the relevant tests to confirm the fixes hold.

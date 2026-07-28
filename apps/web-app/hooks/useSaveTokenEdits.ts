@@ -7,9 +7,9 @@ import type { SaveError } from "../lib/tokens/save-error.ts";
 type SaveState = "idle" | "pending" | "error";
 
 interface UseSaveTokenEditsResult {
-  readonly saveState: SaveState;
-  readonly saveError: SaveError | undefined;
-  readonly save: (edits: readonly ClientEdit[]) => Promise<boolean>;
+	readonly saveState: SaveState;
+	readonly saveError: SaveError | undefined;
+	readonly save: (edits: readonly ClientEdit[]) => Promise<boolean>;
 }
 
 /**
@@ -25,11 +25,15 @@ interface UseSaveTokenEditsResult {
  * body itself is missing or was produced before this contract existed.
  */
 function parseSaveError(body: unknown, status: number): SaveError {
-  if (typeof body === "object" && body !== null && "kind" in body) {
-    return body as SaveError;
-  }
-  const error = (body as { error?: unknown } | null)?.error;
-  return { kind: "unknown", message: typeof error === "string" ? error : `Save failed with status ${status}` };
+	if (typeof body === "object" && body !== null && "kind" in body) {
+		return body as SaveError;
+	}
+	const error = (body as { error?: unknown } | null)?.error;
+	return {
+		kind: "unknown",
+		message:
+			typeof error === "string" ? error : `Save failed with status ${status}`,
+	};
 }
 
 /**
@@ -41,39 +45,42 @@ function parseSaveError(body: unknown, status: number): SaveError {
  * to catch.
  */
 export function useSaveTokenEdits(
-  relativePath: string,
-  fetchImpl: typeof fetch = fetch,
+	relativePath: string,
+	fetchImpl: typeof fetch = fetch,
 ): UseSaveTokenEditsResult {
-  const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [saveError, setSaveError] = useState<SaveError | undefined>(undefined);
+	const [saveState, setSaveState] = useState<SaveState>("idle");
+	const [saveError, setSaveError] = useState<SaveError | undefined>(undefined);
 
-  async function save(edits: readonly ClientEdit[]): Promise<boolean> {
-    setSaveState("pending");
-    setSaveError(undefined);
+	async function save(edits: readonly ClientEdit[]): Promise<boolean> {
+		setSaveState("pending");
+		setSaveError(undefined);
 
-    let response: Response;
-    try {
-      response = await fetchImpl(`/api/tokens/${relativePath}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ edits }),
-      });
-    } catch (cause) {
-      setSaveState("error");
-      setSaveError({ kind: "unknown", message: cause instanceof Error ? cause.message : "Save failed" });
-      return false;
-    }
+		let response: Response;
+		try {
+			response = await fetchImpl(`/api/tokens/${relativePath}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ edits }),
+			});
+		} catch (cause) {
+			setSaveState("error");
+			setSaveError({
+				kind: "unknown",
+				message: cause instanceof Error ? cause.message : "Save failed",
+			});
+			return false;
+		}
 
-    if (response.ok) {
-      setSaveState("idle");
-      return true;
-    }
+		if (response.ok) {
+			setSaveState("idle");
+			return true;
+		}
 
-    const body: unknown = await response.json().catch(() => undefined);
-    setSaveState("error");
-    setSaveError(parseSaveError(body, response.status));
-    return false;
-  }
+		const body: unknown = await response.json().catch(() => undefined);
+		setSaveState("error");
+		setSaveError(parseSaveError(body, response.status));
+		return false;
+	}
 
-  return { saveState, saveError, save };
+	return { saveState, saveError, save };
 }

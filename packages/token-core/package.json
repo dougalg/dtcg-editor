@@ -1,24 +1,24 @@
 {
-  "name": "@dtcg-editor/token-core",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
-  "exports": {
-    ".": "./dist/src/index.js"
-  },
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "node --test src/*.test.ts",
-    "lint": "eslint ."
-  },
-  "dependencies": {
-    "neverthrow": "^8.2.0",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@types/node": "^26.1.1",
-    "typescript": "^5.9.3"
-  }
+	"name": "@dtcg-editor/token-core",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"main": "./dist/src/index.js",
+	"types": "./dist/src/index.d.ts",
+	"exports": {
+		".": "./dist/src/index.js"
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"test": "node --test src/*.test.ts",
+		"lint": "eslint ."
+	},
+	"dependencies": {
+		"neverthrow": "^8.2.0",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@types/node": "^26.1.1",
+		"typescript": "^5.9.3"
+	}
 }

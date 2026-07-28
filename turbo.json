@@ -1,25 +1,25 @@
 {
-  "$schema": "https://turbo.build/schema.json",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "lint": {
-      "dependsOn": ["^build", "//#lint:root"]
-    },
-    "test": {
-      "dependsOn": ["^build", "//#test:commits"]
-    },
-    "//#lint:root": {
-      "outputs": []
-    },
-    "//#test:commits": {
-      "outputs": []
-    }
-  }
+	"$schema": "https://turbo.build/schema.json",
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": [".next/**", "!.next/cache/**", "dist/**"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"lint": {
+			"dependsOn": ["^build", "//#lint:root"]
+		},
+		"test": {
+			"dependsOn": ["^build", "//#test:commits"]
+		},
+		"//#lint:root": {
+			"outputs": []
+		},
+		"//#test:commits": {
+			"outputs": []
+		}
+	}
 }

@@ -1,26 +1,26 @@
 {
-  "name": "@dtcg-editor/token-type-dimension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
-  "exports": {
-    ".": "./dist/src/index.js"
-  },
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "node --test src/*.test.ts",
-    "lint": "eslint ."
-  },
-  "dependencies": {
-    "@dtcg-editor/token-type-contract": "workspace:*",
-    "react": "19.2.8",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@types/node": "^26.1.1",
-    "@types/react": "^19.2.17",
-    "typescript": "^5.9.3"
-  }
+	"name": "@dtcg-editor/token-type-dimension",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"main": "./dist/src/index.js",
+	"types": "./dist/src/index.d.ts",
+	"exports": {
+		".": "./dist/src/index.js"
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"test": "node --test src/*.test.ts",
+		"lint": "eslint ."
+	},
+	"dependencies": {
+		"@dtcg-editor/token-type-contract": "workspace:*",
+		"react": "19.2.8",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@types/node": "^26.1.1",
+		"@types/react": "^19.2.17",
+		"typescript": "^5.9.3"
+	}
 }

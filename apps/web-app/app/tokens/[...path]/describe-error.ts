@@ -12,11 +12,16 @@ import { PathTraversalError } from "../../../lib/tokens/path-safety.ts";
  * `docs/project.md`'s Error Handling constraint.
  */
 export function describePageError(
-  error: PathTraversalError | FileNotFoundError | TokenParseError | UnknownError,
-  relativePath: string,
+	error:
+		PathTraversalError | FileNotFoundError | TokenParseError | UnknownError,
+	relativePath: string,
 ): string {
-  if (error instanceof PathTraversalError || error instanceof FileNotFoundError || error instanceof TokenParseError) {
-    return error.message;
-  }
-  return `Could not load "${relativePath}".`;
+	if (
+		error instanceof PathTraversalError ||
+		error instanceof FileNotFoundError ||
+		error instanceof TokenParseError
+	) {
+		return error.message;
+	}
+	return `Could not load "${relativePath}".`;
 }

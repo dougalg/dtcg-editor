@@ -11,6 +11,7 @@ Defines and puts into practice this repo's first UI-layer convention for consumi
 `app/api/tokens/[...path]/route.ts`'s `GET`/`PATCH` error responses gained an additive `kind` discriminant (`"not-found" | "validation" | "invalid-file" | "unknown"`) so the wire body itself is `SaveError`-shaped, matching the route's existing 400/404/422/500 status-code taxonomy.
 
 ## Key files
+
 - `apps/web-app/lib/tokens/save-error.ts` — shared `SaveError` discriminated union (route.ts + hook)
 - `apps/web-app/hooks/useSaveTokenEdits.ts` — reference implementation of the Client Component hook-state convention
 - `apps/web-app/app/tokens/[...path]/describe-error.ts` — `describePageError`, exhaustive named-error branching for Server Components
@@ -19,6 +20,7 @@ Defines and puts into practice this repo's first UI-layer convention for consumi
 - `docs/project.md` — Error Handling constraint's "UI-Layer Result Consumption" subsection (replaces the prior deferral sentence)
 
 ## Notable decisions
+
 - **`SaveError` is parsed via an `as SaveError` cast, not runtime Zod validation**, at the hook's own-app Route Handler response boundary. Raised during `sdd-review` as an open question against the Validation at the Edges constraint (is a same-codebase response a genuinely external edge?); resolved by the human as no — the wire contract is fully controlled by this feature's own two halves (`route.ts`'s `errorResponse` and the hook's parser), so a hand-rolled field-by-field type guard was simplified to a direct cast. Committed separately as `b8d63b0`.
 - **`route.ts`'s duplicated named-error-to-response branching (`GET` and `PATCH` both had an identical `instanceof` chain) was extracted into a shared `mapReadErrorToResponse` helper**, also per `sdd-review` and committed in `b8d63b0`.
 - **`useSaveTokenEdits` is the intended reference implementation** for any future Client Component hook wrapping a `fetch`-backed operation — each such hook defines its own analogously-shaped error union rather than reusing `SaveError` for an unrelated request.

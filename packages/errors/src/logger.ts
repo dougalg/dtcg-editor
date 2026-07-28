@@ -5,12 +5,12 @@
  * levels are expected to be added as this repo's logging needs grow.
  */
 export interface Logger {
-  error(obj: Record<string, unknown>, msg?: string): void;
+	error(obj: Record<string, unknown>, msg?: string): void;
 }
 
 /** Default `Logger`, used when no logger is explicitly injected. */
 export const consoleLogger: Logger = {
-  error(obj, msg) {
-    console.error(msg ?? "error", obj);
-  },
+	error(obj, msg) {
+		console.error(msg ?? "error", obj);
+	},
 };

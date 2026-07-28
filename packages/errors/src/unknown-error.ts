@@ -7,9 +7,9 @@ import type { Logger } from "./logger.ts";
  * error such as `TokenParseError`.
  */
 export interface UnknownError {
-  readonly kind: "unknown";
-  readonly cause: unknown;
-  readonly context?: string;
+	readonly kind: "unknown";
+	readonly cause: unknown;
+	readonly context?: string;
 }
 
 /**
@@ -19,9 +19,17 @@ export interface UnknownError {
  * argument to `neverthrow`'s own `fromThrowable`/`ResultAsync.fromPromise`,
  * rather than a bespoke wrapping abstraction.
  */
-export function toLoggedUnknownError(logger: Logger, cause: unknown, context?: string): UnknownError {
-  const error: UnknownError = context === undefined ? { kind: "unknown", cause } : { kind: "unknown", cause, context };
-  const logPayload: Record<string, unknown> = context === undefined ? { cause } : { cause, context };
-  logger.error(logPayload, "Unexpected error");
-  return error;
+export function toLoggedUnknownError(
+	logger: Logger,
+	cause: unknown,
+	context?: string,
+): UnknownError {
+	const error: UnknownError =
+		context === undefined
+			? { kind: "unknown", cause }
+			: { kind: "unknown", cause, context };
+	const logPayload: Record<string, unknown> =
+		context === undefined ? { cause } : { cause, context };
+	logger.error(logPayload, "Unexpected error");
+	return error;
 }

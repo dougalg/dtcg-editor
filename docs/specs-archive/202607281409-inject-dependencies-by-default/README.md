@@ -5,6 +5,7 @@ Implemented on: 2026-07-28
 Establishes and enforces this repo's Dependency Injection convention for I/O/platform externalities: a function that touches `fs`, `fetch`, `process.exit`, `console`, `process.env`, or similar accepts it as an explicit parameter with a real implementation as its default value, rather than importing/calling the externality directly — generalizing the existing `Logger`-injection convention (Error Handling constraint) to every externality category, enforced by new ESLint rules rather than left to reviewer memory.
 
 Implemented across 5 sequential phases (each independently verifiable, phase order load-bearing) plus one post-review fix commit:
+
 - **Phase 1** (`bb56ece`): added the `apps/web-app/lib/platform/node-fs.ts` real-fs adapter module and wrote `docs/project.md`'s convention subsection.
 - **Phase 2** (`e8bdf97`): injected fs into `read.ts`/`scan.ts`/`write.ts`/`config.ts`; added the previously-missing `write.test.ts`; rewrote `read.test.ts`/`scan.test.ts`/`config.test.ts` from real-temp-dir (`mkdtemp`) fixtures to hand-rolled mocked-fs fakes.
 - **Phase 3** (`b2c09ea`): closed `init-config.ts`'s fs gap; split `instrumentation.ts` into an injectable `runRegister(deps)` core plus a thin `register()` wrapper; added `instrumentation.test.ts`. Two Edge-Runtime-safety deviations from plan.md's literal code shape were required here (see Notable Decisions).
@@ -15,6 +16,7 @@ Implemented across 5 sequential phases (each independently verifiable, phase ord
 Reviewed via `sdd-review`: verdict PASS, ready to merge. All 12 acceptance criteria independently re-verified during review (not accepted solely on phase self-reports) — see `review.md`.
 
 ## Key files
+
 - `apps/web-app/lib/platform/node-fs.ts` — real-fs adapter, sole non-adapter-external import point for `node:fs`/`node:fs/promises`
 - `apps/web-app/lib/tokens/read.ts`, `scan.ts`, `write.ts`, `apps/web-app/lib/config.ts` — inject fs, real-defaulted from `node-fs.ts`
 - `apps/web-app/scripts/init-config.ts` — `runInitConfig` injects `existsSync`/`writeFileSync`-shaped functions; `main()` remains the composition root
@@ -24,6 +26,7 @@ Reviewed via `sdd-review`: verdict PASS, ready to merge. All 12 acceptance crite
 - `docs/project.md` — "Dependency Injection for I/O/Platform Externalities" Architectural Constraints subsection (full taxonomy, adapter shape, testing-convention change)
 
 ## Notable decisions
+
 - **`fatal-startup-error.ts`, not `instrumentation.ts`, is the real ESLint exemption target** for direct `process.exit`/`console.*` calls — a gap in `feature.md`'s own file audit, corrected during Phase 3. Flagged for optional sign-off in `plan.md`; reviewed and accepted.
 - **`runRegister(deps)`'s `onFatalError(message)` dependency is real-defaulted only inside a dynamic `import()` callback**, never referenced as a bare value at `instrumentation.ts`'s top level — required to avoid re-tripping Turbopack's Edge Runtime static-analysis warning that a prior, separately-merged feature already fixed.
 - **The DI-convention ESLint rules live in `apps/web-app/eslint.config.mjs`** (its own local flat-config file, discovered during planning), not only the root file — `apps/web-app`'s `lint` script resolves its nearest config, which is the local one; adding the rules only at the root would have been vacuous against every real call site.

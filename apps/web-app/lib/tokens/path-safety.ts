@@ -3,10 +3,10 @@ import { err, ok, type Result } from "neverthrow";
 
 /** Returned when a requested relative path would resolve outside the configured token directory. */
 export class PathTraversalError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "PathTraversalError";
-  }
+	constructor(message: string) {
+		super(message);
+		this.name = "PathTraversalError";
+	}
 }
 
 /**
@@ -16,15 +16,20 @@ export class PathTraversalError extends Error {
  * request), so this guards against `..` traversal and absolute-path
  * segments escaping the configured root.
  */
-export function resolveSafeTokenPath(rootDir: string, requestedRelativePath: string): Result<string, PathTraversalError> {
-  const root = resolve(rootDir);
-  const resolved = resolve(root, requestedRelativePath);
+export function resolveSafeTokenPath(
+	rootDir: string,
+	requestedRelativePath: string,
+): Result<string, PathTraversalError> {
+	const root = resolve(rootDir);
+	const resolved = resolve(root, requestedRelativePath);
 
-  if (resolved !== root && !resolved.startsWith(root + sep)) {
-    return err(
-      new PathTraversalError(`Requested path "${requestedRelativePath}" escapes the configured token directory`),
-    );
-  }
+	if (resolved !== root && !resolved.startsWith(root + sep)) {
+		return err(
+			new PathTraversalError(
+				`Requested path "${requestedRelativePath}" escapes the configured token directory`,
+			),
+		);
+	}
 
-  return ok(resolved);
+	return ok(resolved);
 }

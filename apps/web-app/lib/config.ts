@@ -7,19 +7,19 @@ import type { ReadTextFileSync } from "./platform/node-fs.ts";
 export const CONFIG_FILE_NAME = "dtcg-editor.config.json";
 
 export const ConfigFileSchema = z.object({
-  tokensDir: z.string().min(1, "tokensDir must be a non-empty string"),
+	tokensDir: z.string().min(1, "tokensDir must be a non-empty string"),
 });
 
 export interface Config {
-  readonly tokensDir: string;
+	readonly tokensDir: string;
 }
 
 /** Returned for any problem loading or validating `dtcg-editor.config.json`. */
 export class ConfigError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ConfigError";
-  }
+	constructor(message: string) {
+		super(message);
+		this.name = "ConfigError";
+	}
 }
 
 /**
@@ -31,14 +31,14 @@ export class ConfigError extends Error {
  * on failure.
  */
 export class ConfigNotInitializedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ConfigNotInitializedError";
-  }
+	constructor(message: string) {
+		super(message);
+		this.name = "ConfigNotInitializedError";
+	}
 }
 
 export function describeCause(cause: unknown): string {
-  return cause instanceof Error ? cause.message : String(cause);
+	return cause instanceof Error ? cause.message : String(cause);
 }
 
 /**
@@ -47,32 +47,45 @@ export function describeCause(cause: unknown): string {
  * config file — an external edge per this repo's validation conventions.
  */
 export function loadConfig(
-  cwd: string = process.cwd(),
-  readFileFn: ReadTextFileSync = nodeReadFileSync,
+	cwd: string = process.cwd(),
+	readFileFn: ReadTextFileSync = nodeReadFileSync,
 ): Result<Config, ConfigError> {
-  const configPath = resolve(cwd, CONFIG_FILE_NAME);
+	const configPath = resolve(cwd, CONFIG_FILE_NAME);
 
-  const readConfigFile = fromThrowable(
-    () => readFileFn(configPath),
-    (cause) => new ConfigError(`Could not read config file at "${configPath}": ${describeCause(cause)}`),
-  );
+	const readConfigFile = fromThrowable(
+		() => readFileFn(configPath),
+		(cause) =>
+			new ConfigError(
+				`Could not read config file at "${configPath}": ${describeCause(cause)}`,
+			),
+	);
 
-  const parseConfigJson = fromThrowable(
-    (raw: string) => JSON.parse(raw) as unknown,
-    (cause) => new ConfigError(`Invalid JSON in config file at "${configPath}": ${describeCause(cause)}`),
-  );
+	const parseConfigJson = fromThrowable(
+		(raw: string) => JSON.parse(raw) as unknown,
+		(cause) =>
+			new ConfigError(
+				`Invalid JSON in config file at "${configPath}": ${describeCause(cause)}`,
+			),
+	);
 
-  return readConfigFile().andThen(parseConfigJson).andThen((parsed) => {
-    const result = ConfigFileSchema.safeParse(parsed);
-    if (!result.success) {
-      const reasons = result.error.issues
-        .map((issue) => `${issue.path.length > 0 ? issue.path.join(".") : "<root>"}: ${issue.message}`)
-        .join("; ");
-      return err(new ConfigError(`Invalid config file at "${configPath}": ${reasons}`));
-    }
+	return readConfigFile()
+		.andThen(parseConfigJson)
+		.andThen((parsed) => {
+			const result = ConfigFileSchema.safeParse(parsed);
+			if (!result.success) {
+				const reasons = result.error.issues
+					.map(
+						(issue) =>
+							`${issue.path.length > 0 ? issue.path.join(".") : "<root>"}: ${issue.message}`,
+					)
+					.join("; ");
+				return err(
+					new ConfigError(`Invalid config file at "${configPath}": ${reasons}`),
+				);
+			}
 
-    return ok({ tokensDir: resolve(cwd, result.data.tokensDir) });
-  });
+			return ok({ tokensDir: resolve(cwd, result.data.tokensDir) });
+		});
 }
 
 let cachedConfig: Config | undefined;
@@ -83,22 +96,22 @@ let cachedConfig: Config | undefined;
  * calls `loadConfig()` directly (not `getConfig()`) to branch on its `Result`.
  */
 export function setConfigCache(config: Config): void {
-  cachedConfig = config;
+	cachedConfig = config;
 }
 
 /** Memoized `loadConfig`, used by request-time code once startup has validated the config. */
 export function getConfig(): Config {
-  if (cachedConfig !== undefined) {
-    return cachedConfig;
-  }
+	if (cachedConfig !== undefined) {
+		return cachedConfig;
+	}
 
-  const result = loadConfig();
-  if (result.isErr()) {
-    throw new ConfigNotInitializedError(
-      `getConfig() called before startup config validation succeeded: ${result.error.message}`,
-    );
-  }
+	const result = loadConfig();
+	if (result.isErr()) {
+		throw new ConfigNotInitializedError(
+			`getConfig() called before startup config validation succeeded: ${result.error.message}`,
+		);
+	}
 
-  cachedConfig = result.value;
-  return cachedConfig;
+	cachedConfig = result.value;
+	return cachedConfig;
 }

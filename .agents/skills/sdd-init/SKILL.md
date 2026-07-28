@@ -16,6 +16,7 @@ Check whether `docs/project.md` already exists.
 
 **If it exists:**
 Ask the user:
+
 > "`docs/project.md` already exists. Do you want to regenerate it? This will overwrite the current file."
 
 Wait for confirmation. If the user says no, stop and tell them to edit the file manually.
@@ -33,7 +34,7 @@ Proceed immediately.
 Scan the project root and source tree for build and configuration files to auto-detect as much as possible:
 
 | What to find       | Where to look                                                                                                                                                                                  |
-|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language & version | `pom.xml` (`<java.version>`), `build.gradle`/`build.gradle.kts` (`jvmToolchain`, `sourceCompatibility`), `.java-version`, `pyproject.toml`, `package.json` (`engines`), `go.mod`, `Cargo.toml` |
 | Framework          | `pom.xml` / `build.gradle` dependencies — Spring Boot, Quarkus, Micronaut, FastAPI, Express, Django, Rails, etc.                                                                               |
 | Build tool         | Presence of `pom.xml` (Maven), `gradlew` (Gradle), `package.json` (npm/yarn/pnpm), `Makefile`, `pyproject.toml` (Poetry/Hatch)                                                                 |
@@ -93,9 +94,11 @@ Create `docs/` if it does not exist. Write `docs/project.md` with this structure
 # Project: <Name>
 
 ## Mission
+
 <One paragraph on what this application does and who it serves.>
 
 ## Tech Stack
+
 - Language: <language and version>
 - Framework: <framework and version>
 - Build tool: <tool>
@@ -107,11 +110,13 @@ Create `docs/` if it does not exist. Write `docs/project.md` with this structure
 - Other: <other notable libraries>
 
 ## Architecture
+
 <Describe the pattern: Layered / Hexagonal / DDD / Modular Monolith / Microservices>
 <Describe the package structure with an example, e.g.:>
-<  com.example.<module>.<layer>  →  com.example.user.controller, com.example.user.service>
+< com.example.<module>.<layer> → com.example.user.controller, com.example.user.service>
 
 ## Conventions
+
 - Package naming: <convention>
 - REST base path: <base path, e.g. /api/v1>
 - Error handling: <mechanism, e.g. centralised exception handler, error middleware, global error boundary>
@@ -119,6 +124,7 @@ Create `docs/` if it does not exist. Write `docs/project.md` with this structure
 - <Any other conventions the user provided>
 
 ## Approved Dependencies
+
 <Bulleted list of libraries approved for use. Anything outside this list requires a flag before adding.>
 ```
 
@@ -127,6 +133,7 @@ Do not leave any placeholder text (angle-bracket tokens) in the output — fill 
 ### 5. Confirm
 
 After writing the file:
+
 - Show the user a summary of what was detected automatically vs. what they provided
 - Tell them to review `docs/project.md` and update anything that looks wrong
 - Remind them to keep this file up to date as the stack evolves — it is the primary input for all other SDD skills

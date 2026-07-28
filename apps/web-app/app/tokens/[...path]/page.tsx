@@ -7,31 +7,35 @@ import { TokenTree } from "../../../components/TokenTree.tsx";
 import { describePageError } from "./describe-error.ts";
 
 interface PageProps {
-  params: Promise<{ path: string[] }>;
+	params: Promise<{ path: string[] }>;
 }
 
 export default async function TokenFilePage({ params }: PageProps) {
-  const { path } = await params;
-  const relativePath = path.join("/");
-  const config = getConfig();
+	const { path } = await params;
+	const relativePath = path.join("/");
+	const config = getConfig();
 
-  let node: PlainDtcgNode | undefined;
-  let errorMessage: string | undefined;
+	let node: PlainDtcgNode | undefined;
+	let errorMessage: string | undefined;
 
-  const result = await readAndParseTokenFile(config.tokensDir, relativePath);
-  if (result.isOk()) {
-    node = toPlainNode(result.value.root);
-  } else {
-    errorMessage = describePageError(result.error, relativePath);
-  }
+	const result = await readAndParseTokenFile(config.tokensDir, relativePath);
+	if (result.isOk()) {
+		node = toPlainNode(result.value.root);
+	} else {
+		errorMessage = describePageError(result.error, relativePath);
+	}
 
-  return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem" }}>
-      <p>
-        <Link href="/">&larr; Back to folder overview</Link>
-      </p>
-      <h1>{relativePath}</h1>
-      {node !== undefined ? <TokenTree node={node} relativePath={relativePath} /> : <p role="alert">{errorMessage}</p>}
-    </main>
-  );
+	return (
+		<main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem" }}>
+			<p>
+				<Link href="/">&larr; Back to folder overview</Link>
+			</p>
+			<h1>{relativePath}</h1>
+			{node !== undefined ? (
+				<TokenTree node={node} relativePath={relativePath} />
+			) : (
+				<p role="alert">{errorMessage}</p>
+			)}
+		</main>
+	);
 }

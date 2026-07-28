@@ -6,8 +6,8 @@ import { z } from "zod";
  * `"rem"` — required even when `value` is `0`.
  */
 export const DimensionValueSchema = z.object({
-  value: z.number(),
-  unit: z.enum(["px", "rem"]),
+	value: z.number(),
+	unit: z.enum(["px", "rem"]),
 });
 
 export type DimensionValue = z.infer<typeof DimensionValueSchema>;

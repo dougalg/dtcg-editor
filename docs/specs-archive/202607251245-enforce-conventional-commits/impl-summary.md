@@ -1,6 +1,7 @@
 ## Implementation Complete
 
 ### Files Created
+
 - `commit-conventions.cjs` — shared source of truth: type/scope arrays, consumed by both commitlint and cz-customizable
 - `commitlint.config.cjs` — extends `@commitlint/config-conventional`, adds `type-enum`/`scope-enum` from the shared config
 - `.cz-config.cjs` — cz-customizable config, mapped from the shared config
@@ -9,11 +10,13 @@
 - `commit-conventions.test.cjs` — 8 `node:test` cases covering AC-01–AC-05, spawning the real `commitlint` binary via stdin
 
 ### Files Modified
+
 - `package.json` (root) — added devDependencies (`@commitlint/cli`, `@commitlint/config-conventional`, `commitizen`, `cz-customizable`, `husky`); added `commit`, `test:commits`, `prepare` scripts; added `config.commitizen` and `config.cz-customizable` blocks
 - `turbo.json` — added `//#test:commits` task and wired it into `test`'s `dependsOn`, so `pnpm test` runs it alongside every package's own tests
 - `pnpm-lock.yaml` — updated for new devDependencies
 
 ### Acceptance Criteria
+
 - [x] AC-01: Passed — `commit-conventions.test.cjs#"rejects a malformed message"`
 - [x] AC-02: Passed — `commit-conventions.test.cjs#"rejects an out-of-enum type"`
 - [x] AC-03: Passed — `commit-conventions.test.cjs` (invalid-scope, no-scope, valid-scope cases)
@@ -24,8 +27,9 @@
 - [x] AC-08: Passed (manual) — `CONTRIBUTING.md` reviewed against FR-07's checklist
 
 ### Notes
+
 - **Deviation from plan:** `commit-conventions.test.cjs` spawns the real `commitlint` CLI binary via stdin instead of using `@commitlint/lint`/`@commitlint/load` programmatically as `plan.md` originally specified — those packages aren't resolvable under pnpm's strict `node_modules` without adding two more undeclared dependencies. Spawning the actual binary is also more faithful, since it's the exact code path the git hook runs.
 - **Bug found and fixed during verification:** `cz-customizable` only auto-discovers a file literally named `.cz-config.js`; with our `.cz-config.cjs` naming (chosen for explicit-extension consistency across all new root config files) it failed with "Unable to find a configuration file" until `package.json`'s `config.cz-customizable.config` override was added pointing at the `.cjs` file.
-- `husky init`'s default `pre-commit` hook (`pnpm test`) was removed — not part of this feature's scope, which is commit-*message* validation only.
+- `husky init`'s default `pre-commit` hook (`pnpm test`) was removed — not part of this feature's scope, which is commit-_message_ validation only.
 - `pnpm build` and `pnpm lint` both pass across all packages; `pnpm test` (including the new `//#test:commits` root task) passes — 40 tests total (11 token-core, 21 web-app, 8 commit-conventions).
 - CI-level enforcement and automated release-notes generation remain out of scope per `feature.md`, tracked in `docs/backlog.md`.

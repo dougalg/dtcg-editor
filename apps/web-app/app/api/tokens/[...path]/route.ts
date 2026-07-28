@@ -1,11 +1,19 @@
 import { ResultAsync } from "neverthrow";
-import { applyTokenEdits, findNode, resolveEffectiveType, TokenParseError } from "@dtcg-editor/token-core";
+import {
+	applyTokenEdits,
+	findNode,
+	resolveEffectiveType,
+	TokenParseError,
+} from "@dtcg-editor/token-core";
 import type { TokenEdit } from "@dtcg-editor/token-core";
 import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
 import { consoleLogger } from "@dtcg-editor/errors";
 import type { Logger, UnknownError } from "@dtcg-editor/errors";
 import { getConfig } from "../../../../lib/config.ts";
-import { FileNotFoundError, readAndParseTokenFile } from "../../../../lib/tokens/read.ts";
+import {
+	FileNotFoundError,
+	readAndParseTokenFile,
+} from "../../../../lib/tokens/read.ts";
 import { writeAndSerializeTokenFile } from "../../../../lib/tokens/write.ts";
 import { PathTraversalError } from "../../../../lib/tokens/path-safety.ts";
 import { toPlainNode } from "../../../../lib/tokens/plain-node.ts";
@@ -13,7 +21,7 @@ import { EditRequestSchema } from "../../../../lib/tokens/edit-request.ts";
 import type { SaveError } from "../../../../lib/tokens/save-error.ts";
 
 interface RouteContext {
-  params: Promise<{ path: string[] }>;
+	params: Promise<{ path: string[] }>;
 }
 
 /**
@@ -26,8 +34,13 @@ interface RouteContext {
  * structure for a Client Component hook to branch on without re-deriving
  * `kind` from the HTTP status code independently.
  */
-function errorResponse(status: number, message: string, saveError: SaveError, extra?: Record<string, unknown>): Response {
-  return Response.json({ error: message, ...saveError, ...extra }, { status });
+function errorResponse(
+	status: number,
+	message: string,
+	saveError: SaveError,
+	extra?: Record<string, unknown>,
+): Response {
+	return Response.json({ error: message, ...saveError, ...extra }, { status });
 }
 
 /**
@@ -37,43 +50,64 @@ function errorResponse(status: number, message: string, saveError: SaveError, ex
  * status code / `SaveError` shape.
  */
 function mapReadErrorToResponse(
-  error: PathTraversalError | FileNotFoundError | TokenParseError | UnknownError,
-  relativePath: string,
+	error:
+		PathTraversalError | FileNotFoundError | TokenParseError | UnknownError,
+	relativePath: string,
 ): Response {
-  if (error instanceof PathTraversalError) {
-    return errorResponse(400, error.message, { kind: "validation", issues: [error.message] });
-  }
-  if (error instanceof FileNotFoundError) {
-    return errorResponse(404, error.message, { kind: "not-found", path: relativePath });
-  }
-  if (error instanceof TokenParseError) {
-    return errorResponse(422, error.message, { kind: "invalid-file", issues: [error.message] });
-  }
-  return errorResponse(500, "Internal server error", { kind: "unknown", message: "Internal server error" });
+	if (error instanceof PathTraversalError) {
+		return errorResponse(400, error.message, {
+			kind: "validation",
+			issues: [error.message],
+		});
+	}
+	if (error instanceof FileNotFoundError) {
+		return errorResponse(404, error.message, {
+			kind: "not-found",
+			path: relativePath,
+		});
+	}
+	if (error instanceof TokenParseError) {
+		return errorResponse(422, error.message, {
+			kind: "invalid-file",
+			issues: [error.message],
+		});
+	}
+	return errorResponse(500, "Internal server error", {
+		kind: "unknown",
+		message: "Internal server error",
+	});
 }
 
-export async function GET(_request: Request, { params }: RouteContext): Promise<Response> {
-  const { path } = await params;
-  const relativePath = path.join("/");
-  const config = getConfig();
+export async function GET(
+	_request: Request,
+	{ params }: RouteContext,
+): Promise<Response> {
+	const { path } = await params;
+	const relativePath = path.join("/");
+	const config = getConfig();
 
-  const result = await readAndParseTokenFile(config.tokensDir, relativePath);
-  if (result.isOk()) {
-    return Response.json({ document: toPlainNode(result.value.root) });
-  }
+	const result = await readAndParseTokenFile(config.tokensDir, relativePath);
+	if (result.isOk()) {
+		return Response.json({ document: toPlainNode(result.value.root) });
+	}
 
-  return mapReadErrorToResponse(result.error, relativePath);
+	return mapReadErrorToResponse(result.error, relativePath);
 }
 
 class InvalidRequestBodyError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "InvalidRequestBodyError";
-  }
+	constructor(message: string) {
+		super(message);
+		this.name = "InvalidRequestBodyError";
+	}
 }
 
-function readJsonBody(request: Request): ResultAsync<unknown, InvalidRequestBodyError> {
-  return ResultAsync.fromPromise(request.json(), () => new InvalidRequestBodyError("Request body is not valid JSON"));
+function readJsonBody(
+	request: Request,
+): ResultAsync<unknown, InvalidRequestBodyError> {
+	return ResultAsync.fromPromise(
+		request.json(),
+		() => new InvalidRequestBodyError("Request body is not valid JSON"),
+	);
 }
 
 /**
@@ -82,92 +116,129 @@ function readJsonBody(request: Request): ResultAsync<unknown, InvalidRequestBody
  * expected signature, leaving no room for a test-only parameter there.
  */
 export async function patchTokenFile(
-  request: Request,
-  relativePath: string,
-  logger: Logger = consoleLogger,
+	request: Request,
+	relativePath: string,
+	logger: Logger = consoleLogger,
 ): Promise<Response> {
-  const bodyResult = await readJsonBody(request);
-  if (bodyResult.isErr()) {
-    return errorResponse(400, bodyResult.error.message, { kind: "validation", issues: [bodyResult.error.message] });
-  }
+	const bodyResult = await readJsonBody(request);
+	if (bodyResult.isErr()) {
+		return errorResponse(400, bodyResult.error.message, {
+			kind: "validation",
+			issues: [bodyResult.error.message],
+		});
+	}
 
-  const requestValidation = EditRequestSchema.safeParse(bodyResult.value);
-  if (!requestValidation.success) {
-    return errorResponse(
-      400,
-      "Invalid edit request",
-      { kind: "validation", issues: requestValidation.error.issues.map((i) => i.message) },
-      { details: requestValidation.error.issues },
-    );
-  }
+	const requestValidation = EditRequestSchema.safeParse(bodyResult.value);
+	if (!requestValidation.success) {
+		return errorResponse(
+			400,
+			"Invalid edit request",
+			{
+				kind: "validation",
+				issues: requestValidation.error.issues.map((i) => i.message),
+			},
+			{ details: requestValidation.error.issues },
+		);
+	}
 
-  const config = getConfig();
-  const documentResult = await readAndParseTokenFile(config.tokensDir, relativePath, logger);
-  if (documentResult.isErr()) {
-    return mapReadErrorToResponse(documentResult.error, relativePath);
-  }
-  const document = documentResult.value;
+	const config = getConfig();
+	const documentResult = await readAndParseTokenFile(
+		config.tokensDir,
+		relativePath,
+		logger,
+	);
+	if (documentResult.isErr()) {
+		return mapReadErrorToResponse(documentResult.error, relativePath);
+	}
+	const document = documentResult.value;
 
-  const tokenEdits: TokenEdit[] = [];
-  for (const edit of requestValidation.data.edits) {
-    const located = findNode(document.root, edit.path);
-    if (located === undefined) {
-      const message = `No token found at "${edit.path.join(".")}"`;
-      return errorResponse(400, message, { kind: "validation", issues: [message] });
-    }
-    if (located.node.kind !== "token") {
-      const message = `"${edit.path.join(".")}" is a group, not a token`;
-      return errorResponse(400, message, { kind: "validation", issues: [message] });
-    }
+	const tokenEdits: TokenEdit[] = [];
+	for (const edit of requestValidation.data.edits) {
+		const located = findNode(document.root, edit.path);
+		if (located === undefined) {
+			const message = `No token found at "${edit.path.join(".")}"`;
+			return errorResponse(400, message, {
+				kind: "validation",
+				issues: [message],
+			});
+		}
+		if (located.node.kind !== "token") {
+			const message = `"${edit.path.join(".")}" is a group, not a token`;
+			return errorResponse(400, message, {
+				kind: "validation",
+				issues: [message],
+			});
+		}
 
-    const effectiveType = resolveEffectiveType(located.node, located.ancestors);
-    if (effectiveType !== dimensionTokenType.type) {
-      const message = `Only "${dimensionTokenType.type}" tokens can be edited, "${effectiveType ?? "untyped"}" cannot`;
-      return errorResponse(400, message, { kind: "validation", issues: [message] });
-    }
+		const effectiveType = resolveEffectiveType(located.node, located.ancestors);
+		if (effectiveType !== dimensionTokenType.type) {
+			const message = `Only "${dimensionTokenType.type}" tokens can be edited, "${effectiveType ?? "untyped"}" cannot`;
+			return errorResponse(400, message, {
+				kind: "validation",
+				issues: [message],
+			});
+		}
 
-    let value: unknown;
-    if (edit.value !== undefined) {
-      const valueValidation = dimensionTokenType.valueSchema.safeParse(edit.value);
-      if (!valueValidation.success) {
-        const message = `Invalid ${dimensionTokenType.type} value: ${valueValidation.error.issues.map((i) => i.message).join(", ")}`;
-        return errorResponse(400, message, {
-          kind: "validation",
-          issues: valueValidation.error.issues.map((i) => i.message),
-        });
-      }
-      value = dimensionTokenType.serializeValue(valueValidation.data);
-    }
+		let value: unknown;
+		if (edit.value !== undefined) {
+			const valueValidation = dimensionTokenType.valueSchema.safeParse(
+				edit.value,
+			);
+			if (!valueValidation.success) {
+				const message = `Invalid ${dimensionTokenType.type} value: ${valueValidation.error.issues.map((i) => i.message).join(", ")}`;
+				return errorResponse(400, message, {
+					kind: "validation",
+					issues: valueValidation.error.issues.map((i) => i.message),
+				});
+			}
+			value = dimensionTokenType.serializeValue(valueValidation.data);
+		}
 
-    tokenEdits.push({
-      path: edit.path,
-      ...(edit.name !== undefined ? { name: edit.name } : {}),
-      ...(value !== undefined ? { value } : {}),
-      ...(edit.description !== undefined ? { description: edit.description } : {}),
-    });
-  }
+		tokenEdits.push({
+			path: edit.path,
+			...(edit.name !== undefined ? { name: edit.name } : {}),
+			...(value !== undefined ? { value } : {}),
+			...(edit.description !== undefined
+				? { description: edit.description }
+				: {}),
+		});
+	}
 
-  const editedDocument = applyTokenEdits(document, tokenEdits);
-  if (editedDocument.isErr()) {
-    return errorResponse(400, editedDocument.error.message, {
-      kind: "validation",
-      issues: [editedDocument.error.message],
-    });
-  }
+	const editedDocument = applyTokenEdits(document, tokenEdits);
+	if (editedDocument.isErr()) {
+		return errorResponse(400, editedDocument.error.message, {
+			kind: "validation",
+			issues: [editedDocument.error.message],
+		});
+	}
 
-  const writeResult = await writeAndSerializeTokenFile(config.tokensDir, relativePath, editedDocument.value, logger);
-  if (writeResult.isErr()) {
-    const error = writeResult.error;
-    if (error instanceof PathTraversalError) {
-      return errorResponse(400, error.message, { kind: "validation", issues: [error.message] });
-    }
-    return errorResponse(500, "Failed to save token file", { kind: "unknown", message: "Failed to save token file" });
-  }
+	const writeResult = await writeAndSerializeTokenFile(
+		config.tokensDir,
+		relativePath,
+		editedDocument.value,
+		logger,
+	);
+	if (writeResult.isErr()) {
+		const error = writeResult.error;
+		if (error instanceof PathTraversalError) {
+			return errorResponse(400, error.message, {
+				kind: "validation",
+				issues: [error.message],
+			});
+		}
+		return errorResponse(500, "Failed to save token file", {
+			kind: "unknown",
+			message: "Failed to save token file",
+		});
+	}
 
-  return Response.json({ ok: true });
+	return Response.json({ ok: true });
 }
 
-export async function PATCH(request: Request, { params }: RouteContext): Promise<Response> {
-  const { path } = await params;
-  return patchTokenFile(request, path.join("/"));
+export async function PATCH(
+	request: Request,
+	{ params }: RouteContext,
+): Promise<Response> {
+	const { path } = await params;
+	return patchTokenFile(request, path.join("/"));
 }

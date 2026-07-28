@@ -13,7 +13,7 @@ argument-hint: <feature-name> (optional, derived from feature.md if omitted)
 ## Inputs
 
 | Input          | Required | Description                                                                      | Example              |
-|----------------|----------|----------------------------------------------------------------------------------|----------------------|
+| -------------- | -------- | -------------------------------------------------------------------------------- | -------------------- |
 | `feature_name` | Optional | Archive folder name in kebab-case. Derived from `feature.md` heading if omitted. | `jwt-authentication` |
 
 ## Steps
@@ -34,9 +34,11 @@ Check the conversation for `feature_name` and for `feature.md` / `plan.md` in th
 ## Process
 
 ### 1. Determine the Feature Name
+
 Use `feature_name` from Step 0. Capture the current timestamp using `date +"%Y%m%d%H%M"` and prepend it to form the archive directory name: `<yyyymmddHHMM>-<feature-name>` (e.g. `202604191430-jwt-authentication`).
 
 ### 2. Verify Completion
+
 Read `feature.md` and check that all acceptance criteria checkboxes are ticked.
 If any are unchecked, warn the user and ask for confirmation before archiving.
 
@@ -47,26 +49,31 @@ This is a critical step. Read `docs/project.md` in full, then read the archived
 across the following sections — add sections if they do not already exist.
 
 #### 3a. Features List
+
 Locate or create a `## Features` section. Add the new feature as a single line entry:
 
 ```markdown
 ## Features
+
 - **<Feature Name>**: <one-sentence description of what it does> (`docs/<feature-name>/`)
 ```
 
 Preserve the existing list. Append the new entry — do not reorder or remove existing entries.
 
 #### 3b. Architecture Decisions
+
 Scan `feature.md` (Open Questions, Technical Scope) and `plan.md` (Architecture Decisions)
 for any decisions that represent a meaningful change or addition to how the system is built.
 
 Examples of what qualifies:
+
 - A new architectural pattern introduced (e.g., added an event-driven flow, introduced CQRS for a module)
 - A cross-cutting decision that will affect future features (e.g., "all auth tokens use RS256 signing")
 - A deliberate deviation from existing conventions, with rationale
 - A new integration point with an external system
 
 Examples of what does NOT qualify:
+
 - Routine implementation choices that follow existing conventions
 - File naming or package placement decisions
 - Minor refactors that don't change architectural direction
@@ -76,40 +83,45 @@ For qualifying decisions, locate or create an `## Architecture Decisions` sectio
 ```markdown
 ## Architecture Decisions
 
-| Date | Decision | Rationale | Feature |
-|------|----------|-----------|---------|
-| <date> | <what was decided> | <why> | [<Feature Name>](docs/<feature-name>/) |
+| Date   | Decision           | Rationale | Feature                                |
+| ------ | ------------------ | --------- | -------------------------------------- |
+| <date> | <what was decided> | <why>     | [<Feature Name>](docs/<feature-name>/) |
 ```
 
 If the table already exists, append a new row. Do not recreate the table.
 
 #### 3c. API Surface (if applicable)
+
 If the feature added or changed REST endpoints, locate or create an `## API` section
 and document the new endpoints:
 
 ```markdown
 ## API
-| Method | Path | Description | Auth Required |
-|--------|------|-------------|---------------|
-| POST | /api/v1/auth/login | Authenticate user, returns JWT | No |
-| POST | /api/v1/auth/refresh | Refresh access token | Yes (refresh token) |
+
+| Method | Path                 | Description                    | Auth Required       |
+| ------ | -------------------- | ------------------------------ | ------------------- |
+| POST   | /api/v1/auth/login   | Authenticate user, returns JWT | No                  |
+| POST   | /api/v1/auth/refresh | Refresh access token           | Yes (refresh token) |
 ```
 
 Only add endpoints that are new or changed. Preserve existing entries.
 
 #### 3d. Environment / Configuration
+
 If the feature introduced new environment variables, configuration keys, add them to an
 `## Environment & Configuration` section:
 
 ```markdown
 ## Environment & Configuration
-| Key | Description | Required | Default |
-|-----|-------------|----------|---------|
-| JWT_SECRET | Secret key for JWT signing | Yes | — |
-| JWT_EXPIRY_MINUTES | Access token TTL in minutes | No | 15 |
+
+| Key                | Description                 | Required | Default |
+| ------------------ | --------------------------- | -------- | ------- |
+| JWT_SECRET         | Secret key for JWT signing  | Yes      | —       |
+| JWT_EXPIRY_MINUTES | Access token TTL in minutes | No       | 15      |
 ```
 
 #### 3e. Related Backlog Items
+
 If `docs/backlog.md` exists, scan its unchecked items (`- [ ] ...`) for any that describe
 the feature being archived — match on feature name, description, or an existing
 "(in progress — ...)" pointer left by `/sdd-feature`. A match doesn't have to be an exact
@@ -133,6 +145,7 @@ in the Step 4 preview rather than silently skipping it or inventing a match. If
 `docs/backlog.md` doesn't exist at all, skip this substep entirely (don't create either file).
 
 ### 4. Show the project.md and Backlog Changes
+
 Before writing, present a summary of every change you are about to make — to `project.md`
 and, if applicable, `docs/backlog.md` / `docs/backlog-completed.md`:
 
@@ -169,7 +182,9 @@ Ask the user to confirm before writing. If they request changes to the proposed
 updates, apply their corrections first, then write both files.
 
 ### 5. Archive
+
 Run the following operations:
+
 ```bash
 ARCHIVE_DIR="docs/specs-archive/$(date +"%Y%m%d%H%M")-<feature-name>"
 mkdir -p "$ARCHIVE_DIR"
@@ -182,6 +197,7 @@ mv plan.md "$ARCHIVE_DIR/plan.md"
 ```
 
 ### 6. Create a Brief Summary
+
 Create `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/README.md`:
 
 ```markdown
@@ -193,7 +209,9 @@ Implemented on: <date>
 ```
 
 ### 7. Confirm
+
 Report the final summary to the user:
+
 - Files archived to `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/` (`feature.md`, `plan.md`, `review.md`, and `impl-summary.md` if it existed)
 - Sections updated in `docs/project.md`
 - Backlog item moved from `docs/backlog.md` to `docs/backlog-completed.md`, if a match was found (or a note that none was)

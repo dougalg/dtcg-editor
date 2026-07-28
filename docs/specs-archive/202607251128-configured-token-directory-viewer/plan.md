@@ -1,16 +1,17 @@
 # Implementation Plan: Configured Token Directory Viewer
 
 ## Overview
+
 This is the first feature implemented in the repo, so this plan also bootstraps the monorepo tooling (pnpm workspaces, Turborepo, base TypeScript config, lint) alongside the feature itself. It creates two new packages — a minimal `token-core` parsing library and a Next.js `web-app` — and wires them together: `web-app` loads a config file at startup (via Next.js's `instrumentation.ts` hook), recursively scans the configured directory for `*.json` files using Node's `fs/promises`, parses each with `token-core`'s `parseTokenFile`, and renders a folder overview + per-file token tree, entirely server-rendered with two supporting REST Route Handlers for programmatic/API access.
 
 ## Architecture Decisions
 
 - **`packages/*` vs `apps/*` split.** `token-core` is an installable library (per `docs/project.md`'s "installable module" framing for engine/parsing packages) and lives in `packages/token-core`. `web-app` is the one deployable surface in this feature and lives in `apps/web-app`. This is a new convention not yet stated in `docs/project.md`; `/sdd-archive` should record it.
 - **`token-core` scope for this feature.** Only `parseTokenFile` and the generic `TokenDocument`/`TokenNode` Zod schema are built now — enough to represent `$type`/`$value`/nesting/name generically, with an "unknown/extension bag" preserved per node (per the Round-Trip Fidelity constraint) so a future `serialize` can be added without re-touching the parse model. `serialize()` and round-trip tests are explicitly **not** implemented in this plan — feature.md scopes editing/writing out, so there is nothing yet to round-trip. This is a deliberate, partial application of that architectural constraint; flag it in `/sdd-review`.
-- **`$type` inheritance.** DTCG allows a group to declare `$type` once and have it apply to all descendant tokens that don't override it. The Zod schema treats `$type` as optional on every node (it cannot know inheritance at the schema level); a separate tree-walk in `token-core` resolves each token's *effective* type by walking up from its parent groups. This keeps validation and type-resolution as separate concerns.
+- **`$type` inheritance.** DTCG allows a group to declare `$type` once and have it apply to all descendant tokens that don't override it. The Zod schema treats `$type` as optional on every node (it cannot know inheritance at the schema level); a separate tree-walk in `token-core` resolves each token's _effective_ type by walking up from its parent groups. This keeps validation and type-resolution as separate concerns.
 - **Startup config validation.** Next.js App Router has no traditional server "main" function; `instrumentation.ts`'s `register()` hook (Node runtime only) is the idiomatic place to run one-time startup logic. It loads and Zod-validates `dtcg-editor.config.json` from the process working directory and calls `process.exit(1)` with a clear message on failure, satisfying AC-01's "fail fast at startup."
 - **Shared lib, not duplicated logic.** Directory scanning (`scanTokenDirectory`) and per-file read+parse (`readAndParseTokenFile`) live in `apps/web-app/lib/tokens/`, and are called directly by both the Server Component pages (no self-HTTP-call for the page's own data) and the two REST Route Handlers (kept for programmatic/API access, per the original request that the backend expose standard read access). Single source of truth for the scanning/parsing behavior.
-- **Path safety on the per-file route.** The configured root directory is trusted (comes from the config file, not user input), but `app/api/tokens/[...path]/route.ts`'s path *segment* is client-supplied. The resolved path is canonicalized and checked to stay within the configured root before any `fs` call — this is a real, in-scope traversal vector, not a hypothetical one, despite feature.md's NFR describing it as a "future" concern for a *route parameter*; this feature introduces exactly that route parameter.
+- **Path safety on the per-file route.** The configured root directory is trusted (comes from the config file, not user input), but `app/api/tokens/[...path]/route.ts`'s path _segment_ is client-supplied. The resolved path is canonicalized and checked to stay within the configured root before any `fs` call — this is a real, in-scope traversal vector, not a hypothetical one, despite feature.md's NFR describing it as a "future" concern for a _route parameter_; this feature introduces exactly that route parameter.
 - **Symlink handling.** `scanTokenDirectory` skips symlinked directories (checks `dirent.isDirectory()`, not `isSymbolicLink()`) to avoid unbounded recursion through a symlink loop.
 - **Test runner: `node:test` (built-in), not Vitest/Jest.** `docs/project.md` lists testing as "not yet decided" and mandates built-ins over third-party libraries unless justified. Node's built-in `node:test` + `node:assert/strict` covers all the logic in this feature (Zod parsing, directory scanning, path-safety, Route Handlers — which are just exported functions taking a `Request` and returning a `Response`, callable directly in a test without a running server). No React component rendering tests are added in this plan (would require `jsdom`/React Testing Library, a real new dependency); UI correctness for this feature is verified manually via `next dev`, per this repo's standing convention for UI changes.
 - **Tests co-located with source, run natively with zero compile step.** `*.test.ts` files sit beside the module they test (`parse.ts`/`parse.test.ts`, `scan.ts`/`scan.test.ts`, etc.), not in a separate `test/` directory — `node --test` (no args) discovers them recursively. This only works because every internal relative import in both packages uses an explicit `.ts`/`.tsx` extension (e.g. `import { getConfig } from "./lib/config.ts"`): Node's native TypeScript execution (Node 22.6+/23+, unflagged) requires the literal extension of the file it's loading, and — critically — Turbopack (Next.js 16's bundler) resolves `.ts`-extension specifiers correctly too, so the same source files work under `next build`/`next dev` unchanged. `tsc`'s `rewriteRelativeImportExtensions` (paired with `allowImportingTsExtensions`, both TS 5.7+) rewrites these to `.js` automatically in `token-core`'s compiled `dist/` output, so consumers still get standard `.js`-extension ESM. An earlier iteration of this plan used extensionless imports in `web-app` plus a second CommonJS-targeted tsconfig purely to make `node:test` runnable, reasoning that Turbopack wouldn't resolve `.ts`-extension specifiers — that assumption was wrong (tested and confirmed working), so the CJS detour and its `tsconfig.test.json`/`dist-test` output were removed in favor of this simpler, uniform approach.
@@ -24,6 +25,7 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 ## Implementation Steps
 
 ### Step 1: Monorepo Bootstrap
+
 - [x] Root `package.json` (private, `"packageManager": "pnpm@..."`, workspace scripts: `build`, `dev`, `lint`, `test` delegating to `turbo run ...`)
 - [x] `pnpm-workspace.yaml` — `packages: ["packages/*", "apps/*"]`
 - [x] `turbo.json` — pipeline tasks for `build`, `dev`, `lint`, `test`, with `build`/`test` depending on upstream package `build`
@@ -32,6 +34,7 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 - Files: `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `tsconfig.base.json`, `eslint.config.mjs`
 
 ### Step 2: `token-core` — Parsing/Domain Layer
+
 - [x] `packages/token-core/package.json` — name `@dtcg-editor/token-core`, `"type": "module"`, dependency: `zod`; `tsconfig.json` extends root base
 - [x] Zod schema for a generic DTCG node: a discriminated shape where presence of `$value` marks a token (optional `$type`, required `$value`, plus a captured "rest" bag for unrecognized/extension fields) vs. absence of `$value` marks a group (nested record of child nodes, optional `$type` for inheritance, plus its own extension bag)
 - [x] `TokenNode`/`TokenGroup`/`TokenDocument` TypeScript types inferred from the schema
@@ -40,6 +43,7 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 - Files: `packages/token-core/src/schema.ts`, `packages/token-core/src/parse.ts`, `packages/token-core/src/types.ts`, `packages/token-core/src/resolve-type.ts`, `packages/token-core/src/index.ts`
 
 ### Step 3: `web-app` Scaffold + Startup Config
+
 - [x] Scaffold `apps/web-app` as a Next.js App Router app (TypeScript, ESLint, no `src/` dir, no Tailwind); merge its generated `tsconfig.json` to `extend` the root `tsconfig.base.json` instead of standing alone
 - [x] `dtcg-editor.config.schema.ts` — Zod schema for the config file (`{ tokensDir: string }` minimum), colocated in `apps/web-app/lib/config.ts`
 - [x] `loadConfig(): Config` — reads `dtcg-editor.config.json` from `process.cwd()`, `JSON.parse`s it, validates with the Zod schema, resolves `tokensDir` to an absolute path; throws a typed `ConfigError` with a specific reason (file missing / invalid JSON / schema violation) rather than a generic error
@@ -48,6 +52,7 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 - Files: `apps/web-app/{package.json,tsconfig.json,next.config.ts,instrumentation.ts}`, `apps/web-app/lib/config.ts`
 
 ### Step 4: Backend Scanning & Reading Logic + Route Handlers
+
 - [x] `scanTokenDirectory(rootDir: string): Promise<TokenFileSummary[]>` — recursively walks `rootDir` with `fs.promises.readdir(..., { withFileTypes: true })`, skipping symlinked directories, collecting every `*.json` file's path (relative to `rootDir`); for each, attempts a read + `parseTokenFile` and records `{ relativePath, valid: true }` or `{ relativePath, valid: false, error: string }` — one bad file must not abort the scan (wrap each file's read/parse in its own try/catch)
 - [x] `resolveSafeTokenPath(rootDir: string, requestedRelativePath: string): string` — joins and canonicalizes the requested path against `rootDir`, throws if the resolved path escapes `rootDir` (rejects `..` traversal and absolute-path segments)
 - [x] `readAndParseTokenFile(rootDir: string, relativePath: string): Promise<TokenDocument>` — uses `resolveSafeTokenPath`, reads the file, calls `parseTokenFile`; throws on traversal attempt, missing file, or parse failure (caller maps to HTTP status)
@@ -57,6 +62,7 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 - Files: `apps/web-app/lib/tokens/scan.ts`, `apps/web-app/lib/tokens/path-safety.ts`, `apps/web-app/lib/tokens/read.ts`, `apps/web-app/app/api/tokens/route.ts`, `apps/web-app/app/api/tokens/[...path]/route.ts`
 
 ### Step 5: Frontend Pages & Components
+
 - [x] `app/page.tsx` (Server Component) — calls `getConfig()` + `scanTokenDirectory()` directly (no self-fetch), renders `<FolderOverview files={...} />`. Marked `export const dynamic = "force-dynamic"` — without it Next statically prerendered this page once at build time, freezing the directory listing instead of scanning per request.
 - [x] `FolderOverview` component — lists discovered files with relative path and valid/invalid badge; invalid files show their error inline; valid files link to `app/tokens/[...path]/page.tsx`
 - [x] `app/tokens/[...path]/page.tsx` (Server Component) — calls `readAndParseTokenFile()` directly for the requested path, renders `<TokenTree node={...} />`, or an error state if parsing/path-resolution fails
@@ -66,6 +72,7 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 - Files: `apps/web-app/app/page.tsx`, `apps/web-app/app/tokens/[...path]/page.tsx`, `apps/web-app/components/FolderOverview.tsx`, `apps/web-app/components/TokenTree.tsx`, plus co-located `.module.css` files
 
 ### Step 6: Tests
+
 - [x] `token-core`: fixture-based tests for `parseTokenFile` — valid token file, valid file with nested groups + inherited `$type`, file with unrecognized/extension fields (asserting they're preserved on the parsed node), and invalid files (bad JSON, schema violation) asserting a `TokenParseError` is thrown with a useful message
 - [x] `token-core`: tests for `resolveEffectiveType` covering direct `$type`, inherited `$type` from an ancestor group, and no `$type` anywhere in the chain
 - [x] `web-app`: `scanTokenDirectory` tests against a temp fixture directory tree — nested subfolders discovered (AC-02), a symlinked subfolder is not followed, one invalid file among valid ones doesn't affect the others (AC-03)
@@ -77,16 +84,18 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 - All 32 tests pass (`pnpm run test` from root, via Turborepo, across both packages — `node --test` with no arguments, which recursively discovers every co-located `*.test.ts` file); root `pnpm run build` and `pnpm run lint` also pass across both packages
 
 ## Acceptance Criteria Mapping
-| AC | Verified By |
-|----|-------------|
-| AC-01: fail fast on missing/invalid config | `apps/web-app/test/config.test.ts` (`loadConfig` throw cases); `process.exit` wrapping in `instrumentation.ts` verified manually (`next start` with a broken config) |
-| AC-02: recursive discovery at any depth | `apps/web-app/test/scan.test.ts` (nested fixture tree) |
-| AC-03: valid files render, invalid files isolated | `packages/token-core/test/parse.test.ts` + `apps/web-app/test/scan.test.ts` (mixed valid/invalid fixture set); manual check in `next dev` |
-| AC-04: folder overview lists files, selecting opens tree | Manual verification in `next dev` (no automated UI test in this plan — see Architecture Decisions) |
-| AC-05: no write/mutation surface | `apps/web-app/test/routes.test.ts` (asserts only `GET` is exported from both route modules) |
-| AC-06: runs standalone via `next build`/`next start` | Manual verification: `pnpm --filter web-app build && pnpm --filter web-app start` with a valid config present |
+
+| AC                                                       | Verified By                                                                                                                                                          |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC-01: fail fast on missing/invalid config               | `apps/web-app/test/config.test.ts` (`loadConfig` throw cases); `process.exit` wrapping in `instrumentation.ts` verified manually (`next start` with a broken config) |
+| AC-02: recursive discovery at any depth                  | `apps/web-app/test/scan.test.ts` (nested fixture tree)                                                                                                               |
+| AC-03: valid files render, invalid files isolated        | `packages/token-core/test/parse.test.ts` + `apps/web-app/test/scan.test.ts` (mixed valid/invalid fixture set); manual check in `next dev`                            |
+| AC-04: folder overview lists files, selecting opens tree | Manual verification in `next dev` (no automated UI test in this plan — see Architecture Decisions)                                                                   |
+| AC-05: no write/mutation surface                         | `apps/web-app/test/routes.test.ts` (asserts only `GET` is exported from both route modules)                                                                          |
+| AC-06: runs standalone via `next build`/`next start`     | Manual verification: `pnpm --filter web-app build && pnpm --filter web-app start` with a valid config present                                                        |
 
 ## Risks & Mitigations
+
 - **Risk:** Bootstrapping full monorepo tooling in the same change as the first feature inflates the diff and blurs "infra setup" vs. "feature work." → **Mitigation:** Step 1 stays limited to what this feature needs (no CI workflows, no Storybook, no extra tooling); call this out explicitly when reviewing/archiving.
 - **Risk:** `create-next-app` scaffolding may generate files/defaults that don't match this repo's strict TS config or Minimal Dependencies stance (e.g. its own relaxed `tsconfig.json`, `next/font` usage). → **Mitigation:** immediately review and adjust generated output in Step 3 — merge in `tsconfig.base.json`, remove anything not needed for this feature.
 - **Risk:** DTCG `$type` inheritance is easy to get subtly wrong if conflated with schema validation. → **Mitigation:** kept as a separate resolver function with its own dedicated tests (Step 6), not encoded in the Zod schema.
@@ -94,4 +103,5 @@ This is the first feature implemented in the repo, so this plan also bootstraps 
 - **Risk:** Symlink loops in the configured directory could cause unbounded recursion. → **Mitigation:** `scanTokenDirectory` explicitly skips symlinked directories (Step 4).
 
 ## Estimated Complexity
+
 **Medium-High.** No auth, no database, no complex domain logic — but this plan carries the one-time cost of bootstrapping the entire monorepo (workspace tooling, base TS config, lint) plus two new packages from nothing, alongside the recursive-fs, path-safety, and DTCG-parsing logic the feature itself needs.

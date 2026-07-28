@@ -8,7 +8,7 @@
  * route's existing 400/404/422/500 status-code taxonomy.
  */
 export type SaveError =
-  | { readonly kind: "not-found"; readonly path: string }
-  | { readonly kind: "validation"; readonly issues: readonly string[] }
-  | { readonly kind: "invalid-file"; readonly issues: readonly string[] }
-  | { readonly kind: "unknown"; readonly message: string };
+	| { readonly kind: "not-found"; readonly path: string }
+	| { readonly kind: "validation"; readonly issues: readonly string[] }
+	| { readonly kind: "invalid-file"; readonly issues: readonly string[] }
+	| { readonly kind: "unknown"; readonly message: string };

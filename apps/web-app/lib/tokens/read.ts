@@ -10,17 +10,24 @@ import type { ReadTextFile } from "../platform/node-fs.ts";
 
 /** Returned when the requested token file does not exist. */
 export class FileNotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "FileNotFoundError";
-  }
+	constructor(message: string) {
+		super(message);
+		this.name = "FileNotFoundError";
+	}
 }
 
-function classifyReadError(cause: unknown, logger: Logger, relativePath: string): FileNotFoundError | UnknownError {
-  if (cause instanceof Error && (cause as NodeJS.ErrnoException).code === "ENOENT") {
-    return new FileNotFoundError(`Token file not found: "${relativePath}"`);
-  }
-  return toLoggedUnknownError(logger, cause, "readAndParseTokenFile");
+function classifyReadError(
+	cause: unknown,
+	logger: Logger,
+	relativePath: string,
+): FileNotFoundError | UnknownError {
+	if (
+		cause instanceof Error &&
+		(cause as NodeJS.ErrnoException).code === "ENOENT"
+	) {
+		return new FileNotFoundError(`Token file not found: "${relativePath}"`);
+	}
+	return toLoggedUnknownError(logger, cause, "readAndParseTokenFile");
 }
 
 /**
@@ -31,17 +38,20 @@ function classifyReadError(cause: unknown, logger: Logger, relativePath: string)
  * callers map these to responses.
  */
 export function readAndParseTokenFile(
-  rootDir: string,
-  relativePath: string,
-  logger: Logger = consoleLogger,
-  readFileFn: ReadTextFile = nodeReadFile,
-): ResultAsync<TokenDocument, PathTraversalError | FileNotFoundError | TokenParseError | UnknownError> {
-  const pathResult = resolveSafeTokenPath(rootDir, relativePath);
-  if (pathResult.isErr()) {
-    return errAsync(pathResult.error);
-  }
+	rootDir: string,
+	relativePath: string,
+	logger: Logger = consoleLogger,
+	readFileFn: ReadTextFile = nodeReadFile,
+): ResultAsync<
+	TokenDocument,
+	PathTraversalError | FileNotFoundError | TokenParseError | UnknownError
+> {
+	const pathResult = resolveSafeTokenPath(rootDir, relativePath);
+	if (pathResult.isErr()) {
+		return errAsync(pathResult.error);
+	}
 
-  return ResultAsync.fromPromise(readFileFn(pathResult.value), (cause) =>
-    classifyReadError(cause, logger, relativePath),
-  ).andThen((contents) => parseTokenFile(contents));
+	return ResultAsync.fromPromise(readFileFn(pathResult.value), (cause) =>
+		classifyReadError(cause, logger, relativePath),
+	).andThen((contents) => parseTokenFile(contents));
 }

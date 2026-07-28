@@ -14,14 +14,14 @@ import type { Result } from "neverthrow";
  * `register()`'s real `loadConfig` satisfies `RegisterDeps` with no cast.
  */
 export interface RegisteredConfig {
-  readonly tokensDir: string;
+	readonly tokensDir: string;
 }
 
 export interface RegisterDeps {
-  loadConfig: () => Result<RegisteredConfig, Error>;
-  setConfigCache: (config: RegisteredConfig) => void;
-  getNextRuntime: () => string | undefined;
-  onFatalError: (message: string) => Promise<void>;
+	loadConfig: () => Result<RegisteredConfig, Error>;
+	setConfigCache: (config: RegisteredConfig) => void;
+	getNextRuntime: () => string | undefined;
+	onFatalError: (message: string) => Promise<void>;
 }
 
 /**
@@ -34,16 +34,16 @@ export interface RegisterDeps {
  * `patchTokenFile`/`PATCH` injectable-core/thin-wrapper precedents.
  */
 export async function runRegister(deps: RegisterDeps): Promise<void> {
-  if (deps.getNextRuntime() !== "nodejs") {
-    return;
-  }
+	if (deps.getNextRuntime() !== "nodejs") {
+		return;
+	}
 
-  const result = deps.loadConfig();
-  if (result.isErr()) {
-    await deps.onFatalError(result.error.message);
-    return;
-  }
-  deps.setConfigCache(result.value);
+	const result = deps.loadConfig();
+	if (result.isErr()) {
+		await deps.onFatalError(result.error.message);
+		return;
+	}
+	deps.setConfigCache(result.value);
 }
 
 /**
@@ -60,18 +60,19 @@ export async function runRegister(deps: RegisterDeps): Promise<void> {
  * (AC-05) without relying on this file's real `process.env`.
  */
 export async function register(): Promise<void> {
-  if (process.env.NEXT_RUNTIME !== "nodejs") {
-    return;
-  }
+	if (process.env.NEXT_RUNTIME !== "nodejs") {
+		return;
+	}
 
-  const { loadConfig, setConfigCache } = await import("./lib/config.ts");
-  await runRegister({
-    loadConfig,
-    setConfigCache,
-    getNextRuntime: () => process.env.NEXT_RUNTIME,
-    onFatalError: async (message) => {
-      const { exitOnFatalStartupError } = await import("./lib/fatal-startup-error.ts");
-      exitOnFatalStartupError(message);
-    },
-  });
+	const { loadConfig, setConfigCache } = await import("./lib/config.ts");
+	await runRegister({
+		loadConfig,
+		setConfigCache,
+		getNextRuntime: () => process.env.NEXT_RUNTIME,
+		onFatalError: async (message) => {
+			const { exitOnFatalStartupError } =
+				await import("./lib/fatal-startup-error.ts");
+			exitOnFatalStartupError(message);
+		},
+	});
 }

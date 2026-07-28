@@ -1,7 +1,7 @@
 import {
-  existsSync as fsExistsSync,
-  readFileSync as fsReadFileSync,
-  writeFileSync as fsWriteFileSync,
+	existsSync as fsExistsSync,
+	readFileSync as fsReadFileSync,
+	writeFileSync as fsWriteFileSync,
 } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 
@@ -13,10 +13,10 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
  * `node:fs`/`node:fs/promises` import point in the app (AC-01).
  */
 export interface DirEntry {
-  readonly name: string;
-  isDirectory(): boolean;
-  isFile(): boolean;
-  isSymbolicLink(): boolean;
+	readonly name: string;
+	isDirectory(): boolean;
+	isFile(): boolean;
+	isSymbolicLink(): boolean;
 }
 
 export type ReadTextFile = (path: string) => Promise<string>;
@@ -30,16 +30,20 @@ export type WriteTextFileSync = (path: string, data: string) => void;
 export const nodeReadFile: ReadTextFile = (path) => readFile(path, "utf-8");
 
 /** Real `fs.writeFile`, bound to utf-8 — `write.ts`'s injected default. */
-export const nodeWriteFile: WriteTextFile = (path, data) => writeFile(path, data, "utf-8");
+export const nodeWriteFile: WriteTextFile = (path, data) =>
+	writeFile(path, data, "utf-8");
 
 /** Real `fs.readdir` with `withFileTypes: true` — `scan.ts`'s injected default. */
-export const nodeReadDir: ReadDirEntries = (path) => readdir(path, { withFileTypes: true });
+export const nodeReadDir: ReadDirEntries = (path) =>
+	readdir(path, { withFileTypes: true });
 
 /** Real `fs.readFileSync`, bound to utf-8 — `config.ts`'s injected default. */
-export const nodeReadFileSync: ReadTextFileSync = (path) => fsReadFileSync(path, "utf-8");
+export const nodeReadFileSync: ReadTextFileSync = (path) =>
+	fsReadFileSync(path, "utf-8");
 
 /** Real `fs.existsSync` — `init-config.ts`'s injected default. */
 export const nodeExistsSync: ExistsSync = (path) => fsExistsSync(path);
 
 /** Real `fs.writeFileSync`, bound to utf-8 — `init-config.ts`'s injected default. */
-export const nodeWriteFileSync: WriteTextFileSync = (path, data) => fsWriteFileSync(path, data, "utf-8");
+export const nodeWriteFileSync: WriteTextFileSync = (path, data) =>
+	fsWriteFileSync(path, data, "utf-8");

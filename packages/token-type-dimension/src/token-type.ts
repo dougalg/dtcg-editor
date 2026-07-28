@@ -9,8 +9,8 @@ import { DimensionEditor } from "./editor.tsx";
  * transitively pull in `editor.tsx`'s JSX, which `node --test` cannot load.
  */
 export const dimensionTokenType: TokenTypeContract<DimensionValue> = {
-  type: "dimension",
-  valueSchema: DimensionValueSchema,
-  serializeValue: (value) => value,
-  Editor: DimensionEditor,
+	type: "dimension",
+	valueSchema: DimensionValueSchema,
+	serializeValue: (value) => value,
+	Editor: DimensionEditor,
 };

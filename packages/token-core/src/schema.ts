@@ -14,9 +14,9 @@ export const RawNodeSchema = z.record(z.string(), z.unknown());
  * per the DTCG spec.
  */
 export const NodeMetadataSchema = z.object({
-  $type: z.string().optional(),
-  $description: z.string().optional(),
-  $deprecated: z.union([z.boolean(), z.string()]).optional(),
+	$type: z.string().optional(),
+	$description: z.string().optional(),
+	$deprecated: z.union([z.boolean(), z.string()]).optional(),
 });
 
 export type NodeMetadata = z.infer<typeof NodeMetadataSchema>;

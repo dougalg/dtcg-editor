@@ -9,16 +9,16 @@ import { z } from "zod";
  * contract (not this generic edge) knows what a valid value looks like.
  */
 export const EditRequestSchema = z.object({
-  edits: z
-    .array(
-      z.object({
-        path: z.array(z.string()),
-        name: z.string().optional(),
-        value: z.unknown().optional(),
-        description: z.string().optional(),
-      }),
-    )
-    .min(1),
+	edits: z
+		.array(
+			z.object({
+				path: z.array(z.string()),
+				name: z.string().optional(),
+				value: z.unknown().optional(),
+				description: z.string().optional(),
+			}),
+		)
+		.min(1),
 });
 
 export type EditRequest = z.infer<typeof EditRequestSchema>;

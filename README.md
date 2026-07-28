@@ -1,7 +1,9 @@
 # dtcg-editor
+
 An open source DTCG token editor
 
 ## Getting Started
+
 Before starting the web app, scaffold `dtcg-editor.config.json` (it points the app at your DTCG token files):
 
 ```
