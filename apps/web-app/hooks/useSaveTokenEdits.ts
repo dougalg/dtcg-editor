@@ -40,7 +40,10 @@ function parseSaveError(body: unknown, status: number): SaveError {
  * state (`saveState`/`saveError`), never a thrown exception for the caller
  * to catch.
  */
-export function useSaveTokenEdits(relativePath: string): UseSaveTokenEditsResult {
+export function useSaveTokenEdits(
+  relativePath: string,
+  fetchImpl: typeof fetch = fetch,
+): UseSaveTokenEditsResult {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveError, setSaveError] = useState<SaveError | undefined>(undefined);
 
@@ -50,7 +53,7 @@ export function useSaveTokenEdits(relativePath: string): UseSaveTokenEditsResult
 
     let response: Response;
     try {
-      response = await fetch(`/api/tokens/${relativePath}`, {
+      response = await fetchImpl(`/api/tokens/${relativePath}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ edits }),
