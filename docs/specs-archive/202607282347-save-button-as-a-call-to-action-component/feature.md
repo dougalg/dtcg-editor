@@ -48,14 +48,14 @@ The button's accessible name must keep containing "Save" in both states, and the
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `apps/web-app/components/SaveButton.tsx` exists as a standalone component with its own `SaveButton.module.css`, and `TokenTree.tsx` renders it in place of the old inline `<button>`.
-- [ ] AC-02: The rendered button is visually larger than the previous plain button (increased padding/font-size), has rounded corners, and uses a solid accent background with contrasting label/icon color.
-- [ ] AC-03: The button displays a disk/save icon (inline SVG, no new npm dependency) to the left of its label text, in both idle and pending (`"Saving…"`) states.
-- [ ] AC-04: The button has a visibly distinct `:hover` state, a visible `:focus-visible` outline, and a visibly distinct `:disabled` state (dimmed, `cursor: not-allowed`).
-- [ ] AC-05: New `--accent` / `--accent-hover` / `--accent-foreground` CSS custom properties are added to `apps/web-app/app/globals.css`, with both a light (`:root`) and dark (`@media (prefers-color-scheme: dark)`) value, matching the existing variable pattern.
-- [ ] AC-06: All existing tests in `apps/web-app/components/TokenTree.test.tsx` pass unmodified (button located via `getByRole("button", { name: /save/i })`, `.disabled` assertions, `"Saving…"` pending text).
-- [ ] AC-07: No new npm dependency is added to any `package.json` for this feature.
-- [ ] AC-08: `pnpm --filter web-app build`, `pnpm --filter web-app lint`, and `pnpm --filter web-app test` all pass.
+- [x] AC-01: `apps/web-app/components/SaveButton.tsx` exists as a standalone component with its own `SaveButton.module.css`, and `TokenTree.tsx` renders it in place of the old inline `<button>`.
+- [x] AC-02: The rendered button is visually larger than the previous plain button (increased padding/font-size), has rounded corners, and uses a solid accent background with contrasting label/icon color.
+- [x] AC-03: The button displays a disk/save icon (inline SVG, no new npm dependency) to the left of its label text, in both idle and pending (`"Saving…"`) states.
+- [x] AC-04: The button has a visibly distinct `:hover` state, a visible `:focus-visible` outline, and a visibly distinct `:disabled` state (dimmed, `cursor: not-allowed`).
+- [x] AC-05: New `--accent` / `--accent-hover` / `--accent-foreground` CSS custom properties are added to `apps/web-app/app/globals.css`, with both a light (`:root`) and dark (`@media (prefers-color-scheme: dark)`) value, matching the existing variable pattern.
+- [x] AC-06: All existing tests in `apps/web-app/components/TokenTree.test.tsx` pass unmodified (button located via `getByRole("button", { name: /save/i })`, `.disabled` assertions, `"Saving…"` pending text).
+- [x] AC-07: No new npm dependency is added to any `package.json` for this feature.
+- [x] AC-08: `pnpm --filter web-app build`, `pnpm --filter web-app lint`, and `pnpm --filter web-app test` all pass.
 
 ## Technical Scope
 
