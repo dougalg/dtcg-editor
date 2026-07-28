@@ -83,10 +83,43 @@ export function checkRenameAvailable(
 	return !siblings.some((sibling) => sibling.name === name);
 }
 
+/**
+ * Rewrites `node`'s own `path` and, recursively, every descendant's `path`,
+ * replacing the `oldPrefix` segment with `newPrefix` while keeping each
+ * node's relative path suffix intact. Client-side mirror of `token-core`'s
+ * `edit.ts`'s `renameSubtreePath`, operating on `PlainDtcgNode`'s
+ * array-based `children` instead of a `Map` — needed so a renamed group's
+ * descendants stay reachable at their new, prefixed path in the
+ * optimistically-updated local tree.
+ */
+function renameSubtreePlainNode(
+	node: PlainDtcgNode,
+	oldPrefix: readonly string[],
+	newPrefix: readonly string[],
+): PlainDtcgNode {
+	const newPath = [...newPrefix, ...node.path.slice(oldPrefix.length)];
+
+	if (node.kind === "token") {
+		return { ...node, path: newPath };
+	}
+
+	return {
+		...node,
+		path: newPath,
+		children: node.children.map((child) =>
+			renameSubtreePlainNode(child, oldPrefix, newPrefix),
+		),
+	};
+}
+
 function applyEditToNode(node: PlainDtcgNode, edit: ClientEdit): PlainDtcgNode {
 	if (pathKey(node.path) === pathKey(edit.path)) {
-		if (node.kind !== "token") {
-			return node;
+		if (node.kind === "group") {
+			const newName = edit.name ?? node.name;
+			return renameSubtreePlainNode({ ...node, name: newName }, node.path, [
+				...node.path.slice(0, -1),
+				newName,
+			]);
 		}
 		const newName = edit.name ?? node.name;
 		return {
@@ -108,10 +141,20 @@ function applyEditToNode(node: PlainDtcgNode, edit: ClientEdit): PlainDtcgNode {
 	return node;
 }
 
-/** Applies a batch of edits to a client-side `PlainDtcgNode` tree, producing a new tree. */
+/**
+ * Applies a batch of edits to a client-side `PlainDtcgNode` tree, producing
+ * a new tree. Edits are stably sorted by descending `path.length` first,
+ * mirroring `token-core`'s `applyTokenEdits` — otherwise an edit targeting a
+ * descendant of a group renamed earlier in the batch would be located by a
+ * `path` the rename already invalidated in this same optimistic-apply pass.
+ */
 export function applyEditsToPlainNode(
 	root: PlainDtcgNode,
 	edits: readonly ClientEdit[],
 ): PlainDtcgNode {
-	return edits.reduce((current, edit) => applyEditToNode(current, edit), root);
+	const orderedEdits = [...edits].sort((a, b) => b.path.length - a.path.length);
+	return orderedEdits.reduce(
+		(current, edit) => applyEditToNode(current, edit),
+		root,
+	);
 }

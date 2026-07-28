@@ -45,6 +45,55 @@ function withReplacedChild(
 	return { ...group, children };
 }
 
+/**
+ * Rewrites `node`'s own `path` and, recursively, every descendant's `path`,
+ * replacing the `oldPrefix` segment with `newPrefix` while keeping each
+ * node's relative path suffix intact. Used when a group is renamed: the
+ * rename only swaps one key in the group's *parent*, but every node's
+ * `path` field is denormalized (stores the full ancestor chain), so a
+ * renamed ancestor segment must be propagated to the whole subtree.
+ */
+function renameSubtreePath(
+	node: DtcgNode,
+	oldPrefix: readonly string[],
+	newPrefix: readonly string[],
+): DtcgNode {
+	const newPath = [...newPrefix, ...node.path.slice(oldPrefix.length)];
+
+	if (node.kind === "token") {
+		return { ...node, path: newPath };
+	}
+
+	const children = new Map(
+		Array.from(node.children.entries()).map(([key, child]) => [
+			key,
+			renameSubtreePath(child, oldPrefix, newPrefix),
+		]),
+	);
+	return { ...node, path: newPath, children };
+}
+
+/**
+ * Returns a `TokenEditError` if `newName` collides with an existing sibling
+ * of `currentName` in `parent.children` — shared by both the token and
+ * group rename branches of `applyOneEdit`, which otherwise duplicate this
+ * exact check.
+ */
+function checkSiblingCollision(
+	parent: GroupNode,
+	currentName: string,
+	newName: string,
+	path: readonly string[],
+): TokenEditError | undefined {
+	if (newName !== currentName && parent.children.has(newName)) {
+		return new TokenEditError(
+			`"${newName}" already exists alongside "${describePath(path)}"`,
+			path,
+		);
+	}
+	return undefined;
+}
+
 // Rebuilds `ancestors[index..]`, bottom-up, with the leaf's key swapped from
 // `oldKey` to `newKey`. Returns `undefined` only if `index` is out of range —
 // callers only ever pass in-range indices, but this returns rather than
@@ -101,18 +150,11 @@ function applyOneEdit(
 			),
 		);
 	}
-	if (located.node.kind !== "token") {
-		return err(
-			new TokenEditError(
-				`Node at "${describePath(edit.path)}" is a group, not a token`,
-				edit.path,
-			),
-		);
-	}
-	// `located.node.kind === "token"` guarantees `edit.path` is non-empty (the
-	// document root is always a group), so `located.ancestors` always has at
-	// least one element here — but this is still checked, not asserted, since
-	// `@typescript-eslint/no-non-null-assertion` bans `!` outright in this repo.
+	// `located.ancestors` is always non-empty here: a token's path is never
+	// empty (the document root is always a group), and a group being edited
+	// (below) has a non-empty `edit.path` too — `findNode` only ever returns
+	// the root itself (ancestors `[]`) for an empty path, which no caller
+	// produces since the root has no parent key to rename.
 	const parent = located.ancestors[located.ancestors.length - 1];
 	if (parent === undefined) {
 		return err(new TokenEditError(`Cannot edit the document root`, edit.path));
@@ -120,13 +162,57 @@ function applyOneEdit(
 
 	const currentName = located.node.name;
 	const newName = edit.name ?? currentName;
-	if (newName !== currentName && parent.children.has(newName)) {
-		return err(
-			new TokenEditError(
-				`"${newName}" already exists alongside "${describePath(edit.path)}"`,
-				edit.path,
-			),
+
+	if (located.node.kind === "group") {
+		if (edit.value !== undefined || edit.description !== undefined) {
+			return err(
+				new TokenEditError(
+					`Cannot set value/description on a group ("${describePath(edit.path)}")`,
+					edit.path,
+				),
+			);
+		}
+		const collision = checkSiblingCollision(
+			parent,
+			currentName,
+			newName,
+			edit.path,
 		);
+		if (collision !== undefined) {
+			return err(collision);
+		}
+
+		const patchedGroup = renameSubtreePath(
+			{ ...located.node, name: newName },
+			located.node.path,
+			[...located.node.path.slice(0, -1), newName],
+		);
+		const newRoot = rebuildAncestorChain(
+			located.ancestors,
+			0,
+			currentName,
+			newName,
+			patchedGroup,
+		);
+		if (newRoot === undefined) {
+			return err(
+				new TokenEditError(
+					`Internal error rebuilding the tree for "${describePath(edit.path)}"`,
+					edit.path,
+				),
+			);
+		}
+		return ok(newRoot);
+	}
+
+	const collision = checkSiblingCollision(
+		parent,
+		currentName,
+		newName,
+		edit.path,
+	);
+	if (collision !== undefined) {
+		return err(collision);
 	}
 
 	const patchedToken: TokenNode = {
@@ -159,15 +245,23 @@ function applyOneEdit(
  * Applies a batch of edits to a `TokenDocument`, producing a new,
  * immutably-rebuilt tree. Edits are applied in order against a
  * continuously-updated tree, so later edits in the same batch see the
- * effects of earlier ones.
+ * effects of earlier ones. The incoming array is stably sorted by
+ * descending `path.length` first, so an edit to a deeper node always
+ * resolves before an edit renaming one of its ancestors — otherwise a
+ * group rename earlier in the array would invalidate a descendant edit's
+ * `path` before that edit ever runs. `Array.prototype.sort` is stable
+ * (guaranteed since ES2019), so edits at the same depth keep their
+ * original relative order.
  */
 export function applyTokenEdits(
 	document: TokenDocument,
 	edits: readonly TokenEdit[],
 ): Result<TokenDocument, TokenEditError> {
+	const orderedEdits = [...edits].sort((a, b) => b.path.length - a.path.length);
+
 	let root = document.root;
 
-	for (const edit of edits) {
+	for (const edit of orderedEdits) {
 		const result = applyOneEdit(root, edit);
 		if (result.isErr()) {
 			return err(result.error);

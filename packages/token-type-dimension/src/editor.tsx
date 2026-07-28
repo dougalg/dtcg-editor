@@ -5,6 +5,7 @@ import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
 import type { DimensionValue } from "./dimension.ts";
 
 const UNITS = ["px", "rem"] as const;
+const labelTextStyle = { fontSize: "0.7rem", opacity: 0.6 } as const;
 
 /** The editable UI for a Dimension token's `$value`: a numeric input plus a unit select. */
 export function DimensionEditor({
@@ -25,23 +26,20 @@ export function DimensionEditor({
 
 	return (
 		<span>
-			<input
-				type="number"
-				value={value.value}
-				onChange={handleValueChange}
-				aria-label="Dimension value"
-			/>
-			<select
-				value={value.unit}
-				onChange={handleUnitChange}
-				aria-label="Dimension unit"
-			>
-				{UNITS.map((unit) => (
-					<option key={unit} value={unit}>
-						{unit}
-					</option>
-				))}
-			</select>
+			<label>
+				<span style={labelTextStyle}>Dimension value</span>
+				<input type="number" value={value.value} onChange={handleValueChange} />
+			</label>
+			<label>
+				<span style={labelTextStyle}>Dimension unit</span>
+				<select value={value.unit} onChange={handleUnitChange}>
+					{UNITS.map((unit) => (
+						<option key={unit} value={unit}>
+							{unit}
+						</option>
+					))}
+				</select>
+			</label>
 		</span>
 	);
 }
