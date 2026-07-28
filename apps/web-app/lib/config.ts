@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { err, fromThrowable, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-const CONFIG_FILE_NAME = "dtcg-editor.config.json";
+export const CONFIG_FILE_NAME = "dtcg-editor.config.json";
 
 export const ConfigFileSchema = z.object({
   tokensDir: z.string().min(1, "tokensDir must be a non-empty string"),
@@ -36,7 +36,7 @@ export class ConfigNotInitializedError extends Error {
   }
 }
 
-function describeCause(cause: unknown): string {
+export function describeCause(cause: unknown): string {
   return cause instanceof Error ? cause.message : String(cause);
 }
 

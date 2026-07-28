@@ -4,9 +4,7 @@ import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { err, fromThrowable, ok, type Result } from "neverthrow";
-import { ConfigFileSchema } from "../lib/config.ts";
-
-const CONFIG_FILE_NAME = "dtcg-editor.config.json";
+import { CONFIG_FILE_NAME, ConfigFileSchema, describeCause } from "../lib/config.ts";
 
 const USAGE = `Usage: pnpm --filter web-app run init-config [options]
 
@@ -28,10 +26,6 @@ export interface InitConfigIO {
   input: NodeJS.ReadableStream;
   output: NodeJS.WritableStream;
   isTTY: boolean;
-}
-
-function describeCause(cause: unknown): string {
-  return cause instanceof Error ? cause.message : String(cause);
 }
 
 function describeIssues(issues: ReadonlyArray<{ path: ReadonlyArray<PropertyKey>; message: string }>): string {
