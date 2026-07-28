@@ -1,7 +1,8 @@
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { err, fromThrowable, ok, type Result } from "neverthrow";
 import { z } from "zod";
+import { nodeReadFileSync } from "./platform/node-fs.ts";
+import type { ReadTextFileSync } from "./platform/node-fs.ts";
 
 export const CONFIG_FILE_NAME = "dtcg-editor.config.json";
 
@@ -45,11 +46,14 @@ export function describeCause(cause: unknown): string {
  * working directory by default). This is the sanctioned entry point for the
  * config file — an external edge per this repo's validation conventions.
  */
-export function loadConfig(cwd: string = process.cwd()): Result<Config, ConfigError> {
+export function loadConfig(
+  cwd: string = process.cwd(),
+  readFileFn: ReadTextFileSync = nodeReadFileSync,
+): Result<Config, ConfigError> {
   const configPath = resolve(cwd, CONFIG_FILE_NAME);
 
   const readConfigFile = fromThrowable(
-    () => readFileSync(configPath, "utf-8"),
+    () => readFileFn(configPath),
     (cause) => new ConfigError(`Could not read config file at "${configPath}": ${describeCause(cause)}`),
   );
 

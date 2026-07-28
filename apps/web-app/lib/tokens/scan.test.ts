@@ -1,19 +1,11 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { chmod, mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Logger } from "@dtcg-editor/errors";
 import { scanTokenDirectory, type TokenFileSummary } from "./scan.ts";
+import type { DirEntry, ReadDirEntries, ReadTextFile } from "../platform/node-fs.ts";
 
-async function withTempDir(fn: (dir: string) => Promise<void>): Promise<void> {
-  const dir = await mkdtemp(join(tmpdir(), "dtcg-scan-"));
-  try {
-    await fn(dir);
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
-}
+const rootDir = "/virtual/tokens";
 
 function fakeLogger(): { logger: Logger; state: { calls: number } } {
   const state = { calls: 0 };
@@ -27,8 +19,43 @@ function fakeLogger(): { logger: Logger; state: { calls: number } } {
   };
 }
 
-async function scanOk(dir: string): Promise<readonly TokenFileSummary[]> {
-  const result = await scanTokenDirectory(dir);
+function mockReadDir(tree: Record<string, DirEntry[]>): ReadDirEntries {
+  return async (path) => {
+    const entries = tree[path];
+    if (entries === undefined) {
+      throw new Error(`ENOTDIR or permission denied: ${path}`);
+    }
+    return entries;
+  };
+}
+
+function mockReadFile(files: Record<string, string>): ReadTextFile {
+  return async (path) => {
+    if (!(path in files)) {
+      const error = new Error(`ENOENT: no such file or directory, open '${path}'`) as NodeJS.ErrnoException;
+      error.code = "ENOENT";
+      throw error;
+    }
+    return files[path];
+  };
+}
+
+function dirEntry(name: string, kind: "file" | "dir" | "symlink"): DirEntry {
+  return {
+    name,
+    isDirectory: () => kind === "dir",
+    isFile: () => kind === "file",
+    isSymbolicLink: () => kind === "symlink",
+  };
+}
+
+async function scanOk(
+  dir: string,
+  logger: Logger | undefined,
+  readDirFn: ReadDirEntries,
+  readFileFn: ReadTextFile,
+): Promise<readonly TokenFileSummary[]> {
+  const result = await scanTokenDirectory(dir, logger, readDirFn, readFileFn);
   if (!result.isOk()) {
     assert.fail("expected scanTokenDirectory to succeed");
   }
@@ -36,88 +63,99 @@ async function scanOk(dir: string): Promise<readonly TokenFileSummary[]> {
 }
 
 test("discovers *.json files at multiple nesting depths", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "a.json"), JSON.stringify({ x: { $value: "1" } }));
-    await mkdir(join(dir, "nested"));
-    await writeFile(join(dir, "nested", "b.json"), JSON.stringify({ y: { $value: "2" } }));
-    await mkdir(join(dir, "nested", "deeper"));
-    await writeFile(join(dir, "nested", "deeper", "c.json"), JSON.stringify({ z: { $value: "3" } }));
-
-    const summaries = await scanOk(dir);
-    const relativePaths = summaries.map((summary) => summary.relativePath).sort();
-
-    assert.deepEqual(relativePaths, ["a.json", "nested/b.json", "nested/deeper/c.json"]);
-    assert.ok(summaries.every((summary) => summary.valid));
+  const nested = join(rootDir, "nested");
+  const deeper = join(nested, "deeper");
+  const readDirFn = mockReadDir({
+    [rootDir]: [dirEntry("a.json", "file"), dirEntry("nested", "dir")],
+    [nested]: [dirEntry("b.json", "file"), dirEntry("deeper", "dir")],
+    [deeper]: [dirEntry("c.json", "file")],
   });
+  const readFileFn = mockReadFile({
+    [join(rootDir, "a.json")]: JSON.stringify({ x: { $value: "1" } }),
+    [join(nested, "b.json")]: JSON.stringify({ y: { $value: "2" } }),
+    [join(deeper, "c.json")]: JSON.stringify({ z: { $value: "3" } }),
+  });
+
+  const summaries = await scanOk(rootDir, undefined, readDirFn, readFileFn);
+  const relativePaths = summaries.map((summary) => summary.relativePath).sort();
+
+  assert.deepEqual(relativePaths, ["a.json", "nested/b.json", "nested/deeper/c.json"]);
+  assert.ok(summaries.every((summary) => summary.valid));
 });
 
 test("isolates an invalid file from valid ones", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "good.json"), JSON.stringify({ x: { $value: "1" } }));
-    await writeFile(join(dir, "bad.json"), "{not valid json");
-
-    const summaries = await scanOk(dir);
-
-    const good = summaries.find((summary) => summary.relativePath === "good.json");
-    assert.ok(good);
-    assert.equal(good.valid, true);
-
-    const bad = summaries.find((summary) => summary.relativePath === "bad.json");
-    assert.ok(bad);
-    if (bad.valid) {
-      assert.fail("expected bad.json to be marked invalid");
-    } else {
-      assert.match(bad.error, /Invalid JSON/);
-    }
+  const readDirFn = mockReadDir({
+    [rootDir]: [dirEntry("good.json", "file"), dirEntry("bad.json", "file")],
   });
+  const readFileFn = mockReadFile({
+    [join(rootDir, "good.json")]: JSON.stringify({ x: { $value: "1" } }),
+    [join(rootDir, "bad.json")]: "{not valid json",
+  });
+
+  const summaries = await scanOk(rootDir, undefined, readDirFn, readFileFn);
+
+  const good = summaries.find((summary) => summary.relativePath === "good.json");
+  assert.ok(good);
+  assert.equal(good.valid, true);
+
+  const bad = summaries.find((summary) => summary.relativePath === "bad.json");
+  assert.ok(bad);
+  if (bad.valid) {
+    assert.fail("expected bad.json to be marked invalid");
+  } else {
+    assert.match(bad.error, /Invalid JSON/);
+  }
 });
 
 test("does not recurse into a symlinked subdirectory", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "a.json"), JSON.stringify({ x: { $value: "1" } }));
-    await mkdir(join(dir, "real"));
-    await writeFile(join(dir, "real", "b.json"), JSON.stringify({ y: { $value: "2" } }));
-    await symlink(join(dir, "real"), join(dir, "link"), "dir");
-
-    const summaries = await scanOk(dir);
-    const relativePaths = summaries.map((summary) => summary.relativePath).sort();
-
-    assert.deepEqual(relativePaths, ["a.json", "real/b.json"]);
+  const real = join(rootDir, "real");
+  const readDirFn = mockReadDir({
+    [rootDir]: [dirEntry("a.json", "file"), dirEntry("real", "dir"), dirEntry("link", "symlink")],
+    [real]: [dirEntry("b.json", "file")],
   });
+  const readFileFn = mockReadFile({
+    [join(rootDir, "a.json")]: JSON.stringify({ x: { $value: "1" } }),
+    [join(real, "b.json")]: JSON.stringify({ y: { $value: "2" } }),
+  });
+
+  const summaries = await scanOk(rootDir, undefined, readDirFn, readFileFn);
+  const relativePaths = summaries.map((summary) => summary.relativePath).sort();
+
+  assert.deepEqual(relativePaths, ["a.json", "real/b.json"]);
 });
 
 test("ignores non-.json files", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "a.json"), JSON.stringify({ x: { $value: "1" } }));
-    await writeFile(join(dir, "readme.md"), "not a token file");
-
-    const summaries = await scanOk(dir);
-    assert.deepEqual(
-      summaries.map((summary) => summary.relativePath),
-      ["a.json"],
-    );
+  const readDirFn = mockReadDir({
+    [rootDir]: [dirEntry("a.json", "file"), dirEntry("readme.md", "file")],
   });
+  const readFileFn = mockReadFile({
+    [join(rootDir, "a.json")]: JSON.stringify({ x: { $value: "1" } }),
+  });
+
+  const summaries = await scanOk(rootDir, undefined, readDirFn, readFileFn);
+  assert.deepEqual(
+    summaries.map((summary) => summary.relativePath),
+    ["a.json"],
+  );
 });
 
 test("a readdir failure on a nested subdirectory aborts the scan with a logged UnknownError", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "a.json"), JSON.stringify({ x: { $value: "1" } }));
-    const blockedDir = join(dir, "blocked");
-    await mkdir(blockedDir);
-    await writeFile(join(blockedDir, "b.json"), JSON.stringify({ y: { $value: "2" } }));
-    await chmod(blockedDir, 0o000);
-
-    try {
-      const { logger, state } = fakeLogger();
-      const result = await scanTokenDirectory(dir, logger);
-
-      assert.equal(result.isErr(), true);
-      if (result.isErr()) {
-        assert.equal(result.error.kind, "unknown");
-      }
-      assert.equal(state.calls, 1);
-    } finally {
-      await chmod(blockedDir, 0o755);
-    }
+  const readDirFn = mockReadDir({
+    [rootDir]: [dirEntry("a.json", "file"), dirEntry("blocked", "dir")],
+    // `blocked` is deliberately absent from the tree, so mockReadDir throws
+    // when collectJsonFiles recurses into it — simulating a permission error
+    // without touching real fs.
   });
+  const readFileFn = mockReadFile({
+    [join(rootDir, "a.json")]: JSON.stringify({ x: { $value: "1" } }),
+  });
+
+  const { logger, state } = fakeLogger();
+  const result = await scanTokenDirectory(rootDir, logger, readDirFn, readFileFn);
+
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.equal(result.error.kind, "unknown");
+  }
+  assert.equal(state.calls, 1);
 });

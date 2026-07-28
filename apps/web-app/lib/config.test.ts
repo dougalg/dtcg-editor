@@ -1,69 +1,71 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { ConfigError, loadConfig } from "./config.ts";
+import { resolve } from "node:path";
+import { ConfigError, CONFIG_FILE_NAME, loadConfig } from "./config.ts";
+import type { ReadTextFileSync } from "./platform/node-fs.ts";
 
-async function withTempDir(fn: (dir: string) => Promise<void>): Promise<void> {
-  const dir = await mkdtemp(join(tmpdir(), "dtcg-config-"));
-  try {
-    await fn(dir);
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
+const cwd = "/virtual/project";
+
+function mockReadFileSync(files: Record<string, string>): ReadTextFileSync {
+  return (path) => {
+    if (!(path in files)) {
+      const error = new Error(`ENOENT: no such file or directory, open '${path}'`) as NodeJS.ErrnoException;
+      error.code = "ENOENT";
+      throw error;
+    }
+    return files[path];
+  };
 }
 
-test("returns ConfigError when the config file is missing", async () => {
-  await withTempDir(async (dir) => {
-    const result = loadConfig(dir);
-    assert.equal(result.isErr(), true);
-    if (result.isErr()) {
-      assert.ok(result.error instanceof ConfigError);
-    }
-  });
+test("returns ConfigError when the config file is missing", () => {
+  const readFileFn = mockReadFileSync({});
+  const result = loadConfig(cwd, readFileFn);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof ConfigError);
+  }
 });
 
-test("returns ConfigError on invalid JSON", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "dtcg-editor.config.json"), "{not valid json");
-    const result = loadConfig(dir);
-    assert.equal(result.isErr(), true);
-    if (result.isErr()) {
-      assert.ok(result.error instanceof ConfigError);
-    }
+test("returns ConfigError on invalid JSON", () => {
+  const readFileFn = mockReadFileSync({
+    [resolve(cwd, CONFIG_FILE_NAME)]: "{not valid json",
   });
+  const result = loadConfig(cwd, readFileFn);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof ConfigError);
+  }
 });
 
-test("returns ConfigError when tokensDir is missing", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "dtcg-editor.config.json"), JSON.stringify({}));
-    const result = loadConfig(dir);
-    assert.equal(result.isErr(), true);
-    if (result.isErr()) {
-      assert.ok(result.error instanceof ConfigError);
-    }
+test("returns ConfigError when tokensDir is missing", () => {
+  const readFileFn = mockReadFileSync({
+    [resolve(cwd, CONFIG_FILE_NAME)]: JSON.stringify({}),
   });
+  const result = loadConfig(cwd, readFileFn);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof ConfigError);
+  }
 });
 
-test("returns ConfigError when tokensDir is an empty string", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "dtcg-editor.config.json"), JSON.stringify({ tokensDir: "" }));
-    const result = loadConfig(dir);
-    assert.equal(result.isErr(), true);
-    if (result.isErr()) {
-      assert.ok(result.error instanceof ConfigError);
-    }
+test("returns ConfigError when tokensDir is an empty string", () => {
+  const readFileFn = mockReadFileSync({
+    [resolve(cwd, CONFIG_FILE_NAME)]: JSON.stringify({ tokensDir: "" }),
   });
+  const result = loadConfig(cwd, readFileFn);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof ConfigError);
+  }
 });
 
-test("resolves a relative tokensDir to an absolute path", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "dtcg-editor.config.json"), JSON.stringify({ tokensDir: "./tokens" }));
-    const result = loadConfig(dir);
-    assert.equal(result.isOk(), true);
-    if (result.isOk()) {
-      assert.equal(result.value.tokensDir, join(dir, "tokens"));
-    }
+test("resolves a relative tokensDir to an absolute path", () => {
+  const readFileFn = mockReadFileSync({
+    [resolve(cwd, CONFIG_FILE_NAME)]: JSON.stringify({ tokensDir: "./tokens" }),
   });
+  const result = loadConfig(cwd, readFileFn);
+  assert.equal(result.isOk(), true);
+  if (result.isOk()) {
+    assert.equal(result.value.tokensDir, resolve(cwd, "tokens"));
+  }
 });

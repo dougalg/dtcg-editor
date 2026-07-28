@@ -1,4 +1,3 @@
-import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { err, ok, ResultAsync, type Result } from "neverthrow";
 import { TokenParseError } from "@dtcg-editor/token-core";
@@ -6,6 +5,8 @@ import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
 import type { Logger, UnknownError } from "@dtcg-editor/errors";
 import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
 import { PathTraversalError } from "./path-safety.ts";
+import { nodeReadDir, nodeReadFile } from "../platform/node-fs.ts";
+import type { ReadDirEntries, ReadTextFile } from "../platform/node-fs.ts";
 
 export type TokenFileSummary =
   | { readonly relativePath: string; readonly valid: true }
@@ -18,8 +19,12 @@ function describeError(error: PathTraversalError | FileNotFoundError | TokenPars
   return error.context !== undefined ? `Unexpected error (${error.context})` : "Unexpected error";
 }
 
-async function collectJsonFiles(currentDir: string, logger: Logger): Promise<Result<string[], UnknownError>> {
-  const entriesResult = await ResultAsync.fromPromise(readdir(currentDir, { withFileTypes: true }), (cause) =>
+async function collectJsonFiles(
+  currentDir: string,
+  logger: Logger,
+  readDirFn: ReadDirEntries,
+): Promise<Result<string[], UnknownError>> {
+  const entriesResult = await ResultAsync.fromPromise(readDirFn(currentDir), (cause) =>
     toLoggedUnknownError(logger, cause, "collectJsonFiles"),
   );
   if (entriesResult.isErr()) {
@@ -37,7 +42,7 @@ async function collectJsonFiles(currentDir: string, logger: Logger): Promise<Res
 
     const entryPath = join(currentDir, entry.name);
     if (entry.isDirectory()) {
-      const subResult = await collectJsonFiles(entryPath, logger);
+      const subResult = await collectJsonFiles(entryPath, logger, readDirFn);
       if (subResult.isErr()) {
         return subResult;
       }
@@ -62,12 +67,14 @@ async function collectJsonFiles(currentDir: string, logger: Logger): Promise<Res
 export function scanTokenDirectory(
   rootDir: string,
   logger: Logger = consoleLogger,
+  readDirFn: ReadDirEntries = nodeReadDir,
+  readFileFn: ReadTextFile = nodeReadFile,
 ): ResultAsync<TokenFileSummary[], UnknownError> {
-  return new ResultAsync(collectJsonFiles(rootDir, logger)).map(async (absolutePaths) => {
+  return new ResultAsync(collectJsonFiles(rootDir, logger, readDirFn)).map(async (absolutePaths) => {
     const summaries = await Promise.all(
       absolutePaths.map(async (absolutePath): Promise<TokenFileSummary> => {
         const relativePath = relative(rootDir, absolutePath);
-        const result = await readAndParseTokenFile(rootDir, relativePath, logger);
+        const result = await readAndParseTokenFile(rootDir, relativePath, logger, readFileFn);
         return result.isOk()
           ? { relativePath, valid: true }
           : { relativePath, valid: false, error: describeError(result.error) };

@@ -1,4 +1,3 @@
-import { writeFile } from "node:fs/promises";
 import { errAsync, ResultAsync } from "neverthrow";
 import { serializeTokenFile } from "@dtcg-editor/token-core";
 import type { TokenDocument, TokenSerializeError } from "@dtcg-editor/token-core";
@@ -6,6 +5,8 @@ import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
 import type { Logger, UnknownError } from "@dtcg-editor/errors";
 import { resolveSafeTokenPath } from "./path-safety.ts";
 import type { PathTraversalError } from "./path-safety.ts";
+import { nodeWriteFile } from "../platform/node-fs.ts";
+import type { WriteTextFile } from "../platform/node-fs.ts";
 
 /**
  * Resolves `relativePath` safely against `rootDir`, serializes `document`
@@ -18,6 +19,7 @@ export function writeAndSerializeTokenFile(
   relativePath: string,
   document: TokenDocument,
   logger: Logger = consoleLogger,
+  writeFileFn: WriteTextFile = nodeWriteFile,
 ): ResultAsync<void, PathTraversalError | TokenSerializeError | UnknownError> {
   const pathResult = resolveSafeTokenPath(rootDir, relativePath);
   if (pathResult.isErr()) {
@@ -29,7 +31,7 @@ export function writeAndSerializeTokenFile(
     return errAsync(serialized.error);
   }
 
-  return ResultAsync.fromPromise(writeFile(pathResult.value, serialized.value, "utf-8"), (cause) =>
+  return ResultAsync.fromPromise(writeFileFn(pathResult.value, serialized.value), (cause) =>
     toLoggedUnknownError(logger, cause, "writeAndSerializeTokenFile"),
   );
 }

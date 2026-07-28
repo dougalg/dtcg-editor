@@ -1,12 +1,13 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { resolve } from "node:path";
 import type { Logger } from "@dtcg-editor/errors";
 import { TokenParseError } from "@dtcg-editor/token-core";
 import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
 import { PathTraversalError } from "./path-safety.ts";
+import type { ReadTextFile } from "../platform/node-fs.ts";
+
+const rootDir = "/virtual/tokens";
 
 function fakeLogger(): { logger: Logger; state: { calls: number } } {
   const state = { calls: 0 };
@@ -20,73 +21,67 @@ function fakeLogger(): { logger: Logger; state: { calls: number } } {
   };
 }
 
-async function withTempDir(fn: (dir: string) => Promise<void>): Promise<void> {
-  const dir = await mkdtemp(join(tmpdir(), "dtcg-read-"));
-  try {
-    await fn(dir);
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
+function mockReadFile(files: Record<string, string>): ReadTextFile {
+  return async (path) => {
+    if (!(path in files)) {
+      const error = new Error(`ENOENT: no such file or directory, open '${path}'`) as NodeJS.ErrnoException;
+      error.code = "ENOENT";
+      throw error;
+    }
+    return files[path];
+  };
 }
 
 test("returns Ok for a valid file", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "good.json"), JSON.stringify({ x: { $value: "1" } }));
-    const result = await readAndParseTokenFile(dir, "good.json");
-    assert.equal(result.isOk(), true);
+  const readFileFn = mockReadFile({
+    [resolve(rootDir, "good.json")]: JSON.stringify({ x: { $value: "1" } }),
   });
+  const result = await readAndParseTokenFile(rootDir, "good.json", undefined, readFileFn);
+  assert.equal(result.isOk(), true);
 });
 
 test("returns FileNotFoundError for a missing file", async () => {
-  await withTempDir(async (dir) => {
-    const result = await readAndParseTokenFile(dir, "missing.json");
-    assert.equal(result.isErr(), true);
-    if (result.isErr()) {
-      assert.ok(result.error instanceof FileNotFoundError);
-    }
-  });
+  const readFileFn = mockReadFile({});
+  const result = await readAndParseTokenFile(rootDir, "missing.json", undefined, readFileFn);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof FileNotFoundError);
+  }
 });
 
 test("returns PathTraversalError for an unsafe path", async () => {
-  await withTempDir(async (dir) => {
-    const result = await readAndParseTokenFile(dir, "../../etc/passwd");
-    assert.equal(result.isErr(), true);
-    if (result.isErr()) {
-      assert.ok(result.error instanceof PathTraversalError);
-    }
-  });
+  const readFileFn = mockReadFile({});
+  const result = await readAndParseTokenFile(rootDir, "../../etc/passwd", undefined, readFileFn);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof PathTraversalError);
+  }
 });
 
 test("returns TokenParseError for invalid JSON content", async () => {
-  await withTempDir(async (dir) => {
-    await writeFile(join(dir, "bad.json"), "{not valid json");
-    const result = await readAndParseTokenFile(dir, "bad.json");
-    assert.equal(result.isErr(), true);
-    if (result.isErr()) {
-      assert.ok(result.error instanceof TokenParseError);
-    }
+  const readFileFn = mockReadFile({
+    [resolve(rootDir, "bad.json")]: "{not valid json",
   });
+  const result = await readAndParseTokenFile(rootDir, "bad.json", undefined, readFileFn);
+  assert.equal(result.isErr(), true);
+  if (result.isErr()) {
+    assert.ok(result.error instanceof TokenParseError);
+  }
 });
 
 test("returns a logged UnknownError for a non-ENOENT read failure", async () => {
-  await withTempDir(async (dir) => {
-    const filePath = join(dir, "unreadable.json");
-    await writeFile(filePath, JSON.stringify({ x: { $value: "1" } }));
-    await chmod(filePath, 0o000);
+  const readFileFn: ReadTextFile = async () => {
+    throw new Error("permission denied");
+  };
 
-    try {
-      const { logger, state } = fakeLogger();
-      const result = await readAndParseTokenFile(dir, "unreadable.json", logger);
+  const { logger, state } = fakeLogger();
+  const result = await readAndParseTokenFile(rootDir, "unreadable.json", logger, readFileFn);
 
-      assert.equal(result.isErr(), true);
-      if (result.isErr() && !(result.error instanceof Error)) {
-        assert.equal(result.error.kind, "unknown");
-      } else {
-        assert.fail("expected an UnknownError (plain object, not an Error subclass)");
-      }
-      assert.equal(state.calls, 1);
-    } finally {
-      await chmod(filePath, 0o644);
-    }
-  });
+  assert.equal(result.isErr(), true);
+  if (result.isErr() && !(result.error instanceof Error)) {
+    assert.equal(result.error.kind, "unknown");
+  } else {
+    assert.fail("expected an UnknownError (plain object, not an Error subclass)");
+  }
+  assert.equal(state.calls, 1);
 });
