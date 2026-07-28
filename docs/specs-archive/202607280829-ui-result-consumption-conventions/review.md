@@ -1,0 +1,56 @@
+# Code Review: UI-Layer Result Consumption Conventions (commit `08722e6`, follow-up `b8d63b0`)
+
+## Summary
+This feature closes the "UI-layer consumption of `Result`s is undefined for now" deferral in `docs/project.md`'s Error Handling constraint. It establishes and puts into practice, in one pass, the first UI-layer conventions for both halves of the app: Server Components exhaustively branch every named error a `ResultAsync`-returning function declares (`app/tokens/[...path]/page.tsx`'s new `describePageError`, fixing the `FileNotFoundError` gap that fell into the generic fallback), and Client Component hooks track fetch outcomes as status-enum-plus-discriminated-union state rather than thrown exceptions (`useSaveTokenEdits`, extracted from `TokenTree.tsx`'s previously ad hoc `fetch`/`useState` logic, as the reference implementation). `app/api/tokens/[...path]/route.ts`'s `GET`/`PATCH` error responses gained an additive `kind` discriminant so the wire body itself is `SaveError`-shaped, and a root `app/error.tsx` boundary was added as a safety net scoped to genuinely unexpected exceptions only. No engine/library package (`token-core`, `errors`, `token-type-contract`, `token-type-dimension`) was touched — the diff is `apps/web-app` + `docs/project.md` only. No new dependencies. All 9 acceptance criteria independently re-verified against the actual diff and test suite, not just re-read from `impl-summary.md`'s claims. No critical or major issues found. **Ready to merge.**
+
+## Findings
+
+### Critical
+None.
+
+### Major
+None.
+
+### Minor / Open Questions Raised During Review
+
+| Done | Location | Category | Problem | Resolution |
+|------|----------|----------|---------|------------|
+| [x] | `apps/web-app/app/api/tokens/[...path]/route.ts` (`GET` and `PATCH`) | Duplication | `GET`'s and `PATCH`'s `documentResult`-error branches both hand-rolled the identical `PathTraversalError`/`FileNotFoundError`/`TokenParseError`/fallback `instanceof` chain to build the same `SaveError`-shaped response, rather than sharing one implementation. | **Fixed** — extracted into a shared `mapReadErrorToResponse(error, relativePath)` helper that both handlers now call; committed separately as `b8d63b0` ("refactor(web-app): extract shared route error mapper, simplify SaveError parsing") per human decision. Same status codes and `kind`/`error`/`details` fields, byte-for-byte. |
+| [x] | `apps/web-app/hooks/useSaveTokenEdits.ts` (`parseSaveError`) | Design / Validation at the Edges | `parseSaveError` originally hand-rolled a field-by-field runtime type guard (checking `typeof`/`Array.isArray` per `kind` variant) to parse the PATCH response body — raising the open question of whether a same-codebase Route Handler response should be validated at runtime the same way a genuinely external edge (file reads, third-party APIs) is under `docs/project.md`'s Validation at the Edges constraint, or whether the hand-rolled guard was unjustified ceremony for a wire contract this feature's own two halves (`route.ts`'s `errorResponse` and the hook's parser) fully control and introduce together. | **Resolved via human decision**: simplified to a direct `as SaveError` cast, trusting the shared route.ts/hook wire contract rather than re-validating it at runtime — this specific edge is not treated as external. Committed in `b8d63b0`; `useSaveTokenEdits.test.tsx` assertions changed from `toEqual` to `toMatchObject` since the cast no longer strips the wire body's extra `error` field (harmless — invisible to any consumer typed against `SaveError`), consistent with AC-04's allowance for response-shape-driven test updates. |
+
+### Info / Suggestions (no action required)
+
+| Location | Note |
+|----------|------|
+| `apps/web-app/hooks/useSaveTokenEdits.ts` (`saveState` enum) | The internal `"saving"` → `"pending"` rename (flagged in `plan.md` as an optional-sign-off judgment call, to match the vocabulary the new `docs/project.md` subsection itself uses) was implemented as proposed; no objection raised. Cosmetic only, no behavior change. |
+| `apps/web-app/hooks/useSaveTokenEdits.ts` (`hooks/` directory placement) | `plan.md`'s choice of a new top-level `apps/web-app/hooks/` directory (vs. colocating inside `components/`) for the first hook, as a discoverable location for future hooks to follow, was accepted without objection. |
+| `apps/web-app/app/error.tsx` / `error.test.tsx` | Tested directly as a plain component with hand-constructed `error`/`reset` props (Testing Library), not via Next's actual error-boundary runtime machinery — reasonable substitute given Vitest+jsdom has no access to the full Next runtime; not a gap. |
+
+## Acceptance Criteria Coverage
+
+| AC | Status | How Verified |
+|----|--------|--------------|
+| AC-01: distinct not-found message at `/tokens/<missing path>` | Covered | `describe-error.test.ts`'s `FileNotFoundError` branch returns the error's own message, not the generic `Could not load "..."` fallback |
+| AC-02: `page.tsx` branches `PathTraversalError`/`FileNotFoundError`/`TokenParseError` individually, generic fallback only for unmatched/`UnknownError` | Covered | `describe-error.test.ts` — all four branches asserted independently |
+| AC-03: `docs/project.md`'s deferral sentence replaced with the FR-02/FR-03/FR-04 subsection | Covered | `docs/project.md` diff — "UI-Layer Result Consumption" subsection present under Error Handling constraint, deferral sentence removed |
+| AC-04: `TokenTree.test.tsx`/`route.test.ts` continue to pass, updated for the refactor/contract change | Covered | Full suite green; `useSaveTokenEdits.test.tsx` updated to `toMatchObject` per the `b8d63b0` cast simplification |
+| AC-05: no `packages/*` engine/library package changes its `Result`/`ResultAsync` usage | Covered | Diff scoped to `apps/web-app` + `docs/project.md` only across both commits |
+| AC-06: `useSaveTokenEdits` exists with `SaveError`-shaped error state; `TokenTree.tsx` uses it | Covered | `apps/web-app/hooks/useSaveTokenEdits.ts`, `TokenTree.tsx` diff — thin wrapper calling `save()` |
+| AC-07: `app/error.tsx` exists, Client Component, generic fallback + reset, logs via `consoleLogger` | Covered | `apps/web-app/app/error.tsx`, `error.test.tsx` — fallback render, reset callback, logger call all asserted |
+| AC-08: `GET`/`PATCH` error responses each include `kind` matching their status code | Covered | `route.test.ts` — `kind` assertions on every 400/404/422/500 case; now routed through the shared `mapReadErrorToResponse` |
+| AC-09: `useSaveTokenEdits` maps a failed response's `kind` directly, not re-derived from status code | Covered | `useSaveTokenEdits.test.tsx` — `parseSaveError` reads `body.kind` directly via the `SaveError` cast; `status` only used for the fallback message text |
+
+### Architectural Constraints (docs/project.md) — checked
+- **Error Handling (Result Pattern)**: this feature is precisely the UI-layer extension of this constraint — Server Component branching and Client Component hook state both now documented and demonstrated with reference implementations.
+- **Validation at the Edges**: the `parseSaveError`-as-cast decision (see Minor findings above) was explicitly reasoned about against this constraint rather than applied by default; resolved as a same-codebase, fully-controlled wire contract, not a genuinely external edge.
+- **Minimal Dependencies**: no new dependency added; hand-rolled `useState`-based hook state per `plan.md`'s explicit no-library justification.
+- **TypeScript Strictness**: `pnpm build` (`tsc` + `next build`) clean, no `any` introduced.
+- **Token-Type Package Contract / Round-Trip Fidelity**: not applicable — no `token-core`/token-type package changes.
+
+## Verdict
+- [x] Ready to merge
+- [ ] Merge after minor fixes (no re-review needed)
+- [ ] Requires fixes and re-review
+- [ ] Do not merge — significant issues found
+
+Both Minor findings (route.ts error-mapping duplication, hand-rolled vs. cast `SaveError` parsing) were raised as open questions during review, decided by the human, and addressed in a dedicated follow-up commit (`b8d63b0`) rather than left outstanding. No Critical or Major findings. All 9 acceptance criteria independently verified.
