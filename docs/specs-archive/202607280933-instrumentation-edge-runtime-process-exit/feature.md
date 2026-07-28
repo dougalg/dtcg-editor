@@ -43,12 +43,12 @@ Per the backlog item's explicit requirement, this must satisfy Next.js/Turbopack
 `instrumentation.ts` keeps its existing shape and single `register(): Promise<void>` export exercising the same two-step flow (load config, branch on `Result`) — only the fatal-error-handling implementation detail moves out, not the control flow visible in `register()` itself.
 
 ## Acceptance Criteria
-- [ ] AC-01: `pnpm build` (Turborepo → `next build` with Turbopack, per `docs/project.md`'s "CI relies on `pnpm build` as the sole type-checking gate" convention) completes with **zero** Edge Runtime compatibility warnings referencing `process.exit` (or any other API) in `instrumentation.ts` or the new module.
-- [ ] AC-02: `pnpm build` still succeeds overall (`✓ Compiled successfully`, all routes generated, exit code 0) — this is a bundling/static-analysis fix, not a behavior change, so nothing else about the build output should regress.
-- [ ] AC-03: At runtime, an invalid/missing `dtcg-editor.config.json` still causes the Node.js server process to log `[dtcg-editor] Fatal startup error: <message>` to stderr and exit with code 1, exactly as before the change (manually verified or covered by a test, per FR-02).
-- [ ] AC-04: A valid config file still results in `setConfigCache()` being called and the app serving requests normally — the success path in `register()` is untouched by this fix.
-- [ ] AC-05: No new third-party dependency is introduced (this is a pure code-organization fix using only built-in dynamic `import()`).
-- [ ] AC-06: `apps/web-app/lib/fatal-startup-error.test.ts` exists and passes, asserting `exitOnFatalStartupError` logs the exact `[dtcg-editor] Fatal startup error: <message>` string via `console.error` and calls `process.exit(1)`, with both stubbed so the test suite itself doesn't terminate.
+- [x] AC-01: `pnpm build` (Turborepo → `next build` with Turbopack, per `docs/project.md`'s "CI relies on `pnpm build` as the sole type-checking gate" convention) completes with **zero** Edge Runtime compatibility warnings referencing `process.exit` (or any other API) in `instrumentation.ts` or the new module.
+- [x] AC-02: `pnpm build` still succeeds overall (`✓ Compiled successfully`, all routes generated, exit code 0) — this is a bundling/static-analysis fix, not a behavior change, so nothing else about the build output should regress.
+- [x] AC-03: At runtime, an invalid/missing `dtcg-editor.config.json` still causes the Node.js server process to log `[dtcg-editor] Fatal startup error: <message>` to stderr and exit with code 1, exactly as before the change (manually verified or covered by a test, per FR-02).
+- [x] AC-04: A valid config file still results in `setConfigCache()` being called and the app serving requests normally — the success path in `register()` is untouched by this fix.
+- [x] AC-05: No new third-party dependency is introduced (this is a pure code-organization fix using only built-in dynamic `import()`).
+- [x] AC-06: `apps/web-app/lib/fatal-startup-error.test.ts` exists and passes, asserting `exitOnFatalStartupError` logs the exact `[dtcg-editor] Fatal startup error: <message>` string via `console.error` and calls `process.exit(1)`, with both stubbed so the test suite itself doesn't terminate.
 
 ## Technical Scope
 
