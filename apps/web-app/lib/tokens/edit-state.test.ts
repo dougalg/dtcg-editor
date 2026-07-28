@@ -120,3 +120,94 @@ test("validateDimensionValue rejects an invalid value", () => {
 	const result = validateDimensionValue({ value: 4 });
 	assert.equal(result.ok, false);
 });
+
+test("applyEditsToPlainNode renames a group and cascades descendant paths", () => {
+	const result = applyEditsToPlainNode(tree(), [
+		{ path: ["spacing"], name: "gaps" },
+	]);
+	assert.ok(result.kind === "group");
+	const gaps = result.children[0];
+	assert.ok(gaps?.kind === "group");
+	assert.equal(gaps.name, "gaps");
+	assert.deepEqual(gaps.path, ["gaps"]);
+
+	const small = gaps.children[0];
+	assert.ok(small?.kind === "token");
+	assert.deepEqual(small.path, ["gaps", "small"]);
+	const large = gaps.children[1];
+	assert.ok(large?.kind === "token");
+	assert.deepEqual(large.path, ["gaps", "large"]);
+});
+
+test("applyEditsToPlainNode applies a group rename and a descendant edit together regardless of array order", () => {
+	const renameFirst = applyEditsToPlainNode(tree(), [
+		{ path: ["spacing"], name: "gaps" },
+		{ path: ["spacing", "small"], name: "tiny" },
+	]);
+	const descendantFirst = applyEditsToPlainNode(tree(), [
+		{ path: ["spacing", "small"], name: "tiny" },
+		{ path: ["spacing"], name: "gaps" },
+	]);
+
+	for (const result of [renameFirst, descendantFirst]) {
+		assert.ok(result.kind === "group");
+		const gaps = result.children[0];
+		assert.ok(gaps?.kind === "group");
+		const tiny = gaps.children[0];
+		assert.ok(tiny?.kind === "token");
+		assert.deepEqual(tiny.path, ["gaps", "tiny"]);
+	}
+});
+
+test("findSiblings includes both group and token siblings", () => {
+	const spacingGroup: PlainDtcgNode = {
+		kind: "group",
+		name: "spacing",
+		path: ["spacing"],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			tokenNode("small", ["spacing", "small"], { value: 4, unit: "px" }),
+		],
+	};
+	const withSiblingGroup: PlainDtcgNode = {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			spacingGroup,
+			{
+				kind: "group",
+				name: "colors",
+				path: ["colors"],
+				declaredType: undefined,
+				effectiveType: undefined,
+				description: undefined,
+				deprecated: undefined,
+				children: [],
+			},
+		],
+	};
+
+	const siblings = findSiblings(withSiblingGroup, ["spacing"]);
+	assert.equal(siblings.length, 1);
+	assert.equal(siblings[0]?.name, "colors");
+});
+
+test("checkRenameAvailable rejects a group rename colliding with a sibling token or group", () => {
+	const groupSibling = tokenNode("colors", ["colors"], "unused");
+	assert.equal(
+		checkRenameAvailable([groupSibling], "colors", "spacing"),
+		false,
+	);
+	assert.equal(
+		checkRenameAvailable([groupSibling], "spacing", "spacing"),
+		true,
+	);
+});

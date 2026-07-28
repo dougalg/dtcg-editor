@@ -78,11 +78,20 @@ function TreeNode({
 		if (!canEdit) {
 			return (
 				<li className={styles.token}>
-					<span className={styles.name}>{node.name}</span>
+					<span className={styles.field}>
+						<span className={styles.fieldLabel}>{node.name} name</span>
+						<span className={styles.name}>{node.name}</span>
+					</span>
 					{node.effectiveType !== undefined && (
-						<span className={styles.type}>{node.effectiveType}</span>
+						<span className={styles.field}>
+							<span className={styles.fieldLabel}>{node.name} type</span>
+							<span className={styles.type}>{node.effectiveType}</span>
+						</span>
 					)}
-					<span className={styles.value}>{formatValue(node.value)}</span>
+					<span className={styles.field}>
+						<span className={styles.fieldLabel}>{node.name} value</span>
+						<span className={styles.value}>{formatValue(node.value)}</span>
+					</span>
 				</li>
 			);
 		}
@@ -136,23 +145,29 @@ function TreeNode({
 
 		return (
 			<li className={styles.token}>
-				<input
-					className={styles.name}
-					value={currentName}
-					onChange={handleNameChange}
-					aria-label={`${node.name} name`}
-				/>
+				<label className={styles.field}>
+					<span className={styles.fieldLabel}>{node.name} name</span>
+					<input
+						className={styles.name}
+						value={currentName}
+						onChange={handleNameChange}
+					/>
+				</label>
 				{node.effectiveType !== undefined && (
-					<span className={styles.type}>{node.effectiveType}</span>
+					<span className={styles.field}>
+						<span className={styles.fieldLabel}>{node.name} type</span>
+						<span className={styles.type}>{node.effectiveType}</span>
+					</span>
 				)}
 				<DimensionEditor value={currentValue} onChange={handleValueChange} />
-				<input
-					className={styles.value}
-					value={currentDescription}
-					onChange={handleDescriptionChange}
-					aria-label={`${node.name} description`}
-					placeholder="Description"
-				/>
+				<label className={styles.field}>
+					<span className={styles.fieldLabel}>{node.name} description</span>
+					<input
+						className={styles.value}
+						value={currentDescription}
+						onChange={handleDescriptionChange}
+					/>
+				</label>
 				{errors?.name !== undefined && <span role="alert">{errors.name}</span>}
 				{errors?.value !== undefined && (
 					<span role="alert">{errors.value}</span>
@@ -161,15 +176,65 @@ function TreeNode({
 		);
 	}
 
+	const isRoot = node.path.length === 0;
+	const groupKey = pathKey(node.path);
+	const groupPending = pendingEdits.get(groupKey);
+	const groupErrors = fieldErrors.get(groupKey);
+	const currentGroupName = groupPending?.name ?? node.name;
+
+	function handleGroupNameChange(event: ChangeEvent<HTMLInputElement>) {
+		const nextName = event.target.value;
+		if (nextName.trim().length === 0) {
+			onFieldError(node.path, {
+				name: "Name cannot be empty",
+				value: undefined,
+			});
+			return;
+		}
+		// Reflects other groups'/tokens' staged-but-unsaved renames too, so
+		// freeing up a name via one pending edit lets another pending edit
+		// claim it in the same session — mirrors `handleNameChange` above.
+		const effectiveRoot = applyEditsToPlainNode(
+			root,
+			Array.from(pendingEdits.values()),
+		);
+		const siblings = findSiblings(effectiveRoot, node.path);
+		if (!checkRenameAvailable(siblings, nextName, node.name)) {
+			onFieldError(node.path, {
+				name: `"${nextName}" already exists here`,
+				value: undefined,
+			});
+			return;
+		}
+		onFieldError(node.path, { name: undefined, value: undefined });
+		onStageEdit(node.path, { name: nextName });
+	}
+
 	return (
 		<li className={styles.group}>
 			<button
 				type="button"
 				className={styles.toggle}
 				onClick={() => setExpanded((value) => !value)}
+				aria-label={`${expanded ? "Collapse" : "Expand"} ${node.name || "/"}`}
 			>
-				{expanded ? "▾" : "▸"} {node.name || "/"}
+				{expanded ? "▾" : "▸"}
 			</button>
+			{isRoot ? (
+				<span className={styles.groupName}>{node.name || "/"}</span>
+			) : (
+				<label className={styles.field}>
+					<span className={styles.fieldLabel}>{node.name} name</span>
+					<input
+						className={styles.groupName}
+						value={currentGroupName}
+						onChange={handleGroupNameChange}
+					/>
+				</label>
+			)}
+			{groupErrors?.name !== undefined && (
+				<span role="alert">{groupErrors.name}</span>
+			)}
 			{expanded && (
 				<ul className={styles.children}>
 					{node.children.map((child) => (
