@@ -10,9 +10,24 @@ import { writeAndSerializeTokenFile } from "../../../../lib/tokens/write.ts";
 import { PathTraversalError } from "../../../../lib/tokens/path-safety.ts";
 import { toPlainNode } from "../../../../lib/tokens/plain-node.ts";
 import { EditRequestSchema } from "../../../../lib/tokens/edit-request.ts";
+import type { SaveError } from "../../../../lib/tokens/save-error.ts";
 
 interface RouteContext {
   params: Promise<{ path: string[] }>;
+}
+
+/**
+ * Builds a non-2xx JSON error response whose body is `SaveError`-shaped
+ * (the `kind` field plus that variant's own fields) in addition to the
+ * pre-existing `error` message field — `kind` is additive, per the
+ * UI-layer Result-consumption convention (`docs/project.md`'s Error
+ * Handling constraint): a `Result`/`ResultAsync` never crosses the wire
+ * itself, but the response body it's translated into still carries enough
+ * structure for a Client Component hook to branch on without re-deriving
+ * `kind` from the HTTP status code independently.
+ */
+function errorResponse(status: number, message: string, saveError: SaveError, extra?: Record<string, unknown>): Response {
+  return Response.json({ error: message, ...saveError, ...extra }, { status });
 }
 
 export async function GET(_request: Request, { params }: RouteContext): Promise<Response> {
@@ -27,15 +42,15 @@ export async function GET(_request: Request, { params }: RouteContext): Promise<
 
   const error = result.error;
   if (error instanceof PathTraversalError) {
-    return Response.json({ error: error.message }, { status: 400 });
+    return errorResponse(400, error.message, { kind: "validation", issues: [error.message] });
   }
   if (error instanceof FileNotFoundError) {
-    return Response.json({ error: error.message }, { status: 404 });
+    return errorResponse(404, error.message, { kind: "not-found", path: relativePath });
   }
   if (error instanceof TokenParseError) {
-    return Response.json({ error: error.message }, { status: 422 });
+    return errorResponse(422, error.message, { kind: "invalid-file", issues: [error.message] });
   }
-  return Response.json({ error: "Internal server error" }, { status: 500 });
+  return errorResponse(500, "Internal server error", { kind: "unknown", message: "Internal server error" });
 }
 
 class InvalidRequestBodyError extends Error {
@@ -61,14 +76,17 @@ export async function patchTokenFile(
 ): Promise<Response> {
   const bodyResult = await readJsonBody(request);
   if (bodyResult.isErr()) {
-    return Response.json({ error: bodyResult.error.message }, { status: 400 });
+    return errorResponse(400, bodyResult.error.message, { kind: "validation", issues: [bodyResult.error.message] });
   }
 
   const requestValidation = EditRequestSchema.safeParse(bodyResult.value);
   if (!requestValidation.success) {
-    return Response.json({ error: "Invalid edit request", details: requestValidation.error.issues }, {
-      status: 400,
-    });
+    return errorResponse(
+      400,
+      "Invalid edit request",
+      { kind: "validation", issues: requestValidation.error.issues.map((i) => i.message) },
+      { details: requestValidation.error.issues },
+    );
   }
 
   const config = getConfig();
@@ -76,15 +94,15 @@ export async function patchTokenFile(
   if (documentResult.isErr()) {
     const error = documentResult.error;
     if (error instanceof PathTraversalError) {
-      return Response.json({ error: error.message }, { status: 400 });
+      return errorResponse(400, error.message, { kind: "validation", issues: [error.message] });
     }
     if (error instanceof FileNotFoundError) {
-      return Response.json({ error: error.message }, { status: 404 });
+      return errorResponse(404, error.message, { kind: "not-found", path: relativePath });
     }
     if (error instanceof TokenParseError) {
-      return Response.json({ error: error.message }, { status: 422 });
+      return errorResponse(422, error.message, { kind: "invalid-file", issues: [error.message] });
     }
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    return errorResponse(500, "Internal server error", { kind: "unknown", message: "Internal server error" });
   }
   const document = documentResult.value;
 
@@ -92,28 +110,29 @@ export async function patchTokenFile(
   for (const edit of requestValidation.data.edits) {
     const located = findNode(document.root, edit.path);
     if (located === undefined) {
-      return Response.json({ error: `No token found at "${edit.path.join(".")}"` }, { status: 400 });
+      const message = `No token found at "${edit.path.join(".")}"`;
+      return errorResponse(400, message, { kind: "validation", issues: [message] });
     }
     if (located.node.kind !== "token") {
-      return Response.json({ error: `"${edit.path.join(".")}" is a group, not a token` }, { status: 400 });
+      const message = `"${edit.path.join(".")}" is a group, not a token`;
+      return errorResponse(400, message, { kind: "validation", issues: [message] });
     }
 
     const effectiveType = resolveEffectiveType(located.node, located.ancestors);
     if (effectiveType !== dimensionTokenType.type) {
-      return Response.json(
-        { error: `Only "${dimensionTokenType.type}" tokens can be edited, "${effectiveType ?? "untyped"}" cannot` },
-        { status: 400 },
-      );
+      const message = `Only "${dimensionTokenType.type}" tokens can be edited, "${effectiveType ?? "untyped"}" cannot`;
+      return errorResponse(400, message, { kind: "validation", issues: [message] });
     }
 
     let value: unknown;
     if (edit.value !== undefined) {
       const valueValidation = dimensionTokenType.valueSchema.safeParse(edit.value);
       if (!valueValidation.success) {
-        return Response.json(
-          { error: `Invalid ${dimensionTokenType.type} value: ${valueValidation.error.issues.map((i) => i.message).join(", ")}` },
-          { status: 400 },
-        );
+        const message = `Invalid ${dimensionTokenType.type} value: ${valueValidation.error.issues.map((i) => i.message).join(", ")}`;
+        return errorResponse(400, message, {
+          kind: "validation",
+          issues: valueValidation.error.issues.map((i) => i.message),
+        });
       }
       value = dimensionTokenType.serializeValue(valueValidation.data);
     }
@@ -128,16 +147,19 @@ export async function patchTokenFile(
 
   const editedDocument = applyTokenEdits(document, tokenEdits);
   if (editedDocument.isErr()) {
-    return Response.json({ error: editedDocument.error.message }, { status: 400 });
+    return errorResponse(400, editedDocument.error.message, {
+      kind: "validation",
+      issues: [editedDocument.error.message],
+    });
   }
 
   const writeResult = await writeAndSerializeTokenFile(config.tokensDir, relativePath, editedDocument.value, logger);
   if (writeResult.isErr()) {
     const error = writeResult.error;
     if (error instanceof PathTraversalError) {
-      return Response.json({ error: error.message }, { status: 400 });
+      return errorResponse(400, error.message, { kind: "validation", issues: [error.message] });
     }
-    return Response.json({ error: "Failed to save token file" }, { status: 500 });
+    return errorResponse(500, "Failed to save token file", { kind: "unknown", message: "Failed to save token file" });
   }
 
   return Response.json({ ok: true });

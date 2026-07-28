@@ -64,6 +64,8 @@ test("returns 422 for an invalid file", async () => {
     params: Promise.resolve({ path: ["bad.json"] }),
   });
   assert.equal(response.status, 422);
+  const body = (await response.json()) as { kind?: string };
+  assert.equal(body.kind, "invalid-file");
 });
 
 test("returns 404 for a missing file", async () => {
@@ -71,6 +73,8 @@ test("returns 404 for a missing file", async () => {
     params: Promise.resolve({ path: ["missing.json"] }),
   });
   assert.equal(response.status, 404);
+  const body = (await response.json()) as { kind?: string };
+  assert.equal(body.kind, "not-found");
 });
 
 test("returns 400 for a path-traversal attempt", async () => {
@@ -78,6 +82,8 @@ test("returns 400 for a path-traversal attempt", async () => {
     params: Promise.resolve({ path: ["..", "..", "etc", "passwd"] }),
   });
   assert.equal(response.status, 400);
+  const body = (await response.json()) as { kind?: string };
+  assert.equal(body.kind, "validation");
 });
 
 test("PATCH writes a single edit to disk (AC-04)", async () => {
@@ -136,6 +142,8 @@ test("PATCH returns 400 for an invalid dimension value (AC-02)", async () => {
     "patch-invalid-value.json",
   );
   assert.equal(response.status, 400);
+  const body = (await response.json()) as { kind?: string };
+  assert.equal(body.kind, "validation");
 });
 
 test("PATCH returns 400 for a rename collision (AC-03)", async () => {
@@ -151,6 +159,8 @@ test("PATCH returns 400 for a rename collision (AC-03)", async () => {
     "patch-collision.json",
   );
   assert.equal(response.status, 400);
+  const body = (await response.json()) as { kind?: string };
+  assert.equal(body.kind, "validation");
 });
 
 test("PATCH allows a same-batch rename that frees a name another edit in the batch then claims", async () => {
@@ -190,6 +200,8 @@ test("PATCH returns 400 when attempting to edit a non-dimension token", async ()
     "patch-non-dimension.json",
   );
   assert.equal(response.status, 400);
+  const body = (await response.json()) as { kind?: string };
+  assert.equal(body.kind, "validation");
 });
 
 test("PATCH returns 404 for a missing file", async () => {
@@ -198,6 +210,8 @@ test("PATCH returns 404 for a missing file", async () => {
     "does-not-exist.json",
   );
   assert.equal(response.status, 404);
+  const body = (await response.json()) as { kind?: string };
+  assert.equal(body.kind, "not-found");
 });
 
 test("PATCH returns 400 for a path-traversal attempt", async () => {
@@ -206,6 +220,8 @@ test("PATCH returns 400 for a path-traversal attempt", async () => {
     "../../etc/passwd",
   );
   assert.equal(response.status, 400);
+  const body = (await response.json()) as { kind?: string };
+  assert.equal(body.kind, "validation");
 });
 
 test("PATCH returns 500 when the write fails", async () => {
@@ -224,6 +240,8 @@ test("PATCH returns 500 when the write fails", async () => {
     );
     assert.equal(response.status, 500);
     assert.equal(state.calls, 1);
+    const body = (await response.json()) as { kind?: string };
+    assert.equal(body.kind, "unknown");
   } finally {
     await chmod(filePath, 0o644);
   }

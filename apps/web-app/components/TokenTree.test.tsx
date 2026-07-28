@@ -89,7 +89,9 @@ test("allows staging a rename into a name another pending edit just freed up", (
 test("keeps a pending edit visible and editable after a failed save (AC-06)", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "disk full" }), { status: 500 })),
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: "disk full", kind: "unknown", message: "disk full" }), { status: 500 }),
+    ),
   );
 
   render(<TokenTree node={tree()} relativePath="tokens.json" />);

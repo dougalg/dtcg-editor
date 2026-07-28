@@ -12,7 +12,22 @@ import {
   validateDimensionValue,
 } from "../lib/tokens/edit-state.ts";
 import type { ClientEdit } from "../lib/tokens/edit-state.ts";
+import type { SaveError } from "../lib/tokens/save-error.ts";
+import { useSaveTokenEdits } from "../hooks/useSaveTokenEdits.ts";
 import styles from "./TokenTree.module.css";
+
+/** Renders a `SaveError` (see `hooks/useSaveTokenEdits.ts`) as a single display string. */
+function describeSaveError(error: SaveError): string {
+  switch (error.kind) {
+    case "not-found":
+      return `Token file not found: "${error.path}"`;
+    case "validation":
+    case "invalid-file":
+      return error.issues.join(", ");
+    case "unknown":
+      return error.message;
+  }
+}
 
 function formatValue(value: unknown): string {
   return typeof value === "string" ? value : JSON.stringify(value);
@@ -146,8 +161,7 @@ export function TokenTree({ node, relativePath }: { node: PlainDtcgNode; relativ
   const [treeState, setTreeState] = useState(node);
   const [pendingEdits, setPendingEdits] = useState<Map<string, ClientEdit>>(new Map());
   const [fieldErrors, setFieldErrors] = useState<Map<string, FieldErrors>>(new Map());
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "error">("idle");
-  const [saveError, setSaveError] = useState<string | undefined>(undefined);
+  const { saveState, saveError, save } = useSaveTokenEdits(relativePath);
 
   function stageEdit(path: readonly string[], patch: EditablePatch) {
     const key = pathKey(path);
@@ -173,30 +187,11 @@ export function TokenTree({ node, relativePath }: { node: PlainDtcgNode; relativ
   }
 
   async function handleSave() {
-    setSaveState("saving");
-    setSaveError(undefined);
     const edits = Array.from(pendingEdits.values());
-
-    try {
-      const response = await fetch(`/api/tokens/${relativePath}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ edits }),
-      });
-
-      if (!response.ok) {
-        const body = (await response.json().catch(() => ({}))) as { error?: string };
-        setSaveState("error");
-        setSaveError(body.error ?? `Save failed with status ${response.status}`);
-        return;
-      }
-
+    const succeeded = await save(edits);
+    if (succeeded) {
       setTreeState((current) => applyEditsToPlainNode(current, edits));
       setPendingEdits(new Map());
-      setSaveState("idle");
-    } catch (error) {
-      setSaveState("error");
-      setSaveError(error instanceof Error ? error.message : "Save failed");
     }
   }
 
@@ -214,10 +209,10 @@ export function TokenTree({ node, relativePath }: { node: PlainDtcgNode; relativ
           onFieldError={setFieldError}
         />
       </ul>
-      <button type="button" onClick={handleSave} disabled={!hasPendingEdits || saveState === "saving"}>
-        {saveState === "saving" ? "Saving…" : "Save"}
+      <button type="button" onClick={handleSave} disabled={!hasPendingEdits || saveState === "pending"}>
+        {saveState === "pending" ? "Saving…" : "Save"}
       </button>
-      {saveState === "error" && saveError !== undefined && <p role="alert">{saveError}</p>}
+      {saveState === "error" && saveError !== undefined && <p role="alert">{describeSaveError(saveError)}</p>}
     </div>
   );
 }
