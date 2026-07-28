@@ -47,3 +47,19 @@
 .value {
 	opacity: 0.85;
 }
+
+.field {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.3rem;
+}
+
+.fieldLabel {
+	font-size: 0.7rem;
+	color: var(--foreground);
+	opacity: 0.5;
+}
+
+.groupName {
+	font-weight: 600;
+}

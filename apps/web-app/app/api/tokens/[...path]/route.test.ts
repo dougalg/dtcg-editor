@@ -304,6 +304,83 @@ test("PATCH returns 500 when the write fails", async () => {
 	}
 });
 
+test("PATCH renames a group, moving descendants to the new path (AC-05, AC-07)", async () => {
+	await writeFixture("patch-group-rename.json", {
+		spacing: {
+			small: { $type: "dimension", $value: { value: 4, unit: "px" } },
+		},
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([{ path: ["spacing"], name: "gaps" }]),
+		"patch-group-rename.json",
+	);
+	assert.equal(response.status, 200);
+
+	const onDisk = (await readFixture("patch-group-rename.json")) as {
+		spacing?: unknown;
+		gaps?: { small: { $value: unknown } };
+	};
+	assert.equal(onDisk.spacing, undefined);
+	assert.deepEqual(onDisk.gaps?.small.$value, { value: 4, unit: "px" });
+});
+
+test("PATCH rejects a group edit that supplies a value (AC-05)", async () => {
+	await writeFixture("patch-group-value.json", {
+		spacing: {
+			small: { $type: "dimension", $value: { value: 4, unit: "px" } },
+		},
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([{ path: ["spacing"], value: { value: 1, unit: "px" } }]),
+		"patch-group-value.json",
+	);
+	assert.equal(response.status, 400);
+	const body = (await response.json()) as { kind?: string };
+	assert.equal(body.kind, "validation");
+});
+
+test("PATCH rejects a group edit that supplies a description (AC-05)", async () => {
+	await writeFixture("patch-group-description.json", {
+		spacing: {
+			small: { $type: "dimension", $value: { value: 4, unit: "px" } },
+		},
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([{ path: ["spacing"], description: "nope" }]),
+		"patch-group-description.json",
+	);
+	assert.equal(response.status, 400);
+	const body = (await response.json()) as { kind?: string };
+	assert.equal(body.kind, "validation");
+});
+
+test("PATCH saves a group rename together with a descendant token edit in one request (AC-08)", async () => {
+	await writeFixture("patch-group-and-descendant.json", {
+		spacing: {
+			small: { $type: "dimension", $value: { value: 4, unit: "px" } },
+		},
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([
+			{ path: ["spacing"], name: "gaps" },
+			{ path: ["spacing", "small"], value: { value: 8, unit: "px" } },
+		]),
+		"patch-group-and-descendant.json",
+	);
+	assert.equal(response.status, 200);
+
+	const onDisk = (await readFixture("patch-group-and-descendant.json")) as {
+		spacing?: unknown;
+		gaps?: { small: { $value: unknown } };
+	};
+	assert.equal(onDisk.spacing, undefined);
+	assert.deepEqual(onDisk.gaps?.small.$value, { value: 8, unit: "px" });
+});
+
 test("exports only GET and PATCH as HTTP method handlers", () => {
 	const otherHttpMethods = ["POST", "PUT", "DELETE", "HEAD", "OPTIONS"];
 	assert.ok("GET" in readRoute);

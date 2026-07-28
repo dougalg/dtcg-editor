@@ -162,12 +162,18 @@ export async function patchTokenFile(
 				issues: [message],
 			});
 		}
-		if (located.node.kind !== "token") {
-			const message = `"${edit.path.join(".")}" is a group, not a token`;
-			return errorResponse(400, message, {
-				kind: "validation",
-				issues: [message],
-			});
+		if (located.node.kind === "group") {
+			if (edit.value !== undefined || edit.description !== undefined) {
+				const message = `"${edit.path.join(".")}" is a group — only "name" can be edited`;
+				return errorResponse(400, message, {
+					kind: "validation",
+					issues: [message],
+				});
+			}
+			if (edit.name !== undefined) {
+				tokenEdits.push({ path: edit.path, name: edit.name });
+			}
+			continue;
 		}
 
 		const effectiveType = resolveEffectiveType(located.node, located.ancestors);
