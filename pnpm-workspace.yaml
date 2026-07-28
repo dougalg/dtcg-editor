@@ -1,3 +1,24 @@
 packages:
   - "packages/*"
   - "apps/*"
+
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+
+minimumReleaseAge: 4320
+
+minimumReleaseAgeExclude:
+  - tmp@0.2.4 || 0.2.6
+  - postcss@8.5.10 || 8.5.12 || 8.5.18
+  - sharp@0.35.0
+  - brace-expansion@5.0.8
+
+overrides:
+  brace-expansion@<=5.0.7: ^5.0.8
+  postcss@<8.5.10: ^8.5.10
+  postcss@<=8.5.11: ^8.5.12
+  postcss@<=8.5.17: ^8.5.18
+  sharp@<0.35.0: ^0.35.0
+  tmp@<0.2.6: ^0.2.6
+  tmp@<=0.2.3: ^0.2.4
