@@ -5,7 +5,7 @@ import nextTs from "eslint-config-next/typescript";
 // Dependency Injection for I/O/Platform Externalities (see docs/project.md):
 // direct calls to these externalities are banned everywhere in apps/web-app
 // except the designated adapter/composition-root files, which turn the
-// relevant selector(s) back off below. Repeated in full per exempted file
+// relevant selector(s) back off below via a filtered copy of this array,
 // since ESLint doesn't support toggling a single no-restricted-syntax array
 // entry — see apps/web-app/eslint.config.mjs's per-file override blocks.
 const restrictedSyntax = [
@@ -38,6 +38,15 @@ const restrictedSyntax = [
     message: "Inject a randomness dependency instead of calling crypto directly.",
   },
 ];
+
+// Shared by the lib/fatal-startup-error.ts and scripts/init-config.ts
+// override blocks below — both are process.exit/console.error composition
+// roots that get the same two selectors turned back off.
+const restrictedSyntaxWithoutProcessExitOrConsole = restrictedSyntax.filter(
+  ({ selector }) =>
+    selector !== "CallExpression[callee.object.name='process'][callee.property.name='exit']" &&
+    selector !== "MemberExpression[object.name='console']",
+);
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -96,15 +105,7 @@ const eslintConfig = defineConfig([
   {
     files: ["lib/fatal-startup-error.ts"],
     rules: {
-      "no-restricted-syntax": [
-        "error",
-        ...restrictedSyntax.filter(
-          ({ selector }) =>
-            selector !==
-              "CallExpression[callee.object.name='process'][callee.property.name='exit']" &&
-            selector !== "MemberExpression[object.name='console']",
-        ),
-      ],
+      "no-restricted-syntax": ["error", ...restrictedSyntaxWithoutProcessExitOrConsole],
     },
   },
   // CLI thin-wrapper composition root (`main()`); `runInitConfig` itself has
@@ -113,15 +114,7 @@ const eslintConfig = defineConfig([
   {
     files: ["scripts/init-config.ts"],
     rules: {
-      "no-restricted-syntax": [
-        "error",
-        ...restrictedSyntax.filter(
-          ({ selector }) =>
-            selector !==
-              "CallExpression[callee.object.name='process'][callee.property.name='exit']" &&
-            selector !== "MemberExpression[object.name='console']",
-        ),
-      ],
+      "no-restricted-syntax": ["error", ...restrictedSyntaxWithoutProcessExitOrConsole],
     },
   },
   // Route Handler integration tests (gap in plan.md's Phase 5 exemption
