@@ -3,7 +3,6 @@
 Planned features not yet in progress. Pick one and run `/sdd-feature` to start it.
 Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
-- [ ] Improve UI. Section/group names should be editable. There should be a label for all fields.
 - [ ] Components like DimensionEditor need to be enabled via config, not direct imports. The ones defined in this repo will be default values in the config
 - [ ] Save button should look like a larger nicer call-to-action button with a disk icon. Make it its own component
 - [ ] Upgrade `typescript` to v7 — blocked as of 2026-07-27: breaks `apps/web-app`'s build outright since Next.js 16.2.12 doesn't yet support TypeScript 7's new native compiler API ("TypeScript 7.0.2 does not provide the compiler API required by Next.js"); `@typescript-eslint@8.65.0` also only declares peer support up to `typescript<6.1.0`, so lint would likely break too. Verify Next.js and `@typescript-eslint` both support TypeScript 7 before attempting again.
