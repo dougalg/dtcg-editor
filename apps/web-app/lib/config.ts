@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const CONFIG_FILE_NAME = "dtcg-editor.config.json";
 
-const ConfigFileSchema = z.object({
+export const ConfigFileSchema = z.object({
   tokensDir: z.string().min(1, "tokensDir must be a non-empty string"),
 });
 
