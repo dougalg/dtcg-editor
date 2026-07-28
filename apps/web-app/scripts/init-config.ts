@@ -1,10 +1,11 @@
-import { existsSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { err, fromThrowable, ok, type Result } from "neverthrow";
 import { CONFIG_FILE_NAME, ConfigFileSchema, describeCause } from "../lib/config.ts";
+import { nodeExistsSync, nodeWriteFileSync } from "../lib/platform/node-fs.ts";
+import type { ExistsSync, WriteTextFileSync } from "../lib/platform/node-fs.ts";
 
 const USAGE = `Usage: pnpm --filter web-app run init-config [options]
 
@@ -26,6 +27,8 @@ export interface InitConfigIO {
   input: NodeJS.ReadableStream;
   output: NodeJS.WritableStream;
   isTTY: boolean;
+  existsSync: ExistsSync;
+  writeFileSync: WriteTextFileSync;
 }
 
 function describeIssues(issues: ReadonlyArray<{ path: ReadonlyArray<PropertyKey>; message: string }>): string {
@@ -72,7 +75,7 @@ export async function runInitConfig(io: InitConfigIO): Promise<Result<string, st
   }
 
   const configPath = join(io.cwd, CONFIG_FILE_NAME);
-  const configExists = existsSync(configPath);
+  const configExists = io.existsSync(configPath);
 
   let rl: ReturnType<typeof createInterface> | undefined;
   try {
@@ -110,13 +113,13 @@ export async function runInitConfig(io: InitConfigIO): Promise<Result<string, st
       }
     }
 
-    if (!existsSync(resolve(io.cwd, tokensDir))) {
+    if (!io.existsSync(resolve(io.cwd, tokensDir))) {
       io.output.write(`Warning: "${tokensDir}" does not currently exist.\n`);
     }
 
     const content = `${JSON.stringify({ tokensDir }, null, 2)}\n`;
     const writeConfig = fromThrowable(
-      () => writeFileSync(configPath, content, "utf-8"),
+      () => io.writeFileSync(configPath, content),
       (cause) => `Could not write config file at "${configPath}": ${describeCause(cause)}`,
     );
 
@@ -133,6 +136,8 @@ async function main(): Promise<void> {
     input: process.stdin,
     output: process.stdout,
     isTTY: process.stdin.isTTY === true,
+    existsSync: nodeExistsSync,
+    writeFileSync: nodeWriteFileSync,
   });
 
   if (result.isErr()) {
