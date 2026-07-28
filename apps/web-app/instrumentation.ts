@@ -7,8 +7,8 @@ export async function register(): Promise<void> {
 
   const result = loadConfig();
   if (result.isErr()) {
-    console.error(`[dtcg-editor] Fatal startup error: ${result.error.message}`);
-    process.exit(1);
+    const { exitOnFatalStartupError } = await import("./lib/fatal-startup-error.ts");
+    exitOnFatalStartupError(result.error.message);
     return;
   }
   setConfigCache(result.value);
