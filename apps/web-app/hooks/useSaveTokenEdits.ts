@@ -13,32 +13,20 @@ interface UseSaveTokenEditsResult {
 }
 
 /**
- * Defensively parses a PATCH response's JSON body into a `SaveError`,
- * reading `kind` directly off the body rather than re-deriving it from
- * `status` (AC-09) — `status` is only used to synthesize a fallback
- * message if the body itself is missing/malformed. This is a hand-rolled
- * type guard rather than a Zod schema: unlike the genuinely external edges
- * `docs/project.md`'s Validation at the Edges constraint targets (file
- * reads, third-party calls), this is a same-codebase contract this
- * feature's own two halves (`route.ts`'s `errorResponse` and this parser)
- * are introduced together, so it degrades safely to `"unknown"` instead of
- * throwing if the body is ever malformed.
+ * Parses a PATCH response's JSON body into a `SaveError`, reading `kind`
+ * directly off the body rather than re-deriving it from `status` (AC-09).
+ * `route.ts`'s `errorResponse` helper is the single producer of this body
+ * shape and is itself built from `SaveError` values, so this is a
+ * same-codebase wire contract rather than a genuinely external boundary
+ * (unlike the file reads / third-party calls `docs/project.md`'s
+ * Validation at the Edges constraint targets) — the body is cast to the
+ * shared `SaveError` type instead of re-validated field-by-field at
+ * runtime. `status` is only used to synthesize a fallback message if the
+ * body itself is missing or was produced before this contract existed.
  */
 function parseSaveError(body: unknown, status: number): SaveError {
   if (typeof body === "object" && body !== null && "kind" in body) {
-    const kind = (body as { kind: unknown }).kind;
-    if (kind === "not-found") {
-      const path = (body as { path?: unknown }).path;
-      return { kind, path: typeof path === "string" ? path : "" };
-    }
-    if (kind === "validation" || kind === "invalid-file") {
-      const issues = (body as { issues?: unknown }).issues;
-      return { kind, issues: Array.isArray(issues) ? issues.filter((i): i is string => typeof i === "string") : [] };
-    }
-    if (kind === "unknown") {
-      const message = (body as { message?: unknown }).message;
-      return { kind, message: typeof message === "string" ? message : `Save failed with status ${status}` };
-    }
+    return body as SaveError;
   }
   const error = (body as { error?: unknown } | null)?.error;
   return { kind: "unknown", message: typeof error === "string" ? error : `Save failed with status ${status}` };

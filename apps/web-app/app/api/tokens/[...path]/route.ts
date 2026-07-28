@@ -3,7 +3,7 @@ import { applyTokenEdits, findNode, resolveEffectiveType, TokenParseError } from
 import type { TokenEdit } from "@dtcg-editor/token-core";
 import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
 import { consoleLogger } from "@dtcg-editor/errors";
-import type { Logger } from "@dtcg-editor/errors";
+import type { Logger, UnknownError } from "@dtcg-editor/errors";
 import { getConfig } from "../../../../lib/config.ts";
 import { FileNotFoundError, readAndParseTokenFile } from "../../../../lib/tokens/read.ts";
 import { writeAndSerializeTokenFile } from "../../../../lib/tokens/write.ts";
@@ -30,17 +30,16 @@ function errorResponse(status: number, message: string, saveError: SaveError, ex
   return Response.json({ error: message, ...saveError, ...extra }, { status });
 }
 
-export async function GET(_request: Request, { params }: RouteContext): Promise<Response> {
-  const { path } = await params;
-  const relativePath = path.join("/");
-  const config = getConfig();
-
-  const result = await readAndParseTokenFile(config.tokensDir, relativePath);
-  if (result.isOk()) {
-    return Response.json({ document: toPlainNode(result.value.root) });
-  }
-
-  const error = result.error;
+/**
+ * Maps a `readAndParseTokenFile` failure to its response, shared by `GET`
+ * and `PATCH`'s `documentResult` branches — both handlers read the same
+ * file the same way and must translate each error variant to the same
+ * status code / `SaveError` shape.
+ */
+function mapReadErrorToResponse(
+  error: PathTraversalError | FileNotFoundError | TokenParseError | UnknownError,
+  relativePath: string,
+): Response {
   if (error instanceof PathTraversalError) {
     return errorResponse(400, error.message, { kind: "validation", issues: [error.message] });
   }
@@ -51,6 +50,19 @@ export async function GET(_request: Request, { params }: RouteContext): Promise<
     return errorResponse(422, error.message, { kind: "invalid-file", issues: [error.message] });
   }
   return errorResponse(500, "Internal server error", { kind: "unknown", message: "Internal server error" });
+}
+
+export async function GET(_request: Request, { params }: RouteContext): Promise<Response> {
+  const { path } = await params;
+  const relativePath = path.join("/");
+  const config = getConfig();
+
+  const result = await readAndParseTokenFile(config.tokensDir, relativePath);
+  if (result.isOk()) {
+    return Response.json({ document: toPlainNode(result.value.root) });
+  }
+
+  return mapReadErrorToResponse(result.error, relativePath);
 }
 
 class InvalidRequestBodyError extends Error {
@@ -92,17 +104,7 @@ export async function patchTokenFile(
   const config = getConfig();
   const documentResult = await readAndParseTokenFile(config.tokensDir, relativePath, logger);
   if (documentResult.isErr()) {
-    const error = documentResult.error;
-    if (error instanceof PathTraversalError) {
-      return errorResponse(400, error.message, { kind: "validation", issues: [error.message] });
-    }
-    if (error instanceof FileNotFoundError) {
-      return errorResponse(404, error.message, { kind: "not-found", path: relativePath });
-    }
-    if (error instanceof TokenParseError) {
-      return errorResponse(422, error.message, { kind: "invalid-file", issues: [error.message] });
-    }
-    return errorResponse(500, "Internal server error", { kind: "unknown", message: "Internal server error" });
+    return mapReadErrorToResponse(documentResult.error, relativePath);
   }
   const document = documentResult.value;
 

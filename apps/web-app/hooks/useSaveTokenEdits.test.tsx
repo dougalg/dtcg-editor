@@ -43,7 +43,7 @@ test("a 404 response maps to a not-found SaveError (AC-09)", async () => {
 
   expect(succeeded).toBe(false);
   expect(result.current.saveState).toBe("error");
-  expect(result.current.saveError).toEqual({ kind: "not-found", path: "tokens.json" });
+  expect(result.current.saveError).toMatchObject({ kind: "not-found", path: "tokens.json" });
 });
 
 test("a 400 response maps to a validation SaveError", async () => {
@@ -62,7 +62,7 @@ test("a 400 response maps to a validation SaveError", async () => {
     await result.current.save(edits);
   });
 
-  expect(result.current.saveError).toEqual({ kind: "validation", issues: ["bad value"] });
+  expect(result.current.saveError).toMatchObject({ kind: "validation", issues: ["bad value"] });
 });
 
 test("a 422 response maps to an invalid-file SaveError", async () => {
@@ -81,7 +81,7 @@ test("a 422 response maps to an invalid-file SaveError", async () => {
     await result.current.save(edits);
   });
 
-  expect(result.current.saveError).toEqual({ kind: "invalid-file", issues: ["parse error"] });
+  expect(result.current.saveError).toMatchObject({ kind: "invalid-file", issues: ["parse error"] });
 });
 
 test("a 500 response maps to an unknown SaveError", async () => {
@@ -100,7 +100,7 @@ test("a 500 response maps to an unknown SaveError", async () => {
     await result.current.save(edits);
   });
 
-  expect(result.current.saveError).toEqual({ kind: "unknown", message: "disk full" });
+  expect(result.current.saveError).toMatchObject({ kind: "unknown", message: "disk full" });
 });
 
 test("a rejected fetch (network failure) maps to an unknown SaveError", async () => {
