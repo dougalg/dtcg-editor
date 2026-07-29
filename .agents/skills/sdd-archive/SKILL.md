@@ -22,7 +22,12 @@ argument-hint: <feature-name> (optional, derived from feature.md if omitted)
 
 Check the conversation for `feature_name` and for `feature.md` / `plan.md` in the project root.
 
-- If `feature.md` or `plan.md` do not exist → stop and tell the user both files are required.
+- If `feature.md` or `plan.md` do not exist → check `docs/backlog.md` for a
+  `(in progress — worktree \`...\`, branch \`...\`)` note matching this feature
+  before stopping. If one exists, tell the user to `EnterWorktree` into that
+  path instead — this step needs to run from the worktree where the feature
+  was actually built, not wherever the session happens to be. Only stop and
+  say both files are required if no such note exists either.
 - Note whether `review.md` exists in the project root — it will be archived if present.
 - Note whether `impl-summary.md` exists in the project root — it will be archived if present.
 - If `feature_name` is provided → use it as the archive directory name (kebab-case).
@@ -124,9 +129,9 @@ If the feature introduced new environment variables, configuration keys, add the
 
 If `docs/backlog.md` exists, scan its unchecked items (`- [ ] ...`) for any that describe
 the feature being archived — match on feature name, description, or an existing
-"(in progress — ...)" pointer left by `/sdd-feature`. A match doesn't have to be an exact
-string; use judgment (e.g. a backlog line like "Enforce conventional commits" matches a
-feature named "Enforce Conventional Commits").
+"(in progress — worktree ..., branch ...)" pointer left by `/sdd-pick-up-task`. A match
+doesn't have to be an exact string; use judgment (e.g. a backlog line like "Enforce
+conventional commits" matches a feature named "Enforce Conventional Commits").
 
 For each match, prepare (don't write yet) a move rather than an in-place edit: the item is
 removed entirely from `docs/backlog.md` and appended to `docs/backlog-completed.md` (creating
@@ -139,6 +144,14 @@ in-progress note:
 ```
 
 Do not leave a `[x]` copy behind in `docs/backlog.md` — the line moves, it isn't duplicated.
+
+Note that the copy of `docs/backlog.md` in this worktree may not even contain the
+in-progress note `/sdd-pick-up-task` committed to `main` (worktrees usually branch before
+that commit exists locally). That's fine — match on the item's description regardless of
+whether the note is present here. When this branch eventually merges into `main`, expect a
+small conflict on this exact line (`main` still has the in-progress note; this branch has
+either removed the line or rewritten it to `[x]`) — resolve it by keeping this branch's
+completed version and dropping the stale note, not by merging the two texts together.
 
 If nothing in `docs/backlog.md` matches, that's fine — note "no matching backlog item found"
 in the Step 4 preview rather than silently skipping it or inventing a match. If

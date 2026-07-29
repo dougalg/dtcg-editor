@@ -40,6 +40,12 @@ Read the following before starting:
 - `feature.md` — acceptance criteria and functional requirements (if present)
 - `plan.md` — intended implementation approach (if present)
 
+If both `feature.md` and `plan.md` are absent and this doesn't look like the
+right worktree for the feature being reviewed, check `docs/backlog.md` for a
+`(in progress — worktree \`...\`, branch \`...\`)` note matching it — if found,
+tell the user to `EnterWorktree` into that path rather than reviewing the
+wrong directory (or a bare diff with no spec context at all).
+
 ## Scope
 
 Review the path or file set resolved in Step 0. Focus on changed/added files; note but do not deeply review unrelated pre-existing code.

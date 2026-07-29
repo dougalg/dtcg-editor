@@ -18,6 +18,12 @@ Verify these files exist:
 - `feature.md` — the feature spec (for acceptance criteria)
 - `docs/project.md` — project context
 
+If `plan.md` or `feature.md` is missing here, check `docs/backlog.md` for a
+`(in progress — worktree \`...\`, branch \`...\`)` note matching this feature
+before telling the user to run an earlier step from scratch — if one exists,
+tell them to `EnterWorktree` into that path instead, since the files most
+likely already exist there.
+
 ## Process
 
 ### 1. Read Everything

@@ -14,7 +14,12 @@ You are acting as a senior software engineer creating a precise, actionable impl
 
 Verify both files exist before proceeding:
 
-- `feature.md` — the feature spec (if missing, tell the user to run `/sdd-feature` first)
+- `feature.md` — the feature spec. If missing, check `docs/backlog.md` for a
+  `(in progress — worktree \`...\`, branch \`...\`)` note matching this feature
+  before assuming nothing exists yet — if found, tell the user to
+  `EnterWorktree` into that path instead of running `/sdd-feature` fresh, since
+  the spec probably already lives there. Only tell them to run `/sdd-feature`
+  first if no such note exists.
 - `docs/project.md` — project context
 
 ## Process
