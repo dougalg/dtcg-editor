@@ -27,7 +27,7 @@ coordinator's own context.
 **Why two agents instead of one running the whole pipeline:** a build agent
 that writes the implementation is the wrong agent to also grade its own
 homework -- it's biased by every shortcut and assumption it made along the
-way. Starting review in a brand new agent, with no memory of *why* the code
+way. Starting review in a brand new agent, with no memory of _why_ the code
 was written that way, gives you a genuinely independent check. It also
 means an agent is never alive longer than one clear job, which keeps each
 one's context focused and easy to reason about.

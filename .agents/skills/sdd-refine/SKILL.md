@@ -26,10 +26,10 @@ Check the conversation for `refinement_request` and for `feature.md` in the proj
 
 - If `feature.md` does not exist → before telling the user to run `/sdd-feature`
   from scratch, check `docs/backlog.md` for a `(in progress — worktree \`...\`,
-  branch \`...\`)` note matching the feature you're being asked to refine. If
-  one exists, tell the user to `EnterWorktree` into that path instead — the
-  spec likely already exists there, just not in this directory. Only if no
-  such note exists should you tell them to run `/sdd-feature` first.
+  branch \`...\`)`note matching the feature you're being asked to refine. If
+one exists, tell the user to`EnterWorktree`into that path instead — the
+spec likely already exists there, just not in this directory. Only if no
+such note exists should you tell them to run`/sdd-feature` first.
 - If `refinement_request` is present → proceed to Step 1.
 - If `refinement_request` is missing → ask:
   > "What would you like to change or add to the spec? Is this a scope change, a clarification, or new edge cases?"

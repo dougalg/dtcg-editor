@@ -42,8 +42,8 @@ Read the following before starting:
 
 If both `feature.md` and `plan.md` are absent and this doesn't look like the
 right worktree for the feature being reviewed, check `docs/backlog.md` for a
-`(in progress — worktree \`...\`, branch \`...\`)` note matching it — if found,
-tell the user to `EnterWorktree` into that path rather than reviewing the
+`(in progress — worktree \`...\`, branch \`...\`)`note matching it — if found,
+tell the user to`EnterWorktree` into that path rather than reviewing the
 wrong directory (or a bare diff with no spec context at all).
 
 ## Scope

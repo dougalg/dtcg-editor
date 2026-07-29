@@ -23,8 +23,8 @@ argument-hint: <feature-name> (optional, derived from feature.md if omitted)
 Check the conversation for `feature_name` and for `feature.md` / `plan.md` in the project root.
 
 - If `feature.md` or `plan.md` do not exist → check `docs/backlog.md` for a
-  `(in progress — worktree \`...\`, branch \`...\`)` note matching this feature
-  before stopping. If one exists, tell the user to `EnterWorktree` into that
+  `(in progress — worktree \`...\`, branch \`...\`)`note matching this feature
+before stopping. If one exists, tell the user to`EnterWorktree` into that
   path instead — this step needs to run from the worktree where the feature
   was actually built, not wherever the session happens to be. Only stop and
   say both files are required if no such note exists either.

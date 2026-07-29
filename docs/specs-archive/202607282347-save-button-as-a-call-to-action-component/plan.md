@@ -7,18 +7,18 @@ Extract the inline `<button>` currently at the bottom of `TokenTree.tsx` into a 
 ## Architecture Decisions
 
 - **Accent color values**: `--accent: #2563eb` (Tailwind-blue-600-equivalent) / `--accent-hover: #1d4ed8` for light mode; `--accent: #3b82f6` / `--accent-hover: #60a5fa` for dark mode; `--accent-foreground: #ffffff` in both modes (a saturated blue background reads fine with white text/icon in both themes, so this one doesn't need a dark-mode override). Chosen as a standard, unsurprising "primary action" blue consistent with the neutral/functional palette already in `globals.css` (no existing brand color to match); concrete enough to implement, trivially tweakable later since it's isolated to 3 CSS variables.
-- **Component boundary**: `SaveButton` owns only the `<button>` (icon + label + CTA styling + disabled/pending presentation). It does not own the `saveError` `<p role="alert">` — that stays in `TokenTree.tsx`. Rationale already captured in `feature.md`'s FR-01: the error message is about the *result* of a save, not the button's own anatomy, and `TokenTree.tsx` already has `saveError`/`describeSaveError` in scope, so moving it would just add a prop for no cohesion benefit.
+- **Component boundary**: `SaveButton` owns only the `<button>` (icon + label + CTA styling + disabled/pending presentation). It does not own the `saveError` `<p role="alert">` — that stays in `TokenTree.tsx`. Rationale already captured in `feature.md`'s FR-01: the error message is about the _result_ of a save, not the button's own anatomy, and `TokenTree.tsx` already has `saveError`/`describeSaveError` in scope, so moving it would just add a prop for no cohesion benefit.
 - **Props shape**:
   ```ts
   function SaveButton({
-    onClick,
-    disabled,
-    pending,
+  	onClick,
+  	disabled,
+  	pending,
   }: {
-    onClick: () => void;
-    disabled: boolean;
-    pending: boolean;
-  }): JSX.Element
+  	onClick: () => void;
+  	disabled: boolean;
+  	pending: boolean;
+  }): JSX.Element;
   ```
   `TokenTree.tsx` passes `disabled={!hasPendingEdits || saveState === "pending"}` (unchanged expression, just relocated to a prop) and `pending={saveState === "pending"}`. Passing a derived `pending: boolean` rather than the raw `saveState` string keeps `SaveButton`'s prop surface minimal and decoupled from `useSaveTokenEdits`'s state union — `SaveButton` doesn't need to know about `"error"` vs `"idle"`, only whether to show the pending label.
 - **Icon**: a disk/floppy-disk icon inlined as SVG directly inside `SaveButton.tsx` (not a separate icon component file — a single, single-use glyph doesn't warrant its own module per the "one component per file" convention, which is about components with independent identity/reuse, not every SVG fragment). Uses `viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"` paths so it inherits the button's label color automatically in every state (idle/hover/disabled) with zero extra CSS.
@@ -63,16 +63,16 @@ Extract the inline `<button>` currently at the bottom of `TokenTree.tsx` into a 
 
 ## Acceptance Criteria Mapping
 
-| AC                                                              | Verified By                                                                                   |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| AC-01: `SaveButton` exists, own CSS module, used by `TokenTree`  | Step 2 + Step 3 file creation/edit; manual review of `TokenTree.tsx` diff                      |
-| AC-02: larger, rounded, solid-accent CTA styling                 | Step 2 `.button` CSS rules; manual visual check (`pnpm --filter web-app dev`)                  |
-| AC-03: disk icon in both idle and pending states                 | Step 2 inline SVG always rendered regardless of `pending`; manual visual check                 |
-| AC-04: `:hover`, `:focus-visible`, `:disabled` states             | Step 2 CSS rules; manual visual/keyboard check                                                 |
-| AC-05: new `--accent*` CSS vars, light + dark                    | Step 1 `globals.css` edit                                                                      |
-| AC-06: existing `TokenTree.test.tsx` passes unmodified            | Step 4 — `pnpm --filter web-app test`                                                          |
-| AC-07: no new npm dependency                                     | Step 5 — `git diff` check on `package.json`/`pnpm-lock.yaml`                                   |
-| AC-08: build/lint/test all pass                                  | Step 5                                                                                          |
+| AC                                                              | Verified By                                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| AC-01: `SaveButton` exists, own CSS module, used by `TokenTree` | Step 2 + Step 3 file creation/edit; manual review of `TokenTree.tsx` diff      |
+| AC-02: larger, rounded, solid-accent CTA styling                | Step 2 `.button` CSS rules; manual visual check (`pnpm --filter web-app dev`)  |
+| AC-03: disk icon in both idle and pending states                | Step 2 inline SVG always rendered regardless of `pending`; manual visual check |
+| AC-04: `:hover`, `:focus-visible`, `:disabled` states           | Step 2 CSS rules; manual visual/keyboard check                                 |
+| AC-05: new `--accent*` CSS vars, light + dark                   | Step 1 `globals.css` edit                                                      |
+| AC-06: existing `TokenTree.test.tsx` passes unmodified          | Step 4 — `pnpm --filter web-app test`                                          |
+| AC-07: no new npm dependency                                    | Step 5 — `git diff` check on `package.json`/`pnpm-lock.yaml`                   |
+| AC-08: build/lint/test all pass                                 | Step 5                                                                         |
 
 ## Risks & Mitigations
 

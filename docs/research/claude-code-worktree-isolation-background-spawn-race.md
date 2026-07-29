@@ -90,7 +90,7 @@ retries of one slot both failing.
 
 **Confidence: moderate-to-high.** This is the strongest documented precedent for "some spawns in a
 session get worktrees and others silently don't, with no error," but no source specifically
-describes a *retry-of-the-same-slot* code path — this is inference from a structurally similar,
+describes a _retry-of-the-same-slot_ code path — this is inference from a structurally similar,
 confirmed bug in a different code path (`TeamCreate`), not a direct hit.
 
 ### H2 — Stale lock or reused identifier from the first failed attempt (moderate confidence)
@@ -110,8 +110,8 @@ behind after failed creation attempts, with **no persistent `.git/config.lock`**
 i.e., the lock clears, but partial state (an orphaned branch with no matching worktree, no upstream
 config) persists. Separately, the Claude Code `CHANGELOG.md` (fetched from
 `github.com/anthropics/claude-code/blob/main/CHANGELOG.md`, current through v2.1.220) records, at
-**v2.1.210**: *"Fixed killed background sessions leaving a permanent `git worktree lock` behind;
-the periodic sweep now releases locks whose owning process is gone."* — an explicit
+**v2.1.210**: _"Fixed killed background sessions leaving a permanent `git worktree lock` behind;
+the periodic sweep now releases locks whose owning process is gone."_ — an explicit
 acknowledgment that killed/retried background sessions were, at some point, leaving lock state
 behind that could block subsequent worktree operations for that identifier.
 
@@ -123,7 +123,7 @@ prior attempt, hits a clean path and succeeds.
 
 **Confidence: moderate.** The lock-contention mechanism is well-documented and the v2.1.210
 CHANGELOG entry confirms leaked-lock-from-killed-session was a real, fixed bug in this area — but
-no source directly describes a stale-lock collision surviving specifically across a *retry* of one
+no source directly describes a stale-lock collision surviving specifically across a _retry_ of one
 named task slot two attempts in a row with identical failure shape.
 
 ### H3 — The background-job/session isolation state and the per-spawn worktree state are two different, occasionally-inconsistent tracking systems (moderate confidence, best explanation for the exact error text)
@@ -138,24 +138,25 @@ set," includes a reporter's decompilation of the guard logic from the shipped bi
 
 ```js
 // pseudocode, from binary inspection in issue #58435
-if (currentWorktreeSession) return targetInOriginalCwd && !targetInWorktreePath
-  ? "This session is now isolated in <wt>. Edit the worktree copy of this file instead of the shared-checkout path."
-  : null;
+if (currentWorktreeSession)
+	return targetInOriginalCwd && !targetInWorktreePath
+		? "This session is now isolated in <wt>. Edit the worktree copy of this file instead of the shared-checkout path."
+		: null;
 const cwd = getOriginalCwd();
-if (cwd.includes("/.claude/worktrees/")) return null;   // already in a wt — fine
-if (!target.startsWith(cwd + sep)) return null;          // outside repo — fine
-if (!isBgSessionRequiringIsolation(cwd)) return null;    // bg-session predicate
+if (cwd.includes("/.claude/worktrees/")) return null; // already in a wt — fine
+if (!target.startsWith(cwd + sep)) return null; // outside repo — fine
+if (!isBgSessionRequiringIsolation(cwd)) return null; // bg-session predicate
 return "This background session hasn't isolated its changes yet. Call EnterWorktree first…";
 ```
 
-and separately notes: *"`CLAUDE_BG_ISOLATION` exists in the binary but is set by
+and separately notes: _"`CLAUDE_BG_ISOLATION` exists in the binary but is set by
 `Agent({ isolation: "worktree" })` per spawn and controls a different preflight message... It is
-not a global on/off."* In other words: **there are at least two independently-set isolation
+not a global on/off."_ In other words: **there are at least two independently-set isolation
 signals** — a per-spawn flag (`CLAUDE_BG_ISOLATION`, set when the `Agent` call specifies
 `isolation: "worktree"`) and a session/job-level predicate
 (`isBgSessionRequiringIsolation`, effectively `CLAUDE_JOB_DIR != null`) — and the guard that fired
-in this bug is worded around the *session*-level state ("This subagent's parent bg session hasn't
-isolated yet"), which is consistent with the per-spawn flag having been set (the agent *believes*
+in this bug is worded around the _session_-level state ("This subagent's parent bg session hasn't
+isolated yet"), which is consistent with the per-spawn flag having been set (the agent _believes_
 it's in isolation mode, hence the pinned cwd) while the actual worktree-creation side effect that
 should have satisfied the session-level predicate never completed.
 
@@ -163,15 +164,15 @@ should have satisfied the session-level predicate never completed.
 path is broken: error tells agents to call `EnterWorktree`, which is a deferred tool," documents an
 earlier, related failure in the self-heal path this bug's agent attempted: agents told to "call
 EnterWorktree" would get `InputValidationError` because `EnterWorktree` was a deferred tool not yet
-loaded via `ToolSearch`. That issue is closed with a maintainer comment (`bogini`): *"Addressed by
-a merged fix."* The refusal text observed in this bug report — *"EnterWorktree cannot create a
+loaded via `ToolSearch`. That issue is closed with a maintainer comment (`bogini`): _"Addressed by
+a merged fix."_ The refusal text observed in this bug report — _"EnterWorktree cannot create a
 worktree from a subagent with a cwd override... it would mutate the parent session's process-wide
-working directory"* — is a **different, more specific** message than the one #62372 fixed, which
+working directory"_ — is a **different, more specific** message than the one #62372 fixed, which
 suggests it is a newer guard added on top of that fix, specifically for subagents that already have
 a `cwd` override from `isolation: "worktree"`. No source in this search names this exact guard —
 this document's own author hit that identical refusal live while attempting the same self-heal
 (see the Method note above), which corroborates that the guard exists and behaves as reported, but
-does not add a new named source for *why* the underlying worktree was never created in the first
+does not add a new named source for _why_ the underlying worktree was never created in the first
 place.
 
 Independently, [**#59848**](https://github.com/anthropics/claude-code/issues/59848), "Interactive
@@ -180,17 +181,17 @@ user-foreground work" (closed, completed — i.e., acknowledged and fixed for it
 establishes that the `CLAUDE_JOB_DIR`/background-job classification the guard in H3 depends on was,
 at least once, an unreliable proxy conflating several independent axes ("is a human typing right
 now," "who spawned this," "will it outlive the terminal," "should concurrent edits be isolated") —
-a commenter (`kcarriedo`) summarized: *"the daemon is computing axis 4 from axis 3 via
-`$CLAUDE_JOB_DIR`, which is itself a proxy for whether the daemon has registered the session."*
+a commenter (`kcarriedo`) summarized: _"the daemon is computing axis 4 from axis 3 via
+`$CLAUDE_JOB_DIR`, which is itself a proxy for whether the daemon has registered the session."_
 This is circumstantial, not a direct hit on this bug's coordinator scenario, but it corroborates
 the general premise in the investigation brief: the parent background job does carry its own
 isolation/session-classification state, that state has been shown (in a different but related bug)
 to be an imperfect proxy, and a coordinator background job spawning agents is exactly the shape of
 session this classification logic is meant to key off of.
 
-**Confidence: moderate.** This hypothesis is the best fit for the *specific error wording*
+**Confidence: moderate.** This hypothesis is the best fit for the _specific error wording_
 observed, and is well-supported for the general "two independent isolation-state trackers exist and
-can disagree" claim. It does not, on its own, explain *why* this specific slot's retry hit the
+can disagree" claim. It does not, on its own, explain _why_ this specific slot's retry hit the
 disagreement while the sibling slot didn't — for that, H1 or H2 has to be layered on top.
 
 ### Not enough evidence for a single confirmed cause
@@ -199,8 +200,8 @@ No primary source found describes the exact combination in this bug: a backgroun
 retrying one named task slot, with an `isolation: "worktree"`-pinned cwd that was never backed by a
 real worktree, on the second retry as well as the first, while a sibling slot in the same session
 succeeded both times. The closest analogues (H1's per-code-path skip, H2's stale-lock-on-retry, H3's
-dual-guard-state split) are each independently documented and confirmed *bugs in the same general
-subsystem*, but none is a documented match for this precise reproduction. Given that the
+dual-guard-state split) are each independently documented and confirmed _bugs in the same general
+subsystem_, but none is a documented match for this precise reproduction. Given that the
 `CHANGELOG.md` shows worktree-isolation-for-subagents bugs fixed repeatedly across releases —
 v2.1.203, v2.1.210, and v2.1.216 each contain at least one "fixed worktree-isolated subagents
 running outside their worktree" or "worktree creation failing silently" entry — the honest
@@ -208,20 +209,20 @@ characterization is: **this is very likely a currently-undiagnosed instance of a
 of the harness (subagent worktree provisioning under concurrent/background/retry conditions),
 rather than a single named and fixed defect.** Treat H1–H3 as a ranked set of plausible contributing
 mechanisms, not a confirmed diagnosis. This document's author independently reproducing the same
-guard/refusal pair while writing it up (see Method note) raises confidence that the *symptom* is
+guard/refusal pair while writing it up (see Method note) raises confidence that the _symptom_ is
 real and reliably triggerable in this class of session, without pinning down which of H1–H3 (or
 some combination) is the precise cause in this repo's case.
 
 ## Documented concurrency limits
 
-The Claude Code `CHANGELOG.md` records, at **v2.1.217**: *"Added a cap on concurrently-running
+The Claude Code `CHANGELOG.md` records, at **v2.1.217**: _"Added a cap on concurrently-running
 subagents (default 20, override with `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`) so one message can't
-fan out unbounded background agents."* This is the only documented hard concurrency limit found.
+fan out unbounded background agents."_ This is the only documented hard concurrency limit found.
 The session in this bug report had, at most, a handful of concurrent agents (four in the earlier
 round, plus the sibling and the retried slot) — well under the default cap of 20 — so the cap
 itself does not explain the failure. It is included here only to answer the investigation brief's
 question about documented limits directly: there is one, and it isn't the relevant constraint here.
-The `.git/config.lock` contention mechanism documented in #34645 is a *soft*, git-level race that
+The `.git/config.lock` contention mechanism documented in #34645 is a _soft_, git-level race that
 can bite well below any hard-coded agent-count cap, which is why H2 remains plausible despite the
 low agent count.
 
@@ -231,9 +232,9 @@ Sourced from maintainer-adjacent and community comments on the issues above, not
 document:
 
 1. **Verify worktree creation before trusting an agent's reported cwd.** A commenter on #48811
-   (`0xbrainkid`) proposed exactly this as the correct harness-level fix: *"Worktree creation must
+   (`0xbrainkid`) proposed exactly this as the correct harness-level fix: _"Worktree creation must
    be synchronous and validated before agent starts... If worktree creation fails, return an error,
-   not a null path."* Until/unless the harness does this itself, the coordinator can defensively
+   not a null path."_ Until/unless the harness does this itself, the coordinator can defensively
    check `git worktree list` (or look for a non-null `worktreePath`/`worktreeBranch` in the spawn's
    task-notification) before relying on a spawned agent's cwd, and treat a missing `<worktree>`
    block the way `akravetz`'s comment on #48811 describes using it as a diagnostic signal.

@@ -16,7 +16,7 @@ The token tree editor's "Save" button is currently a plain, unstyled `<button>` 
 
 Create `apps/web-app/components/SaveButton.tsx` (+ `SaveButton.module.css`), following this repo's existing one-component-per-file + co-located CSS-module convention (see `FolderOverview.tsx`/`FolderOverview.module.css`). `TokenTree.tsx` renders `<SaveButton ... />` instead of its current inline `<button>`.
 
-`SaveButton` owns only the button itself (icon, label text, size/CTA styling, disabled/pending visual state). It does **not** own the save-error `<p role="alert">` message — that stays in `TokenTree.tsx`, since it's about displaying the save *result*, not the button's own anatomy, and `TokenTree.tsx` already has the `saveError`/`describeSaveError` wiring in scope.
+`SaveButton` owns only the button itself (icon, label text, size/CTA styling, disabled/pending visual state). It does **not** own the save-error `<p role="alert">` message — that stays in `TokenTree.tsx`, since it's about displaying the save _result_, not the button's own anatomy, and `TokenTree.tsx` already has the `saveError`/`describeSaveError` wiring in scope.
 
 Props (exact shape decided at `/sdd-plan` time, but must cover):
 

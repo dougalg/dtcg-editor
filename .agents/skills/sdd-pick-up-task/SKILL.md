@@ -76,7 +76,7 @@ would fork the work in two directions and leave one half orphaned. Instead:
 2. If it's genuinely still there, tell the user you're resuming it, then call
    `EnterWorktree` with that exact `path`. Skip Steps 3 and 4 — the worktree
    and its claim note already exist; there's nothing left to set up.
-3. If that path is *not* in `git worktree list` anymore (pruned, deleted,
+3. If that path is _not_ in `git worktree list` anymore (pruned, deleted,
    whatever), the note is stale. Say so plainly, and ask whether to clear the
    stale note and re-claim the item fresh (continue to Step 3) or investigate
    first — e.g. the branch may still exist under `git branch -a` even if the
@@ -114,7 +114,7 @@ note already points at.
 
 One thing worth telling the user: because worktrees typically branch from
 `origin/<default-branch>`, the new worktree's own copy of `docs/backlog.md`
-may *not* contain the claim note you just committed on main — unless that
+may _not_ contain the claim note you just committed on main — unless that
 commit was already pushed and the branch picks it up. That's expected and
 harmless: the note's job is to be visible on main for other sessions, not to
 be read from inside the worktree. It resolves itself as a small, easily
