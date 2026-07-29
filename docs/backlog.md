@@ -3,7 +3,6 @@
 Planned features not yet in progress. Pick one and run `/sdd-feature` to start it.
 Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
-- [ ] Components like DimensionEditor need to be enabled via config, not direct imports. The ones defined in this repo will be default values in the config (in progress — worktree `.claude/worktrees/config-driven-components`, branch `worktree-config-driven-components`)
 - [ ] Generic fallback token editor: provide a default/fallback interactive editor for token kinds that have no registered editor (currently read-only only) — should also be used to more thoroughly test the config-driven editor-extension mechanism's genericity (e.g. via a second, non-default editor), a test depth intentionally deferred from the DimensionEditor config-enablement feature.
 - [ ] Support for colour tokens
 - [ ] Improve UI/UX
