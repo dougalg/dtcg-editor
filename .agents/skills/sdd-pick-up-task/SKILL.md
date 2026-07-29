@@ -34,6 +34,7 @@ problems that come from that:
 
 ## Pre-conditions
 
+- Always start in the `main` branch. If you are in a worktree, leave it and go back to main
 - If `docs/backlog.md` doesn't exist yet, there's nothing to pick from — treat
   every request as "propose a new task" and create the file first, using the
   header/intro style already established in similar SDD docs (see how
