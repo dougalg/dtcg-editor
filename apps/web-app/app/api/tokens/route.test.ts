@@ -4,6 +4,7 @@ import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Logger } from "@dtcg-editor/errors";
+import { setConfigCache } from "../../../lib/config.ts";
 import * as listRoute from "./route.ts";
 
 function fakeLogger(): { logger: Logger; state: { calls: number } } {
@@ -19,10 +20,8 @@ function fakeLogger(): { logger: Logger; state: { calls: number } } {
 }
 
 let fixtureDir: string;
-let originalCwd: string;
 
 beforeAll(async () => {
-	originalCwd = process.cwd();
 	fixtureDir = await mkdtemp(join(tmpdir(), "dtcg-tokens-route-"));
 	const tokensDir = join(fixtureDir, "tokens");
 	await mkdir(tokensDir);
@@ -31,15 +30,14 @@ beforeAll(async () => {
 		JSON.stringify({ x: { $value: "1" } }),
 	);
 	await writeFile(join(tokensDir, "bad.json"), "{not valid json");
-	await writeFile(
-		join(fixtureDir, "dtcg-editor.config.json"),
-		JSON.stringify({ tokensDir: "tokens" }),
-	);
-	process.chdir(fixtureDir);
+	// Populates `getConfig()`'s cache directly (mirrors what `register()` does
+	// at real startup) rather than going through a written `dtcg-editor.config.mts`
+	// + dynamic import — `tokensDir` here is already absolute, so nothing in
+	// the request-time code paths under test depends on `process.cwd()`.
+	setConfigCache({ tokensDir });
 });
 
 afterAll(async () => {
-	process.chdir(originalCwd);
 	await rm(fixtureDir, { recursive: true, force: true });
 });
 

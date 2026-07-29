@@ -40,5 +40,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local startup config (points at a machine-specific tokens directory)
-dtcg-editor.config.json

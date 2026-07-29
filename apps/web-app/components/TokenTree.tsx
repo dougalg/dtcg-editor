@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { ChangeEvent } from "react";
-import { DimensionEditor } from "@dtcg-editor/token-type-dimension";
+import type { ChangeEvent, ReactElement } from "react";
+import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
 import type { DimensionValue } from "@dtcg-editor/token-type-dimension";
+import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
 import {
 	applyEditsToPlainNode,
@@ -15,7 +16,22 @@ import type { ClientEdit } from "../lib/tokens/edit-state.ts";
 import type { SaveError } from "../lib/tokens/save-error.ts";
 import { useSaveTokenEdits } from "../hooks/useSaveTokenEdits.ts";
 import { SaveButton } from "./SaveButton.tsx";
+import dtcgEditorConfig from "../lib/token-editors/user-config.ts";
+import { resolveEditorForType } from "../lib/token-editors/resolve-editor.ts";
 import styles from "./TokenTree.module.css";
+
+/**
+ * The registry's `editor` values are typed generically (`TokenTypeEditorProps<unknown>`)
+ * so heterogeneous editors can share one array — see `lib/token-editors/built-in.ts`.
+ * At this render call site the concrete value shape is always `DimensionValue`,
+ * since `EditorComponent` is only ever rendered when `isDimension`/`canEdit`
+ * (below) are true; this cast is safe for the same reason the registry's own
+ * cast is: nothing here inspects `value`, it's only threaded through to
+ * whichever component renders it.
+ */
+type DimensionEditorComponent = (
+	props: TokenTypeEditorProps<DimensionValue>,
+) => ReactElement;
 
 /** Renders a `SaveError` (see `hooks/useSaveTokenEdits.ts`) as a single display string. */
 function describeSaveError(error: SaveError): string {
@@ -70,11 +86,18 @@ function TreeNode({
 		const key = pathKey(node.path);
 		const pending = pendingEdits.get(key);
 		const errors = fieldErrors.get(key);
-		const isDimension = node.effectiveType === "dimension";
+		const isDimension = node.effectiveType === dimensionTokenType.type;
 		const existingValueValidation = isDimension
 			? validateDimensionValue(node.value)
 			: undefined;
 		const canEdit = existingValueValidation?.ok === true;
+		const EditorComponent =
+			canEdit && node.effectiveType !== undefined
+				? (resolveEditorForType(
+						dtcgEditorConfig.extensions,
+						node.effectiveType,
+					) as DimensionEditorComponent | undefined)
+				: undefined;
 
 		if (!canEdit) {
 			return (
@@ -160,7 +183,9 @@ function TreeNode({
 						<span className={styles.type}>{node.effectiveType}</span>
 					</span>
 				)}
-				<DimensionEditor value={currentValue} onChange={handleValueChange} />
+				{EditorComponent !== undefined && (
+					<EditorComponent value={currentValue} onChange={handleValueChange} />
+				)}
 				<label className={styles.field}>
 					<span className={styles.fieldLabel}>{node.name} description</span>
 					<input

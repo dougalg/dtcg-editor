@@ -1,19 +1,36 @@
-import { join, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline/promises";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { err, fromThrowable, ok, type Result } from "neverthrow";
-import {
-	CONFIG_FILE_NAME,
-	ConfigFileSchema,
-	describeCause,
-} from "../lib/config.ts";
+import { describeCause } from "../lib/config.ts";
+import { TokensDirSchema } from "../lib/token-editors/define-config.ts";
 import { nodeExistsSync, nodeWriteFileSync } from "../lib/platform/node-fs.ts";
 import type { ExistsSync, WriteTextFileSync } from "../lib/platform/node-fs.ts";
 
+const CONFIG_FILE_NAME = "dtcg-editor.config.mts";
+
+/**
+ * `define-config.ts`'s real, fixed location — always `../lib/token-editors/`
+ * relative to *this* script file, regardless of `io.cwd`. The generated
+ * config's `import` specifier is computed relative to where it's actually
+ * written (`io.cwd`, potentially not `apps/web-app/` if this script is ever
+ * invoked from elsewhere), not hardcoded — a fixed `"./lib/token-editors/..."`
+ * string only happened to work when `io.cwd` was `apps/web-app/`.
+ */
+const DEFINE_CONFIG_PATH = resolve(
+	dirname(fileURLToPath(import.meta.url)),
+	"../lib/token-editors/define-config.ts",
+);
+
+function defineConfigImportSpecifierFrom(cwd: string): string {
+	const relativePath = relative(cwd, DEFINE_CONFIG_PATH).split(sep).join("/");
+	return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
+}
+
 const USAGE = `Usage: pnpm --filter web-app run init-config [options]
 
-Scaffolds dtcg-editor.config.json in the current working directory.
+Scaffolds dtcg-editor.config.mts in the current working directory.
 
 Options:
   --tokens-dir <path>  Path to your DTCG token files (skips the interactive prompt)
@@ -50,9 +67,10 @@ function describeIssues(
 /**
  * Injectable core of the `init-config` CLI: collects a `tokensDir` value
  * (interactively or via `--tokens-dir`), validates it against the exact
- * `ConfigFileSchema` `loadConfig()` uses at startup, and writes
- * `dtcg-editor.config.json` to `io.cwd`. All real process I/O is passed in
- * via `io` so this can be driven end-to-end in tests without touching
+ * `TokensDirSchema` `defineConfig()` uses at startup, and writes
+ * `dtcg-editor.config.mts` (calling `defineConfig({ tokensDir, extensions: [] })`)
+ * to `io.cwd`. All real process I/O is passed in via `io` so this can be
+ * driven end-to-end in tests without touching
  * `process.argv`/`process.stdin`/`process.stdout`.
  */
 export async function runInitConfig(
@@ -113,20 +131,18 @@ export async function runInitConfig(
 
 		let tokensDir: string;
 		if (flagDriven) {
-			const result = ConfigFileSchema.safeParse({
-				tokensDir: values["tokens-dir"],
-			});
+			const result = TokensDirSchema.safeParse(values["tokens-dir"]);
 			if (!result.success) {
 				return err(describeIssues(result.error.issues));
 			}
-			tokensDir = result.data.tokensDir;
+			tokensDir = result.data;
 		} else {
 			rl ??= createInterface({ input: io.input, output: io.output });
 			for (;;) {
 				const answer = await rl.question("Path to your DTCG token files: ");
-				const result = ConfigFileSchema.safeParse({ tokensDir: answer });
+				const result = TokensDirSchema.safeParse(answer);
 				if (result.success) {
-					tokensDir = result.data.tokensDir;
+					tokensDir = result.data;
 					break;
 				}
 				io.output.write(`${describeIssues(result.error.issues)}\n`);
@@ -137,7 +153,13 @@ export async function runInitConfig(
 			io.output.write(`Warning: "${tokensDir}" does not currently exist.\n`);
 		}
 
-		const content = `${JSON.stringify({ tokensDir }, null, 2)}\n`;
+		const content = `import { defineConfig } from "${defineConfigImportSpecifierFrom(io.cwd)}";
+
+export default defineConfig({
+	tokensDir: ${JSON.stringify(tokensDir)},
+	extensions: [],
+});
+`;
 		const writeConfig = fromThrowable(
 			() => io.writeFileSync(configPath, content),
 			(cause) =>

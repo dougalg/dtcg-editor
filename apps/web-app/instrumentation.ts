@@ -58,21 +58,41 @@ export async function runRegister(deps: RegisterDeps): Promise<void> {
  * during this refactor. `runRegister`'s own `getNextRuntime()` branch below
  * is kept too, purely so the injectable core stays independently testable
  * (AC-05) without relying on this file's real `process.env`.
+ *
+ * `import("./lib/config.ts")` is wrapped in `try`/`catch` because `lib/config.ts`
+ * transitively (via `lib/token-editors/user-config.ts`) statically imports the
+ * user's own `dtcg-editor.config.mts`, whose `defineConfig(...)` call can
+ * throw during module evaluation on an invalid config — that throw rejects
+ * this dynamic import itself, before `runRegister` ever gets a `Result` to
+ * branch on. Routing it through the same `onFatalError` path keeps both
+ * failure modes (a normal `ConfigError` `Result`, and this evaluation-time
+ * throw) failing the same way: log and exit, not an unhandled rejection.
  */
 export async function register(): Promise<void> {
 	if (process.env.NEXT_RUNTIME !== "nodejs") {
 		return;
 	}
 
-	const { loadConfig, setConfigCache } = await import("./lib/config.ts");
+	const onFatalError = async (message: string): Promise<void> => {
+		const { exitOnFatalStartupError } =
+			await import("./lib/fatal-startup-error.ts");
+		exitOnFatalStartupError(message);
+	};
+
+	let configModule: typeof import("./lib/config.ts");
+	try {
+		configModule = await import("./lib/config.ts");
+	} catch (cause) {
+		const message = cause instanceof Error ? cause.message : String(cause);
+		await onFatalError(message);
+		return;
+	}
+
+	const { loadConfig, setConfigCache } = configModule;
 	await runRegister({
 		loadConfig,
 		setConfigCache,
 		getNextRuntime: () => process.env.NEXT_RUNTIME,
-		onFatalError: async (message) => {
-			const { exitOnFatalStartupError } =
-				await import("./lib/fatal-startup-error.ts");
-			exitOnFatalStartupError(message);
-		},
+		onFatalError,
 	});
 }

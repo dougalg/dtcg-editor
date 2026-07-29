@@ -1,73 +1,71 @@
-import { test } from "vitest";
+import { afterEach, test, vi } from "vitest";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
-import { ConfigError, CONFIG_FILE_NAME, loadConfig } from "./config.ts";
-import type { ReadTextFileSync } from "./platform/node-fs.ts";
+import { loadConfig } from "./config.ts";
 
-const cwd = "/virtual/project";
+/**
+ * `dtcg-editor.config.mts` is imported once, statically, at this module's
+ * top level (see `loadConfig`'s doc comment for why) — so by the time any
+ * test runs, it has already been validated by `defineConfig`. There's no
+ * remaining way to make `loadConfig()` itself fail; a malformed config is
+ * covered by `lib/token-editors/define-config.test.ts` instead, and
+ * `register()`'s graceful handling of that throw is exercised manually
+ * (see `impl-summary.md`), since `instrumentation.ts`'s composition root
+ * isn't unit-tested per its own existing convention.
+ */
 
-function mockReadFileSync(files: Record<string, string>): ReadTextFileSync {
-	return (path) => {
-		if (!(path in files)) {
-			const error = new Error(
-				`ENOENT: no such file or directory, open '${path}'`,
-			) as NodeJS.ErrnoException;
-			error.code = "ENOENT";
-			throw error;
-		}
-		return files[path];
-	};
-}
-
-test("returns ConfigError when the config file is missing", () => {
-	const readFileFn = mockReadFileSync({});
-	const result = loadConfig(cwd, readFileFn);
-	assert.equal(result.isErr(), true);
-	if (result.isErr()) {
-		assert.ok(result.error instanceof ConfigError);
-	}
-});
-
-test("returns ConfigError on invalid JSON", () => {
-	const readFileFn = mockReadFileSync({
-		[resolve(cwd, CONFIG_FILE_NAME)]: "{not valid json",
-	});
-	const result = loadConfig(cwd, readFileFn);
-	assert.equal(result.isErr(), true);
-	if (result.isErr()) {
-		assert.ok(result.error instanceof ConfigError);
-	}
-});
-
-test("returns ConfigError when tokensDir is missing", () => {
-	const readFileFn = mockReadFileSync({
-		[resolve(cwd, CONFIG_FILE_NAME)]: JSON.stringify({}),
-	});
-	const result = loadConfig(cwd, readFileFn);
-	assert.equal(result.isErr(), true);
-	if (result.isErr()) {
-		assert.ok(result.error instanceof ConfigError);
-	}
-});
-
-test("returns ConfigError when tokensDir is an empty string", () => {
-	const readFileFn = mockReadFileSync({
-		[resolve(cwd, CONFIG_FILE_NAME)]: JSON.stringify({ tokensDir: "" }),
-	});
-	const result = loadConfig(cwd, readFileFn);
-	assert.equal(result.isErr(), true);
-	if (result.isErr()) {
-		assert.ok(result.error instanceof ConfigError);
-	}
-});
-
-test("resolves a relative tokensDir to an absolute path", () => {
-	const readFileFn = mockReadFileSync({
-		[resolve(cwd, CONFIG_FILE_NAME)]: JSON.stringify({ tokensDir: "./tokens" }),
-	});
-	const result = loadConfig(cwd, readFileFn);
+test("resolves the real dtcg-editor.config.mts's tokensDir relative to cwd", () => {
+	const cwd = "/virtual/project";
+	const result = loadConfig(cwd);
 	assert.equal(result.isOk(), true);
 	if (result.isOk()) {
-		assert.equal(result.value.tokensDir, resolve(cwd, "tokens"));
+		assert.equal(
+			result.value.tokensDir,
+			resolve(cwd, "../../sample_data"),
+		);
 	}
+});
+
+test("defaults cwd to process.cwd() when omitted", () => {
+	const result = loadConfig();
+	assert.equal(result.isOk(), true);
+	if (result.isOk()) {
+		assert.equal(
+			result.value.tokensDir,
+			resolve(process.cwd(), "../../sample_data"),
+		);
+	}
+});
+
+/**
+ * `getConfig()`/`setConfigCache()` are the exact two functions at the
+ * center of the cross-chunk module-duplication bug this feature hit during
+ * implementation (see `plan.md`'s Architecture Decisions and
+ * `impl-summary.md`) — `getConfig()`'s fallback to `loadConfig()` on a cache
+ * miss looked like unreachable defensive code but was actually load-bearing.
+ * `vi.resetModules()` + a fresh dynamic `import()` per test gives each test
+ * its own isolated module instance (and thus its own private `cachedConfig`),
+ * so these don't depend on run order the way sharing one static import would.
+ */
+afterEach(() => {
+	vi.resetModules();
+});
+
+test("getConfig() returns the cached value after setConfigCache()", async () => {
+	const { getConfig, setConfigCache } = await import("./config.ts");
+	const cached = { tokensDir: "/virtual/cached-tokens" };
+	setConfigCache(cached);
+	assert.deepEqual(getConfig(), cached);
+});
+
+test("getConfig() falls back to loadConfig() when this module instance's cache was never populated", async () => {
+	const { getConfig } = await import("./config.ts");
+	// No setConfigCache() call — this fresh module instance's cache starts
+	// empty, exercising the fallback path directly rather than through a
+	// real cross-chunk scenario (which needs a running Next.js server).
+	const config = getConfig();
+	assert.equal(
+		config.tokensDir,
+		resolve(process.cwd(), "../../sample_data"),
+	);
 });
