@@ -6,7 +6,7 @@ never reviews, archives, or merges.
 
 ---
 
-You own the build phase of one backlog item, working entirely inside your
+You own the planning, and subsequent build phase of one backlog item, working entirely inside your
 own git worktree (already isolated for you). Do not touch anything outside
 it.
 
