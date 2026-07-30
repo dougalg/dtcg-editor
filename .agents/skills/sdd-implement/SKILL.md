@@ -18,7 +18,9 @@ Verify these files exist:
 - `feature.md` — the feature spec (for acceptance criteria)
 - `docs/project.md` — project context
 
-If `plan.md` or `feature.md` is missing here, check `docs/backlog.md` for a
+If `plan.md` or `feature.md` is missing here, check **main's** copy of
+`docs/backlog.md` (`git show main:docs/backlog.md` — not the working copy in
+your current directory, which can be on a different or stale branch) for a
 `(in progress — worktree \`...\`, branch \`...\`)` note matching this feature
 before telling the user to run an earlier step from scratch — if one exists,
 tell them to `EnterWorktree` into that path instead, since the files most

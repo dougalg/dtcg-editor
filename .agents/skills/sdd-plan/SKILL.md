@@ -14,7 +14,9 @@ You are acting as a senior software engineer creating a precise, actionable impl
 
 Verify both files exist before proceeding:
 
-- `feature.md` — the feature spec. If missing, check `docs/backlog.md` for a
+- `feature.md` — the feature spec. If missing, check **main's** copy of
+  `docs/backlog.md` (`git show main:docs/backlog.md` — not the working copy in
+  your current directory, which can be on a different or stale branch) for a
   `(in progress — worktree \`...\`, branch \`...\`)` note matching this feature
   before assuming nothing exists yet — if found, tell the user to
   `EnterWorktree` into that path instead of running `/sdd-feature` fresh, since

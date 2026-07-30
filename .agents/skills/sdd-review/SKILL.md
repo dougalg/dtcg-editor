@@ -41,7 +41,9 @@ Read the following before starting:
 - `plan.md` — intended implementation approach (if present)
 
 If both `feature.md` and `plan.md` are absent and this doesn't look like the
-right worktree for the feature being reviewed, check `docs/backlog.md` for a
+right worktree for the feature being reviewed, check **main's** copy of
+`docs/backlog.md` (`git show main:docs/backlog.md` — not the working copy in
+your current directory, which can be on a different or stale branch) for a
 `(in progress — worktree \`...\`, branch \`...\`)` note matching it — if found,
 tell the user to `EnterWorktree` into that path rather than reviewing the
 wrong directory (or a bare diff with no spec context at all).

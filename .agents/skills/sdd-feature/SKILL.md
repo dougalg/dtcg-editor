@@ -25,15 +25,33 @@ Before starting, collect these inputs. If any are missing, ask for them now — 
 
 Check the conversation for `feature_description`.
 
-- If present → check whether it corresponds to a `docs/backlog.md` line already
-  carrying a `(in progress — worktree \`...\`, branch \`...\`)` note. If so, and
-  the current directory is not that worktree (`feature.md` isn't already here,
-  or the path doesn't match the note), stop and tell the user to run
-  `EnterWorktree` with that path first — don't start a second `feature.md`
-  outside the worktree that already claimed this item. This usually means
-  `/sdd-pick-up-task` claimed it in a different session or terminal. Otherwise,
-  proceed to Step 1.
-- If missing → read `docs/backlog.md` (if it exists) and check for open (unchecked) items. Separate plain open items from ones already marked `(in progress — ...)`. List the open ones as candidate suggestions alongside asking: "What feature would you like to build? Here are some open items from the backlog you could pick instead: ...". If there are also in-progress items, mention them too, but point the user at `/sdd-pick-up-task` to resume one rather than typing its description here — resuming needs to reuse the existing worktree, not start a fresh `feature.md`. If the backlog is empty, missing, or has no open items, just ask: "What feature would you like to build?" Do NOT proceed until the user provides a `feature_description`.
+`docs/backlog.md` is shared coordination state, and claim notes get committed
+on `main` by `/sdd-pick-up-task`. The copy checked out in your current
+directory — especially if you're in a worktree — may be on a branch that
+forked before that commit landed, so it can be missing or stale. Always
+check **main's** copy with `git show main:docs/backlog.md` (run
+`git fetch origin main` first if local `main` might be behind), not the
+working-copy file, when looking for claim notes below.
+
+- If present → check whether it corresponds to a line in main's
+  `docs/backlog.md` already carrying a `(in progress — worktree \`...\`,
+  branch \`...\`)` note. If so, and the current directory is not that worktree
+  (`feature.md` isn't already here, or the path doesn't match the note), stop
+  and tell the user to run `EnterWorktree` with that path first — don't start
+  a second `feature.md` outside the worktree that already claimed this item.
+  This usually means `/sdd-pick-up-task` claimed it in a different session or
+  terminal. Otherwise, proceed to Step 1.
+- If missing → read main's `docs/backlog.md` (if it exists) and check for open
+  (unchecked) items. Separate plain open items from ones already marked
+  `(in progress — ...)`. List the open ones as candidate suggestions alongside
+  asking: "What feature would you like to build? Here are some open items
+  from the backlog you could pick instead: ...". If there are also
+  in-progress items, mention them too, but point the user at
+  `/sdd-pick-up-task` to resume one rather than typing its description here —
+  resuming needs to reuse the existing worktree, not start a fresh
+  `feature.md`. If the backlog is empty, missing, or has no open items, just
+  ask: "What feature would you like to build?" Do NOT proceed until the user
+  provides a `feature_description`.
 
 ---
 
@@ -49,7 +67,7 @@ Always start by reading `docs/project.md` to understand:
 - Architecture patterns and constraints
 - Any existing conventions
 
-Also read `docs/backlog.md` (if it exists) and check whether the feature request matches or overlaps an existing backlog item:
+Also read main's `docs/backlog.md` (if it exists — `git show main:docs/backlog.md`, per the Step 0 note on why main and not the local copy) and check whether the feature request matches or overlaps an existing backlog item:
 
 - If it matches an open item, pull in any context/scope notes already captured there (e.g. specific files, constraints, or out-of-scope calls already made) rather than re-deriving them from scratch.
 - If it overlaps a different in-progress or completed item, flag the overlap to the user before proceeding, so scope isn't duplicated.
