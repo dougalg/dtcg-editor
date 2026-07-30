@@ -13,12 +13,15 @@
 			"dependsOn": ["^build", "//#lint:root"]
 		},
 		"test": {
-			"dependsOn": ["^build", "//#test:commits"]
+			"dependsOn": ["^build", "//#test:commits", "//#test:format-staged"]
 		},
 		"//#lint:root": {
 			"outputs": []
 		},
 		"//#test:commits": {
+			"outputs": []
+		},
+		"//#test:format-staged": {
 			"outputs": []
 		}
 	}

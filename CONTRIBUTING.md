@@ -1,5 +1,13 @@
 # Contributing
 
+## Formatting
+
+Every commit's staged files are automatically formatted with [Prettier](https://prettier.io/) by a local `pre-commit` git hook, and re-staged so the formatted content is what actually gets committed — you don't need to run `pnpm format` yourself before committing. Only files staged in that commit are touched; anything else in the working tree (or `.prettierignore`d, like `pnpm-lock.yaml`) is left alone. CI's `pnpm format:check` step re-checks formatting on every `pull_request`/`push` run, the same way commit messages are double-checked (see below) — the local hook is a convenience, not the only enforcement.
+
+If a staged file has a syntax error Prettier can't parse, the commit is aborted and Prettier's error is printed so you can fix it before retrying. `git commit --no-verify` bypasses this hook the same way it bypasses the commit-message hooks below.
+
+**Git worktree caveat:** `core.hooksPath` resolves relative to the repository's primary checkout, not whichever linked worktree you're committing in. If you're working in a linked worktree (`git worktree add`/this repo's SDD worktree workflow) whose branch has this hook but whose primary checkout's currently-checked-out branch does not, the hook silently won't fire there — no error, the commit just goes through unformatted. It becomes fully active in every worktree once the primary checkout has this file on its checked-out branch (i.e. after merging to `main` and updating the primary checkout).
+
 ## Commit Messages
 
 This repo enforces [Conventional Commits](https://www.conventionalcommits.org/) on every commit via a local git hook, _and_ CI re-checks every commit's message on `pull_request` and `push` runs against the same config, so a bypassed or missing local hook can't slip a non-conforming commit onto `main`.
