@@ -4,4 +4,3 @@ node_modules
 **/.turbo
 pnpm-lock.yaml
 apps/web-app/next-env.d.ts
-.claude/worktrees
