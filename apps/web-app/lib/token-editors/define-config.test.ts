@@ -6,17 +6,19 @@ test("returns a resolved config with built-in defaults merged in when no extensi
 	const resolved = defineConfig({ tokensDir: "./tokens" });
 	assert.equal(resolved.tokensDir, "./tokens");
 	assert.equal(resolved.extensions.length, 1);
-	assert.equal(
-		resolved.extensions[0]?.filter({ type: "dimension" }),
-		true,
-	);
+	assert.equal(resolved.extensions[0]?.filter({ type: "dimension" }), true);
 });
 
 test("merges a user-supplied extension ahead of the built-in default (AC-06)", () => {
 	const customEditor = () => null as never;
 	const resolved = defineConfig({
 		tokensDir: "./tokens",
-		extensions: [{ filter: (metadata) => metadata.type === "dimension", editor: customEditor }],
+		extensions: [
+			{
+				filter: (metadata) => metadata.type === "dimension",
+				editor: customEditor,
+			},
+		],
 	});
 	assert.equal(resolved.extensions.length, 2);
 	assert.equal(resolved.extensions[0]?.editor, customEditor);
@@ -36,10 +38,7 @@ test("a user config with an extension for a different type still yields the buil
 });
 
 test("throws DtcgEditorConfigError when tokensDir is missing", () => {
-	assert.throws(
-		() => defineConfig({ tokensDir: "" }),
-		DtcgEditorConfigError,
-	);
+	assert.throws(() => defineConfig({ tokensDir: "" }), DtcgEditorConfigError);
 });
 
 test("throws DtcgEditorConfigError when an extension's filter is not a function", () => {

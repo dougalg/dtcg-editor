@@ -19,10 +19,7 @@ test("resolves the real dtcg-editor.config.mts's tokensDir relative to cwd", () 
 	const result = loadConfig(cwd);
 	assert.equal(result.isOk(), true);
 	if (result.isOk()) {
-		assert.equal(
-			result.value.tokensDir,
-			resolve(cwd, "../../sample_data"),
-		);
+		assert.equal(result.value.tokensDir, resolve(cwd, "../../sample_data"));
 	}
 });
 
@@ -64,8 +61,5 @@ test("getConfig() falls back to loadConfig() when this module instance's cache w
 	// empty, exercising the fallback path directly rather than through a
 	// real cross-chunk scenario (which needs a running Next.js server).
 	const config = getConfig();
-	assert.equal(
-		config.tokensDir,
-		resolve(process.cwd(), "../../sample_data"),
-	);
+	assert.equal(config.tokensDir, resolve(process.cwd(), "../../sample_data"));
 });

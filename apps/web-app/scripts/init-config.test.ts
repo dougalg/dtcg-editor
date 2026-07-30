@@ -71,9 +71,7 @@ function assertGeneratedConfig(
 	tokensDir: string,
 	dir: string,
 ): void {
-	const importMatch = /import \{ defineConfig \} from "([^"]+)";/.exec(
-		content,
-	);
+	const importMatch = /import \{ defineConfig \} from "([^"]+)";/.exec(content);
 	assert.ok(
 		importMatch,
 		'expected an import { defineConfig } from "...\"; line',
@@ -238,7 +236,11 @@ test("the generated import resolves correctly even when io.cwd is not apps/web-a
 	// be the fixed "./lib/token-editors/define-config.ts" string that only
 	// happened to work when io.cwd matched apps/web-app itself.
 	const dir = "/some/unrelated/directory";
-	const io = createIO({ argv: ["--tokens-dir", "./tokens"], cwd: dir, isTTY: false });
+	const io = createIO({
+		argv: ["--tokens-dir", "./tokens"],
+		cwd: dir,
+		isTTY: false,
+	});
 	const result = await runInitConfig(io);
 
 	assert.equal(result.isOk(), true);
@@ -251,7 +253,11 @@ test("the generated import resolves correctly even when io.cwd is not apps/web-a
 
 test("the generated import is the short relative form when io.cwd is the real apps/web-app directory", async () => {
 	const dir = dirname(dirname(fileURLToPath(import.meta.url))); // apps/web-app
-	const io = createIO({ argv: ["--tokens-dir", "./tokens"], cwd: dir, isTTY: false });
+	const io = createIO({
+		argv: ["--tokens-dir", "./tokens"],
+		cwd: dir,
+		isTTY: false,
+	});
 	const result = await runInitConfig(io);
 
 	assert.equal(result.isOk(), true);

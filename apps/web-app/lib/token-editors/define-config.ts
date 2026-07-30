@@ -7,7 +7,9 @@ import type {
 } from "./types.ts";
 
 /** Shared with `scripts/init-config.ts` so both validate `tokensDir` identically — one source of truth. */
-export const TokensDirSchema = z.string().min(1, "tokensDir must be a non-empty string");
+export const TokensDirSchema = z
+	.string()
+	.min(1, "tokensDir must be a non-empty string");
 
 /** Thrown by `defineConfig` when a user's `dtcg-editor.config.mts` is structurally invalid. */
 export class DtcgEditorConfigError extends Error {

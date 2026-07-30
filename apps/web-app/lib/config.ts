@@ -63,7 +63,9 @@ export function describeCause(cause: unknown): string {
  * for `getConfig()` below, given the chunk-splitting behavior above means
  * every chunk needs to be able to self-populate its own cache.
  */
-export function loadConfig(cwd: string = process.cwd()): Result<Config, ConfigError> {
+export function loadConfig(
+	cwd: string = process.cwd(),
+): Result<Config, ConfigError> {
 	return ok({ tokensDir: resolve(cwd, dtcgEditorConfig.tokensDir) });
 }
 
