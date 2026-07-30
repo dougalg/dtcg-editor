@@ -35,6 +35,12 @@ problems that come from that:
 ## Pre-conditions
 
 - Always start in the `main` branch. If you are in a worktree, leave it and go back to main
+- Make sure local `main` is up to date (`git fetch origin main && git pull`)
+  before reading `docs/backlog.md` — another session may have pushed a claim
+  since you last synced. This working copy, read from `main`, is the same
+  authoritative source the other SDD skills read via
+  `git show main:docs/backlog.md` when they can't assume they're on `main`
+  themselves.
 - If `docs/backlog.md` doesn't exist yet, there's nothing to pick from — treat
   every request as "propose a new task" and create the file first, using the
   header/intro style already established in similar SDD docs (see how
