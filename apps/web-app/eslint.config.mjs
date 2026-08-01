@@ -168,6 +168,35 @@ const eslintConfig = defineConfig([
 			],
 		},
 	},
+	// Playwright e2e suite: real integration-test tooling, not part of the
+	// production dependency-injection graph — a Playwright test function has
+	// no injectable-parameter position of its own to thread an fs/env
+	// dependency through, same reasoning as the Route Handler integration
+	// tests override above. `keyboard-navigation.spec.ts` needs real fs to
+	// back up/restore the actual fixture it edits; `e2e/support/axe.ts` needs
+	// real fs to read axe-core's shipped browser bundle for injection.
+	{
+		files: ["e2e/keyboard-navigation.spec.ts", "e2e/support/axe.ts"],
+		rules: {
+			"no-restricted-imports": "off",
+		},
+	},
+	// Playwright's own config file, read directly by the `playwright` CLI —
+	// a composition root outside the app's runtime dependency graph, same
+	// reasoning as instrumentation.ts's process.env exemption above.
+	{
+		files: ["playwright.config.ts"],
+		rules: {
+			"no-restricted-syntax": [
+				"error",
+				...restrictedSyntax.filter(
+					({ selector }) =>
+						selector !==
+						"MemberExpression[object.name='process'][property.name='env']",
+				),
+			],
+		},
+	},
 	// Override default ignores of eslint-config-next.
 	globalIgnores([
 		// Default ignores of eslint-config-next:

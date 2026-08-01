@@ -8,7 +8,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "eslint",
-		"test": "vitest run",
+		"test": "vitest run && playwright test",
 		"init-config": "node scripts/init-config.ts"
 	},
 	"dependencies": {
@@ -23,14 +23,19 @@
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.62.0",
 		"@testing-library/react": "^16.3.2",
 		"@types/node": "^26.1.1",
 		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.4",
+		"@vitest/browser": "^4.1.10",
+		"@vitest/browser-playwright": "^4.1.10",
+		"axe-core": "^4.12.1",
 		"eslint": "^10.8.0",
 		"eslint-config-next": "16.2.11",
 		"jsdom": "^29.1.1",
+		"playwright": "^1.62.0",
 		"typescript": "^5.9.3",
 		"vitest": "^4.1.10"
 	}

@@ -56,8 +56,7 @@
 
 .fieldLabel {
 	font-size: 0.7rem;
-	color: var(--foreground);
-	opacity: 0.5;
+	color: var(--muted-foreground);
 }
 
 .groupName {
