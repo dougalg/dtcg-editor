@@ -91,14 +91,14 @@ A new `sample_data/color_scale.tokens.json`, structured like the existing `sampl
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `@dtcg-editor/token-type-color` exports `colorTokenType: TokenTypeContract<ColorValue>` with `type === "color"`.
-- [ ] AC-02: `ColorValueSchema` accepts a structurally valid object `$value` for all 14 listed color spaces, and accepts a bare 6-digit hex string.
-- [ ] AC-03: `checkColorValueIssues` returns issue strings for an out-of-range or wrong-component-count value per the FR-02 table, and returns no issues for any in-range value or a `"none"` component, and returns no issues for a legacy bare-hex value.
-- [ ] AC-04: In the web app, a `color` token renders a visual swatch matching its declared value (spot-checked against at least `srgb`, `hsl`, `oklch`, `display-p3`, and a legacy hex value).
-- [ ] AC-05: A color token with a malformed/out-of-range value still renders (no crash, no file-level failure) with its issue(s) visibly displayed.
-- [ ] AC-06: `sample_data/color_scale.tokens.json` exists, parses successfully via `parseTokenFile`, and contains the FR-07 coverage (multiple colorSpaces, a `"none"` component, a legacy hex value, one deliberately invalid value).
-- [ ] AC-07: No changes to `packages/token-core`, `TokenTree.tsx`'s `canEdit` logic, or `route.ts`'s edit-authorization gate — color tokens remain non-editable through this feature, confirmed by an existing or new test attempting a `PATCH` edit to a color token and getting the same rejection a color token gets today (as an untyped/non-dimension token).
-- [ ] AC-08: All existing dimension-editing tests/behavior continue to pass unmodified.
+- [x] AC-01: `@dtcg-editor/token-type-color` exports `colorTokenType: TokenTypeContract<ColorValue>` with `type === "color"`.
+- [x] AC-02: `ColorValueSchema` accepts a structurally valid object `$value` for all 14 listed color spaces, and accepts a bare 6-digit hex string.
+- [x] AC-03: `checkColorValueIssues` returns issue strings for an out-of-range or wrong-component-count value per the FR-02 table, and returns no issues for any in-range value or a `"none"` component, and returns no issues for a legacy bare-hex value.
+- [x] AC-04: In the web app, a `color` token renders a visual swatch matching its declared value (spot-checked against at least `srgb`, `hsl`, `oklch`, `display-p3`, and a legacy hex value).
+- [x] AC-05: A color token with a malformed/out-of-range value still renders (no crash, no file-level failure) with its issue(s) visibly displayed.
+- [x] AC-06: `sample_data/color_scale.tokens.json` exists, parses successfully via `parseTokenFile`, and contains the FR-07 coverage (multiple colorSpaces, a `"none"` component, a legacy hex value, one deliberately invalid value).
+- [x] AC-07: No changes to `packages/token-core`, `TokenTree.tsx`'s `canEdit` logic, or `route.ts`'s edit-authorization gate — color tokens remain non-editable through this feature, confirmed by an existing or new test attempting a `PATCH` edit to a color token and getting the same rejection a color token gets today (as an untyped/non-dimension token).
+- [x] AC-08: All existing dimension-editing tests/behavior continue to pass unmodified.
 
 ## Technical Scope
 
