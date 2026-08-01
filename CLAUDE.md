@@ -8,6 +8,8 @@ dtcg-editor is an open source editor for DTCG (Design Tokens Community Group) de
 
 ## Local First Development
 
+The `gh` command is not installed. Use `git` CLI commands directly instead.
+
 When you are asked to merge or update branches, the default assumption is **local-first**. Unless the user specifies to push to a non-local branch/worktree/etc. always assume the user wants you to work locally.
 
 For example:
