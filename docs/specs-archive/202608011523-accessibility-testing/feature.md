@@ -48,7 +48,7 @@ Both the Vitest Browser Mode suite and the Playwright suite run as part of this 
 - [x] AC-03: The Playwright suite includes at least one keyboard-only test that completes the full "browse → open → edit → save" flow without a mouse, asserting a logical tab order and visible focus indicators throughout.
 - [x] AC-04: Both suites run under this repo's existing test commands (`pnpm test` in `apps/web-app`, and `turbo run test` at the root) and a WCAG 2.2 AA violation in either suite causes a non-zero exit / failed build. Verified both commands directly; verified the fail-on-violation behavior empirically during implementation (the real `TokenTree` color-contrast violation failed its test before being fixed).
 - [x] AC-05: Any new dependency (e.g. `@vitest/browser`, an axe integration package, `@playwright/test`) is named and justified in `plan.md` per the Minimal Dependencies convention, not added ad hoc during implementation. (Includes `@vitest/browser-playwright`, a deviation discovered and documented during implementation — see `plan.md`'s dependency table.)
-- [ ] AC-06: `docs/project.md`'s Testing section is updated (at `/sdd-archive` time) to describe the new two-tier a11y testing setup alongside the existing Vitest/jsdom and `node:test` conventions. Deferred to `/sdd-archive`, as specified.
+- [x] AC-06: `docs/project.md`'s Testing section is updated (at `/sdd-archive` time) to describe the new two-tier a11y testing setup alongside the existing Vitest/jsdom and `node:test` conventions.
 
 ## Technical Scope
 
