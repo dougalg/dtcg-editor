@@ -1,8 +1,5 @@
 import type { ReactElement } from "react";
 import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
-import type { TokenType } from "./built-in.ts";
-
-export type { TokenType };
 
 /** Pairs a DTCG `$type` with the editor component to render for tokens of that type. */
 export interface TokenEditorExtension {

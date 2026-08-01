@@ -65,15 +65,15 @@ A new fallback editor component (location decided at `/sdd-plan` time, but archi
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `token-core` exports a canonical list of valid DTCG `$type` values matching the 2025.10 spec's Type table.
-- [ ] AC-02: A token file containing a token or group with an unrecognized `$type` (e.g. `"not-a-real-type"`) is flagged distinctly from both `valid` and `invalid` in `FolderOverview`, without changing today's `valid`/`invalid` classification for any existing fixture file.
-- [ ] AC-03: In the token tree view, a token of a standard DTCG type with no registered editor (e.g. `fontWeight`, assuming no built-in exists for it at implementation time) renders name, description, and a JSON-text `$value` editor, and a valid edit round-trips through save/reload correctly.
-- [ ] AC-04: Entering invalid JSON into the fallback editor's value field shows a field-level error and does not stage or save an edit, exactly mirroring `DimensionEditor`'s existing invalid-value UX.
-- [ ] AC-05: A token whose effective `$type` is non-standard renders fully read-only (no name/description/value editing controls) regardless of whether an editor happens to be registered for that literal string.
-- [ ] AC-06: `defineConfig` throws `DtcgEditorConfigError` when a user's `dtcg-editor.config.mts` registers an extension whose `type` is not a valid DTCG type.
-- [ ] AC-07: `PATCH /api/tokens/[...path]` accepts an edit to any standard-type token (not just `dimension`) and rejects an edit to a non-standard-type token with a 400 `SaveError`-shaped response.
-- [ ] AC-08: A test proves `resolveEditorForType`/`defineConfig`'s override-ordering (user extension beats a same-type built-in) and the fallback path (a standard type with no built-in gets the fallback editor), both derived dynamically from the live `BUILT_IN_TOKEN_TYPES` registry and FR-01's canonical list rather than a hardcoded type-name literal — see Non-Functional Requirements for why.
-- [ ] AC-09: All existing dimension-editing tests/behavior (round-trip save, rename collision checks, group rename) continue to pass unmodified.
+- [x] AC-01: `token-core` exports a canonical list of valid DTCG `$type` values matching the 2025.10 spec's Type table.
+- [x] AC-02: A token file containing a token or group with an unrecognized `$type` (e.g. `"not-a-real-type"`) is flagged distinctly from both `valid` and `invalid` in `FolderOverview`, without changing today's `valid`/`invalid` classification for any existing fixture file.
+- [x] AC-03: In the token tree view, a token of a standard DTCG type with no registered editor (e.g. `fontWeight`, assuming no built-in exists for it at implementation time) renders name, description, and a JSON-text `$value` editor, and a valid edit round-trips through save/reload correctly.
+- [x] AC-04: Entering invalid JSON into the fallback editor's value field shows a field-level error and does not stage or save an edit, exactly mirroring `DimensionEditor`'s existing invalid-value UX.
+- [x] AC-05: A token whose effective `$type` is non-standard renders fully read-only (no name/description/value editing controls) regardless of whether an editor happens to be registered for that literal string.
+- [x] AC-06: `defineConfig` throws `DtcgEditorConfigError` when a user's `dtcg-editor.config.mts` registers an extension whose `type` is not a valid DTCG type.
+- [x] AC-07: `PATCH /api/tokens/[...path]` accepts an edit to any standard-type token (not just `dimension`) and rejects an edit to a non-standard-type token with a 400 `SaveError`-shaped response.
+- [x] AC-08: A test proves `resolveEditorForType`/`defineConfig`'s override-ordering (user extension beats a same-type built-in) and the fallback path (a standard type with no built-in gets the fallback editor), both derived dynamically from the live `BUILT_IN_TOKEN_TYPES` registry and FR-01's canonical list rather than a hardcoded type-name literal — see Non-Functional Requirements for why.
+- [x] AC-09: All existing dimension-editing tests/behavior (round-trip save, rename collision checks, group rename) continue to pass unmodified.
 
 ## Technical Scope
 
