@@ -23,9 +23,9 @@ const builtInContractsByType: {
 	dimension: dimensionTokenType as unknown as TokenTypeContract<unknown>,
 };
 
-/** Built-in `{ filter, editor }` entries, one per `BUILT_IN_TOKEN_TYPES` member. */
+/** Built-in `{ type, editor }` entries, one per `BUILT_IN_TOKEN_TYPES` member. */
 export const builtInExtensions: readonly TokenEditorExtension[] =
 	BUILT_IN_TOKEN_TYPES.map((type) => ({
-		filter: (metadata) => metadata.type === type,
+		type,
 		editor: builtInContractsByType[type].Editor,
 	}));

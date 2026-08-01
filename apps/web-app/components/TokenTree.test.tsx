@@ -1,7 +1,28 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
 import { TokenTree } from "./TokenTree.tsx";
+import { BUILT_IN_TOKEN_TYPES } from "../lib/token-editors/built-in.ts";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
+
+/**
+ * A standard DTCG type with no shipped built-in editor, computed at test-run
+ * time rather than hardcoded — a literal like "fontWeight" would silently
+ * start asserting a false premise the day a real editor for that type ships
+ * (see docs/project.md's Non-Functional Requirements for this feature).
+ */
+function typeWithoutBuiltIn(): string {
+	const type = DTCG_TOKEN_TYPES.find(
+		(candidate) =>
+			!(BUILT_IN_TOKEN_TYPES as readonly string[]).includes(candidate),
+	);
+	if (type === undefined) {
+		throw new Error(
+			"expected at least one DTCG type with no built-in editor yet",
+		);
+	}
+	return type;
+}
 
 function tree(): PlainDtcgNode {
 	return {
@@ -35,11 +56,11 @@ function tree(): PlainDtcgNode {
 			},
 			{
 				kind: "token",
-				name: "red",
-				path: ["red"],
+				name: "weird",
+				path: ["weird"],
 				value: "#ff0000",
-				declaredType: "color",
-				effectiveType: "color",
+				declaredType: "not-a-real-type",
+				effectiveType: "not-a-real-type",
 				description: undefined,
 				deprecated: undefined,
 			},
@@ -103,14 +124,15 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-test("shows editable controls for a dimension token but not for other types (AC-01)", () => {
+test("shows editable controls for a dimension token but not for a non-standard type (AC-01, AC-05)", () => {
 	render(<TokenTree node={tree()} relativePath="tokens.json" />);
 
 	expect(screen.getByLabelText("small name")).toBeTruthy();
 	expect(screen.getAllByLabelText("Dimension value").length).toBe(2);
 
 	expect(screen.getByText("#ff0000")).toBeTruthy();
-	expect(screen.queryByLabelText("red name")).toBeNull();
+	expect(screen.queryByLabelText("weird name")).toBeNull();
+	expect(screen.getByText(/non-standard/)).toBeTruthy();
 });
 
 test("rejects a rename that collides with a sibling and does not stage it (AC-03)", () => {
@@ -285,4 +307,82 @@ test("every field has visible label text, not just an accessible name (AC-10, AC
 	expect(screen.getByText("small description")).toBeTruthy();
 	expect(screen.getAllByText("Dimension value").length).toBeGreaterThan(0);
 	expect(screen.getAllByText("Dimension unit").length).toBeGreaterThan(0);
+});
+
+function fallbackTree(value: unknown): PlainDtcgNode {
+	return {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			{
+				kind: "token",
+				name: "swatch",
+				path: ["swatch"],
+				value,
+				declaredType: typeWithoutBuiltIn(),
+				effectiveType: typeWithoutBuiltIn(),
+				description: undefined,
+				deprecated: undefined,
+			},
+		],
+	};
+}
+
+test("a standard type with no built-in editor renders name/description/JSON value editor and round-trips on save (AC-03)", async () => {
+	stubSuccessfulFetch();
+	render(
+		<TokenTree
+			node={fallbackTree({ r: 255, g: 0, b: 0 })}
+			relativePath="tokens.json"
+		/>,
+	);
+
+	expect(screen.getByLabelText("swatch name")).toBeTruthy();
+	expect(screen.getByLabelText("swatch description")).toBeTruthy();
+	const valueField = screen.getByLabelText(
+		"Value (JSON)",
+	) as HTMLTextAreaElement;
+	expect(valueField.value).toBe(
+		JSON.stringify({ r: 255, g: 0, b: 0 }, null, 2),
+	);
+
+	fireEvent.change(valueField, {
+		target: { value: '{"r":0,"g":255,"b":0}' },
+	});
+
+	const saveButton = screen.getByRole("button", {
+		name: /save/i,
+	}) as HTMLButtonElement;
+	expect(saveButton.disabled).toBe(false);
+	fireEvent.click(saveButton);
+
+	await vi.waitFor(() => {
+		expect(saveButton.disabled).toBe(true);
+	});
+	const updatedField = screen.getByLabelText(
+		"Value (JSON)",
+	) as HTMLTextAreaElement;
+	expect(updatedField.value).toBe(
+		JSON.stringify({ r: 0, g: 255, b: 0 }, null, 2),
+	);
+});
+
+test("invalid JSON in the fallback editor shows a field error and does not stage an edit (AC-04)", () => {
+	render(
+		<TokenTree node={fallbackTree("#ff0000")} relativePath="tokens.json" />,
+	);
+
+	const valueField = screen.getByLabelText("Value (JSON)");
+	fireEvent.change(valueField, { target: { value: "not valid json" } });
+
+	expect(screen.getByText(/Invalid JSON/)).toBeTruthy();
+	const saveButton = screen.getByRole("button", {
+		name: /save/i,
+	}) as HTMLButtonElement;
+	expect(saveButton.disabled).toBe(true);
 });

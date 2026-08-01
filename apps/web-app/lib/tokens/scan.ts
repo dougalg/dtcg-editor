@@ -5,11 +5,16 @@ import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
 import type { Logger, UnknownError } from "@dtcg-editor/errors";
 import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
 import { PathTraversalError } from "./path-safety.ts";
+import { isTokenDocumentStandard } from "./standard-type.ts";
 import { nodeReadDir, nodeReadFile } from "../platform/node-fs.ts";
 import type { ReadDirEntries, ReadTextFile } from "../platform/node-fs.ts";
 
 export type TokenFileSummary =
-	| { readonly relativePath: string; readonly valid: true }
+	| {
+			readonly relativePath: string;
+			readonly valid: true;
+			readonly standard: boolean;
+	  }
 	| {
 			readonly relativePath: string;
 			readonly valid: false;
@@ -96,7 +101,11 @@ export function scanTokenDirectory(
 						readFileFn,
 					);
 					return result.isOk()
-						? { relativePath, valid: true }
+						? {
+								relativePath,
+								valid: true,
+								standard: isTokenDocumentStandard(result.value),
+							}
 						: {
 								relativePath,
 								valid: false,

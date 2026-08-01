@@ -1,31 +1,18 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
+import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
 import { resolveEditorForType } from "./resolve-editor.ts";
+import { BUILT_IN_TOKEN_TYPES } from "./built-in.ts";
 import type { TokenEditorExtension } from "./types.ts";
 
 const dimensionEditor = () => "dimension-editor" as never;
 const fallbackDimensionEditor = () => "fallback-dimension-editor" as never;
 const colorEditor = () => "color-editor" as never;
 
-// Filters here take a widened `{ type: string }` param (rather than the
-// stricter `TokenFilterMetadata`) purely so this test can exercise
-// hypothetical non-built-in type names like "color"/"border" without
-// tripping `TokenType`'s literal-union type-safety — the whole point of
-// FR-05's strong typing is to make exactly that kind of typo a compile
-// error for real config authors, so it's deliberately sidestepped here.
 const extensions: readonly TokenEditorExtension[] = [
-	{
-		filter: (metadata: { type: string }) => metadata.type === "dimension",
-		editor: dimensionEditor,
-	},
-	{
-		filter: (metadata: { type: string }) => metadata.type === "color",
-		editor: colorEditor,
-	},
-	{
-		filter: (metadata: { type: string }) => metadata.type === "dimension",
-		editor: fallbackDimensionEditor,
-	},
+	{ type: "dimension", editor: dimensionEditor },
+	{ type: "color", editor: colorEditor },
+	{ type: "dimension", editor: fallbackDimensionEditor },
 ];
 
 test("returns the first matching entry's editor", () => {
@@ -46,4 +33,19 @@ test("first-match-wins: a later entry for the same type is never reached", () =>
 		resolveEditorForType(extensions, "dimension"),
 		fallbackDimensionEditor,
 	);
+});
+
+test("resolves a user extension registered for a standard type with no built-in editor, derived dynamically so it can't go stale (AC-08)", () => {
+	const typeWithoutBuiltIn = DTCG_TOKEN_TYPES.find(
+		(type) => !(BUILT_IN_TOKEN_TYPES as readonly string[]).includes(type),
+	);
+	assert.ok(
+		typeWithoutBuiltIn !== undefined,
+		"expected at least one DTCG type with no built-in editor yet",
+	);
+	const editor = () => "synthetic-editor" as never;
+	const withSynthetic: readonly TokenEditorExtension[] = [
+		{ type: typeWithoutBuiltIn, editor },
+	];
+	assert.equal(resolveEditorForType(withSynthetic, typeWithoutBuiltIn), editor);
 });

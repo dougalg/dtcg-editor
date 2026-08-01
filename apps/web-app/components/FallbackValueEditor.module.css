@@ -1,0 +1,14 @@
+.labelText {
+	font-size: 0.7rem;
+	color: var(--foreground);
+	opacity: 0.6;
+}
+
+.textarea {
+	display: block;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.85rem;
+	min-width: 16rem;
+	min-height: 3rem;
+	resize: vertical;
+}

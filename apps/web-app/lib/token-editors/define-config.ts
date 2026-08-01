@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isDtcgTokenType } from "@dtcg-editor/token-core";
 import { builtInExtensions } from "./built-in.ts";
 import type {
 	DtcgEditorUserConfig,
@@ -24,7 +25,7 @@ export class DtcgEditorConfigError extends Error {
  * `.mts` author can still bypass their type checker (ignored errors, `as
  * any`, etc.), and this is the one runtime safety net for that. Every
  * branch below folds into `issues` rather than letting a malformed shape
- * (`null`, a non-object, a missing `filter`/`editor`) throw natively.
+ * (`null`, a non-object, a missing/invalid `type`/`editor`) throw natively.
  */
 function describeInvalidExtension(entry: unknown, index: number): string[] {
 	if (entry === null || typeof entry !== "object") {
@@ -32,8 +33,12 @@ function describeInvalidExtension(entry: unknown, index: number): string[] {
 	}
 	const issues: string[] = [];
 	const candidate = entry as Partial<TokenEditorExtension>;
-	if (typeof candidate.filter !== "function") {
-		issues.push(`extensions[${index}].filter must be a function`);
+	if (typeof candidate.type !== "string") {
+		issues.push(`extensions[${index}].type must be a string`);
+	} else if (!isDtcgTokenType(candidate.type)) {
+		issues.push(
+			`extensions[${index}].type must be a valid DTCG token type, got "${candidate.type}"`,
+		);
 	}
 	if (typeof candidate.editor !== "function") {
 		issues.push(`extensions[${index}].editor must be a function`);

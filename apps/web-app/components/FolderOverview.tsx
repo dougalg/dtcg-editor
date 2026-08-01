@@ -26,6 +26,9 @@ export function FolderOverview({
 					{file.valid ? (
 						<Link href={hrefFor(file.relativePath)} className={styles.link}>
 							<span className={styles.badgeValid}>valid</span>
+							{!file.standard && (
+								<span className={styles.badgeNonStandard}>non-standard</span>
+							)}
 							{file.relativePath}
 						</Link>
 					) : (

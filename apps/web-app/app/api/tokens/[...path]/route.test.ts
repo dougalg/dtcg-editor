@@ -241,18 +241,35 @@ test("PATCH allows a same-batch rename that frees a name another edit in the bat
 	assert.equal(onDisk.spacing.small, undefined);
 });
 
-test("PATCH returns 400 when attempting to edit a non-dimension token", async () => {
-	await writeFixture("patch-non-dimension.json", {
+test("PATCH returns 400 when attempting to edit a non-standard-type token", async () => {
+	await writeFixture("patch-non-standard.json", {
+		weird: { thing: { $type: "not-a-real-type", $value: "#ff0000" } },
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([{ path: ["weird", "thing"], value: "#00ff00" }]),
+		"patch-non-standard.json",
+	);
+	assert.equal(response.status, 400);
+	const body = (await response.json()) as { kind?: string };
+	assert.equal(body.kind, "validation");
+});
+
+test("PATCH accepts an edit to a standard, non-dimension token and skips value-shape validation (AC-07)", async () => {
+	await writeFixture("patch-standard-non-dimension.json", {
 		color: { red: { $type: "color", $value: "#ff0000" } },
 	});
 
 	const response = await readRoute.patchTokenFile(
 		patchRequest([{ path: ["color", "red"], value: "#00ff00" }]),
-		"patch-non-dimension.json",
+		"patch-standard-non-dimension.json",
 	);
-	assert.equal(response.status, 400);
-	const body = (await response.json()) as { kind?: string };
-	assert.equal(body.kind, "validation");
+	assert.equal(response.status, 200);
+
+	const onDisk = (await readFixture("patch-standard-non-dimension.json")) as {
+		color: { red: { $value: string } };
+	};
+	assert.equal(onDisk.color.red.$value, "#00ff00");
 });
 
 test("PATCH returns 404 for a missing file", async () => {

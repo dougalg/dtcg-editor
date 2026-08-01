@@ -2,6 +2,7 @@ import { ResultAsync } from "neverthrow";
 import {
 	applyTokenEdits,
 	findNode,
+	isDtcgTokenType,
 	resolveEffectiveType,
 	TokenParseError,
 } from "@dtcg-editor/token-core";
@@ -177,8 +178,8 @@ export async function patchTokenFile(
 		}
 
 		const effectiveType = resolveEffectiveType(located.node, located.ancestors);
-		if (effectiveType !== dimensionTokenType.type) {
-			const message = `Only "${dimensionTokenType.type}" tokens can be edited, "${effectiveType ?? "untyped"}" cannot`;
+		if (effectiveType === undefined || !isDtcgTokenType(effectiveType)) {
+			const message = `Only standard DTCG token types can be edited, "${effectiveType ?? "untyped"}" cannot`;
 			return errorResponse(400, message, {
 				kind: "validation",
 				issues: [message],
@@ -187,17 +188,25 @@ export async function patchTokenFile(
 
 		let value: unknown;
 		if (edit.value !== undefined) {
-			const valueValidation = dimensionTokenType.valueSchema.safeParse(
-				edit.value,
-			);
-			if (!valueValidation.success) {
-				const message = `Invalid ${dimensionTokenType.type} value: ${valueValidation.error.issues.map((i) => i.message).join(", ")}`;
-				return errorResponse(400, message, {
-					kind: "validation",
-					issues: valueValidation.error.issues.map((i) => i.message),
-				});
+			if (effectiveType === dimensionTokenType.type) {
+				const valueValidation = dimensionTokenType.valueSchema.safeParse(
+					edit.value,
+				);
+				if (!valueValidation.success) {
+					const message = `Invalid ${dimensionTokenType.type} value: ${valueValidation.error.issues.map((i) => i.message).join(", ")}`;
+					return errorResponse(400, message, {
+						kind: "validation",
+						issues: valueValidation.error.issues.map((i) => i.message),
+					});
+				}
+				value = dimensionTokenType.serializeValue(valueValidation.data);
+			} else {
+				// No contract schema exists for any standard type but dimension yet
+				// — `edit.value` is already a plain JS value (`EditRequestSchema`'s
+				// `z.unknown()`), validated as JSON-parseable client-side, so it's
+				// passed through as-is.
+				value = edit.value;
 			}
-			value = dimensionTokenType.serializeValue(valueValidation.data);
 		}
 
 		tokenEdits.push({
