@@ -1,126 +1,143 @@
-# Implementation Plan: Generic Fallback Token Editor
+# Implementation Plan: Support for Colour (Color) Tokens
 
 ## Overview
 
-Six changes, all additive to the existing Config-Driven Token Editor Components mechanism:
-
-1. `token-core` gains a canonical, spec-sourced list of valid DTCG `$type` values (FR-01) — the single source of truth every other change below reads from.
-2. `TokenEditorExtension` changes from `{ filter, editor }` to `{ type, editor }`, with `defineConfig` validating `type` against that canonical list (FR-02).
-3. `web-app` gains a non-standard-`$type` detector, surfaced as a new `standard` field on `TokenFileSummary` and a new badge in `FolderOverview` (FR-03).
-4. A new generic, JSON-text fallback editor component ships in `web-app` (FR-04).
-5. `TokenTree.tsx`'s `canEdit`/editor-resolution logic generalizes from "is this dimension" to a three-way split: non-standard (read-only), dimension (unchanged), other standard type (registered editor or fallback) (FR-05).
-6. `route.ts`'s `patchTokenFile` generalizes its accept/reject gate the same way, minus the JSX (FR-06).
-
-No new dependency is needed anywhere (`JSON.parse`/`JSON.stringify` are built-ins).
+Add a new `packages/token-type-color` package implementing the Token-Type Package Contract for DTCG's `color` `$type`, mirroring `packages/token-type-dimension`'s structure exactly (schema module, editor component, contract-wiring module, barrel `index.ts`). Register it in `apps/web-app`'s built-in editor registry the same way `dimensionTokenType` is registered — but deliberately leave `TokenTree.tsx`'s `canEdit` gate and `route.ts`'s server-side edit-authorization gate untouched, so color tokens stay non-editable in the running app until the separate `fallback-token-editor` feature generalizes those two gates. Add read-only-path rendering in `TokenTree.tsx` for a visual swatch (built from native CSS Color 4/5 function strings — no new dependency) and a non-blocking, always-visible list of per-colorSpace validation issues. Add a new sample token file exercising the coverage `feature.md`'s FR-07 calls for.
 
 ## Architecture Decisions
 
-- **FR-01's list lives in `packages/token-core/src/token-types.ts`**, not `apps/web-app`, per the Token-Type Package Contract's "spec-parsing lives in its own package" principle and feature.md's explicit instruction. Exports `DTCG_TOKEN_TYPES` (a `readonly string[]` literal tuple), the derived union type `DtcgTokenType`, and a type-guard `isDtcgTokenType(value: string): value is DtcgTokenType` — the guard avoids every call site (`define-config.ts`, `standard-type.ts`, `TokenTree.tsx`, `route.ts`) hand-rolling its own `.includes()` check.
-- **Type list, enumerated directly from the DTCG Format Module 2025.10 spec's Type section** (fetched and cross-checked against both the primitive-types and composite-types tables, not recalled from memory, per feature.md's explicit mandate): `color`, `dimension`, `fontFamily`, `fontWeight`, `duration`, `cubicBezier`, `number`, `strokeStyle`, `border`, `transition`, `shadow`, `gradient`, `typography`. 13 types total.
-- **The non-standard-detection tree-walk (FR-03) lives in `apps/web-app/lib/tokens/standard-type.ts`, not `token-core`.** `token-core` owns the canonical _list_ (a spec fact); "walk this document and flag it if any node's own declared `$type` isn't in that list" is app-level classification behavior consumed only by `scan.ts`/`FolderOverview`, consistent with the existing Architecture Decision that "the core engine never hard-codes an 'is this token's type currently editable' policy" — the same reasoning extends to this closely-related classification policy. It operates on `token-core`'s exported `DtcgNode`/`GroupNode`/`TokenDocument` types the same way `plain-node.ts`/`edit-state.ts` already do.
-- **`TokenEditorExtension.type` is typed as plain `string`, not `DtcgTokenType`.** `defineConfig` is the actual enforcement point (a runtime check, since `type` is user-authored data in a `.mts` file); typing the field as the union wouldn't change that (a config author can always write a string literal that happens to be wrong), and keeps `types.ts` from needing a compile-time dependency on `token-core`'s exact union beyond what `defineConfig` already needs for its runtime check.
-- **Generalizing the "registered editor" branch beyond dimension.** FR-05's first bullet ("Standard type with a registered editor → editable via that editor, validated by that type's own contract schema") is written generically, not dimension-specific — and today, `TokenTree.tsx`'s `canEdit` gate is hard-coded to `isDimension` _before_ `resolveEditorForType` is even consulted, so a user-registered editor for any other type would silently never render even though `defineConfig`/`resolveEditorForType` already resolve it correctly. This is exactly the "config layer... only wired up on the client-render path" gap feature.md's Summary calls out. Fix: three render branches in `TreeNode`, not two —
-  1. `effectiveType === "dimension"` → unchanged today's path (`validateDimensionValue`, `DimensionEditorComponent` cast, existing-value gate).
-  2. `effectiveType` is standard, not dimension, and `resolveEditorForType` finds a match → render that editor generically (`TokenTypeEditorProps<unknown>`), staging `onChange`'s value as-is (no schema to validate against — no built-in contract exists for any type but dimension yet, mirroring FR-04's own "no schema beyond JSON-parseability" reasoning).
-  3. `effectiveType` is standard, not dimension, and no editor resolves → FR-04's fallback editor.
-     Branch 2 has no shipped built-in consumer yet (no non-dimension token-type package exists) — it's exercised by a synthetic test extension only, proving the mechanism rather than a real editor. This directly mirrors `route.ts`'s FR-06 gate, which also only special-cases dimension and treats every other standard type identically (skip value-shape validation) regardless of _why_ no schema applies.
-- **The fallback editor is `TokenTypeEditorProps<string>`-shaped** (the JSON _text_, not the parsed value) — `apps/web-app/components/FallbackValueEditor.tsx` is a dumb controlled `<textarea>` that calls `onChange(nextText)` on every keystroke and does no parsing itself. `TreeNode` owns the `JSON.parse`/try-catch and error-surfacing, exactly mirroring how `DimensionEditor` does trivial input-level filtering (`Number.isNaN` check) while `TreeNode.handleValueChange` owns the real `validateDimensionValue` call and `onFieldError`/`onStageEdit` wiring. Keeps validation logic centralized in one place (`TreeNode`) rather than duplicated per editor component.
+- **New package boundary**: color-specific validation (`ColorValueSchema`, the per-colorSpace range checker, the CSS-color-string builder) and the `ColorEditor` UI live entirely inside `packages/token-type-color`, never in `apps/web-app` or `packages/token-core` — matches the existing Token-Type Package Contract precedent (dimension) and the "core engine never hard-codes a specific type" principle in `docs/project.md`.
+- **App-layer wrapper for display, mirroring `validateDimensionValue`**: `apps/web-app/lib/tokens/edit-state.ts` already wraps `dimensionTokenType.valueSchema.safeParse` in an app-local `validateDimensionValue` function used only by `TokenTree.tsx`. This plan adds an analogous app-local `describeColorForDisplay` (new file `apps/web-app/lib/tokens/color-display.ts`, not `edit-state.ts` itself — `edit-state.ts` is edit-focused, this is read-only-display-focused, and `describeColorForDisplay` never produces a `ClientEdit`) that composes the package's `ColorValueSchema` + `checkColorValueIssues` + `colorValueToCssColor` into one call `TokenTree.tsx` uses for its read-only rendering. This keeps the package itself free of any "how to display an issue" concern (that's app UI policy) while keeping `TokenTree.tsx` itself thin.
+- **Swatch preview via native CSS, not a conversion library**: `colorValueToCssColor` builds a CSS Color 4/5 function-string (`hsl()`, `lab()`, `lch()`, `oklab()`, `oklch()`, `color(<predefined-space> ...)`) directly from `colorSpace`/`components`/`alpha` and lets the browser's own CSS engine do all color-space math — zero new dependency, per the Minimal Dependencies constraint. This same function is reused by `ColorEditor`'s own live swatch, so there is exactly one color→CSS-string implementation in the codebase.
+- **Registering `color` in `built-in.ts` is intentionally inert today**: `BUILT_IN_TOKEN_TYPES`/`builtInContractsByType` gain a `color` entry exactly like `dimension`'s, but `TokenTree.tsx`'s `canEdit` (currently `node.effectiveType === dimensionTokenType.type`) and `route.ts`'s `patchTokenFile` (currently gated on `dimensionTokenType.type`) are **not modified** by this plan — confirmed by the existing `route.test.ts` test `"PATCH returns 400 when attempting to edit a non-dimension token"` (which already uses a `color`-typed fixture) continuing to pass unmodified. This is the explicit sequencing decision from `feature.md`'s Summary/Out of Scope.
+- **Structural-parse failures and range-check failures are both "issues," reported together**: `describeColorForDisplay` returns `{ cssColor: string | undefined; issues: readonly string[] }`. If `ColorValueSchema.safeParse` itself fails (wrong shape entirely — missing `colorSpace`, wrong `components` length, etc.), there is no valid `ColorValue` to build a swatch from, so `cssColor` is `undefined` and `issues` holds the Zod error messages. If the schema parse succeeds, `cssColor` is always computable (CSS tolerates out-of-gamut/out-of-range numbers by clamping) and `issues` holds `checkColorValueIssues`'s per-colorSpace range violations (empty when fully valid). A legacy bare-hex string (FR-03) always parses successfully with zero issues and a directly-usable `cssColor` (the hex itself).
+- **No changes to `packages/token-core`**: `$value` remains opaque `unknown` at that layer for every token type, unchanged by this feature (per `feature.md`'s AC-07 and Out of Scope).
 
 ## Implementation Steps
 
-### Step 1: Canonical DTCG Type Registry (`token-core`) ✅
+### Step 1: `@dtcg-editor/token-type-color` Package Scaffold
 
-- [x] Create `packages/token-core/src/token-types.ts`:
-  - `export const DTCG_TOKEN_TYPES = ["color", "dimension", "fontFamily", "fontWeight", "duration", "cubicBezier", "number", "strokeStyle", "border", "transition", "shadow", "gradient", "typography"] as const;`
-  - `export type DtcgTokenType = (typeof DTCG_TOKEN_TYPES)[number];`
-  - `export function isDtcgTokenType(value: string): value is DtcgTokenType`
-  - Doc comment citing the DTCG Format Module 2025.10 spec URL as the source, so a future spec-version bump has an obvious place to update.
-- [x] Export `DTCG_TOKEN_TYPES`, `DtcgTokenType`, `isDtcgTokenType` from `packages/token-core/src/index.ts`.
-- Files: `packages/token-core/src/token-types.ts` (new), `packages/token-core/src/token-types.test.ts` (new, `node:test` — asserts the exact 13-member list, `isDtcgTokenType` true/false cases), `packages/token-core/src/index.ts` (modified).
-- Verified: `pnpm --filter @dtcg-editor/token-core build` and `test` both pass (31/31 tests).
+- [x] `packages/token-type-color/package.json` — copy `packages/token-type-dimension/package.json`, renaming `name` to `@dtcg-editor/token-type-color`; same `dependencies` (`@dtcg-editor/token-type-contract`, `react`, `zod`) and `devDependencies`.
+- [x] `packages/token-type-color/tsconfig.json` — identical to `packages/token-type-dimension/tsconfig.json`.
+- Files: `packages/token-type-color/package.json`, `packages/token-type-color/tsconfig.json`.
 
-### Step 2: `TokenEditorExtension` Shape Change (`web-app` config layer) ✅
+### Step 2: Color Value Schema + Per-ColorSpace Issue Checker
 
-- [x] `apps/web-app/lib/token-editors/types.ts`: replace `TokenFilterMetadata` + `filter` field with `readonly type: string`; remove the now-dead `TokenFilterMetadata` export and the `TokenType` re-export it depended on (keep `TokenType` importable from `built-in.ts` directly where still needed).
-- [x] `apps/web-app/lib/token-editors/built-in.ts`: `builtInExtensions` maps `BUILT_IN_TOKEN_TYPES` to `{ type, editor }` instead of `{ filter, editor }`.
-- [x] `apps/web-app/lib/token-editors/resolve-editor.ts`: `resolveEditorForType` becomes `extensions.find((entry) => entry.type === type)?.editor` — drop the `TokenType` cast entirely (plain string equality needs no widening trick).
-- [x] `apps/web-app/lib/token-editors/define-config.ts`: `describeInvalidExtension` gains a `type` check — must be a non-empty string, and (new) must satisfy `isDtcgTokenType` from `@dtcg-editor/token-core`; on failure push `` `extensions[${index}].type must be a valid DTCG token type, got "<value>"` `` (or `must be a string` if not a string at all) into `issues`. Import `isDtcgTokenType` from `@dtcg-editor/token-core`.
-- [x] `apps/web-app/dtcg-editor.config.mts`: no change needed — its `extensions: []` is already shape-agnostic (empty array).
-- Files: `types.ts`, `built-in.ts`, `resolve-editor.ts`, `define-config.ts` (all modified).
+- [x] `packages/token-type-color/src/color.ts`:
+  - `ColorSpace` union type + `COLOR_SPACES` const array of all 14 values (`srgb`, `srgb-linear`, `hsl`, `hwb`, `lab`, `lch`, `oklab`, `oklch`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d65`, `xyz-d50`).
+  - `ColorComponent = number | "none"` (Zod: `z.union([z.number(), z.literal("none")])`).
+  - `ColorObjectValueSchema`: `{ colorSpace: z.enum(COLOR_SPACES), components: z.tuple([ColorComponentSchema, ColorComponentSchema, ColorComponentSchema]), alpha: z.number().optional(), hex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }`.
+  - `LegacyHexColorValueSchema`: `z.string().regex(/^#[0-9a-fA-F]{6}$/)` (FR-03).
+  - `ColorValueSchema = z.union([ColorObjectValueSchema, LegacyHexColorValueSchema])`; `ColorValue = z.infer<typeof ColorValueSchema>`.
+  - `COMPONENT_RANGES: Record<ColorSpace, readonly [ComponentRange, ComponentRange, ComponentRange]>` — a data table encoding the FR-02 table (`{ min, max, exclusiveMax? }` per slot; hue channels use `exclusiveMax: 360`; unbounded channels use `min: -Infinity, max: Infinity`).
+  - `checkColorValueIssues(value: ColorValue): string[]` — returns `[]` immediately for a legacy hex string (`typeof value === "string"`); otherwise looks up `COMPONENT_RANGES[value.colorSpace]` and checks each of the 3 `components` entries (skipping any `"none"` entry) against its range, pushing a human-readable message (e.g. `"srgb component 0 (R) must be between 0 and 1, got 1.4"`) per violation.
+- [x] `packages/token-type-color/src/color.test.ts` (mirrors `dimension.test.ts`'s style, `node --test`):
+  - `ColorObjectValueSchema`/`ColorValueSchema` accepts one valid value per all 14 color spaces.
+  - Accepts a `"none"` component.
+  - Accepts a legacy bare-hex string.
+  - Rejects a wrong-length `components` array, a non-enum `colorSpace`, and a malformed `hex` (7 chars, missing `#`).
+  - `checkColorValueIssues` returns `[]` for an in-range value in at least 3 different color spaces (one 0–1 RGB-like, one 0–360/percent like `hsl`, one unbounded like `lab`).
+  - `checkColorValueIssues` returns a non-empty array for an out-of-range value in at least 2 color spaces (e.g. `hsl` hue `400`, `srgb` component `1.5`).
+  - `checkColorValueIssues` returns `[]` for a value containing a `"none"` component that would otherwise be out of range if it were a number.
+  - `checkColorValueIssues` returns `[]` for a legacy hex string.
+- Files: `packages/token-type-color/src/color.ts`, `packages/token-type-color/src/color.test.ts`.
 
-### Step 3: Non-Standard Type Detection (`web-app` scan layer) ✅
+### Step 3: CSS Swatch Color Builder
 
-- [x] Create `apps/web-app/lib/tokens/standard-type.ts` exporting `isTokenDocumentStandard(document: TokenDocument): boolean` — recursively walks `document.root`'s `children` (a `GroupNode`'s `Map`), returning `false` as soon as any node (token or group) has `declaredType !== undefined && !isDtcgTokenType(declaredType)`; `true` if the whole tree is clean (including an empty root). Pure function, no injected dependencies (operates on an already-parsed, in-memory tree).
-- [x] `apps/web-app/lib/tokens/scan.ts`: `TokenFileSummary`'s `valid: true` variant gains `readonly standard: boolean`. `scanTokenDirectory`'s per-file `.map` calls `isTokenDocumentStandard(result.value)` on success and threads it into the returned summary. The `valid: false` variant is untouched.
-- [x] `apps/web-app/components/FolderOverview.tsx`: when `file.valid && !file.standard`, render an additional badge (e.g. `styles.badgeNonStandard`, text `non-standard`) alongside `styles.badgeValid`, without touching the `valid`/`invalid` rendering branches.
-- [x] `apps/web-app/components/FolderOverview.module.css`: add `.badgeNonStandard` (visually distinct color from both `.badgeValid`'s green and `.badgeInvalid`'s red — e.g. an amber/orange, consistent with the existing badge sizing rules).
-- Files: `standard-type.ts` (new) + `standard-type.test.ts` (new, Vitest — empty tree, all-standard tree, a group-level non-standard `$type`, a token-level non-standard `$type`, an inherited-from-ancestor case that stays standard), `scan.ts` (modified), `scan.test.ts` (modified: existing "valid" assertions gain `standard: true`; new test with a fixture file containing an unrecognized `$type` asserting `standard: false`), `FolderOverview.tsx` (modified), `FolderOverview.module.css` (modified), `FolderOverview.test.tsx` (new — no test file exists today; covers AC-02 directly: valid+standard shows only the valid badge, valid+non-standard shows both, invalid is unaffected).
+- [x] `packages/token-type-color/src/css-color.ts`:
+  - `colorValueToCssColor(value: ColorValue): string` — for a legacy hex string, returns it directly. For the object shape, dispatches on `colorSpace`:
+    - RGB-like spaces (`srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`) → `` `color(${colorSpace} ${c0} ${c1} ${c2}${alpha !== undefined ? ` / ${alpha}` : ""})` ``.
+    - `xyz-d65`/`xyz-d50` → same `color(...)` form (both are valid CSS `color()` predefined spaces).
+    - `hsl` → `` `hsl(${h} ${s}% ${l}%${alpha !== undefined ? ` / ${alpha}` : ""})` ``.
+    - `hwb` → `` `hwb(${h} ${w}% ${b}%...)` ``.
+    - `lab`/`lch`/`oklab`/`oklch` → their respective CSS function names, passing components positionally (`lab(L a b)`, `lch(L C H)`, `oklab(L a b)`, `oklch(L C H)`), each with the optional `/ alpha` suffix.
+    - A `"none"` component is passed through literally as the CSS keyword `none` (valid in every one of these CSS color functions per CSS Color 4/5), not converted to a number.
+- [x] `packages/token-type-color/src/css-color.test.ts` — one test per colorSpace-family asserting the exact expected CSS string for a known input (including one case with `alpha` and one with a `"none"` component), plus a legacy-hex-string passthrough test.
+- Files: `packages/token-type-color/src/css-color.ts`, `packages/token-type-color/src/css-color.test.ts`.
 
-### Step 4: Generic Fallback Editor Component (`web-app` UI) ✅
+### Step 4: `ColorEditor` Component
 
-- [x] Create `apps/web-app/components/FallbackValueEditor.tsx`: `TokenTypeEditorProps<string>`-typed component (`{ value, onChange }` where `value`/`onChange` carry the JSON _text_, not the parsed value). Renders a `<label>`-wrapped `<textarea>` (visible label text, matching the Editable Group Names convention — no bare `aria-label`), value bound to the incoming text, `onChange` firing on every `ChangeEvent<HTMLTextAreaElement>` with `event.target.value`. No parsing/validation inside this component — pure controlled input.
-- [x] `apps/web-app/components/FallbackValueEditor.module.css`: minimal styling (monospace textarea, small size hint) consistent with `TokenTree.module.css`'s existing monospace tree font.
-- Files: `FallbackValueEditor.tsx` (new), `FallbackValueEditor.module.css` (new), `FallbackValueEditor.test.tsx` (new — renders with a value, types into it, asserts `onChange` receives the raw text unmodified; this component intentionally has zero validation logic to test).
+- [x] `packages/token-type-color/src/editor.tsx` (mirrors `editor.tsx`'s `"use client"`, visible-`<label>` pattern from `DimensionEditor`):
+  - Swatch: a `<span>` with inline `style={{ backgroundColor: colorValueToCssColor(value) }}`, sized/bordered via a co-located `editor.module.css` (new file) rather than more inline style, matching this repo's existing preference for CSS Modules over inline styles where more than a single dynamic property is involved (the dynamic `backgroundColor` itself stays inline, since it's the one genuinely per-instance value).
+  - `colorSpace` `<select>` (options = `COLOR_SPACES`), each wrapped in a visible `<label>` per this repo's field-label convention.
+  - Three component inputs (numeric `<input type="number">`, with a checkbox or a dedicated "none" option alongside each to represent the `"none"` keyword — simplest correct approach: a `<input type="number">` plus a sibling `<input type="checkbox">` labeled e.g. `"{component} is none"` that, when checked, disables the number input and stages `"none"` for that slot).
+  - `alpha` numeric input (optional — an unchecked "has alpha" checkbox omits the field entirely from `onChange`'s emitted value, matching the schema's `optional()`).
+  - `hex` text input (optional, free-form, validated against the 6-digit pattern only on change — an invalid entry doesn't call `onChange`, mirroring `DimensionEditor`'s no-op-on-invalid pattern... actually simpler: hex is advisory metadata alongside the object shape, so validate on blur/change and only include it in the emitted value when it matches the pattern).
+  - Fully controlled: `(value: ColorValue, onChange: (next: ColorValue) => void)`, per `TokenTypeEditorProps<ColorValue>`.
+- [x] `packages/token-type-color/src/editor.module.css` — swatch sizing (`width`/`height`/`border-radius`/`border: 1px solid var(--border)`), reusing existing CSS custom properties, no new colors invented.
+- Files: `packages/token-type-color/src/editor.tsx`, `packages/token-type-color/src/editor.module.css`.
 
-### Step 5: Client-Side `canEdit` Generalization (`TokenTree.tsx`) ✅
+### Step 5: Contract Wiring + Package Barrel
 
-- [x] Import `DTCG_TOKEN_TYPES`/`isDtcgTokenType` from `@dtcg-editor/token-core` and `FallbackValueEditor` from `./FallbackValueEditor.tsx`.
-- [x] In `TreeNode`, replace the `isDimension`/`canEdit` computation with:
-  - `isStandard = node.effectiveType !== undefined && isDtcgTokenType(node.effectiveType)`
-  - `isDimension = node.effectiveType === dimensionTokenType.type` (unchanged)
-  - `resolvedEditor = isStandard ? resolveEditorForType(dtcgEditorConfig.extensions, node.effectiveType) : undefined`
-  - `canEdit = isStandard && (isDimension ? existingValueValidation?.ok === true : true)` (existing dimension value-validity gate preserved verbatim for dimension only)
-- [x] Read-only branch (`!canEdit`) is otherwise unchanged, **except**: when `node.effectiveType !== undefined && !isStandard`, the existing type-display `<span>` gets a visible non-standard indicator (e.g. appended text or a dedicated small badge span next to `{node.name} type`) — reuses the existing conditional block, doesn't add a new one.
-- [x] Editable branch splits into three JSX cases keyed off `isDimension` / `resolvedEditor !== undefined`:
-  1. `isDimension` → existing `EditorComponent`/`handleValueChange`/`DimensionEditorComponent` code, verbatim.
-  2. `!isDimension && resolvedEditor !== undefined` → render `resolvedEditor` generically with `value={pending?.value ?? node.value}` and a new `handleGenericValueChange(next: unknown)` that stages directly (`onFieldError` cleared, `onStageEdit(node.path, { value: next })` — no schema call).
-  3. `!isDimension && resolvedEditor === undefined` → render `FallbackValueEditor` with `value={JSON.stringify(pending?.value ?? node.value, null, 2)}` and a new `handleFallbackValueChange(nextText: string)` that `try`/`catch`es `JSON.parse(nextText)`: catch → `onFieldError(node.path, { name: errors?.name, value: "Invalid JSON: <message>" })`, no stage; success → clear the value error and `onStageEdit(node.path, { value: parsed })`.
-- Files: `apps/web-app/components/TokenTree.tsx` (modified).
+- [x] `packages/token-type-color/src/token-type.ts` — `colorTokenType: TokenTypeContract<ColorValue> = { type: "color", valueSchema: ColorValueSchema, serializeValue: (value) => value, Editor: ColorEditor }`, split from `color.ts` for the same reason `dimensionTokenType` is split from `dimension.ts` (keeps `color.test.ts`/`css-color.test.ts` from transitively pulling in `editor.tsx`'s JSX, which `node --test` cannot load).
+- [x] `packages/token-type-color/src/index.ts` — exports `ColorValueSchema`, `ColorValue`, `ColorSpace`, `COLOR_SPACES`, `checkColorValueIssues`, `colorValueToCssColor`, `ColorEditor`, `colorTokenType`.
+- Files: `packages/token-type-color/src/token-type.ts`, `packages/token-type-color/src/index.ts`.
 
-### Step 6: Server-Side Edit Authorization Generalization (`route.ts`) ✅
+### Step 6: Register in `apps/web-app`'s Built-In Editor Registry
 
-- [x] Import `isDtcgTokenType` from `@dtcg-editor/token-core`.
-- [x] Replace the current `if (effectiveType !== dimensionTokenType.type)` rejection with two checks:
-  1. Reject (400, `kind: "validation"`) if `effectiveType === undefined || !isDtcgTokenType(effectiveType)` — message e.g. `` `Only standard DTCG token types can be edited, "${effectiveType ?? "untyped"}" cannot` ``.
-  2. If `effectiveType === dimensionTokenType.type`, validate `edit.value` against `dimensionTokenType.valueSchema` exactly as today (unchanged block).
-  3. Else (standard, non-dimension): skip value-shape validation entirely — `value = edit.value` passed through as-is into the `TokenEdit` (the wire body's `value` is already a parsed JS value per `EditRequestSchema`'s `z.unknown()`, so no new parsing is introduced here, per the Security NFR).
-- Files: `apps/web-app/app/api/tokens/[...path]/route.ts` (modified).
+- [x] `apps/web-app/package.json` — add `"@dtcg-editor/token-type-color": "workspace:*"` to `dependencies` (alongside the existing `token-type-dimension` entry).
+- [x] `apps/web-app/lib/token-editors/built-in.ts` — `BUILT_IN_TOKEN_TYPES` becomes `["dimension", "color"] as const`; `builtInContractsByType` gains a `color: colorTokenType as unknown as TokenTypeContract<unknown>` entry with the same "safe because this registry never inspects `value`" comment already there for `dimension`.
+- [x] Confirm `apps/web-app/lib/token-editors/resolve-editor.test.ts` and `define-config.test.ts` still pass — **deviation from plan**: `resolve-editor.test.ts` passed unmodified as predicted, but `define-config.test.ts` did hardcode the built-in extension _count_ (`resolved.extensions.length` asserted as `1` and `2`), contradicting the plan's assumption; updated those two counts to `2`/`3` to reflect the now-two built-in defaults (dimension + color) — a direct, expected consequence of FR-06's registration, not a workaround.
+- Files: `apps/web-app/package.json`, `apps/web-app/lib/token-editors/built-in.ts`.
 
-### Step 7: Update Existing Tests for the New Shapes ✅
+### Step 7: Read-Only Rendering — Swatch + Non-Blocking Issues
 
-- [x] `apps/web-app/lib/token-editors/resolve-editor.test.ts`: rewrite fixtures from `{ filter, editor }` to `{ type, editor }`; drop the now-unneeded `TokenFilterMetadata`-widening comment/workaround (plain string equality needs no cast).
-- [x] `apps/web-app/lib/token-editors/define-config.test.ts`: rewrite every fixture to `{ type: "dimension", editor }` (or another valid type); add new tests for AC-06 — `type` missing/not-a-string → `DtcgEditorConfigError`, `type: "not-a-real-type"` → `DtcgEditorConfigError`; extend AC-08 coverage here or in `resolve-editor.test.ts` (whichever reads more naturally) with a test that picks a type dynamically: `DTCG_TOKEN_TYPES.find((t) => !BUILT_IN_TOKEN_TYPES.includes(t))` and asserts a user extension for it round-trips through `defineConfig`/`resolveEditorForType` — never a hardcoded type literal, per the NFR.
-- [x] `apps/web-app/components/TokenTree.override.test.tsx`: update the mocked `user-config.ts` module from `{ filter, editor }` to `{ type: "dimension", editor }`.
-- [x] `apps/web-app/components/TokenTree.test.tsx` (plus new `TokenTree.generic-editor.test.tsx` for the FR-05 registered-non-dimension-editor branch, split into its own file for `vi.mock`'s file-scoping):
-  - The existing `"red"` token fixture (`$type: "color"`) currently asserts fully-read-only behavior — under the new rules `color` is a standard type with no built-in editor, so it becomes fallback-editable. Change its `declaredType`/`effectiveType` to a genuinely non-standard value (e.g. `"not-a-real-type"`) to keep exercising the true read-only path, and update the test's assertions/name accordingly (no longer "AC-01" from the prior feature — retarget to this feature's AC-05).
-  - Add a new test (AC-03/AC-04) using a type computed the same NFR-safe way as Step 7's `define-config.test.ts` case (a `DTCG_TOKEN_TYPES` member absent from `BUILT_IN_TOKEN_TYPES`) proving: renders name/description/JSON-text value editor, a valid JSON edit stages and round-trips through `handleSave`, invalid JSON shows a field error and does not stage (mirrors the existing "keeps a pending edit visible... after a failed save" style).
-  - Add a small new test (no AC number — proves the FR-05 "registered non-dimension editor" branch, Architecture Decisions above) using the same `vi.mock`-on-`user-config.ts` pattern as `TokenTree.override.test.tsx`, registering `{ type: <a non-dimension standard type>, editor: <trivial synthetic editor> }` and asserting it renders instead of the fallback editor.
-- [x] `apps/web-app/app/api/tokens/[...path]/route.test.ts`:
-  - `"PATCH returns 400 when attempting to edit a non-dimension token"` currently uses `$type: "color"`, which must now succeed (color is standard). Change its fixture to a non-standard `$type` (e.g. `"not-a-real-type"`) so it keeps testing the _reject_ path; rename to reflect "non-standard" rather than "non-dimension".
-  - Add a new test (AC-07) asserting a PATCH to a standard-but-non-dimension token (e.g. `$type: "color"`, arbitrary `value`) returns 200 and the value round-trips to disk untouched (no schema coercion).
-- Files: all six test files above (modified).
+- [x] `apps/web-app/lib/tokens/color-display.ts` (new file, mirrors `edit-state.ts`'s `validateDimensionValue` pattern but display-, not edit-, focused):
+  - `describeColorForDisplay(raw: unknown): { cssColor: string | undefined; issues: readonly string[] }`.
+  - Calls `ColorValueSchema.safeParse(raw)`; on failure returns `{ cssColor: undefined, issues: result.error.issues.map(i => i.message) }`; on success returns `{ cssColor: colorValueToCssColor(result.data), issues: checkColorValueIssues(result.data) }`.
+- [x] `apps/web-app/lib/tokens/color-display.test.ts` — unit tests for both branches (valid in-range, valid-but-out-of-range, structurally invalid, legacy hex).
+- [x] `apps/web-app/components/TokenTree.tsx` — in the existing `!canEdit` read-only branch (around `TokenTree.tsx:102-120`):
+  - Import `colorTokenType` from `@dtcg-editor/token-type-color` and `describeColorForDisplay` from `../lib/tokens/color-display.ts`.
+  - When `node.effectiveType === colorTokenType.type`, call `describeColorForDisplay(node.value)`.
+  - If `cssColor` is defined, render an additional `<span className={styles.swatch} style={{ backgroundColor: cssColor }} aria-hidden="true" />` next to the existing name/type/value fields (the existing `{node.name} value` text field per `formatValue(node.value)` stays exactly as-is, unconditionally — this is additive, per `feature.md`'s FR-05 and to keep `TokenTree.test.tsx`'s existing `expect(screen.getByText("#ff0000")).toBeTruthy()` assertion passing unmodified).
+  - If `issues.length > 0`, render `<ul role="alert" className={styles.colorIssues}>{issues.map(...)}</ul>` beneath that token's fields, always visible (not gated on interaction, since there's no interaction possible yet for a read-only token).
+  - Added a new `TokenTree.test.tsx` case (AC-05) rendering an out-of-range `hsl` color token and asserting it still renders with a `role="alert"` issue.
+- [x] `apps/web-app/components/TokenTree.module.css` — added `.swatch` and `.colorIssues` rules; also added `flex-wrap: wrap` to `.token` and `width: 100%` on `.colorIssues` so the issue list drops to its own line instead of squeezing into the existing flex row.
+- Files: `apps/web-app/lib/tokens/color-display.ts`, `apps/web-app/lib/tokens/color-display.test.ts`, `apps/web-app/components/TokenTree.tsx`, `apps/web-app/components/TokenTree.module.css`.
+
+### Step 8: Sample Color Token File
+
+- [x] `sample_data/color_scale.tokens.json` — new file, structured like `sample_data/spacing_scale.tokens.json` (`$extensions.com.figma.scopes` convention), containing (per `feature.md`'s FR-07):
+  - Several tokens across at least `srgb`, `hsl`, `oklch`, and `display-p3` color spaces, each in-range and valid.
+  - One token with a `"none"` component (e.g. an achromatic `hsl` gray with hue `"none"`).
+  - One token using a legacy bare-hex `$value` string.
+  - One token with a deliberately out-of-range value (e.g. `hsl` hue `400` or an `srgb` component `1.5`) to exercise the issue display end-to-end.
+- [x] `packages/token-core/src/color-sample.test.ts` (new, added per AC-06's acceptance-criteria mapping) — reads the real file from disk and round-trips it through `parseTokenFile`, asserting success and the FR-07 coverage (colorSpaces present, `"none"` component present, legacy hex present).
+- Files: `sample_data/color_scale.tokens.json`, `packages/token-core/src/color-sample.test.ts`.
+
+### Step 9: Accessibility Test for `ColorEditor`
+
+- [x] `apps/web-app/lib/token-editors/built-in.a11y.test.tsx` — add a second test block (alongside the existing `dimensionTokenType.Editor` one) rendering `colorTokenType.Editor` with a representative valid `ColorValue` and asserting zero WCAG 2.2 AA `axe-core` violations, per this repo's non-warn-only accessibility-testing convention (`docs/project.md`'s Accessibility Testing feature).
+- Files: `apps/web-app/lib/token-editors/built-in.a11y.test.tsx`.
+
+### Step 10: Full Test Suite + Existing-Behavior Regression Check
+
+- [x] Run `pnpm build`, `pnpm lint`, `pnpm test` (via Turborepo) repo-wide — all green (build: 6/6, lint: 12/12, test: 13/13, including 127 vitest + all `packages/*` `node:test` suites + 4 Playwright e2e specs).
+- [x] Explicitly confirm `apps/web-app/app/api/tokens/[...path]/route.test.ts`'s `"PATCH returns 400 when attempting to edit a non-dimension token"` test (already using a `color` fixture) and `apps/web-app/components/TokenTree.test.tsx`'s `"shows editable controls for a dimension token but not for other types (AC-01)"` test (already asserting `#ff0000` renders as plain text and no `red name` input exists) both continue to pass **unmodified** — confirmed, both pass as-is (AC-07/AC-08).
+- [x] `pnpm format:check` (Prettier, tabs) passes on all new/edited files (also reformatted `feature.md`/`plan.md`, which predated this pass and weren't previously Prettier-clean).
+- **Deviation found during this step**: adding `sample_data/color_scale.tokens.json` (Step 8) shifted the folder overview's alphabetical file listing, breaking `e2e/keyboard-navigation.spec.ts`'s assumption that `spacing_scale.tokens.json`'s link is the very first Tab stop (`color_scale...` now sorts first). Fixed by changing that one assertion from a single `tabTo` to the existing `tabUntilFocused` helper — the test's actual intent (that the link is keyboard-reachable with visible focus) is preserved; only the "must be the first tab stop" assumption, which was never a stated requirement, was relaxed.
+- Files: `apps/web-app/e2e/keyboard-navigation.spec.ts` (regression fix, see above); otherwise verification only.
 
 ## Acceptance Criteria Mapping
 
-| AC                                                                         | Verified By                                                                                                                              |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| AC-01: canonical DTCG type list matches 2025.10 spec                       | `packages/token-core/src/token-types.test.ts`                                                                                            |
-| AC-02: non-standard file flagged distinctly, valid/invalid unchanged       | `apps/web-app/components/FolderOverview.test.tsx`, `apps/web-app/lib/tokens/scan.test.ts`                                                |
-| AC-03: standard-no-builtin token gets JSON editor, round-trips             | `apps/web-app/components/TokenTree.test.tsx` (new fallback test), `apps/web-app/app/api/tokens/[...path]/route.test.ts` (new AC-07 test) |
-| AC-04: invalid JSON shows field error, does not stage                      | `apps/web-app/components/TokenTree.test.tsx` (new fallback test)                                                                         |
-| AC-05: non-standard token stays fully read-only regardless of registration | `apps/web-app/components/TokenTree.test.tsx` (retargeted "red"/non-standard test)                                                        |
-| AC-06: `defineConfig` throws on invalid `type`                             | `apps/web-app/lib/token-editors/define-config.test.ts`                                                                                   |
-| AC-07: PATCH accepts any standard type, rejects non-standard               | `apps/web-app/app/api/tokens/[...path]/route.test.ts`                                                                                    |
-| AC-08: override-ordering + fallback path, derived dynamically              | `apps/web-app/lib/token-editors/resolve-editor.test.ts`, `define-config.test.ts`                                                         |
-| AC-09: existing dimension-editing tests pass unmodified                    | `apps/web-app/components/TokenTree.test.tsx`, `route.test.ts`, `edit-state.test.ts` (all pre-existing dimension cases, unchanged)        |
+| AC                                                                                          | Verified By                                                                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC-01: `colorTokenType` exports `type === "color"` with correct contract shape              | `packages/token-type-color/src/color.test.ts` (imports `colorTokenType` via `token-type.ts`, asserts `.type`)                                                                                                     |
+| AC-02: `ColorValueSchema` accepts all 14 spaces + legacy bare-hex                           | `packages/token-type-color/src/color.test.ts`                                                                                                                                                                     |
+| AC-03: `checkColorValueIssues` correct for in-range, out-of-range, `"none"`, and legacy-hex | `packages/token-type-color/src/color.test.ts`                                                                                                                                                                     |
+| AC-04: Web app renders an accurate swatch across representative spaces + legacy hex         | `apps/web-app/lib/tokens/color-display.test.ts` (unit-level `cssColor` string correctness) + manual/dev-server spot check during implementation                                                                   |
+| AC-05: Malformed color value still renders, with issues visible, no crash                   | `apps/web-app/lib/tokens/color-display.test.ts` + a new `TokenTree.test.tsx` case rendering a tree with an out-of-range color token and asserting the issue text appears alongside the (still-rendered) token row |
+| AC-06: `sample_data/color_scale.tokens.json` parses and has required coverage               | New test (e.g. in `packages/token-core` or a small web-app-level test) round-tripping the file through `parseTokenFile` and asserting it succeeds; manual review of file contents against the FR-07 checklist     |
+| AC-07: No `token-core`/`canEdit`/`route.ts` changes; color stays non-editable               | Existing `route.test.ts` "non-dimension token" test + existing `TokenTree.test.tsx` AC-01 test, both passing **unmodified** (Step 10)                                                                             |
+| AC-08: Existing dimension-editing tests/behavior unaffected                                 | Full `pnpm test` run (Step 10) — zero modifications to any dimension-path test file                                                                                                                               |
 
 ## Risks & Mitigations
 
-- **Risk**: the DTCG spec's Type table changes in a future spec revision, silently stranding `DTCG_TOKEN_TYPES`. → Mitigation: single export, doc-commented with the exact spec version/URL it was sourced from, so a future bump has one obvious place to update (already the design token-core's Round-Trip Fidelity constraint anticipates for versioning generally).
-- **Risk**: a hardcoded "type with no built-in" test literal (e.g. `"fontWeight"`) silently starts asserting a false premise the day a real editor for that type ships. → Mitigation: every such fixture is derived from `DTCG_TOKEN_TYPES.find((t) => !BUILT_IN_TOKEN_TYPES.includes(t))` at test-run time (Step 7), per the NFR.
-- **Risk**: the new "registered non-dimension editor" render branch (Step 5, case 2) has no real shipped consumer, so it's easy to accidentally regress without noticing. → Mitigation: covered by a dedicated synthetic-extension test (Step 7) even though no AC numbers it directly — it's required by FR-05's literal wording and the "config layer... only wired up on the client-render path" bug the feature exists to fix.
-- **Risk**: changing `TokenFileSummary`'s `valid: true` shape (adding `standard`) could break a consumer that destructures the union narrowly. → Mitigation: grep confirms the only consumers are `scan.ts` itself, `FolderOverview.tsx`, and `app/api/tokens/route.test.ts` (which only asserts `valid: boolean`, unaffected); `page.tsx` passes the whole array through opaquely.
+- **Risk**: CSS Color 4/5 function syntax (`oklch()`, `color(display-p3 ...)`, etc.) may not render identically (or at all) in every browser/test environment. → **Mitigation**: the `a11y` Vitest project already runs in a real Chromium instance (`@vitest/browser-playwright`), which supports all of CSS Color 4/5; the swatch's _visual_ correctness beyond "renders without erroring" is a manual dev-server spot check (per `feature.md`'s AC-04 acceptance note), not an automated pixel assertion — automated tests only assert the generated CSS _string_ is correct (Step 3), not its rendered pixels.
+- **Risk**: `checkColorValueIssues`'s per-colorSpace range table is fiddly to get exactly right (14 spaces, several with unbounded/hue-wrapping channels) and a mistake here would either wrongly flag valid design tokens or silently accept invalid ones. → **Mitigation**: Step 2's test coverage requires at least one valid + one invalid case per space family (RGB-like, HSL/HWB, Lab/LCH, OKLab/OKLCH), derived from the FR-02 table that was itself verified against the live spec page during `/sdd-feature`, not written from memory.
+- **Risk**: Adding `"color"` to `BUILT_IN_TOKEN_TYPES` broadens the `TokenType` union consumed by `TokenFilterMetadata`/`TokenEditorExtension`'s `filter` signature — a latent assumption elsewhere in the codebase that `TokenType` has exactly one member could break. → **Mitigation**: Step 6 explicitly greps/runs `resolve-editor.test.ts`/`define-config.test.ts` to confirm neither hardcodes a single-member assumption; `tsc`'s strict build (Step 10) would catch a genuine type-level break.
+- **Risk**: Merge conflict with the sibling `fallback-token-editor` worktree once it lands, since both touch `TokenTree.tsx` and `built-in.ts`. → **Mitigation**: accepted and expected per `feature.md`'s Out of Scope — this plan makes surgically additive changes only (new branch condition in `TokenTree.tsx`, new array entry in `built-in.ts`), not restructuring either file, to keep that future conflict small and mechanical.
 
 ## Estimated Complexity
 
-Medium — no new architectural layer or dependency, but the change touches seven existing modules across three packages plus their tests, and Step 5's three-way branch in `TokenTree.tsx` needs care to keep the unchanged dimension path byte-for-byte behaviorally identical (AC-09).
+**Medium** — no architectural risk (the Token-Type Package Contract pattern is already established and this plan follows it exactly), but the per-colorSpace validation table (Step 2) and the CSS-color-string builder (Step 3) have real surface area (14 color spaces × correctness), and the `ColorEditor` UI (Step 4) is more involved than `DimensionEditor`'s two fields (dynamic per-space component count/labels, `"none"` toggling, optional `alpha`/`hex`).

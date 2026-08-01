@@ -2,47 +2,46 @@
 
 ### Files Created
 
-- `packages/token-core/src/token-types.ts` — `DTCG_TOKEN_TYPES`, `DtcgTokenType`, `isDtcgTokenType` (FR-01)
-- `packages/token-core/src/token-types.test.ts`
-- `apps/web-app/lib/tokens/standard-type.ts` — `isTokenDocumentStandard` (FR-03)
-- `apps/web-app/lib/tokens/standard-type.test.ts`
-- `apps/web-app/components/FolderOverview.test.tsx`
-- `apps/web-app/components/FallbackValueEditor.tsx` (FR-04)
-- `apps/web-app/components/FallbackValueEditor.module.css`
-- `apps/web-app/components/FallbackValueEditor.test.tsx`
-- `apps/web-app/components/TokenTree.generic-editor.test.tsx` — proves the generalized "registered non-dimension editor" branch (FR-05)
+- `packages/token-type-color/package.json`, `tsconfig.json`
+- `packages/token-type-color/src/color.ts` — `ColorValueSchema`, `COLOR_SPACES`, `COMPONENT_RANGES`, `checkColorValueIssues`
+- `packages/token-type-color/src/color.test.ts`
+- `packages/token-type-color/src/css-color.ts` — `colorValueToCssColor`
+- `packages/token-type-color/src/css-color.test.ts`
+- `packages/token-type-color/src/editor.tsx`, `editor.module.css` — `ColorEditor`
+- `packages/token-type-color/src/css-modules.d.ts` — ambient `*.module.css` declaration (needed since this package has no Next.js types to source it from)
+- `packages/token-type-color/src/token-type.ts` — `colorTokenType`
+- `packages/token-type-color/src/index.ts` — package barrel
+- `apps/web-app/lib/tokens/color-display.ts`, `color-display.test.ts` — `describeColorForDisplay`
+- `apps/web-app/lib/token-editors/built-in.test.ts` — AC-01 contract-shape check + `BUILT_IN_TOKEN_TYPES` check
+- `sample_data/color_scale.tokens.json` — FR-07 sample file
+- `packages/token-core/src/color-sample.test.ts` — AC-06 round-trip test for the sample file
 
 ### Files Modified
 
-- `packages/token-core/src/index.ts` — export the new type registry
-- `apps/web-app/lib/token-editors/types.ts` — `TokenEditorExtension` `filter` → `type` (FR-02)
-- `apps/web-app/lib/token-editors/built-in.ts` — built-in entries to `{ type, editor }`
-- `apps/web-app/lib/token-editors/resolve-editor.ts` — type-equality lookup, no cast
-- `apps/web-app/lib/token-editors/define-config.ts` — validates `type` against `isDtcgTokenType`
-- `apps/web-app/lib/tokens/scan.ts` — `TokenFileSummary.standard` field (FR-03)
-- `apps/web-app/components/FolderOverview.tsx` / `.module.css` — non-standard badge
-- `apps/web-app/components/TokenTree.tsx` / `.module.css` — three-branch `canEdit`/editor resolution (FR-05)
-- `apps/web-app/app/api/tokens/[...path]/route.ts` — generalized accept/reject gate (FR-06)
-- `apps/web-app/lib/token-editors/resolve-editor.test.ts`, `define-config.test.ts` — new shape + dynamic AC-08 fixtures
-- `apps/web-app/components/TokenTree.override.test.tsx` — mock updated to `{ type, editor }`
-- `apps/web-app/components/TokenTree.test.tsx` — retargeted non-standard fixture, new fallback-editor tests
-- `apps/web-app/app/api/tokens/[...path]/route.test.ts` — retargeted reject test, new accept test
+- `apps/web-app/lib/token-editors/built-in.ts` — registered `color` in `BUILT_IN_TOKEN_TYPES`/`builtInContractsByType` (inert, per FR-06)
+- `apps/web-app/lib/token-editors/define-config.test.ts` — updated two hardcoded built-in-extension-count assertions (1→2, 2→3)
+- `apps/web-app/package.json` — added `@dtcg-editor/token-type-color` workspace dependency
+- `apps/web-app/components/TokenTree.tsx` — read-only-branch swatch + issue rendering (FR-05)
+- `apps/web-app/components/TokenTree.module.css` — `.swatch`/`.colorIssues`, `flex-wrap` on `.token`
+- `apps/web-app/components/TokenTree.test.tsx` — added AC-05 test case
+- `apps/web-app/lib/token-editors/built-in.a11y.test.tsx` — added `ColorEditor` a11y test
+- `apps/web-app/e2e/keyboard-navigation.spec.ts` — regression fix (see Notes)
 
 ### Acceptance Criteria
 
-- [x] AC-01: Passed — `token-core/src/token-types.test.ts` ("contains exactly the 13 types...")
-- [x] AC-02: Passed — `FolderOverview.test.tsx`, `scan.test.ts` ("flags a valid file that declares an unrecognized $type as non-standard")
-- [x] AC-03: Passed — `TokenTree.test.tsx` ("a standard type with no built-in editor renders name/description/JSON value editor and round-trips on save"), `route.test.ts` (AC-07 accept test)
-- [x] AC-04: Passed — `TokenTree.test.tsx` ("invalid JSON in the fallback editor shows a field error and does not stage an edit")
-- [x] AC-05: Passed — `TokenTree.test.tsx` ("shows editable controls for a dimension token but not for a non-standard type")
-- [x] AC-06: Passed — `define-config.test.ts` (missing/non-string `type`, invalid DTCG `type`)
-- [x] AC-07: Passed — `route.test.ts` (non-standard rejected 400; standard non-dimension accepted 200, round-trips to disk)
-- [x] AC-08: Passed — `resolve-editor.test.ts`, `define-config.test.ts` (both fixtures derived from `DTCG_TOKEN_TYPES`/`BUILT_IN_TOKEN_TYPES` at test-run time)
-- [x] AC-09: Passed — all pre-existing dimension-editing tests in `TokenTree.test.tsx`, `route.test.ts`, `edit-state.test.ts` pass unmodified
+- [x] AC-01: Passed — `built-in.test.ts`
+- [x] AC-02: Passed — `color.test.ts`
+- [x] AC-03: Passed — `color.test.ts`
+- [x] AC-04: Passed — `css-color.test.ts` + `color-display.test.ts` (CSS-string correctness); visual rendering spot-checked via `TokenTree.a11y`/e2e runs against real Chromium
+- [x] AC-05: Passed — `color-display.test.ts` + `TokenTree.test.tsx`'s new out-of-range case
+- [x] AC-06: Passed — `packages/token-core/src/color-sample.test.ts`
+- [x] AC-07: Passed — `route.test.ts`'s existing "PATCH returns 400 when attempting to edit a non-dimension token" test, and `TokenTree.test.tsx`'s AC-01 test, both unmodified
+- [x] AC-08: Passed — full `pnpm test` green, zero dimension-path test files touched
 
 ### Notes
 
-- One deviation from the literal plan text: `TokenTree.tsx`'s "registered editor" branch needed an extra type-cast on the `GenericEditor` binding (`resolvedEditor as (props: TokenTypeEditorProps<unknown>) => ReactElement | undefined`) to satisfy `eslint-plugin-react-hooks`'s `static-components` rule — without it, ESLint flagged the JSX tag as "component created during render" even though `resolveEditorForType` returns a referentially stable function. Verified the underlying pattern is safe (identical in shape to the pre-existing, lint-clean `DimensionEditorComponent` cast) and confirmed via `git stash` that this rule doesn't fire on the base branch's code.
-- Three pre-existing `tsc --noEmit` errors (`read.test.ts`, `scan.test.ts`'s `mockReadFile` typing, `init-config.test.ts`) are unrelated to this feature — confirmed present on the base commit before any changes — and are not part of `next build`'s actual type-check gate (which passes cleanly), so left untouched.
-- No new dependencies added, per the Minimal Dependencies constraint.
-- Full verification: `pnpm build`, `pnpm lint`, `pnpm format:check`, and `pnpm test` all pass — 134 web-app tests + 31 token-core tests, 0 failures.
+- `packages/token-type-color/package.json`'s `build` script needed a `cp src/editor.module.css dist/src/editor.module.css` step appended, since `tsc` doesn't copy non-TS assets and Next.js resolves the package via its compiled `dist/` output — not called out in `plan.md`, discovered during Step 6's full build.
+- `apps/web-app/lib/token-editors/define-config.test.ts` hardcoded the built-in extension _count_ (contradicting the plan's assumption that neither regression test hardcoded `BUILT_IN_TOKEN_TYPES` contents) — updated the two counts (1→2, 2→3) to reflect the new `color` default.
+- Adding `sample_data/color_scale.tokens.json` shifted the folder overview's alphabetical file order, breaking `e2e/keyboard-navigation.spec.ts`'s assumption that `spacing_scale.tokens.json`'s link is the very first Tab stop. Fixed by using the existing `tabUntilFocused` helper instead of a single `tabTo` — preserves the test's actual intent (keyboard reachability + visible focus).
+- Per `feature.md`'s Out of Scope, `TokenTree.tsx`'s `canEdit` gate and `route.ts`'s edit-authorization gate were not touched — color tokens remain read-only; `ColorEditor` is built and registered but unreachable until the `fallback-token-editor` feature generalizes those gates.
+- No new dependencies added (native CSS Color 4/5 syntax only), consistent with `plan.md`'s Minimal Dependencies note.

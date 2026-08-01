@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
 import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
 import type { DimensionValue } from "@dtcg-editor/token-type-dimension";
+import { colorTokenType } from "@dtcg-editor/token-type-color";
 import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
 import { isDtcgTokenType } from "@dtcg-editor/token-core";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
@@ -13,6 +14,7 @@ import {
 	findSiblings,
 	validateDimensionValue,
 } from "../lib/tokens/edit-state.ts";
+import { describeColorForDisplay } from "../lib/tokens/color-display.ts";
 import type { ClientEdit } from "../lib/tokens/edit-state.ts";
 import type { SaveError } from "../lib/tokens/save-error.ts";
 import { useSaveTokenEdits } from "../hooks/useSaveTokenEdits.ts";
@@ -111,6 +113,11 @@ function TreeNode({
 				: undefined;
 
 		if (!canEdit) {
+			const isColor = node.effectiveType === colorTokenType.type;
+			const colorDisplay = isColor
+				? describeColorForDisplay(node.value)
+				: undefined;
+
 			return (
 				<li className={styles.token}>
 					<span className={styles.field}>
@@ -128,10 +135,24 @@ function TreeNode({
 							</span>
 						</span>
 					)}
+					{colorDisplay?.cssColor !== undefined && (
+						<span
+							className={styles.swatch}
+							style={{ backgroundColor: colorDisplay.cssColor }}
+							aria-hidden="true"
+						/>
+					)}
 					<span className={styles.field}>
 						<span className={styles.fieldLabel}>{node.name} value</span>
 						<span className={styles.value}>{formatValue(node.value)}</span>
 					</span>
+					{colorDisplay !== undefined && colorDisplay.issues.length > 0 && (
+						<ul role="alert" className={styles.colorIssues}>
+							{colorDisplay.issues.map((issue) => (
+								<li key={issue}>{issue}</li>
+							))}
+						</ul>
+					)}
 				</li>
 			);
 		}
