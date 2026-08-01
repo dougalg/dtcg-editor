@@ -14,6 +14,7 @@
 	"dependencies": {
 		"@dtcg-editor/errors": "workspace:*",
 		"@dtcg-editor/token-core": "workspace:*",
+		"@dtcg-editor/token-type-color": "workspace:*",
 		"@dtcg-editor/token-type-contract": "workspace:*",
 		"@dtcg-editor/token-type-dimension": "workspace:*",
 		"neverthrow": "^8.2.0",

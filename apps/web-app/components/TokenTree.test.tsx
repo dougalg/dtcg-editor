@@ -113,6 +113,35 @@ test("shows editable controls for a dimension token but not for other types (AC-
 	expect(screen.queryByLabelText("red name")).toBeNull();
 });
 
+test("an out-of-range color token still renders, with its issue visibly displayed (AC-05)", () => {
+	const node: PlainDtcgNode = {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			{
+				kind: "token",
+				name: "bad-hue",
+				path: ["bad-hue"],
+				value: { colorSpace: "hsl", components: [400, 50, 40] },
+				declaredType: "color",
+				effectiveType: "color",
+				description: undefined,
+				deprecated: undefined,
+			},
+		],
+	};
+
+	render(<TokenTree node={node} relativePath="tokens.json" />);
+
+	expect(screen.getByText("bad-hue")).toBeTruthy();
+	expect(screen.getByRole("alert")).toBeTruthy();
+});
+
 test("rejects a rename that collides with a sibling and does not stage it (AC-03)", () => {
 	render(<TokenTree node={tree()} relativePath="tokens.json" />);
 

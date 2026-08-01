@@ -1,0 +1,79 @@
+{
+	"color-scale": {
+		"blue-500": {
+			"$type": "color",
+			"$description": "Primary interactive blue",
+			"$extensions": {
+				"com.figma.scopes": []
+			},
+			"$value": {
+				"colorSpace": "srgb",
+				"components": [0.2, 0.4, 0.9]
+			}
+		},
+		"red-500": {
+			"$type": "color",
+			"$description": "Danger/error red",
+			"$extensions": {
+				"com.figma.scopes": []
+			},
+			"$value": {
+				"colorSpace": "hsl",
+				"components": [352, 70, 50]
+			}
+		},
+		"green-500": {
+			"$type": "color",
+			"$description": "Success green",
+			"$extensions": {
+				"com.figma.scopes": []
+			},
+			"$value": {
+				"colorSpace": "oklch",
+				"components": [0.65, 0.15, 145]
+			}
+		},
+		"purple-500": {
+			"$type": "color",
+			"$description": "Wide-gamut accent purple",
+			"$extensions": {
+				"com.figma.scopes": []
+			},
+			"$value": {
+				"colorSpace": "display-p3",
+				"components": [0.5, 0.1, 0.7],
+				"alpha": 1
+			}
+		},
+		"gray-100": {
+			"$type": "color",
+			"$description": "Achromatic gray, hue is powerless at zero saturation",
+			"$extensions": {
+				"com.figma.scopes": []
+			},
+			"$value": {
+				"colorSpace": "hsl",
+				"components": ["none", 0, 96]
+			}
+		},
+		"legacy-brand-blue": {
+			"$type": "color",
+			"$description": "Pre-2025-spec bare-hex value, kept as-authored",
+			"$extensions": {
+				"com.figma.scopes": []
+			},
+			"$value": "#1f75cb"
+		},
+		"invalid-hue": {
+			"$type": "color",
+			"$description": "Deliberately out-of-range hue (>= 360) to exercise the non-blocking issue display",
+			"$extensions": {
+				"com.figma.scopes": []
+			},
+			"$value": {
+				"colorSpace": "hsl",
+				"components": [400, 50, 40]
+			}
+		}
+	}
+}

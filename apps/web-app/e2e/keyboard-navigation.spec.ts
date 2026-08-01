@@ -51,7 +51,9 @@ test("the browse -> open -> edit -> save flow is fully keyboard-operable with vi
 	const fileLink = page.getByRole("link", {
 		name: /spacing_scale\.tokens\.json/i,
 	});
-	await tabTo(page, fileLink);
+	// The folder overview lists files alphabetically, so this isn't necessarily
+	// the first tab stop once other sample files exist (e.g. color_scale.tokens.json).
+	await tabUntilFocused(page, fileLink);
 	expect(await hasVisibleFocusIndicator(fileLink)).toBe(true);
 
 	await page.keyboard.press("Enter");
