@@ -5,6 +5,7 @@ import type { ChangeEvent, ReactElement } from "react";
 import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
 import type { DimensionValue } from "@dtcg-editor/token-type-dimension";
 import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
+import { isDtcgTokenType } from "@dtcg-editor/token-core";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
 import {
 	applyEditsToPlainNode,
@@ -16,6 +17,7 @@ import type { ClientEdit } from "../lib/tokens/edit-state.ts";
 import type { SaveError } from "../lib/tokens/save-error.ts";
 import { useSaveTokenEdits } from "../hooks/useSaveTokenEdits.ts";
 import { SaveButton } from "./SaveButton.tsx";
+import { FallbackValueEditor } from "./FallbackValueEditor.tsx";
 import dtcgEditorConfig from "../lib/token-editors/user-config.ts";
 import { resolveEditorForType } from "../lib/token-editors/resolve-editor.ts";
 import styles from "./TokenTree.module.css";
@@ -23,11 +25,11 @@ import styles from "./TokenTree.module.css";
 /**
  * The registry's `editor` values are typed generically (`TokenTypeEditorProps<unknown>`)
  * so heterogeneous editors can share one array — see `lib/token-editors/built-in.ts`.
- * At this render call site the concrete value shape is always `DimensionValue`,
- * since `EditorComponent` is only ever rendered when `isDimension`/`canEdit`
- * (below) are true; this cast is safe for the same reason the registry's own
- * cast is: nothing here inspects `value`, it's only threaded through to
- * whichever component renders it.
+ * At a dimension-token render call site the concrete value shape is always
+ * `DimensionValue`, since this cast is only ever applied when `isDimension`
+ * is true; safe for the same reason the registry's own cast is: nothing here
+ * inspects `value`, it's only threaded through to whichever component
+ * renders it.
  */
 type DimensionEditorComponent = (
 	props: TokenTypeEditorProps<DimensionValue>,
@@ -86,17 +88,26 @@ function TreeNode({
 		const key = pathKey(node.path);
 		const pending = pendingEdits.get(key);
 		const errors = fieldErrors.get(key);
-		const isDimension = node.effectiveType === dimensionTokenType.type;
-		const existingValueValidation = isDimension
+		const effectiveType = node.effectiveType;
+		const isStandard =
+			effectiveType !== undefined && isDtcgTokenType(effectiveType);
+		const isDimension = effectiveType === dimensionTokenType.type;
+		const dimensionValueValidation = isDimension
 			? validateDimensionValue(node.value)
 			: undefined;
-		const canEdit = existingValueValidation?.ok === true;
-		const EditorComponent =
-			canEdit && node.effectiveType !== undefined
-				? (resolveEditorForType(
-						dtcgEditorConfig.extensions,
-						node.effectiveType,
-					) as DimensionEditorComponent | undefined)
+		// Narrowed via its own `if`, not derived from `canEdit` below, so this
+		// stays type-safe regardless of how `canEdit` combines it with the
+		// other standard-type branches.
+		let existingDimensionValue: DimensionValue | undefined;
+		if (dimensionValueValidation?.ok === true) {
+			existingDimensionValue = dimensionValueValidation.value;
+		}
+		const canEdit = isDimension
+			? existingDimensionValue !== undefined
+			: isStandard;
+		const resolvedEditor =
+			isStandard && effectiveType !== undefined
+				? resolveEditorForType(dtcgEditorConfig.extensions, effectiveType)
 				: undefined;
 
 		if (!canEdit) {
@@ -106,10 +117,15 @@ function TreeNode({
 						<span className={styles.fieldLabel}>{node.name} name</span>
 						<span className={styles.name}>{node.name}</span>
 					</span>
-					{node.effectiveType !== undefined && (
+					{effectiveType !== undefined && (
 						<span className={styles.field}>
 							<span className={styles.fieldLabel}>{node.name} type</span>
-							<span className={styles.type}>{node.effectiveType}</span>
+							<span className={styles.type}>
+								{effectiveType}
+								{!isStandard && (
+									<span className={styles.nonStandard}> (non-standard)</span>
+								)}
+							</span>
 						</span>
 					)}
 					<span className={styles.field}>
@@ -121,12 +137,13 @@ function TreeNode({
 		}
 
 		const currentName = pending?.name ?? node.name;
-		// Safe: the only place that stages `pending.value` is `handleValueChange`
-		// below, which validates it against `DimensionValueSchema` before ever
-		// calling `onStageEdit` — nothing else writes to `pendingEdits`.
-		const currentValue =
-			(pending?.value as DimensionValue | undefined) ??
-			existingValueValidation.value;
+		// Safe: the only place that stages `pending.value` for a dimension token
+		// is `handleDimensionValueChange` below, which validates it against
+		// `DimensionValueSchema` before ever calling `onStageEdit` — nothing
+		// else writes to `pendingEdits`.
+		const currentDimensionValue =
+			(pending?.value as DimensionValue | undefined) ?? existingDimensionValue;
+		const currentRawValue = pending?.value ?? node.value;
 		const currentDescription = pending?.description ?? node.description ?? "";
 
 		function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
@@ -150,7 +167,7 @@ function TreeNode({
 			onStageEdit(node.path, { name: nextName });
 		}
 
-		function handleValueChange(nextValue: DimensionValue) {
+		function handleDimensionValueChange(nextValue: DimensionValue) {
 			const validation = validateDimensionValue(nextValue);
 			if (!validation.ok) {
 				onFieldError(node.path, {
@@ -163,9 +180,37 @@ function TreeNode({
 			onStageEdit(node.path, { value: validation.value });
 		}
 
+		// A standard, non-dimension type with a registered editor — no core
+		// contract schema exists for any type but dimension yet, so (like the
+		// fallback path below) the value is trusted as-is.
+		function handleGenericValueChange(next: unknown) {
+			onFieldError(node.path, { name: errors?.name, value: undefined });
+			onStageEdit(node.path, { value: next });
+		}
+
+		function handleFallbackValueChange(nextText: string) {
+			let parsed: unknown;
+			try {
+				parsed = JSON.parse(nextText);
+			} catch (error) {
+				onFieldError(node.path, {
+					name: errors?.name,
+					value: `Invalid JSON: ${error instanceof Error ? error.message : "could not parse"}`,
+				});
+				return;
+			}
+			onFieldError(node.path, { name: errors?.name, value: undefined });
+			onStageEdit(node.path, { value: parsed });
+		}
+
 		function handleDescriptionChange(event: ChangeEvent<HTMLInputElement>) {
 			onStageEdit(node.path, { description: event.target.value });
 		}
+
+		const DimensionEditor = resolvedEditor as
+			DimensionEditorComponent | undefined;
+		const GenericEditor = resolvedEditor as
+			((props: TokenTypeEditorProps<unknown>) => ReactElement) | undefined;
 
 		return (
 			<li className={styles.token}>
@@ -177,14 +222,31 @@ function TreeNode({
 						onChange={handleNameChange}
 					/>
 				</label>
-				{node.effectiveType !== undefined && (
+				{effectiveType !== undefined && (
 					<span className={styles.field}>
 						<span className={styles.fieldLabel}>{node.name} type</span>
-						<span className={styles.type}>{node.effectiveType}</span>
+						<span className={styles.type}>{effectiveType}</span>
 					</span>
 				)}
-				{EditorComponent !== undefined && (
-					<EditorComponent value={currentValue} onChange={handleValueChange} />
+				{isDimension &&
+					DimensionEditor !== undefined &&
+					currentDimensionValue !== undefined && (
+						<DimensionEditor
+							value={currentDimensionValue}
+							onChange={handleDimensionValueChange}
+						/>
+					)}
+				{!isDimension && GenericEditor !== undefined && (
+					<GenericEditor
+						value={currentRawValue}
+						onChange={handleGenericValueChange}
+					/>
+				)}
+				{!isDimension && GenericEditor === undefined && (
+					<FallbackValueEditor
+						value={JSON.stringify(currentRawValue, null, 2)}
+						onChange={handleFallbackValueChange}
+					/>
 				)}
 				<label className={styles.field}>
 					<span className={styles.fieldLabel}>{node.name} description</span>

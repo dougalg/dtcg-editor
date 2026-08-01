@@ -15,7 +15,7 @@ vi.mock("../lib/token-editors/user-config.ts", () => ({
 		tokensDir: "/virtual/tokens",
 		extensions: [
 			{
-				filter: (metadata: { type: string }) => metadata.type === "dimension",
+				type: "dimension",
 				editor: (props: { value: unknown }) => (
 					<span>Custom dimension editor: {JSON.stringify(props.value)}</span>
 				),

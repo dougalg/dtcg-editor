@@ -4,14 +4,9 @@ import type { TokenType } from "./built-in.ts";
 
 export type { TokenType };
 
-/** Metadata a `TokenEditorExtension`'s `filter` receives about a candidate token. */
-export interface TokenFilterMetadata {
-	readonly type: TokenType;
-}
-
-/** Pairs a predicate with the editor component to render for tokens it matches. */
+/** Pairs a DTCG `$type` with the editor component to render for tokens of that type. */
 export interface TokenEditorExtension {
-	readonly filter: (metadata: TokenFilterMetadata) => boolean;
+	readonly type: string;
 	readonly editor: (props: TokenTypeEditorProps<unknown>) => ReactElement;
 }
 

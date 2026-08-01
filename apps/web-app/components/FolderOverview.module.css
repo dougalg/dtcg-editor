@@ -32,7 +32,8 @@
 }
 
 .badgeValid,
-.badgeInvalid {
+.badgeInvalid,
+.badgeNonStandard {
 	font-size: 0.75rem;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -47,6 +48,11 @@
 
 .badgeInvalid {
 	background: var(--error);
+	color: #fff;
+}
+
+.badgeNonStandard {
+	background: #b35c00;
 	color: #fff;
 }
 

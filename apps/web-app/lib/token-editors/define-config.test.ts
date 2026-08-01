@@ -1,24 +1,21 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
+import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
 import { defineConfig, DtcgEditorConfigError } from "./define-config.ts";
+import { BUILT_IN_TOKEN_TYPES } from "./built-in.ts";
 
 test("returns a resolved config with built-in defaults merged in when no extensions given", () => {
 	const resolved = defineConfig({ tokensDir: "./tokens" });
 	assert.equal(resolved.tokensDir, "./tokens");
 	assert.equal(resolved.extensions.length, 1);
-	assert.equal(resolved.extensions[0]?.filter({ type: "dimension" }), true);
+	assert.equal(resolved.extensions[0]?.type, "dimension");
 });
 
 test("merges a user-supplied extension ahead of the built-in default (AC-06)", () => {
 	const customEditor = () => null as never;
 	const resolved = defineConfig({
 		tokensDir: "./tokens",
-		extensions: [
-			{
-				filter: (metadata) => metadata.type === "dimension",
-				editor: customEditor,
-			},
-		],
+		extensions: [{ type: "dimension", editor: customEditor }],
 	});
 	assert.equal(resolved.extensions.length, 2);
 	assert.equal(resolved.extensions[0]?.editor, customEditor);
@@ -28,10 +25,10 @@ test("a user config with an extension for a different type still yields the buil
 	const otherEditor = () => null as never;
 	const resolved = defineConfig({
 		tokensDir: "./tokens",
-		extensions: [{ filter: () => false, editor: otherEditor }],
+		extensions: [{ type: "color", editor: otherEditor }],
 	});
-	const dimensionEntry = resolved.extensions.find((entry) =>
-		entry.filter({ type: "dimension" }),
+	const dimensionEntry = resolved.extensions.find(
+		(entry) => entry.type === "dimension",
 	);
 	assert.notEqual(dimensionEntry, undefined);
 	assert.notEqual(dimensionEntry?.editor, otherEditor);
@@ -41,12 +38,21 @@ test("throws DtcgEditorConfigError when tokensDir is missing", () => {
 	assert.throws(() => defineConfig({ tokensDir: "" }), DtcgEditorConfigError);
 });
 
-test("throws DtcgEditorConfigError when an extension's filter is not a function", () => {
+test("throws DtcgEditorConfigError when an extension's type is not a string", () => {
 	assert.throws(() => {
 		defineConfig({
 			tokensDir: "./tokens",
 			// @ts-expect-error -- deliberately malformed, mirroring a plain-JS author's mistake
-			extensions: [{ filter: "not a function", editor: () => null }],
+			extensions: [{ type: 123, editor: () => null }],
+		});
+	}, DtcgEditorConfigError);
+});
+
+test("throws DtcgEditorConfigError when an extension's type is not a valid DTCG token type (AC-06)", () => {
+	assert.throws(() => {
+		defineConfig({
+			tokensDir: "./tokens",
+			extensions: [{ type: "not-a-real-type", editor: () => null }],
 		});
 	}, DtcgEditorConfigError);
 });
@@ -56,7 +62,7 @@ test("throws DtcgEditorConfigError when an extension's editor is not a function"
 		defineConfig({
 			tokensDir: "./tokens",
 			// @ts-expect-error -- deliberately malformed, mirroring a plain-JS author's mistake
-			extensions: [{ filter: () => true, editor: "not a function" }],
+			extensions: [{ type: "dimension", editor: "not a function" }],
 		});
 	}, DtcgEditorConfigError);
 });
@@ -93,13 +99,30 @@ test("aggregates multiple issues into one error message", () => {
 		defineConfig({
 			tokensDir: "",
 			// @ts-expect-error -- deliberately malformed
-			extensions: [{ filter: "nope", editor: "nope" }],
+			extensions: [{ type: 123, editor: "nope" }],
 		});
 		assert.fail("expected defineConfig to throw");
 	} catch (error) {
 		assert.ok(error instanceof DtcgEditorConfigError);
 		assert.match(error.message, /tokensDir/);
-		assert.match(error.message, /extensions\[0\].filter/);
+		assert.match(error.message, /extensions\[0\].type/);
 		assert.match(error.message, /extensions\[0\].editor/);
 	}
+});
+
+test("accepts a user extension registered for a standard type with no built-in editor, derived dynamically so it can't go stale (AC-08)", () => {
+	const typeWithoutBuiltIn = DTCG_TOKEN_TYPES.find(
+		(type) => !(BUILT_IN_TOKEN_TYPES as readonly string[]).includes(type),
+	);
+	assert.ok(
+		typeWithoutBuiltIn !== undefined,
+		"expected at least one DTCG type with no built-in editor yet",
+	);
+	const editor = () => null as never;
+	const resolved = defineConfig({
+		tokensDir: "./tokens",
+		extensions: [{ type: typeWithoutBuiltIn, editor }],
+	});
+	assert.equal(resolved.extensions[0]?.type, typeWithoutBuiltIn);
+	assert.equal(resolved.extensions[0]?.editor, editor);
 });

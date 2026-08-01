@@ -91,6 +91,7 @@ test("discovers *.json files at multiple nesting depths", async () => {
 		"nested/deeper/c.json",
 	]);
 	assert.ok(summaries.every((summary) => summary.valid));
+	assert.ok(summaries.every((summary) => summary.valid && summary.standard));
 });
 
 test("isolates an invalid file from valid ones", async () => {
@@ -109,6 +110,9 @@ test("isolates an invalid file from valid ones", async () => {
 	);
 	assert.ok(good);
 	assert.equal(good.valid, true);
+	if (good.valid) {
+		assert.equal(good.standard, true);
+	}
 
 	const bad = summaries.find((summary) => summary.relativePath === "bad.json");
 	assert.ok(bad);
@@ -116,6 +120,27 @@ test("isolates an invalid file from valid ones", async () => {
 		assert.fail("expected bad.json to be marked invalid");
 	} else {
 		assert.match(bad.error, /Invalid JSON/);
+	}
+});
+
+test("flags a valid file that declares an unrecognized $type as non-standard (AC-02)", async () => {
+	const readDirFn = mockReadDir({
+		[rootDir]: [dirEntry("weird.json", "file")],
+	});
+	const readFileFn = mockReadFile({
+		[join(rootDir, "weird.json")]: JSON.stringify({
+			x: { $type: "not-a-real-type", $value: "1" },
+		}),
+	});
+
+	const summaries = await scanOk(rootDir, undefined, readDirFn, readFileFn);
+	const weird = summaries.find(
+		(summary) => summary.relativePath === "weird.json",
+	);
+	assert.ok(weird);
+	assert.equal(weird.valid, true);
+	if (weird.valid) {
+		assert.equal(weird.standard, false);
 	}
 });
 
