@@ -4,7 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-dtcg-editor is an open source editor for DTCG (Design Tokens Community Group) design tokens. The repository is currently a bare scaffold — no source code, package manifest, or build tooling exists yet. There are no build/lint/test commands to run until the project is bootstrapped.
+dtcg-editor is an open source editor for DTCG (Design Tokens Community Group) design tokens.
+
+## Local First Development
+
+When you are asked to merge or update branches, the default assumption is **local-first**. Unless the user specifies to push to a non-local branch/worktree/etc. always assume the user wants you to work locally.
+
+For example:
+
+"Update from main", means "update using the local main branch"
+
+Incorrect:
+
+"Update from main", DOES NOT mean "update using origin/main"
 
 ## Spec-Driven Development (SDD) workflow
 

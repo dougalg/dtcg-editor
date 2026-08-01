@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `/sdd-feature` to start it.
 Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
+- [ ] Add support for additional "non-standard" behavious, like custom fields
 - [ ] Generic fallback token editor: provide a default/fallback interactive editor for token kinds that have no registered editor (currently read-only only) — should also be used to more thoroughly test the config-driven editor-extension mechanism's genericity (e.g. via a second, non-default editor), a test depth intentionally deferred from the DimensionEditor config-enablement feature. (in progress — worktree `.claude/worktrees/fallback-token-editor`, branch `worktree-fallback-token-editor`)
 - [ ] Support for colour tokens
 - [ ] Improve UI/UX
