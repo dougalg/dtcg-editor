@@ -89,9 +89,7 @@ Identify any missing or ambiguous information across these dimensions:
 
 ### 3. Ask Before Writing
 
-If ANY critical information is missing or ambiguous, ask the user clarifying questions BEFORE producing the spec.
-Group questions logically. Do not ask more than 5 questions at once.
-Wait for the user's answers, then proceed.
+Use the /grilling skill to clarify the detailed requirements. Features listed in the markdown are very short on details and will require lots of clarification.
 
 ### 4. Write feature.md
 
