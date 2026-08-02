@@ -172,7 +172,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: ^26.1.1
-        version: 26.1.1
+        version: 26.1.2
       '@types/react':
         specifier: ^19.2.17
         version: 19.2.17

@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## pnpm
+
+This repo uses `pnpm`. Always use `pnpm` commands to add files to packages, _NEVER_ directly modify a package file to manage dependencies, instead use `pnpm add` or the relevant `pnpm` command.
+
 ## Project status
 
 dtcg-editor is an open source editor for DTCG (Design Tokens Community Group) design tokens.
