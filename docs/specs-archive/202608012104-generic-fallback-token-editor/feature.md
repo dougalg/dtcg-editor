@@ -1,143 +1,122 @@
-# Feature: Support for Colour (Color) Tokens
+# Feature: Generic Fallback Token Editor
 
 ## Summary
 
-Adds a new `@dtcg-editor/token-type-color` package implementing the Token-Type Package Contract for DTCG's `color` `$type`, following the same shape as the existing `@dtcg-editor/token-type-dimension` package: a Zod schema for the DTCG 2025.10 Color module's `$value` shape, a `TokenTypeContract<ColorValue>` implementation, and a full editor component (colorSpace-aware swatch + picker). Unlike dimension, this feature does **not** make color tokens editable end-to-end — a prior scoping decision (see Out of Scope) defers the client (`TokenTree.tsx`'s `canEdit` gate) and server (`route.ts`'s edit-authorization gate) generalization that would make _any_ non-dimension type editable to the already-in-flight `fallback-token-editor` feature. This feature builds the color type package and registers it (inert for now) so that work is ready to plug in the moment that generalization lands, and in the meantime color tokens render read-only with a visual swatch.
-
-Because a color `$value`'s correctness depends on its declared `colorSpace` (component count and numeric range both vary per space — see FR-02), and a malformed value must never break parsing or crash the tree view, this feature also introduces a color-specific, non-blocking "validation issue" display: an out-of-range or malformed color value still renders, but visibly flagged as needing user attention, distinct from a token that's simply read-only because it's a color.
-
-A new sample token file exercises all of this against real-looking data.
+Every token type that isn't `dimension` is currently fully read-only, and the "config-driven editor extension" mechanism (`TokenEditorExtension` / `resolveEditorForType`) that's supposed to let host apps register custom editors per token type is only wired up on the client-render path — the server (`route.ts`'s `PATCH` handler) still hard-rejects any edit to a non-`dimension` token regardless of what's registered. This feature introduces a generic fallback editor so any token whose `$type` is a spec-valid DTCG type — but has no custom editor registered for it yet — becomes editable through a simple, type-shape-agnostic UI, while tokens using a `$type` outside the DTCG spec remain read-only and are now visibly flagged as non-standard rather than silently treated the same as any other unrecognized/uneditable token. Along the way this establishes the first canonical, spec-derived list of valid DTCG token types in `token-core`, changes `TokenEditorExtension`'s shape so config-time validation can actually enforce "editors may only be registered for valid DTCG types," and generalizes both the client's `canEdit` gate and the server's edit-authorization gate off their current dimension-only hard-coding.
 
 ## User Stories
 
-- As a design system maintainer, I want to browse `color` tokens in the web app and see an accurate visual swatch of each color, so I can review a palette at a glance instead of reading raw `$value` JSON.
-- As a design system maintainer, I want a color token whose `$value` doesn't match its declared `colorSpace`'s shape (wrong component count, out-of-range number, etc.) to still show up in the tree — flagged as having an issue — rather than crashing the page or silently being treated as a normal valid color.
-- As a design system maintainer, I want my existing token files that use a bare hex string for `$value` (a common pre-2025-spec shorthand) to keep working without being flagged as broken.
-- As a host app integrator, I want the color type package built to the same `TokenTypeContract` shape as dimension, so that when the fallback-editor generalization lands, color tokens become editable with zero further changes to this package.
+- As a design system maintainer, I want to edit tokens of any spec-valid DTCG type in the web app, even before a custom editor for that type exists, so that the editor is useful for my whole token file today, not just the one type (`dimension`) that happens to have a bespoke editor.
+- As a host app integrator, I want the config layer to reject an editor registration for a `$type` that isn't part of the DTCG spec, so a typo or a made-up type name in my `dtcg-editor.config.mts` fails fast at config-load time instead of silently never matching anything.
+- As a design system maintainer, I want a token file that uses non-spec `$type` values flagged distinctly from a file that's simply broken/unparseable, so I can tell "this file has a typo in `$type`" apart from "this file has invalid JSON" at a glance.
 
 ## Functional Requirements
 
-### FR-01: `@dtcg-editor/token-type-color` Package
+### FR-01: Canonical DTCG Token Type Registry
 
-New package mirroring `packages/token-type-dimension`'s structure (`color.ts` schema/types, `editor.tsx` UI, `token-type.ts` contract wiring, `index.ts`), consumed the same way `dimensionTokenType` is consumed today.
+`token-core` (the spec-parsing, UI-agnostic package) exports a single canonical list of valid DTCG `$type` values, sourced from the Type section of the [DTCG Format Module spec (2025.10)](https://www.designtokens.org/tr/2025.10/format/) — the same spec version this repo's `docs/project.md` already points to for other type-shape conventions (e.g. `DimensionValueSchema`). This becomes the one source of truth both the client (editor registration/rendering) and the server (edit authorization) check a token's effective type against — no second, independently-maintained copy of the list anywhere.
 
-- `ColorValueSchema` (Zod) validates the DTCG 2025.10 Color module's object shape:
-  - `colorSpace`: one of `"srgb"`, `"srgb-linear"`, `"hsl"`, `"hwb"`, `"lab"`, `"lch"`, `"oklab"`, `"oklch"`, `"display-p3"`, `"a98-rgb"`, `"prophoto-rgb"`, `"rec2020"`, `"xyz-d65"`, `"xyz-d50"` (required).
-  - `components`: exactly 3 elements, each either a number or the literal string `"none"` (required).
-  - `alpha`: number, optional (absent means fully opaque, per spec — not defaulted/rewritten at parse time, only treated as `1` wherever alpha is consumed).
-  - `hex`: 6-digit `#RRGGBB` string, optional.
-- `colorTokenType: TokenTypeContract<ColorValue>` exports `type: "color"`, the schema, an identity-ish `serializeValue`, and the FR-04 `Editor`.
-- `resolveEffectiveType`/`applyTokenEdits`/`token-core` require **no changes** — `$value` stays opaque `unknown` at that layer per the existing Token-Type Package Contract; all color-specific logic lives in this new package plus the app-layer wiring in FR-05/FR-06.
+- Exposed as an exported `readonly string[]`-shaped constant (naming/location decided at `/sdd-plan` time, but it belongs in `token-core` per the Token-Type Package Contract's "spec-parsing lives in its own package" principle, not in `apps/web-app`).
+- `/sdd-plan` and `/sdd-implement` must enumerate the exact type list directly from the spec's Type table (not from this document, which is not the source of truth) — DTCG spec compliance is mandatory per `docs/project.md`, and a wrong or stale list here would silently misclassify real tokens as non-standard or vice versa.
 
-### FR-02: Full Per-ColorSpace Component Validation (Non-Blocking)
+### FR-02: `TokenEditorExtension` Shape Change — Type-Validated Registration
 
-Each `colorSpace` has its own exact component count and per-component numeric range/count, per the DTCG 2025.10 Color module spec (verified against `designtokens.org/tr/2025.10/color/`, not assumed from memory):
+`TokenEditorExtension` (`apps/web-app/lib/token-editors/types.ts`) changes from `{ filter: (metadata) => boolean, editor }` to `{ type: <string>, editor }`, where `type` names the single DTCG `$type` the entry's `editor` handles. `defineConfig` (`apps/web-app/lib/token-editors/define-config.ts`) validates every extension's `type` (both user-supplied and built-in) against the FR-01 canonical list at config-load time, alongside its existing `filter`/`editor`-shape checks, and throws `DtcgEditorConfigError` (same error type, extended issue set) for any entry whose `type` isn't a recognized DTCG type.
 
-| colorSpace                                                                | components (in order) | ranges                                 |
-| ------------------------------------------------------------------------- | --------------------- | -------------------------------------- |
-| `srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020` | R, G, B               | each `[0, 1]`                          |
-| `xyz-d65`, `xyz-d50`                                                      | X, Y, Z               | each `[0, 1]`                          |
-| `hsl`                                                                     | H, S, L               | H `[0, 360)`, S/L `[0, 100]`           |
-| `hwb`                                                                     | H, W, B               | H `[0, 360)`, W/B `[0, 100]`           |
-| `lab`                                                                     | L, a, b               | L `[0, 100]`, a/b unbounded            |
-| `lch`                                                                     | L, C, H               | L `[0, 100]`, C `[0, ∞)`, H `[0, 360)` |
-| `oklab`                                                                   | L, a, b               | L `[0, 1]`, a/b unbounded              |
-| `oklch`                                                                   | L, C, H               | L `[0, 1]`, C `[0, ∞)`, H `[0, 360)`   |
+- `resolveEditorForType` (`apps/web-app/lib/token-editors/resolve-editor.ts`) updates its lookup from `extensions.find((entry) => entry.filter(...))` to a direct `type` equality match — first-match-wins ordering (user entries ahead of built-ins) is unchanged.
+- `builtInExtensions`/`BUILT_IN_TOKEN_TYPES` (`apps/web-app/lib/token-editors/built-in.ts`) updates its generated entries to the new `{ type, editor }` shape; `BUILT_IN_TOKEN_TYPES` itself (currently `["dimension"]`) is unaffected in meaning, just in how it's consumed.
+- This is a breaking change to a public-ish extension-authoring shape (a user's `dtcg-editor.config.mts` using the old `filter` field would silently stop matching anything). Since this repo is pre-1.0 and the only real consumer is this repo's own committed `dtcg-editor.config.mts`, no migration/deprecation path is needed — update the one committed config file directly.
 
-Any component may be `"none"` regardless of colorSpace (spec-wide allowance for a missing/powerless channel), which always passes range validation for that slot.
+### FR-03: Non-Standard Type Detection
 
-- A dedicated validation function (e.g. `checkColorValueIssues(value: ColorValue): string[]`) runs the per-space table above and returns a list of human-readable issue strings (empty if fully valid) — this is **separate from** `ColorValueSchema`'s structural parse (which only checks the generic 3-numbers-or-`"none"` shape) so a structurally-valid-but-out-of-range value still parses and displays.
-- This check never throws and never prevents the token, its file, or the tree view from rendering — it only feeds FR-05's issue display. This mirrors, but is distinct from, the sibling `fallback-token-editor` feature's file-level "non-standard `$type`" badge (FR-03 of that feature): this check is about a _malformed value for a recognized type_, not an unrecognized `$type` string, and is scoped entirely to color tokens within `TokenTree.tsx` — no changes to `scan.ts`/`FolderOverview.tsx`.
+A new check, independent of today's parse-level `valid`/`invalid` distinction (`apps/web-app/lib/tokens/scan.ts`'s `TokenFileSummary`), determines whether a _successfully parsed_ token document contains any node (token or group) whose own declared `$type` is set but not in the FR-01 canonical list. `$type` being absent (inherited or untyped) is not itself non-standard — only an explicitly declared, unrecognized value is.
 
-### FR-03: Legacy Bare-Hex `$value` Acceptance
+- `TokenFileSummary`'s `valid: true` variant gains an additional field (e.g. `standard: boolean`) — a file can be `valid: true, standard: false` (parses fine, but uses an unrecognized `$type` somewhere). The `valid: false` variant is unaffected; a file that fails to parse never reaches this check.
+- `FolderOverview.tsx` renders a distinct badge (e.g. `non-standard`, styled/worded at implementation time) alongside the existing `valid`/`invalid` badges when `standard` is `false`, without altering the existing `valid`/`invalid` badge behavior.
+- Within the token tree view (`TokenTree.tsx`), a token or group whose own effective `$type` is non-standard is never eligible for the fallback editor (FR-05) even though it technically "has no registered editor" — it stays on today's fully-read-only rendering path, and should visibly indicate its type is unrecognized (e.g. reusing or adapting the existing `{node.name} type` field display).
 
-`ColorValueSchema`/`ColorValue` additionally accepts a plain 6-digit hex string (e.g. `"#ff00ff"`) as a valid `$value` for a `color`-typed token, alongside the FR-01 object shape.
+### FR-04: Generic Fallback Editor Component
 
-- **This is a deliberate, explicitly-flagged deviation from the DTCG 2025.10 spec**, which only defines the object shape for `color` `$value` — per `docs/project.md`'s "DTCG spec compliance is mandatory... any deviation must be flagged explicitly" constraint. It exists for compatibility with real-world token files authored against pre-2025 draft conventions that used a bare hex string.
-- A bare-hex value is treated as fully valid (no FR-02 issue) — it is definitionally an sRGB hex value, so there's nothing to range-check.
-- How a legacy bare-hex token's `$value` normalizes if a user later _edits_ it (once editing unlocks, out of scope for this feature) is an open question, deferred to whenever the `fallback-token-editor` generalization actually makes color tokens editable.
+A new fallback editor component (location decided at `/sdd-plan` time, but architecturally distinct from a `TokenTypeContract` implementation — see Technical Scope) provides an editable UI for a token's `$value` with no assumption about its shape:
 
-### FR-04: Color Editor UI (Built Now, Inert Until Editing Unlocks)
+- Renders the current `$value` as its JSON text representation (`JSON.stringify`, pretty-printed) in a text input/textarea.
+- On change, attempts `JSON.parse` on the edited text. A parse failure surfaces a field-level validation error (mirroring the existing `errors.value` pattern in `TokenTree.tsx`) and does **not** stage an edit; valid JSON stages the parsed value via the same `onStageEdit`/`ClientEdit.value` path `DimensionEditor` already uses.
+- Performs no shape/schema validation beyond "is this valid JSON" — by design, since it has no per-type schema to validate against. This is the deliberate trade-off behind "generic and flexible enough for a wide variety of purposes."
+- Name and description editing for a fallback-eligible token use the exact same generic `<label>`-wrapped inputs a dimension token already gets (`TreeNode`'s existing name/description JSX is not type-specific and needs no change beyond becoming reachable for more tokens per FR-05).
 
-`ColorEditor` (this package's `Editor`) provides:
+### FR-05: Client-Side `canEdit` Generalization
 
-- A visual swatch preview, rendered as a plain element with its background set via a **native CSS color function string** built from the value's `colorSpace`/`components`/`alpha` (e.g. `hsl(210 50% 40%)`, `oklch(0.7 0.15 200 / 0.5)`, `color(display-p3 1 0 0.5)`, `lab(50% 40 59.5)`) — modern browsers render CSS Color 4/5 syntax for all 14 spaces natively, so no color-space-conversion math or new dependency is needed to preview any of them accurately. A legacy bare-hex value previews directly as that hex color.
-- Editable controls: a `colorSpace` `<select>`, one input per component (numeric, with a way to set/unset `"none"` for the slots where the spec allows it), an `alpha` numeric input, and an optional `hex` text field — exact control layout/markup is decided at `/sdd-plan` time, following `DimensionEditor`'s existing visible-`<label>` pattern.
-- Per the `TokenTypeContract` shape, `Editor` is a fully controlled `(value, onChange)` component like `DimensionEditor` — it does not itself know whether it's reachable/rendered; that gating is entirely `TokenTree.tsx`'s job (unchanged by this feature, see Out of Scope).
+`TreeNode` in `TokenTree.tsx` currently computes `canEdit` as "is this a dimension token AND does its value pass `DimensionValueSchema`." This generalizes to:
 
-### FR-05: Read-Only Rendering With Swatch + Issue Display
+- **Standard type with a registered editor** (currently: dimension) → editable via that editor, validated by that type's own contract schema (unchanged behavior for dimension).
+- **Standard type with no registered editor** → editable via the FR-04 fallback editor, no schema validation beyond JSON-parseability.
+- **Non-standard type** (FR-03) → stays fully read-only (today's existing read-only branch), never offered any editor.
+- **No effective type at all** (`effectiveType === undefined`) → out of scope for this feature (see Out of Scope) — retains today's read-only behavior.
 
-`TokenTree.tsx`'s existing read-only branch (`!canEdit`) gains color-specific rendering for a token whose `effectiveType === colorTokenType.type`:
+`resolveEditorForType` returning `undefined` for a standard-but-uncustomized type is what triggers the fallback editor; it returning `undefined` for a non-standard type must not.
 
-- Renders the FR-04 swatch preview alongside the existing name/type/value fields (value still shown via the existing generic text display too, for tokens where a quick glance at raw `$value` is still useful).
-- If FR-02's issue check returns any issues, renders them visibly (e.g. `role="alert"` list, following this file's existing `errors?.value` visual convention) directly on that token's row — always visible for an invalid value, not just after a user interaction, since color tokens don't support interactive editing yet.
-- A color token stays on the existing generic read-only branch structurally (no new component tree shape); this is additive rendering within that branch, not a fork of it.
+### FR-06: Server-Side Edit Authorization Generalization
 
-### FR-06: Built-In Registry Entry (Inert)
+`route.ts`'s `patchTokenFile` currently rejects any edit where `resolveEffectiveType(...) !== dimensionTokenType.type`. This generalizes to:
 
-`colorTokenType` is added to `apps/web-app/lib/token-editors/built-in.ts`'s `BUILT_IN_TOKEN_TYPES`/`builtInContractsByType`, exactly like `dimensionTokenType`.
-
-- Because `TokenTree.tsx`'s `canEdit` (`apps/web-app/components/TokenTree.tsx:89-93`) is currently hard-coded to `node.effectiveType === dimensionTokenType.type`, registering `color` here has **no editing effect today** — `resolveEditorForType` is only ever consulted when `canEdit` is already `true`, so a color token still renders via FR-05's read-only path regardless of this registration. This is the intended "ready to plug in" state from the Summary — no changes to `TokenTree.tsx`'s `canEdit` logic or to `route.ts`'s edit-authorization gate are made by this feature.
-
-### FR-07: Sample Color Token File
-
-A new `sample_data/color_scale.tokens.json`, structured like the existing `sample_data/spacing_scale.tokens.json` (same `$extensions.com.figma.scopes` convention, same nesting style), containing `color`-typed tokens that exercise:
-
-- Several distinct `colorSpace` values (at minimum `srgb`, `hsl`, `oklch`, and `display-p3`), each with a valid, in-range value.
-- At least one value using the `"none"` component keyword.
-- At least one legacy bare-hex `$value` (FR-03).
-- At least one deliberately out-of-range/malformed value (FR-02) to exercise the non-blocking issue display end-to-end.
-- Authored fresh for this repo in the same visual style as GitLab's Pajamas Design System color tokens (naming conventions, `$extensions` shape) rather than a byte-for-byte copy of an external file — a canonical machine-readable Pajamas color-tokens JSON export wasn't readily locatable to pull verbatim; flagging this so it can be swapped for a real exported file later if one turns up.
+- Reject (400, same `SaveError`-shaped response convention already used) an edit whose effective type is **not** in the FR-01 canonical list (non-standard type) — same outcome as today's rejection, new reason.
+- Accept an edit whose effective type **is** a standard DTCG type. If the type has a registered contract with a `valueSchema` (currently: dimension), validate `edit.value` against it exactly as today. If not (the fallback case), skip value-shape validation — `edit.value` was already validated as JSON-parseable client-side, and the wire body's `value` field is already a plain JS value (`z.unknown()` in `EditRequestSchema`) by the time it reaches this handler, not a JSON string — so no new parsing step is needed server-side, only the relaxed gating logic.
+- Group-only edits (name-only, per the existing group branch) are unaffected by this feature.
 
 ## Acceptance Criteria
 
-- [x] AC-01: `@dtcg-editor/token-type-color` exports `colorTokenType: TokenTypeContract<ColorValue>` with `type === "color"`.
-- [x] AC-02: `ColorValueSchema` accepts a structurally valid object `$value` for all 14 listed color spaces, and accepts a bare 6-digit hex string.
-- [x] AC-03: `checkColorValueIssues` returns issue strings for an out-of-range or wrong-component-count value per the FR-02 table, and returns no issues for any in-range value or a `"none"` component, and returns no issues for a legacy bare-hex value.
-- [x] AC-04: In the web app, a `color` token renders a visual swatch matching its declared value (spot-checked against at least `srgb`, `hsl`, `oklch`, `display-p3`, and a legacy hex value).
-- [x] AC-05: A color token with a malformed/out-of-range value still renders (no crash, no file-level failure) with its issue(s) visibly displayed.
-- [x] AC-06: `sample_data/color_scale.tokens.json` exists, parses successfully via `parseTokenFile`, and contains the FR-07 coverage (multiple colorSpaces, a `"none"` component, a legacy hex value, one deliberately invalid value).
-- [x] AC-07: No changes to `packages/token-core`, `TokenTree.tsx`'s `canEdit` logic, or `route.ts`'s edit-authorization gate — color tokens remain non-editable through this feature, confirmed by an existing or new test attempting a `PATCH` edit to a color token and getting the same rejection a color token gets today (as an untyped/non-dimension token).
-- [x] AC-08: All existing dimension-editing tests/behavior continue to pass unmodified.
+- [x] AC-01: `token-core` exports a canonical list of valid DTCG `$type` values matching the 2025.10 spec's Type table.
+- [x] AC-02: A token file containing a token or group with an unrecognized `$type` (e.g. `"not-a-real-type"`) is flagged distinctly from both `valid` and `invalid` in `FolderOverview`, without changing today's `valid`/`invalid` classification for any existing fixture file.
+- [x] AC-03: In the token tree view, a token of a standard DTCG type with no registered editor (e.g. `fontWeight`, assuming no built-in exists for it at implementation time) renders name, description, and a JSON-text `$value` editor, and a valid edit round-trips through save/reload correctly.
+- [x] AC-04: Entering invalid JSON into the fallback editor's value field shows a field-level error and does not stage or save an edit, exactly mirroring `DimensionEditor`'s existing invalid-value UX.
+- [x] AC-05: A token whose effective `$type` is non-standard renders fully read-only (no name/description/value editing controls) regardless of whether an editor happens to be registered for that literal string.
+- [x] AC-06: `defineConfig` throws `DtcgEditorConfigError` when a user's `dtcg-editor.config.mts` registers an extension whose `type` is not a valid DTCG type.
+- [x] AC-07: `PATCH /api/tokens/[...path]` accepts an edit to any standard-type token (not just `dimension`) and rejects an edit to a non-standard-type token with a 400 `SaveError`-shaped response.
+- [x] AC-08: A test proves `resolveEditorForType`/`defineConfig`'s override-ordering (user extension beats a same-type built-in) and the fallback path (a standard type with no built-in gets the fallback editor), both derived dynamically from the live `BUILT_IN_TOKEN_TYPES` registry and FR-01's canonical list rather than a hardcoded type-name literal — see Non-Functional Requirements for why.
+- [x] AC-09: All existing dimension-editing tests/behavior (round-trip save, rename collision checks, group rename) continue to pass unmodified.
 
 ## Technical Scope
 
 ### Affected Modules
 
-- New package: `packages/token-type-color` (mirrors `packages/token-type-dimension`).
-- `apps/web-app/lib/token-editors/built-in.ts` — registry entry (FR-06).
-- `apps/web-app/components/TokenTree.tsx` (+ `.module.css`) — read-only swatch/issue rendering (FR-05); explicitly _not_ its `canEdit` gate.
-- `sample_data/` — new `color_scale.tokens.json` (FR-07).
+- `packages/token-core` — new canonical valid-type list (FR-01); no change to parsing/serialization logic itself.
+- `packages/token-type-contract` — unaffected in its own contract shape; consumers of `TokenTypeContract` are unaffected.
+- `apps/web-app/lib/token-editors/` (`types.ts`, `define-config.ts`, `resolve-editor.ts`, `built-in.ts`) — `TokenEditorExtension` shape change, type validation, resolution-by-type.
+- `apps/web-app/lib/tokens/scan.ts` — `TokenFileSummary` gains the `standard` field; new non-standard-detection helper.
+- `apps/web-app/components/FolderOverview.tsx` (+ its `.module.css`) — new badge state.
+- `apps/web-app/components/TokenTree.tsx` — generalized `canEdit`/editor-resolution logic (FR-05), new fallback editor wiring.
+- `apps/web-app/app/api/tokens/[...path]/route.ts` — generalized edit-authorization gate (FR-06).
+- `apps/web-app/dtcg-editor.config.mts` — updated to the new `TokenEditorExtension` shape (FR-02).
 
 ### New Components Required
 
-- `ColorEditor` (`packages/token-type-color/src/editor.tsx`) — built per FR-04, registered but unreachable via the UI until the `fallback-token-editor` feature generalizes `canEdit`.
-- A color-value issue-checking function (FR-02), package location decided at `/sdd-plan` time (likely alongside `ColorValueSchema` in the same package, since it's color-specific domain logic, not generic app logic).
+- A generic fallback editor component (JSON-text `$value` editor per FR-04) — package/location decided at `/sdd-plan` time. It is **not** a `TokenTypeContract<TValue>` implementation (no single fixed `type`, no `valueSchema` beyond "valid JSON"), so it does not live inside a `token-type-*` package the way `dimensionTokenType` does; it's app-level, generic UI.
+- A non-standard-type-detection helper (walks a parsed `TokenDocument`/`PlainDtcgNode` tree checking each node's own declared `$type`, if present, against the FR-01 list).
 
 ### Integration Points
 
-- `TokenTypeContract` (`@dtcg-editor/token-type-contract`) — implemented as-is, no contract changes needed.
-- `resolveEffectiveType` (`token-core`) — reused as-is to determine a node's effective type for both FR-05's rendering branch and the FR-06 registry lookup.
-- Depends on (does not implement) the `fallback-token-editor` feature's future generalization of `TokenTree.tsx`'s `canEdit` and `route.ts`'s edit-authorization gate to actually make color tokens editable — tracked there, not here.
+- `resolveEffectiveType` (`token-core`) — reused as-is on both client (`PlainDtcgNode.effectiveType`, already precomputed) and server (`route.ts` already calls it) to determine a token's type for both the fallback-eligibility check and the non-standard check.
+- `applyTokenEdits` (`token-core`) — unchanged; already treats `value` as opaque `unknown`, so no change needed there for the fallback path.
+- `useSaveTokenEdits` / `SaveError` — unchanged; a fallback-editor save failure surfaces through the exact same hook/error-display path dimension edits already use.
 
 ## Non-Functional Requirements
 
-- **Performance**: swatch rendering is pure CSS (no client-side color-space-conversion computation), so no measurable rendering cost beyond any other styled element.
-- **Security**: no new external data/input surface — `$value` already flows through the existing Validation at the Edges (`parseTokenFile`) and per-type schema layers; FR-02's issue check is read-only analysis, not a new trust boundary.
-- **Minimal Dependencies**: no new package. The FR-04 swatch relies entirely on native CSS Color 4/5 function syntax (`hsl()`, `lab()`, `lch()`, `oklab()`, `oklch()`, `color(<predefined-space> ...)`), which covers all 14 DTCG color spaces natively in evergreen browsers.
-- **DTCG Spec Compliance**: the object `$value` shape and all per-colorSpace ranges (FR-01/FR-02) are taken directly from the 2025.10 Color module spec (`designtokens.org/tr/2025.10/color/`), verified during spec-writing, not approximated. The one deliberate deviation (FR-03, legacy bare-hex) is explicitly flagged per this repo's spec-deviation convention.
+- **Test resilience to future built-in editors**: any test proving the fallback/override mechanism's genericity (AC-08) must derive its "type with a built-in" and "type without a built-in yet" fixtures dynamically from the live `BUILT_IN_TOKEN_TYPES` registry and the FR-01 canonical list — never a hardcoded literal like `"fontWeight"`. A hardcoded literal would silently start asserting a false premise ("no built-in editor exists for this type") the day a real editor for that type ships, without any test failure flagging the drift. See the User Stories/Open Questions discussion — this was raised and settled explicitly during scoping.
+- **Spec compliance**: the FR-01 type list must be verifiably sourced from the DTCG 2025.10 Format Module spec, per `docs/project.md`'s "DTCG spec compliance is mandatory" constraint — not approximated from memory.
+- **No new dependency**: JSON-text editing needs only `JSON.parse`/`JSON.stringify` (built-in); no new package required, consistent with the Minimal Dependencies constraint.
+- **Security**: the fallback editor's JSON-parse path is client input at a genuine trust edge (per "Validation at the Edges") — `JSON.parse` must be wrapped/guarded (try/catch, not left to throw uncaught) both client-side (FR-04) and, since the wire value is already a parsed JS value by the time it reaches `route.ts`, no additional server-side JSON parsing is introduced.
 
 ## Out of Scope
 
-- **Making color tokens actually editable** (client `canEdit` gate, server `route.ts` edit-authorization gate) — explicitly deferred to the in-flight `fallback-token-editor` feature, per this feature's own scoping decision (see Summary). This feature only builds and inert-registers the color type package.
-- **Configurable/host-app-selectable color-space support** — a separate backlog item ("Allow the runner to specify in config which colour spaces are available") now exists for letting a host app restrict/extend supported color spaces via config; this feature hard-codes support for all 14 spec spaces with no config toggle.
-- **Non-standard/arbitrary custom token types beyond `color`** — covered by a separate backlog item ("Allow the runner to specify in config additional non-standard token types to support...").
-- File-level "non-standard `$type`" badge/detection (unrecognized `$type` strings) — that is the `fallback-token-editor` feature's FR-03, a different mechanism from this feature's FR-02 per-value issue check.
-- Exact conversion/normalization behavior when an already-legacy-bare-hex color token is edited (moot until editing unlocks).
-- Any changes to `token-core`'s parsing/round-trip logic — `$value` remains fully opaque at that layer for every token type, per the existing Token-Type Package Contract.
+- Building a real, shipped custom editor for any specific non-dimension DTCG type (e.g. color, fontWeight, border) — that remains separate backlog work (e.g. the existing "Support for colour tokens" backlog item). The fallback editor is intentionally generic, not a step toward a specific type's bespoke UI.
+- Editing tokens with no effective `$type` at all (`effectiveType === undefined`) — these remain read-only exactly as today; deciding whether/how an untyped token should ever become editable is a separate concern.
+- Letting a host app override or replace the fallback editor itself via config — the fallback is a fixed, built-in last resort applied only when `resolveEditorForType` finds no match for a standard type; `TokenEditorExtension` entries still only ever target one specific `type` each.
+- Any change to `token-core`'s round-trip fidelity guarantees, `applyTokenEdits`'s batching/ordering behavior, or the group-rename edit path — all unaffected by this feature.
+- Deep/structured editing UI for composite value shapes (e.g. a dedicated sub-field per property of a `border` or `shadow` token's object value) — the fallback editor's raw-JSON approach is the entire answer for composite shapes in this feature; a richer structured UI is future work once/if a type-specific editor is built.
+- CI/lint enforcement of the new `TokenEditorExtension` shape beyond what `defineConfig`'s existing runtime validation already provides (no new ESLint rule).
 
 ## Open Questions
 
-- Whether a real, machine-readable GitLab Pajamas color-tokens export exists and should replace FR-07's fresh-authored sample file once located.
-- Exact `ColorEditor` control layout (per-colorSpace dynamic field labels, how `"none"` is toggled per component) — deferred to `/sdd-plan`.
-- Whether `checkColorValueIssues`' issue strings should be structured/typed (for potential future reuse, e.g. by a summary badge) or remain plain strings — deferred to `/sdd-plan` given no current second consumer.
+- Exact final location/naming for the FR-01 canonical type list and the FR-04 fallback editor component (e.g. package name, file name) — deferred to `/sdd-plan`, which is better positioned to fit these into the existing package layout.
+- Exact wording/styling for the FR-03 "non-standard" badge — deferred to implementation; functionally it only needs to be visually distinct from `valid`/`invalid`.
+- Whether `standard`/non-standard detection should also recurse into a group's own `$type` when the group itself has no children yet, or any other edge case in an empty/degenerate tree — deferred to `/sdd-plan`/`/sdd-implement`, expected to be a straightforward tree-walk with no special-casing needed.
