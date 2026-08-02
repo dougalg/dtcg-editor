@@ -1,5 +1,9 @@
 import type { TokenTypeContract } from "@dtcg-editor/token-type-contract";
-import { ColorValueSchema, type ColorValue } from "./color.ts";
+import {
+	ColorEditorOptionsSchema,
+	ColorValueSchema,
+	type ColorValue,
+} from "./color.ts";
 import { ColorEditor } from "./editor.tsx";
 
 /**
@@ -12,4 +16,5 @@ export const colorTokenType: TokenTypeContract<ColorValue> = {
 	valueSchema: ColorValueSchema,
 	serializeValue: (value) => value,
 	Editor: ColorEditor,
+	editorOptionsSchema: ColorEditorOptionsSchema,
 };

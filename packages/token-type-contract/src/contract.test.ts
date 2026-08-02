@@ -12,6 +12,24 @@ const numberContract: TokenTypeContract<number> = {
 	Editor: () => createElement("input"),
 };
 
+const numberContractWithEditorOptionsSchema: TokenTypeContract<number> = {
+	...numberContract,
+	editorOptionsSchema: z.object({ label: z.string() }),
+};
+
+test("a contract constructs without editorOptionsSchema", () => {
+	assert.equal(numberContract.editorOptionsSchema, undefined);
+});
+
+test("a contract constructs with editorOptionsSchema present", () => {
+	assert.equal(
+		numberContractWithEditorOptionsSchema.editorOptionsSchema?.safeParse({
+			label: "ok",
+		}).success,
+		true,
+	);
+});
+
 test("returns the parsed value for valid input", () => {
 	const result = validateTokenValue(numberContract, 42);
 	assert.ok(result.isOk());

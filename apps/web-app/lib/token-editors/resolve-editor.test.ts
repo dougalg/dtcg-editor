@@ -16,7 +16,10 @@ const extensions: readonly TokenEditorExtension[] = [
 ];
 
 test("returns the first matching entry's editor", () => {
-	assert.equal(resolveEditorForType(extensions, "dimension"), dimensionEditor);
+	assert.equal(
+		resolveEditorForType(extensions, "dimension")?.editor,
+		dimensionEditor,
+	);
 });
 
 test("returns undefined when no entry matches", () => {
@@ -28,9 +31,12 @@ test("returns undefined for an empty extensions list", () => {
 });
 
 test("first-match-wins: a later entry for the same type is never reached", () => {
-	assert.equal(resolveEditorForType(extensions, "dimension"), dimensionEditor);
+	assert.equal(
+		resolveEditorForType(extensions, "dimension")?.editor,
+		dimensionEditor,
+	);
 	assert.notEqual(
-		resolveEditorForType(extensions, "dimension"),
+		resolveEditorForType(extensions, "dimension")?.editor,
 		fallbackDimensionEditor,
 	);
 });
@@ -47,5 +53,28 @@ test("resolves a user extension registered for a standard type with no built-in 
 	const withSynthetic: readonly TokenEditorExtension[] = [
 		{ type: typeWithoutBuiltIn, editor },
 	];
-	assert.equal(resolveEditorForType(withSynthetic, typeWithoutBuiltIn), editor);
+	assert.equal(
+		resolveEditorForType(withSynthetic, typeWithoutBuiltIn)?.editor,
+		editor,
+	);
+});
+
+test("returns the matched entry's editorOptions", () => {
+	const withOptions: readonly TokenEditorExtension[] = [
+		{
+			type: "color",
+			editor: colorEditor,
+			editorOptions: { colorSpaces: ["srgb"] },
+		},
+	];
+	assert.deepEqual(resolveEditorForType(withOptions, "color")?.editorOptions, {
+		colorSpaces: ["srgb"],
+	});
+});
+
+test("editorOptions is undefined when the matched entry doesn't declare one", () => {
+	assert.equal(
+		resolveEditorForType(extensions, "dimension")?.editorOptions,
+		undefined,
+	);
 });

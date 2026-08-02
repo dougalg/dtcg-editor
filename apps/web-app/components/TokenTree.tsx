@@ -125,10 +125,10 @@ function TreeNode({
 		const canEdit = isDimension
 			? existingDimensionValue !== undefined
 			: (genericValueValidation?.isOk() ?? isStandard);
-		const resolvedEditor =
-			isStandard && effectiveType !== undefined
+		const { editor: resolvedEditor, editorOptions: resolvedEditorOptions } =
+			(isStandard && effectiveType !== undefined
 				? resolveEditorForType(dtcgEditorConfig.extensions, effectiveType)
-				: undefined;
+				: undefined) ?? {};
 
 		if (!canEdit) {
 			const isColor = node.effectiveType === colorTokenType.type;
@@ -283,12 +283,14 @@ function TreeNode({
 						<DimensionEditor
 							value={currentDimensionValue}
 							onChange={handleDimensionValueChange}
+							options={resolvedEditorOptions}
 						/>
 					)}
 				{!isDimension && GenericEditor !== undefined && (
 					<GenericEditor
 						value={currentRawValue}
 						onChange={handleGenericValueChange}
+						options={resolvedEditorOptions}
 					/>
 				)}
 				{!isDimension && GenericEditor === undefined && (

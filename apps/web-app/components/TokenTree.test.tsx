@@ -6,6 +6,35 @@ import { BUILT_IN_TOKEN_TYPES } from "../lib/token-editors/built-in.ts";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
 
 /**
+ * Replaces the real `dtcg-editor.config.mts`-sourced config with one whose
+ * `color` extension is a fake editor capturing the props it receives, ahead
+ * of the real built-in extensions (spread in so dimension-token tests
+ * elsewhere in this file keep exercising the real `DimensionEditor`
+ * unmodified — only `color`'s registered editor changes).
+ */
+const receivedColorEditorProps: unknown[] = [];
+vi.mock("../lib/token-editors/user-config.ts", async () => {
+	const { builtInExtensions } =
+		await import("../lib/token-editors/built-in.ts");
+	return {
+		default: {
+			tokensDir: "./tokens",
+			extensions: [
+				{
+					type: "color",
+					editor: (props: unknown) => {
+						receivedColorEditorProps.push(props);
+						return null as never;
+					},
+					editorOptions: { colorSpaces: ["srgb", "hsl"] },
+				},
+				...builtInExtensions,
+			],
+		},
+	};
+});
+
+/**
  * A standard DTCG type with no shipped built-in editor, computed at test-run
  * time rather than hardcoded — a literal like "fontWeight" would silently
  * start asserting a false premise the day a real editor for that type ships
@@ -167,6 +196,38 @@ test("an out-of-range color token still renders, editable, with its issue visibl
 	expect(screen.getByRole("alert").textContent).toMatch(
 		/H\) must be >= 0 and < 360/,
 	);
+});
+
+test("threads a color extension's editorOptions through to its registered editor", () => {
+	receivedColorEditorProps.length = 0;
+	const node: PlainDtcgNode = {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			{
+				kind: "token",
+				name: "brand-blue",
+				path: ["brand-blue"],
+				value: { colorSpace: "srgb", components: [0.2, 0.4, 0.9] },
+				declaredType: "color",
+				effectiveType: "color",
+				description: undefined,
+				deprecated: undefined,
+			},
+		],
+	};
+
+	render(<TokenTree node={node} relativePath="tokens.json" />);
+
+	expect(receivedColorEditorProps).toHaveLength(1);
+	expect(receivedColorEditorProps[0]).toMatchObject({
+		options: { colorSpaces: ["srgb", "hsl"] },
+	});
 });
 
 test("rejects a rename that collides with a sibling and does not stage it (AC-03)", () => {

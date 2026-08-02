@@ -5,13 +5,29 @@ import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
 import {
 	COLOR_SPACES,
 	COMPONENT_RANGES,
+	type ColorEditorOptions,
 	type ColorObjectValue,
+	type ColorSpace,
 	type ColorValue,
 } from "./color.ts";
 import { colorValueToCssColor } from "./css-color.ts";
+import {
+	colorValueToSrgbHex,
+	srgbHexToColorSpaceComponents,
+} from "./conversion.ts";
 import styles from "./editor.module.css";
 
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
+/** `COLOR_SPACES`, deduped with `active` unioned in, kept in canonical order regardless of allow-list order (FR-05/AC-05/AC-06). */
+function offeredColorSpaces(
+	configured: readonly ColorSpace[] | undefined,
+	active: ColorSpace,
+): readonly ColorSpace[] {
+	const allowed = new Set(configured ?? COLOR_SPACES);
+	allowed.add(active);
+	return COLOR_SPACES.filter((space) => allowed.has(space));
+}
 
 function withComponent(
 	value: ColorObjectValue,
@@ -46,21 +62,35 @@ function withoutHex(value: ColorObjectValue): ColorObjectValue {
 function ObjectColorEditor({
 	value,
 	onChange,
+	colorSpaces,
 }: {
 	value: ColorObjectValue;
 	onChange: (next: ColorValue) => void;
+	colorSpaces?: readonly ColorSpace[] | undefined;
 }) {
 	const [hexInput, setHexInput] = useState(value.hex ?? "");
 	const componentLabels = COMPONENT_RANGES[value.colorSpace].map(
 		(range) => range.label,
 	);
 	const cssColor = colorValueToCssColor(value);
+	const offeredSpaces = offeredColorSpaces(colorSpaces, value.colorSpace);
 
 	function handleColorSpaceChange(event: ChangeEvent<HTMLSelectElement>) {
 		onChange({
 			...value,
 			colorSpace: event.target.value as ColorObjectValue["colorSpace"],
 		});
+	}
+
+	function handlePickerChange(event: ChangeEvent<HTMLInputElement>) {
+		const components = srgbHexToColorSpaceComponents(
+			event.target.value,
+			value.colorSpace,
+		);
+		if (components === null) {
+			return;
+		}
+		onChange({ ...value, components });
 	}
 
 	function handleComponentValueChange(
@@ -109,6 +139,15 @@ function ObjectColorEditor({
 
 	return (
 		<span>
+			<label>
+				<span className={styles.labelText}>Pick a color</span>
+				<input
+					type="color"
+					className={styles.picker}
+					value={colorValueToSrgbHex(value)}
+					onChange={handlePickerChange}
+				/>
+			</label>
 			<span
 				className={styles.swatch}
 				style={{ backgroundColor: cssColor }}
@@ -117,7 +156,7 @@ function ObjectColorEditor({
 			<label>
 				<span className={styles.labelText}>Color space</span>
 				<select value={value.colorSpace} onChange={handleColorSpaceChange}>
-					{COLOR_SPACES.map((space) => (
+					{offeredSpaces.map((space) => (
 						<option key={space} value={space}>
 							{space}
 						</option>
@@ -202,8 +241,23 @@ function LegacyHexColorEditor({
 		}
 	}
 
+	function handlePickerChange(event: ChangeEvent<HTMLInputElement>) {
+		const next = event.target.value;
+		setHexInput(next);
+		onChange(next);
+	}
+
 	return (
 		<span>
+			<label>
+				<span className={styles.labelText}>Pick a color</span>
+				<input
+					type="color"
+					className={styles.picker}
+					value={colorValueToSrgbHex(value)}
+					onChange={handlePickerChange}
+				/>
+			</label>
 			<span
 				className={styles.swatch}
 				style={{ backgroundColor: colorValueToCssColor(value) }}
@@ -223,17 +277,28 @@ function LegacyHexColorEditor({
 }
 
 /**
- * The editable UI for a Color token's `$value`. Registered via
- * `colorTokenType` but unreachable in the running app until `TokenTree.tsx`'s
- * `canEdit` gate generalizes beyond dimension tokens (see `feature.md`'s Out
- * of Scope) — built now so that generalization requires no further work here.
+ * The editable UI for a Color token's `$value`, registered via `colorTokenType`.
+ * `options` is this type's resolved `editorOptions` (validated at config-load
+ * time against `ColorEditorOptionsSchema`, see `token-type.ts`) — cast via
+ * unknown-erasure, the same pattern `built-in.ts` already uses to erase
+ * `TokenTypeContract<unknown>`. `options === undefined` (no extension entry,
+ * or one with no `editorOptions`) means all 14 spaces stay offered, matching
+ * FR-04's zero-config behavior.
  */
 export function ColorEditor({
 	value,
 	onChange,
+	options,
 }: TokenTypeEditorProps<ColorValue>) {
+	const colorSpaces = (options as ColorEditorOptions | undefined)?.colorSpaces;
 	if (typeof value === "string") {
 		return <LegacyHexColorEditor value={value} onChange={onChange} />;
 	}
-	return <ObjectColorEditor value={value} onChange={onChange} />;
+	return (
+		<ObjectColorEditor
+			value={value}
+			onChange={onChange}
+			colorSpaces={colorSpaces}
+		/>
+	);
 }

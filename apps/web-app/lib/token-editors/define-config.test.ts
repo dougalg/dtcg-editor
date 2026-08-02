@@ -110,6 +110,84 @@ test("aggregates multiple issues into one error message", () => {
 	}
 });
 
+test("throws DtcgEditorConfigError when editorOptions fails the built-in color contract's editorOptionsSchema (AC-03)", () => {
+	assert.throws(() => {
+		defineConfig({
+			tokensDir: "./tokens",
+			extensions: [
+				{
+					type: "color",
+					editor: () => null,
+					editorOptions: { colorSpaces: ["cmyk"] },
+				},
+			],
+		});
+	}, DtcgEditorConfigError);
+});
+
+test("throws DtcgEditorConfigError when editorOptions has an empty colorSpaces allow-list (AC-04)", () => {
+	assert.throws(() => {
+		defineConfig({
+			tokensDir: "./tokens",
+			extensions: [
+				{
+					type: "color",
+					editor: () => null,
+					editorOptions: { colorSpaces: [] },
+				},
+			],
+		});
+	}, DtcgEditorConfigError);
+});
+
+test("accepts valid editorOptions for the built-in color contract", () => {
+	const resolved = defineConfig({
+		tokensDir: "./tokens",
+		extensions: [
+			{
+				type: "color",
+				editor: () => null,
+				editorOptions: { colorSpaces: ["srgb", "hsl"] },
+			},
+		],
+	});
+	assert.deepEqual(resolved.extensions[0]?.editorOptions, {
+		colorSpaces: ["srgb", "hsl"],
+	});
+});
+
+test("passes editorOptions through unchecked for a type with no built-in editorOptionsSchema", () => {
+	const resolved = defineConfig({
+		tokensDir: "./tokens",
+		extensions: [
+			{
+				type: "dimension",
+				editor: () => null,
+				editorOptions: { anything: "goes" },
+			},
+		],
+	});
+	assert.deepEqual(resolved.extensions[0]?.editorOptions, {
+		anything: "goes",
+	});
+});
+
+test("editorOptions present but editor invalid still fails for the existing editor-requiredness reason (AC-02)", () => {
+	assert.throws(() => {
+		defineConfig({
+			tokensDir: "./tokens",
+			extensions: [
+				// @ts-expect-error -- deliberately malformed, mirroring a plain-JS author's mistake
+				{
+					type: "color",
+					editor: "not a function",
+					editorOptions: { colorSpaces: ["srgb"] },
+				},
+			],
+		});
+	}, DtcgEditorConfigError);
+});
+
 test("accepts a user extension registered for a standard type with no built-in editor, derived dynamically so it can't go stale (AC-08)", () => {
 	const typeWithoutBuiltIn = DTCG_TOKEN_TYPES.find(
 		(type) => !(BUILT_IN_TOKEN_TYPES as readonly string[]).includes(type),

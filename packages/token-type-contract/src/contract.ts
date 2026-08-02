@@ -6,6 +6,8 @@ import type { z } from "zod";
 export interface TokenTypeEditorProps<TValue> {
 	readonly value: TValue;
 	readonly onChange: (next: TValue) => void;
+	/** This type's resolved `editorOptions` from the host app's config, or `undefined` when none was supplied. */
+	readonly options?: unknown;
 }
 
 /**
@@ -22,6 +24,8 @@ export interface TokenTypeContract<TValue> {
 	serializeValue(value: TValue): unknown;
 	/** The editable UI for this type. */
 	Editor(props: TokenTypeEditorProps<TValue>): ReactElement;
+	/** Optional schema `defineConfig` validates a matching extension entry's `editorOptions` against, at config-load time. */
+	readonly editorOptionsSchema?: z.ZodType<unknown>;
 }
 
 /** Returned by `validateTokenValue` when a raw value doesn't conform to a contract's `valueSchema`. */

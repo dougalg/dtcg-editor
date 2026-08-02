@@ -114,3 +114,35 @@ test("the browse -> open -> edit -> save flow is fully keyboard-operable with vi
 	const savedContents = JSON.parse(readFileSync(fixturePath, "utf-8"));
 	expect(savedContents["spacing-scale"]["0"].$value.value).toBe(42);
 });
+
+test("the color editor's native color picker is keyboard-reachable with an accessible name (AC-12)", async ({
+	page,
+}) => {
+	// Read-only: only tabs and reads focus/accessible-name, never types into or
+	// saves `color_scale.tokens.json`, so this test needs no backup/restore of
+	// that fixture (unlike the flow above, which edits and saves).
+	await page.goto("/");
+
+	const fileLink = page.getByRole("link", {
+		name: /color_scale\.tokens\.json/i,
+	});
+	await tabUntilFocused(page, fileLink);
+	await page.keyboard.press("Enter");
+	await expect(page).toHaveURL(/\/tokens\/color_scale\.tokens\.json$/);
+
+	const tokenNameInput = page.getByRole("textbox", {
+		name: "blue-500 name",
+		exact: true,
+	});
+	await tabUntilFocused(page, tokenNameInput);
+
+	// Every color token on this page has its own "Pick a color" input, so
+	// scope to blue-500's own token `<li>` (its nearest `<li>` ancestor, not
+	// the group's, which also "contains" every sibling token) rather than
+	// `page.getByLabel`, which would be ambiguous across the whole tree.
+	const tokenListItem = tokenNameInput.locator("xpath=ancestor::li[1]");
+	const picker = tokenListItem.getByLabel("Pick a color");
+	await tabUntilFocused(page, picker);
+	expect(await hasVisibleFocusIndicator(picker)).toBe(true);
+	await expect(picker).toHaveAccessibleName("Pick a color");
+});

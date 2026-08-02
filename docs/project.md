@@ -127,6 +127,7 @@ Because the DTCG spec permits extensions and tool-specific fields, the `token-co
 - `@vitejs/plugin-react` (Vitest's standard React-JSX transform, needed alongside `vitest` since the default esbuild transform alone doesn't reliably match the automatic JSX runtime Next.js/React 19 expect)
 - `jsdom` (the DOM environment Vitest renders `apps/web-app` components into — no built-in Node alternative exists)
 - `@testing-library/react` (renders/queries components the way a user would; the standard pairing with Vitest for component tests, avoiding a hand-rolled DOM-assertion harness)
+- `colorjs.io` (`packages/token-type-color` only — sRGB-hex ⇄ per-`colorSpace` numeric-component conversion backing the native color picker, see the Configurable Color Spaces + Interactive Color Picker feature. 6 of the 14 DTCG `colorSpace` values require correct Bradford chromatic-adaptation matrices and CSS Color 4 transfer functions per space — spec-conformance-critical math where a transcription error produces plausible-but-wrong colors, not boilerplate a built-in covers. Chosen over `culori`/`color-convert`/`colord` because it's written and maintained by the CSS Color 4/5 spec co-editors as a reference implementation — the same spec DTCG's `colorSpace` ids are drawn from verbatim — and ships `toGamut()` for the exact "clip out-of-gamut into sRGB" need the picker has. Imported via the tree-shakable `colorjs.io/fn` entry point, not the default class-based entry.)
 
 Anything outside this list requires a flag before adding.
 

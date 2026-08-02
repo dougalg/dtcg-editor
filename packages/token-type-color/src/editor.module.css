@@ -7,6 +7,17 @@
 	vertical-align: middle;
 }
 
+.picker {
+	display: inline-block;
+	width: 2rem;
+	height: 1.5rem;
+	border: 1px solid var(--border);
+	border-radius: 0.25rem;
+	padding: 0;
+	vertical-align: middle;
+	margin-right: 0.5rem;
+}
+
 .labelText {
 	font-size: 0.7rem;
 	opacity: 0.6;

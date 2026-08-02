@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { isDtcgTokenType } from "@dtcg-editor/token-core";
-import { builtInExtensions } from "./built-in.ts";
+import { builtInExtensions, resolveBuiltInContract } from "./built-in.ts";
 import type {
 	DtcgEditorUserConfig,
 	ResolvedDtcgEditorConfig,
@@ -44,6 +44,41 @@ function describeInvalidExtension(entry: unknown, index: number): string[] {
 		issues.push(`extensions[${index}].editor must be a function`);
 	}
 	return issues;
+}
+
+/**
+ * Separate from `describeInvalidExtension` because it cross-references
+ * `built-in.ts` (a schema lookup) rather than just inspecting `entry`'s own
+ * shape. Only runs the schema check when `candidate.type` already passed
+ * `isDtcgTokenType` — an invalid `type` already produces its own issue via
+ * `describeInvalidExtension`, and resolving a built-in contract for an
+ * invalid type would either be meaningless or produce a confusing second
+ * error for the same root cause.
+ */
+function describeInvalidEditorOptions(entry: unknown, index: number): string[] {
+	if (entry === null || typeof entry !== "object") {
+		return [];
+	}
+	const candidate = entry as Partial<TokenEditorExtension>;
+	if (candidate.editorOptions === undefined) {
+		return [];
+	}
+	if (typeof candidate.type !== "string" || !isDtcgTokenType(candidate.type)) {
+		return [];
+	}
+	const contract = resolveBuiltInContract(candidate.type);
+	if (contract?.editorOptionsSchema === undefined) {
+		return [];
+	}
+	const result = contract.editorOptionsSchema.safeParse(
+		candidate.editorOptions,
+	);
+	if (result.success) {
+		return [];
+	}
+	return result.error.issues.map(
+		(issue) => `extensions[${index}].editorOptions: ${issue.message}`,
+	);
 }
 
 /**
@@ -93,6 +128,7 @@ export function defineConfig(
 		userExtensions = rawExtensions as TokenEditorExtension[];
 		rawExtensions.forEach((entry: unknown, index) => {
 			issues.push(...describeInvalidExtension(entry, index));
+			issues.push(...describeInvalidEditorOptions(entry, index));
 		});
 	}
 
