@@ -5,7 +5,10 @@ import type { ChangeEvent, ReactElement } from "react";
 import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
 import type { DimensionValue } from "@dtcg-editor/token-type-dimension";
 import { colorTokenType } from "@dtcg-editor/token-type-color";
-import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
+import {
+	validateTokenValue,
+	type TokenTypeEditorProps,
+} from "@dtcg-editor/token-type-contract";
 import { isDtcgTokenType } from "@dtcg-editor/token-core";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
 import {
@@ -22,6 +25,7 @@ import { SaveButton } from "./SaveButton.tsx";
 import { FallbackValueEditor } from "./FallbackValueEditor.tsx";
 import dtcgEditorConfig from "../lib/token-editors/user-config.ts";
 import { resolveEditorForType } from "../lib/token-editors/resolve-editor.ts";
+import { resolveBuiltInContract } from "../lib/token-editors/built-in.ts";
 import styles from "./TokenTree.module.css";
 
 /**
@@ -104,9 +108,23 @@ function TreeNode({
 		if (dimensionValueValidation?.ok === true) {
 			existingDimensionValue = dimensionValueValidation.value;
 		}
+		// A standard, non-dimension type is only editable if its value actually
+		// parses against that type's own contract schema (when a built-in
+		// contract exists for it) — generalizes the dimension guard above.
+		// A standard type with no built-in contract (e.g. a user-registered
+		// extension for a type with no schema) has nothing to validate
+		// against, so its value is trusted as-is, matching the existing
+		// generic-editor design.
+		const builtInContract =
+			isStandard && !isDimension && effectiveType !== undefined
+				? resolveBuiltInContract(effectiveType)
+				: undefined;
+		const genericValueValidation = builtInContract
+			? validateTokenValue(builtInContract, node.value)
+			: undefined;
 		const canEdit = isDimension
 			? existingDimensionValue !== undefined
-			: isStandard;
+			: (genericValueValidation?.isOk() ?? isStandard);
 		const resolvedEditor =
 			isStandard && effectiveType !== undefined
 				? resolveEditorForType(dtcgEditorConfig.extensions, effectiveType)
@@ -166,6 +184,16 @@ function TreeNode({
 			(pending?.value as DimensionValue | undefined) ?? existingDimensionValue;
 		const currentRawValue = pending?.value ?? node.value;
 		const currentDescription = pending?.description ?? node.description ?? "";
+		// `ColorValueSchema` only checks shape (used above to gate `canEdit`),
+		// not per-colorSpace numeric ranges — so a structurally valid but
+		// out-of-range color value passes validation and becomes editable.
+		// Surface `checkColorValueIssues`' range violations here too, so an
+		// out-of-range value isn't silently editable with no indication
+		// anything's wrong.
+		const editableColorIssues =
+			effectiveType === colorTokenType.type
+				? describeColorForDisplay(currentRawValue).issues
+				: undefined;
 
 		function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
 			const nextName = event.target.value;
@@ -269,6 +297,14 @@ function TreeNode({
 						onChange={handleFallbackValueChange}
 					/>
 				)}
+				{editableColorIssues !== undefined &&
+					editableColorIssues.length > 0 && (
+						<ul role="alert" className={styles.colorIssues}>
+							{editableColorIssues.map((issue) => (
+								<li key={issue}>{issue}</li>
+							))}
+						</ul>
+					)}
 				<label className={styles.field}>
 					<span className={styles.fieldLabel}>{node.name} description</span>
 					<input

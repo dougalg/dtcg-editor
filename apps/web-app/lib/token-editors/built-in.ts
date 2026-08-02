@@ -8,13 +8,6 @@ import type { TokenEditorExtension } from "./types.ts";
  * built-in token-type package means adding its type name here *and* to
  * `builtInContractsByType` below — the mapped type on that record makes
  * forgetting the second edit a compile error, not silent drift.
- *
- * Registering `color` here is intentionally inert today: `TokenTree.tsx`'s
- * `canEdit` gate is still hard-coded to `dimension`, and `resolveEditorForType`
- * is only ever consulted once `canEdit` is already `true` — so a color token
- * still renders via its read-only path regardless of this registration. This
- * is deliberate groundwork for the in-flight `fallback-token-editor` feature,
- * which generalizes `canEdit` (see `feature.md`'s Summary/Out of Scope).
  */
 export const BUILT_IN_TOKEN_TYPES = ["dimension", "color"] as const;
 
@@ -29,8 +22,7 @@ const builtInContractsByType: {
 	// registry never inspects `value`, only threads it through opaquely
 	// between the resolved component and `TokenTree.tsx`'s change handler.
 	dimension: dimensionTokenType as unknown as TokenTypeContract<unknown>,
-	// Same safety argument as `dimension` above; unreachable today regardless
-	// since `canEdit` never resolves to `true` for a color token yet.
+	// Same safety argument as `dimension` above.
 	color: colorTokenType as unknown as TokenTypeContract<unknown>,
 };
 
@@ -40,3 +32,20 @@ export const builtInExtensions: readonly TokenEditorExtension[] =
 		type,
 		editor: builtInContractsByType[type].Editor,
 	}));
+
+/**
+ * Looks up the full contract (including `valueSchema`) for a built-in type,
+ * or `undefined` if `type` has no built-in contract (e.g. a standard type
+ * only reachable via a user-registered extension, which carries no schema
+ * of its own). Lets `TokenTree.tsx` validate a non-dimension standard
+ * token's value before treating it as editable, generalizing the same
+ * guard `dimensionTokenType` already gets, without hard-coding a specific
+ * non-dimension type into the component.
+ */
+export function resolveBuiltInContract(
+	type: string,
+): TokenTypeContract<unknown> | undefined {
+	return (BUILT_IN_TOKEN_TYPES as readonly string[]).includes(type)
+		? builtInContractsByType[type as TokenType]
+		: undefined;
+}

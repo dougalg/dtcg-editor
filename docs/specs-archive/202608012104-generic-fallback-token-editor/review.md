@@ -46,6 +46,15 @@ Clean, well-scoped implementation that mirrors `token-type-dimension`'s package 
 | AC-07: No `token-core`/`canEdit`/`route.ts` changes; color stays non-editable               | `git diff main...HEAD` confirms zero changes to `packages/token-core`, `route.ts`, or `TokenTree.tsx`'s `canEdit` computation; existing `route.test.ts` "non-dimension token" test passes unmodified                | ✅ Covered |
 | AC-08: Existing dimension-editing tests/behavior unaffected                                 | Full `pnpm test` run — 167 tests pass, zero dimension-path test files modified                                                                                                                                      | ✅ Covered |
 
+## Post-merge addendum (rebase onto `main` with `fallback-token-editor`)
+
+After this review, `worktree-color-tokens` was rebased onto local `main`, which by then included the merged `fallback-token-editor` feature. That feature generalized `TokenTree.tsx`'s `canEdit` gate for non-dimension standard types to check only the type _name_ (`isDtcgTokenType`), not the value's structural validity — safe for `dimension` (which already had its own value-validity guard) but not for `color`, which this feature had left structurally-checked-but-previously-inert. Combined, the two features produced two live regressions, confirmed via a running dev server:
+
+1. A structurally malformed color value (e.g. an unrecognized `colorSpace`) crashed the whole page — `ObjectColorEditor` isn't written to handle invalid input, and the root `error.tsx` boundary is page-wide, not per-token.
+2. A structurally valid but out-of-range color value (e.g. `hsl` hue `400`) became silently editable with no indication of the range violation — the previous read-only + `checkColorValueIssues` warning path was bypassed entirely.
+
+Fixed by generalizing the dimension type's existing pattern: `apps/web-app/lib/token-editors/built-in.ts` gained `resolveBuiltInContract(type)`, and `TokenTree.tsx`'s `canEdit` now validates a non-dimension standard type's value against its built-in contract's `valueSchema` (via `validateTokenValue`) before allowing edit — a token that fails schema validation falls back to the existing read-only path instead of rendering a possibly-crashing editor. Since `ColorValueSchema` only checks shape, not per-colorSpace numeric ranges, `checkColorValueIssues`' range violations are additionally surfaced as an inline `role="alert"` list next to the now-editable color editor, so the out-of-range case is editable but never silently so. `TokenTree.test.tsx`'s AC-05 test was updated to assert the new editable+inline-warning shape. Re-verified: `pnpm build`/`lint`/`format:check`/`test` all pass (150 web-app unit/component tests + 4 e2e specs), plus live dev-server screenshots confirming both the out-of-range-hue token (editable, warning visible) and a throwaway structurally-malformed fixture (safe read-only fallback, no crash, field-specific diagnostic messages, page never crashes).
+
 ## Verdict
 
 - [x] ✅ Ready to merge

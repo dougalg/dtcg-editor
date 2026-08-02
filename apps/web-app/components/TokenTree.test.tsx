@@ -135,7 +135,7 @@ test("shows editable controls for a dimension token but not for a non-standard t
 	expect(screen.getByText(/non-standard/)).toBeTruthy();
 });
 
-test("an out-of-range color token still renders, with its issue visibly displayed (AC-05)", () => {
+test("an out-of-range color token still renders, editable, with its issue visibly displayed (AC-05)", () => {
 	const node: PlainDtcgNode = {
 		kind: "group",
 		name: "",
@@ -160,8 +160,13 @@ test("an out-of-range color token still renders, with its issue visibly displaye
 
 	render(<TokenTree node={node} relativePath="tokens.json" />);
 
-	expect(screen.getByText("bad-hue")).toBeTruthy();
-	expect(screen.getByRole("alert")).toBeTruthy();
+	// A structurally valid but out-of-range color value is still editable
+	// (its shape matches `ColorValueSchema`) — the range violation surfaces
+	// as an inline warning alongside the editor, not as a read-only fallback.
+	expect(screen.getByLabelText("bad-hue name")).toBeTruthy();
+	expect(screen.getByRole("alert").textContent).toMatch(
+		/H\) must be >= 0 and < 360/,
+	);
 });
 
 test("rejects a rename that collides with a sibling and does not stage it (AC-03)", () => {
