@@ -113,6 +113,26 @@ test("picking a color updates a non-RGB (oklch) token's numeric components (AC-0
 	expect(next.components).not.toEqual([0.5, 0.1, 100]);
 });
 
+test("picking a color updates a wide-gamut (display-p3) token's numeric components (AC-09)", () => {
+	const onChange = vi.fn();
+	render(
+		<ColorEditor
+			value={{ colorSpace: "display-p3", components: [0, 0, 0] }}
+			onChange={onChange}
+		/>,
+	);
+
+	const picker = screen.getByLabelText("Pick a color") as HTMLInputElement;
+	fireEvent.change(picker, { target: { value: "#ff0000" } });
+
+	expect(onChange).toHaveBeenCalledTimes(1);
+	const next = onChange.mock.calls[0]?.[0] as { components: number[] };
+	for (const component of next.components) {
+		expect(Number.isNaN(component)).toBe(false);
+	}
+	expect(next.components).not.toEqual([0, 0, 0]);
+});
+
 test("picking a color never changes alpha (AC-11)", () => {
 	const onChange = vi.fn();
 	render(

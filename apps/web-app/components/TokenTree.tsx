@@ -165,11 +165,13 @@ function TreeNode({
 						<span className={styles.value}>{formatValue(node.value)}</span>
 					</span>
 					{colorDisplay !== undefined && colorDisplay.issues.length > 0 && (
-						<ul role="alert" className={styles.colorIssues}>
-							{colorDisplay.issues.map((issue) => (
-								<li key={issue}>{issue}</li>
-							))}
-						</ul>
+						<div role="alert">
+							<ul className={styles.colorIssues}>
+								{colorDisplay.issues.map((issue) => (
+									<li key={issue}>{issue}</li>
+								))}
+							</ul>
+						</div>
 					)}
 				</li>
 			);
@@ -301,11 +303,13 @@ function TreeNode({
 				)}
 				{editableColorIssues !== undefined &&
 					editableColorIssues.length > 0 && (
-						<ul role="alert" className={styles.colorIssues}>
-							{editableColorIssues.map((issue) => (
-								<li key={issue}>{issue}</li>
-							))}
-						</ul>
+						<div role="alert">
+							<ul className={styles.colorIssues}>
+								{editableColorIssues.map((issue) => (
+									<li key={issue}>{issue}</li>
+								))}
+							</ul>
+						</div>
 					)}
 				<label className={styles.field}>
 					<span className={styles.fieldLabel}>{node.name} description</span>

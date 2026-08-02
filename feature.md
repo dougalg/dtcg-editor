@@ -82,19 +82,19 @@ A new color-conversion dependency is added to `packages/token-type-color` to sup
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `TokenEditorExtension.type` is typed as `DtcgTokenType`; a config author gets IDE autocomplete for valid `$type` values, and `defineConfig` still rejects an invalid runtime `type` string exactly as before.
-- [ ] AC-02: An `extensions` entry with `editorOptions` but no valid `editor` function still fails `defineConfig` validation (i.e. `editor` remains required) with a clear `DtcgEditorConfigError`.
-- [ ] AC-03: `defineConfig({ extensions: [{ type: "color", editor: ColorEditor, editorOptions: { colorSpaces: ["cmyk"] } }] })` (an invalid colorSpace) throws `DtcgEditorConfigError` at config load, not later.
-- [ ] AC-04: `defineConfig({ extensions: [{ type: "color", editor: ColorEditor, editorOptions: { colorSpaces: [] } }] })` (empty allow-list) throws `DtcgEditorConfigError` at config load.
-- [ ] AC-05: With `colorSpaces: ["srgb", "hsl"]` configured, `ColorEditor`'s colorSpace dropdown offers only `srgb` and `hsl` for a token not already using a different space.
-- [ ] AC-06: A token already using a colorSpace outside the configured allow-list (e.g. `lab`) still renders, is still editable (name/description/components/alpha/hex), and its current colorSpace remains the active dropdown value even though not offered as a switch-to option.
-- [ ] AC-07: Saving an edit to a token whose colorSpace is outside the configured allow-list succeeds server-side (no new PATCH rejection introduced by this feature).
-- [ ] AC-08: Reading/rendering an existing token file with a colorSpace outside the configured allow-list never fails to parse or drops data on round-trip (save-with-no-edits reproduces the same parsed data).
-- [ ] AC-09: Using the native color picker on any colorSpace (not just sRGB-family) updates that colorSpace's numeric component fields to a value visibly consistent with the picked color.
-- [ ] AC-10: After picking, manually editing a numeric component field updates the native picker's own displayed color to match.
-- [ ] AC-11: Picking a color never changes the token's alpha value or alpha-enabled state.
-- [ ] AC-12: The native picker input has a real visible `<label>` and introduces zero new axe-core WCAG 2.2 AA violations in the existing `a11y` Vitest project; the existing Playwright keyboard-only flow can still reach and operate every field including the new picker.
-- [ ] AC-13: `defineColorConfig({ colorSpaces: [...] })` type-checks against `ColorEditorOptions` and is usable directly as an `editorOptions` value with no cast.
+- [x] AC-01: `TokenEditorExtension.type` is typed as `DtcgTokenType`; a config author gets IDE autocomplete for valid `$type` values, and `defineConfig` still rejects an invalid runtime `type` string exactly as before.
+- [x] AC-02: An `extensions` entry with `editorOptions` but no valid `editor` function still fails `defineConfig` validation (i.e. `editor` remains required) with a clear `DtcgEditorConfigError`.
+- [x] AC-03: `defineConfig({ extensions: [{ type: "color", editor: ColorEditor, editorOptions: { colorSpaces: ["cmyk"] } }] })` (an invalid colorSpace) throws `DtcgEditorConfigError` at config load, not later.
+- [x] AC-04: `defineConfig({ extensions: [{ type: "color", editor: ColorEditor, editorOptions: { colorSpaces: [] } }] })` (empty allow-list) throws `DtcgEditorConfigError` at config load.
+- [x] AC-05: With `colorSpaces: ["srgb", "hsl"]` configured, `ColorEditor`'s colorSpace dropdown offers only `srgb` and `hsl` for a token not already using a different space.
+- [x] AC-06: A token already using a colorSpace outside the configured allow-list (e.g. `lab`) still renders, is still editable (name/description/components/alpha/hex), and its current colorSpace remains the active dropdown value even though not offered as a switch-to option.
+- [x] AC-07: Saving an edit to a token whose colorSpace is outside the configured allow-list succeeds server-side (no new PATCH rejection introduced by this feature).
+- [x] AC-08: Reading/rendering an existing token file with a colorSpace outside the configured allow-list never fails to parse or drops data on round-trip (save-with-no-edits reproduces the same parsed data).
+- [x] AC-09: Using the native color picker on any colorSpace (not just sRGB-family) updates that colorSpace's numeric component fields to a value visibly consistent with the picked color.
+- [x] AC-10: After picking, manually editing a numeric component field updates the native picker's own displayed color to match.
+- [x] AC-11: Picking a color never changes the token's alpha value or alpha-enabled state.
+- [x] AC-12: The native picker input has a real visible `<label>` and introduces zero new axe-core WCAG 2.2 AA violations in the existing `a11y` Vitest project; the existing Playwright keyboard-only flow can still reach and operate every field including the new picker.
+- [x] AC-13: `defineColorConfig({ colorSpaces: [...] })` type-checks against `ColorEditorOptions` and is usable directly as an `editorOptions` value with no cast.
 
 ## Technical Scope
 
