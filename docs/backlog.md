@@ -5,6 +5,7 @@ Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not 
 
 - [ ] Add support for additional "non-standard" behavious, like custom fields
 - [ ] Support for colour tokens (in progress — worktree `.claude/worktrees/color-tokens`, branch `worktree-color-tokens`)
+- [ ] Colour tokens should have an interactive colour picker as well
 - [ ] Allow the runner to specify in config which colour spaces are available. (in progress — worktree `.claude/worktrees/colour-spaces`, branch `worktree-colour-spaces`)
 - [ ] Allow the runner to specify in config additional non-standard token types to support. They must also register an editor for it, or the config is invalid. This should be enforced via build-time script checks and TS checks for fast feedback.
 - [ ] Improve UI/UX
