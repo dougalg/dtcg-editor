@@ -7,7 +7,7 @@ import {
 	TokenParseError,
 } from "@dtcg-editor/token-core";
 import type { TokenEdit } from "@dtcg-editor/token-core";
-import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
+import { validateTokenValue } from "@dtcg-editor/token-type-contract";
 import { consoleLogger } from "@dtcg-editor/errors";
 import type { Logger, UnknownError } from "@dtcg-editor/errors";
 import { getConfig } from "../../../../lib/config.ts";
@@ -20,6 +20,7 @@ import { PathTraversalError } from "../../../../lib/tokens/path-safety.ts";
 import { toPlainNode } from "../../../../lib/tokens/plain-node.ts";
 import { EditRequestSchema } from "../../../../lib/tokens/edit-request.ts";
 import type { SaveError } from "../../../../lib/tokens/save-error.ts";
+import { resolveBuiltInContract } from "../../../../lib/token-editors/built-in.ts";
 
 interface RouteContext {
 	params: Promise<{ path: string[] }>;
@@ -188,20 +189,26 @@ export async function patchTokenFile(
 
 		let value: unknown;
 		if (edit.value !== undefined) {
-			if (effectiveType === dimensionTokenType.type) {
-				const valueValidation = dimensionTokenType.valueSchema.safeParse(
-					edit.value,
-				);
-				if (!valueValidation.success) {
-					const message = `Invalid ${dimensionTokenType.type} value: ${valueValidation.error.issues.map((i) => i.message).join(", ")}`;
+			// Mirrors `TokenTree.tsx`'s client-side `canEdit` guard: any built-in
+			// standard type's value is validated against its own contract schema
+			// before being accepted, not just dimension's — closes a gap where a
+			// direct PATCH request (bypassing the UI) could previously write an
+			// unvalidated `color` (or any other schema-having) `$value` straight
+			// to disk.
+			const builtInContract = resolveBuiltInContract(effectiveType);
+			if (builtInContract !== undefined) {
+				const valueValidation = validateTokenValue(builtInContract, edit.value);
+				if (valueValidation.isErr()) {
+					const message = valueValidation.error.message;
 					return errorResponse(400, message, {
 						kind: "validation",
-						issues: valueValidation.error.issues.map((i) => i.message),
+						issues: [message],
 					});
 				}
-				value = dimensionTokenType.serializeValue(valueValidation.data);
+				value = builtInContract.serializeValue(valueValidation.value);
 			} else {
-				// No contract schema exists for any standard type but dimension yet
+				// No built-in contract exists for this standard type (e.g. a
+				// user-registered extension for a type with no schema of its own)
 				// — `edit.value` is already a plain JS value (`EditRequestSchema`'s
 				// `z.unknown()`), validated as JSON-parseable client-side, so it's
 				// passed through as-is.

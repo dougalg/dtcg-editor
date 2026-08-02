@@ -11,8 +11,30 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Logger } from "@dtcg-editor/errors";
+import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
 import { setConfigCache } from "../../../../lib/config.ts";
+import { BUILT_IN_TOKEN_TYPES } from "../../../../lib/token-editors/built-in.ts";
 import * as readRoute from "./route.ts";
+
+/**
+ * A standard DTCG type with no shipped built-in contract, computed at
+ * test-run time rather than hardcoded — mirrors `TokenTree.test.tsx`'s
+ * identically-named helper, for the same reason: a literal type name would
+ * silently start asserting a false premise the day a built-in contract for
+ * that type ships.
+ */
+function typeWithoutBuiltIn(): string {
+	const type = DTCG_TOKEN_TYPES.find(
+		(candidate) =>
+			!(BUILT_IN_TOKEN_TYPES as readonly string[]).includes(candidate),
+	);
+	if (type === undefined) {
+		throw new Error(
+			"expected at least one DTCG type with no built-in contract yet",
+		);
+	}
+	return type;
+}
 
 function patchRequest(edits: unknown): Request {
 	return new Request("http://localhost/api/tokens/x", {
@@ -255,21 +277,63 @@ test("PATCH returns 400 when attempting to edit a non-standard-type token", asyn
 	assert.equal(body.kind, "validation");
 });
 
-test("PATCH accepts an edit to a standard, non-dimension token and skips value-shape validation (AC-07)", async () => {
-	await writeFixture("patch-standard-non-dimension.json", {
+test("PATCH accepts an edit to a standard type with no built-in contract and skips value-shape validation", async () => {
+	const type = typeWithoutBuiltIn();
+	await writeFixture("patch-standard-no-contract.json", {
+		group: { item: { $type: type, $value: "anything" } },
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([{ path: ["group", "item"], value: "something-else" }]),
+		"patch-standard-no-contract.json",
+	);
+	assert.equal(response.status, 200);
+
+	const onDisk = (await readFixture("patch-standard-no-contract.json")) as {
+		group: { item: { $value: string } };
+	};
+	assert.equal(onDisk.group.item.$value, "something-else");
+});
+
+test("PATCH validates a color edit against its built-in contract schema and accepts a valid value", async () => {
+	await writeFixture("patch-color-valid.json", {
 		color: { red: { $type: "color", $value: "#ff0000" } },
 	});
 
 	const response = await readRoute.patchTokenFile(
 		patchRequest([{ path: ["color", "red"], value: "#00ff00" }]),
-		"patch-standard-non-dimension.json",
+		"patch-color-valid.json",
 	);
 	assert.equal(response.status, 200);
 
-	const onDisk = (await readFixture("patch-standard-non-dimension.json")) as {
+	const onDisk = (await readFixture("patch-color-valid.json")) as {
 		color: { red: { $value: string } };
 	};
 	assert.equal(onDisk.color.red.$value, "#00ff00");
+});
+
+test("PATCH rejects a color edit whose value fails its built-in contract schema, and does not write it to disk", async () => {
+	await writeFixture("patch-color-invalid.json", {
+		color: { red: { $type: "color", $value: "#ff0000" } },
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([
+			{
+				path: ["color", "red"],
+				value: { colorSpace: "not-a-real-space", components: [1, 2] },
+			},
+		]),
+		"patch-color-invalid.json",
+	);
+	assert.equal(response.status, 400);
+	const body = (await response.json()) as { kind?: string };
+	assert.equal(body.kind, "validation");
+
+	const onDisk = (await readFixture("patch-color-invalid.json")) as {
+		color: { red: { $value: string } };
+	};
+	assert.equal(onDisk.color.red.$value, "#ff0000");
 });
 
 test("PATCH returns 404 for a missing file", async () => {
