@@ -4,6 +4,7 @@ Planned features not yet in progress. Pick one and run `/sdd-feature` to start i
 Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
 - [ ] Add sugarcube and refactor existing UI to use new their tokens and components
+- [ ] Improve UI by adding visible rows, header delineation, and drag and drop reordering of token rows and resolved name visibility OR sticky headers?
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
 - [ ] Add support for "fontFamily" tokens
 - [ ] Add support for "fontWeight" tokens
