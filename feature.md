@@ -24,6 +24,7 @@ The 4 rules in `eslint.config.mjs`'s `no-restricted-syntax` (banning bare `Date.
 ### FR-03: Port `apps/web-app`-level DI-enforcement rules and exemptions
 
 The 7 rules in `apps/web-app/eslint.config.mjs`'s `restrictedSyntax` array (the 4 from FR-02 plus `process.exit`, `console.*`, `process.env`) must exist as Biome GritQL rules scoped to `apps/web-app`, with every documented per-file exemption preserved exactly:
+
 - `lib/fatal-startup-error.ts` and `scripts/init-config.ts`: `process.exit`/`console.*` re-permitted, all other 5 rules still enforced.
 - `instrumentation.ts` and `playwright.config.ts`: `process.env` re-permitted, all other 6 rules still enforced.
 
@@ -104,7 +105,7 @@ Root `package.json`: `format` → Biome's write-mode invocation, `format:check` 
 
 ## Out of Scope
 
-- Type-aware linting adoption — remains the separate, pre-existing "Type-aware linting" backlog item; this feature keeps syntax-only scope, matching what the repo runs today (`tseslint.configs.strict`, not `strict-type-checked`).
+- Type-aware linting adoption — this feature keeps syntax-only scope, matching what the repo runs today (`tseslint.configs.strict`, not `strict-type-checked`). Not currently tracked as its own backlog item; would need a fresh backlog entry if wanted later.
 - Any replacement for `eslint-config-next`'s Next.js-specific rules (`no-img-tag`, `no-html-link-for-pages`, `no-sync-scripts`, dynamic-route key-prop checks, etc.) — Biome has no plugin ecosystem to add these, and no third-party package fills the gap (confirmed via research). Permanently accepted loss, not deferred.
 - oxlint, or any linter other than Biome — considered and explicitly rejected during tool-choice grilling (its Next.js-plugin advantage was outweighed by GritQL being the more viable path for the DI-enforcement rule family).
 - The TypeScript v7 compiler upgrade itself (Next.js `experimental.useTypeScriptCli` adoption) — sequenced as a separate follow-up feature once this one lands, per the user's explicit decision to split scope.
