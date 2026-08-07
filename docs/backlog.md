@@ -4,7 +4,6 @@ Planned features not yet in progress. Pick one and run `/sdd-feature` to start i
 Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
-- [ ] Allow the runner to specify in config which colour spaces are available, and add an interactive colour picker for colour tokens (merged from two separate colour-related items). (in progress — worktree `.claude/worktrees/colour-spaces`, branch `worktree-colour-spaces`)
 - [ ] Add support for "fontFamily" tokens
 - [ ] Add support for "fontWeight" tokens
 - [ ] Add support for "duration" tokens
