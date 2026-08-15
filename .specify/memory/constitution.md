@@ -22,10 +22,11 @@ Removed sections: none
 Deferred / TODO items: none
 
 Source of truth for this amendment: docs/backlog.md-driven pick-up-task flow
-is retained (sdd-pick-up-task has no speckit equivalent); sdd-init is retired
-outright rather than mapped to a speckit command, since speckit-constitution
-now plays that "establish project context" role and docs/project.md is no
-longer generated or maintained by any step in the pipeline.
+is retained (the standalone `pick-up-task` skill has no speckit equivalent);
+sdd-init is retired outright rather than mapped to a speckit command, since
+speckit-constitution now plays that "establish project context" role and
+docs/project.md is no longer generated or maintained by any step in the
+pipeline.
 -->
 
 <!--
@@ -228,7 +229,7 @@ survive unchanged.
 ## Development Workflow
 
 - Feature work follows the pipeline defined in `CLAUDE.md`:
-  `speckit-constitution` (this file) → `sdd-pick-up-task` (optional — claims
+  `speckit-constitution` (this file) → `pick-up-task` (optional — claims
   a `docs/backlog.md` item and opens its dedicated worktree) →
   `speckit-specify` → `speckit-clarify` (optional, repeatable) →
   `speckit-checklist` (optional, repeatable) → `speckit-plan` →
