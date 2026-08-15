@@ -29,7 +29,7 @@ Incorrect:
 This repo has the `sdd-skills` skill set installed (see `skills-lock.json`, sourced from `sivaprasadreddy/sdd-skills`). Feature work in this repo follows the SDD pipeline rather than ad-hoc implementation. Use these skills in order:
 
 1. `sdd-init` — analyse the codebase and generate `docs/project.md` (tech stack, architecture, conventions). Run once before starting SDD, or when asked to regenerate it.
-2. `sdd-pick-up-task` (optional) — pick an open item from `docs/backlog.md` or propose a new one, claim it with an in-progress marker, and open a dedicated git worktree for it before the pipeline below starts. Also resumes an already-claimed item by re-entering its existing worktree.
+2. `pick-up-task` (optional, generic — not part of the `sdd-skills` set) — pick an open item from `docs/backlog.md` or propose a new one, claim it with an in-progress marker, and open a dedicated git worktree for it before the pipeline below starts. Also resumes an already-claimed item by re-entering its existing worktree.
 3. `sdd-feature` — turn a feature request into a detailed `feature.md` spec.
 4. `sdd-refine` (optional, repeatable) — update/enhance `feature.md` as requirements change.
 5. `sdd-plan` — turn `feature.md` into a detailed `plan.md` tailored to the project's stack.

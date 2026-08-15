@@ -26,7 +26,7 @@ Before starting, collect these inputs. If any are missing, ask for them now — 
 Check the conversation for `feature_description`.
 
 `docs/backlog.md` is shared coordination state, and claim notes get committed
-on `main` by `/sdd-pick-up-task`. The copy checked out in your current
+on `main` by `/pick-up-task`. The copy checked out in your current
 directory — especially if you're in a worktree — may be on a branch that
 forked before that commit landed, so it can be missing or stale. Always
 check **main's** copy with `git show main:docs/backlog.md` (run
@@ -39,7 +39,7 @@ working-copy file, when looking for claim notes below.
 (`feature.md`isn't already here, or the path doesn't match the note), stop
 and tell the user to run`EnterWorktree`with that path first — don't start
 a second`feature.md`outside the worktree that already claimed this item.
-This usually means`/sdd-pick-up-task` claimed it in a different session or
+This usually means`/pick-up-task` claimed it in a different session or
   terminal. Otherwise, proceed to Step 1.
 - If missing → read main's `docs/backlog.md` (if it exists) and check for open
   (unchecked) items. Separate plain open items from ones already marked
@@ -47,7 +47,7 @@ This usually means`/sdd-pick-up-task` claimed it in a different session or
   asking: "What feature would you like to build? Here are some open items
   from the backlog you could pick instead: ...". If there are also
   in-progress items, mention them too, but point the user at
-  `/sdd-pick-up-task` to resume one rather than typing its description here —
+  `/pick-up-task` to resume one rather than typing its description here —
   resuming needs to reuse the existing worktree, not start a fresh
   `feature.md`. If the backlog is empty, missing, or has no open items, just
   ask: "What feature would you like to build?" Do NOT proceed until the user

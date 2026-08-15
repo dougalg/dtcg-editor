@@ -2,6 +2,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
 	getStagedFiles,
+	filterFormattableFiles,
 	formatStagedFiles,
 	restageStagedFiles,
 	main,
@@ -33,6 +34,32 @@ test("getStagedFiles parses NUL-delimited output, including filenames with space
 test("getStagedFiles returns an empty array for empty stdout", () => {
 	const { exec } = fakeExec([""]);
 	assert.deepEqual(getStagedFiles(exec), []);
+});
+
+test("filterFormattableFiles excludes staged symlinks (git ls-files mode 120000)", () => {
+	const { exec, calls } = fakeExec([
+		"120000 abc123 0\t.claude/skills/pick-up-task\x00100644 def456 0\ta.ts\0",
+	]);
+	const result = filterFormattableFiles(
+		[".claude/skills/pick-up-task", "a.ts"],
+		exec,
+	);
+	assert.deepEqual(result, ["a.ts"]);
+	assert.equal(calls[0].command, "git");
+	assert.deepEqual(calls[0].args, [
+		"ls-files",
+		"-s",
+		"-z",
+		"--",
+		".claude/skills/pick-up-task",
+		"a.ts",
+	]);
+});
+
+test("filterFormattableFiles does nothing when given no files", () => {
+	const { exec, calls } = fakeExec([]);
+	assert.deepEqual(filterFormattableFiles([], exec), []);
+	assert.equal(calls.length, 0);
 });
 
 test("formatStagedFiles runs prettier on the given files", () => {
@@ -83,19 +110,37 @@ test("main does nothing beyond the staged-files read when there are none staged 
 	assert.deepEqual(calls[0].args.slice(0, 2), ["diff", "--cached"]);
 });
 
-test("main reads staged files, formats them, then restages them, in that order (AC-01)", () => {
-	const { exec, calls } = fakeExec(["a.ts\0", undefined, undefined]);
+test("main reads staged files, filters out symlinks, formats, then restages, in that order (AC-01)", () => {
+	const { exec, calls } = fakeExec([
+		"a.ts\0",
+		"100644 def456 0\ta.ts\0",
+		undefined,
+		undefined,
+	]);
 	main(exec);
-	assert.equal(calls.length, 3);
+	assert.equal(calls.length, 4);
 	assert.deepEqual(calls[0].args.slice(0, 2), ["diff", "--cached"]);
-	assert.equal(calls[1].args.includes("prettier"), true);
-	assert.deepEqual(calls[2].args, ["add", "--", "a.ts"]);
+	assert.deepEqual(calls[1].args.slice(0, 2), ["ls-files", "-s"]);
+	assert.equal(calls[2].args.includes("prettier"), true);
+	assert.deepEqual(calls[3].args, ["add", "--", "a.ts"]);
+});
+
+test("main skips prettier and restaging entirely when every staged file is a symlink", () => {
+	const { exec, calls } = fakeExec(["link\0", "120000 abc123 0\tlink\0"]);
+	main(exec);
+	assert.equal(calls.length, 2);
+	assert.deepEqual(calls[0].args.slice(0, 2), ["diff", "--cached"]);
+	assert.deepEqual(calls[1].args.slice(0, 2), ["ls-files", "-s"]);
 });
 
 test("main propagates a Prettier failure and never restages (AC-04)", () => {
 	const prettierError = new Error("prettier: SyntaxError");
-	const { exec, calls } = fakeExec(["a.ts\0", prettierError]);
+	const { exec, calls } = fakeExec([
+		"a.ts\0",
+		"100644 def456 0\ta.ts\0",
+		prettierError,
+	]);
 	assert.throws(() => main(exec), /prettier: SyntaxError/);
-	assert.equal(calls.length, 2);
-	assert.equal(calls[1].args.includes("prettier"), true);
+	assert.equal(calls.length, 3);
+	assert.equal(calls[2].args.includes("prettier"), true);
 });
