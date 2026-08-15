@@ -2,6 +2,9 @@ packages:
   - "packages/*"
   - "apps/*"
 
+catalogMode: strict
+cleanupUnusedCatalogs: true
+
 allowBuilds:
   sharp: true
   unrs-resolver: true
