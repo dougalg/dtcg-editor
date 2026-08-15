@@ -1,11 +1,21 @@
 {
-	"name": "design-system",
+	"name": "@dtcg-editor/design-system",
 	"version": "1.0.0",
+	"private": true,
 	"description": "",
-	"main": "index.js",
 	"scripts": {
 		"generate": "sugarcube generate"
 	},
+	"exports": {
+		"./styles/tokens.css": "./dist/styles/tokens.css",
+		"./styles/*": "./src/styles/*",
+		"./components/*": "./src/components/ui/*"
+	},
+	"files": [
+		"./dist/",
+		"./styles/",
+		"./components/"
+	],
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
@@ -30,6 +40,7 @@
 		"react-dom": "19.2.8"
 	},
 	"devDependencies": {
-		"@sugarcube-sh/cli": "^0.1.23"
+		"@sugarcube-sh/cli": "^0.1.23",
+		"@types/react": "^19.2.18"
 	}
 }

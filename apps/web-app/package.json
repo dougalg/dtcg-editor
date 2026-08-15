@@ -12,6 +12,7 @@
 		"init-config": "node scripts/init-config.ts"
 	},
 	"dependencies": {
+		"@dtcg-editor/design-system": "workspace:*",
 		"@dtcg-editor/errors": "workspace:*",
 		"@dtcg-editor/token-core": "workspace:*",
 		"@dtcg-editor/token-type-color": "workspace:*",

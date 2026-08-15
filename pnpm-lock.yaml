@@ -56,6 +56,9 @@ importers:
 
   apps/web-app:
     dependencies:
+      '@dtcg-editor/design-system':
+        specifier: workspace:*
+        version: link:../../packages/design-system
       '@dtcg-editor/errors':
         specifier: workspace:*
         version: link:../../packages/errors
@@ -190,6 +193,9 @@ importers:
       '@sugarcube-sh/cli':
         specifier: ^0.1.23
         version: 0.1.23
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
 
   packages/errors:
     devDependencies:

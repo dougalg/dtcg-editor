@@ -1,6 +1,8 @@
 import { getConfig } from "../lib/config.ts";
 import { scanTokenDirectory } from "../lib/tokens/scan.ts";
 import { FolderOverview } from "../components/FolderOverview.tsx";
+import { Input } from "@dtcg-editor/design-system/components/input/input.tsx";
+import { Label } from "@dtcg-editor/design-system/components/label/label.tsx";
 
 // The configured directory is scanned fresh on every request (no
 // file-watching/caching per this feature's NFRs) — without this, Next
@@ -15,6 +17,8 @@ export default async function Home() {
 	return (
 		<main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem" }}>
 			<h1>Token Files</h1>
+			<Label>A label</Label>
+			<Input type="text" />
 			<p style={{ opacity: 0.7 }}>{config.tokensDir}</p>
 			{result.isOk() ? (
 				<FolderOverview files={result.value} />
