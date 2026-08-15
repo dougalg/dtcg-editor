@@ -24,19 +24,22 @@ Incorrect:
 
 "Update from main", DOES NOT mean "update using origin/main"
 
-## Spec-Driven Development (SDD) workflow
+## Spec-Driven Development workflow
 
-This repo has the `sdd-skills` skill set installed (see `skills-lock.json`, sourced from `sivaprasadreddy/sdd-skills`). Feature work in this repo follows the SDD pipeline rather than ad-hoc implementation. Use these skills in order:
+This repo has the `speckit` skill set installed (spec-kit, see `.specify/integrations/speckit.manifest.json`), plus the standalone `pick-up-task` skill (optional, generic — not part of the speckit set) for backlog/worktree claiming. Feature work in this repo follows this pipeline rather than ad-hoc implementation:
 
-1. `sdd-init` — analyse the codebase and generate `docs/project.md` (tech stack, architecture, conventions). Run once before starting SDD, or when asked to regenerate it.
-2. `pick-up-task` (optional, generic — not part of the `sdd-skills` set) — pick an open item from `docs/backlog.md` or propose a new one, claim it with an in-progress marker, and open a dedicated git worktree for it before the pipeline below starts. Also resumes an already-claimed item by re-entering its existing worktree.
-3. `sdd-feature` — turn a feature request into a detailed `feature.md` spec.
-4. `sdd-refine` (optional, repeatable) — update/enhance `feature.md` as requirements change.
-5. `sdd-plan` — turn `feature.md` into a detailed `plan.md` tailored to the project's stack.
-6. `sdd-implement` — implement `plan.md` step by step and verify acceptance criteria.
-7. `sdd-review` — review the implementation against best practices, duplication, security, performance, and `feature.md` acceptance criteria.
-8. `sdd-archive` — archive `feature.md`/`plan.md` into `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/` and update `docs/project.md`.
+1. `speckit-constitution` — create/update the project constitution (`.specify/memory/constitution.md`): principles, tech stack, approved dependencies, governance. Run once before starting feature work, or whenever principles need to change.
+2. `pick-up-task` (optional) — pick an open item from `docs/backlog.md` or propose a new one, claim it with an in-progress marker, and open a dedicated git worktree for it before the pipeline below starts. Also resumes an already-claimed item by re-entering its existing worktree.
+3. `speckit-specify` — turn a feature request into a detailed `spec.md`.
+4. `speckit-clarify` (optional, repeatable) — resolve underspecified areas in `spec.md` via targeted clarifying questions.
+5. `speckit-checklist` (optional, repeatable) — generate custom requirements-quality checklists for the feature spec.
+6. `speckit-plan` — turn `spec.md` into a detailed `plan.md` tailored to the project's stack.
+7. `speckit-tasks` — generate a dependency-ordered `tasks.md` from `spec.md`/`plan.md`.
+8. `speckit-analyze` (optional) — cross-artifact consistency/quality check across `spec.md`, `plan.md`, and `tasks.md` before implementing.
+9. `speckit-implement` — execute `tasks.md` step by step, gated on any generated checklists being complete.
+10. `speckit-converge` (optional, repeatable) — assess the codebase against `spec.md`/`plan.md`/`tasks.md` after implementation and append any remaining unbuilt work as new tasks, looping back into `speckit-implement`.
+11. `speckit-taskstoissues` (optional) — mirror `tasks.md` into GitHub Issues when task tracking should also live there.
 
-If `docs/project.md` does not exist yet, run `sdd-init` before doing feature work — it establishes the architecture context that later steps (and future Claude sessions) rely on.
+If `.specify/memory/constitution.md` hasn't been ratified yet (still template placeholders, or missing), run `speckit-constitution` before doing feature work — it establishes the governance context (principles, tech stack, conventions) that later steps and future Claude sessions rely on.
 
-Steps 3 through 8 each check `docs/backlog.md` for an in-progress worktree marker before assuming they're starting fresh — if one is found and the current directory isn't already that worktree, they'll tell you to `EnterWorktree` into it first rather than duplicating work.
+`pick-up-task` handles claiming a backlog item and entering its dedicated worktree; once inside that worktree, the `speckit-*` steps above operate on the current feature directory in the normal way, each gated by its own prerequisite check (e.g. `speckit-implement` requires `tasks.md` to exist first).

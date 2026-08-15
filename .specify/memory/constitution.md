@@ -1,13 +1,41 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 1.0.0 → 1.1.0
+Rationale: MINOR — Development Workflow and Governance materially rewritten to
+reference the speckit skill pipeline (speckit-specify/clarify/checklist/plan/
+tasks/analyze/implement/converge/taskstoissues) in place of the retired sdd-*
+skill set, and every reference to docs/project.md as the project's living
+reference document is replaced with this constitution file
+(.specify/memory/constitution.md). No principle was removed or redefined, so
+this is not a MAJOR change; the workflow/governance sections are materially
+expanded/changed, so PATCH would understate it.
+
+Modified principles:
+  - I. DTCG Spec Compliance — `feature.md` reference replaced with `spec.md`
+    (speckit's spec artifact), no rule change.
+
+Added sections: none
+
+Removed sections: none
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: docs/backlog.md-driven pick-up-task flow
+is retained (sdd-pick-up-task has no speckit equivalent); sdd-init is retired
+outright rather than mapped to a speckit command, since speckit-constitution
+now plays that "establish project context" role and docs/project.md is no
+longer generated or maintained by any step in the pipeline.
+-->
+
+<!--
+Sync Impact Report (v1.0.0, superseded above)
+==================
 Version change: (unset/template) → 1.0.0
 Rationale: Initial ratification. The prior file on disk contained only unfilled
 [PLACEHOLDER] tokens (never a real constitution), so this is treated as first
 adoption rather than an amendment — hence MAJOR version 1.0.0, not a bump from
 an existing baseline.
-
-Modified principles: n/a (no prior ratified content existed)
 
 Added sections:
   - Core Principles (I–IX): DTCG Spec Compliance, Feature-Based Organization,
@@ -18,20 +46,9 @@ Added sections:
   - Development Workflow (SDD pipeline, testing, CI/commit discipline)
   - Governance
 
-Removed sections: none (template placeholders only)
-
-Deferred / TODO items:
-  - RATIFICATION_DATE set to the date this constitution was first drafted
-    (2026-08-15), since docs/project.md records no earlier date at which
-    these constraints were formally adopted as project-wide governance —
-    they were established incrementally, feature by feature. If an earlier
-    "true" ratification date is known, update this field accordingly.
-
 Source of truth: derived from docs/project.md (Tech Stack, Architecture,
 Conventions, Architectural Constraints, Approved Dependencies sections) as
-of this drafting. docs/project.md remains the living, feature-by-feature
-architecture record; this constitution distills its durable, non-negotiable
-rules for SDD workflow gating (feature/plan/review steps).
+of drafting.
 -->
 
 # dtcg-editor Constitution
@@ -43,7 +60,7 @@ rules for SDD workflow gating (feature/plan/review steps).
 Token schemas, formats, and validation logic MUST strictly conform to the Design
 Tokens Community Group specification currently targeted by the project
 (designtokens.org/tr/2025.10/format). Any deviation from the spec MUST be flagged
-explicitly in the relevant `plan.md`/`feature.md` and in code comments — it MUST
+explicitly in the relevant `plan.md`/`spec.md` and in code comments — it MUST
 NOT be implemented silently.
 
 Rationale: interoperability with other DTCG tooling (Figma plugins, Style
@@ -210,17 +227,24 @@ survive unchanged.
 
 ## Development Workflow
 
-- Feature work follows the Spec-Driven Development (SDD) pipeline defined in
-  `CLAUDE.md`: `sdd-init` → `sdd-pick-up-task` (optional) → `sdd-feature` →
-  `sdd-refine` (optional, repeatable) → `sdd-plan` → `sdd-implement` →
-  `sdd-review` → `sdd-archive`. `sdd-review` is the compliance gate for this
-  constitution's principles before a feature is archived into
-  `docs/specs-archive/`.
-- `docs/project.md` is the living architecture record: tech stack,
-  conventions, architectural constraints, approved dependencies, shipped
-  features, and dated architecture decisions with rationale. It is updated
-  by `sdd-archive` after each feature merges and is authoritative for
-  implementation-level detail this constitution does not restate.
+- Feature work follows the pipeline defined in `CLAUDE.md`:
+  `speckit-constitution` (this file) → `sdd-pick-up-task` (optional — claims
+  a `docs/backlog.md` item and opens its dedicated worktree) →
+  `speckit-specify` → `speckit-clarify` (optional, repeatable) →
+  `speckit-checklist` (optional, repeatable) → `speckit-plan` →
+  `speckit-tasks` → `speckit-analyze` (optional) → `speckit-implement` →
+  `speckit-converge` (optional, repeatable) → `speckit-taskstoissues`
+  (optional). `speckit-analyze` (pre-implementation cross-artifact check) and
+  `speckit-converge` (post-implementation gap check against `spec.md`/
+  `plan.md`/`tasks.md`) together serve as this constitution's compliance
+  gates.
+- This constitution (`.specify/memory/constitution.md`) is the project's
+  living governance record — tech stack, approved dependencies, and
+  architectural principles. Per-feature implementation detail (requirements,
+  technical plan, task breakdown, decisions made along the way) lives in
+  that feature's own `spec.md`/`plan.md`/`tasks.md` artifacts, not in this
+  file; this constitution is authoritative for principle-level rules those
+  artifacts must not contradict.
 - Internal relative imports use an explicit source extension (`.ts`/`.tsx`),
   never extensionless or `.js`, so `node --test` can run test files directly
   against TypeScript source.
@@ -237,11 +261,11 @@ survive unchanged.
 ## Governance
 
 This constitution supersedes ad hoc practice for any conflict between it and
-undocumented convention. `docs/project.md` supplies the implementation-level
-detail (which package does what, which decision was made when and why) that
-this document deliberately does not duplicate; where the two conflict on a
-principle-level rule, this constitution governs and `docs/project.md` MUST be
-corrected to match.
+undocumented convention. Per-feature `spec.md`/`plan.md`/`tasks.md` artifacts
+supply the implementation-level detail (which package does what, which
+decision was made when and why) that this document deliberately does not
+duplicate; where the two conflict on a principle-level rule, this
+constitution governs and the feature's artifacts MUST be corrected to match.
 
 **Amendment procedure**: a change to this file is proposed via a PR that
 edits `.specify/memory/constitution.md` directly, states the version bump
@@ -255,11 +279,13 @@ project-wide governance before merging to `main`.
 - **MINOR** — a new principle or materially expanded section added.
 - **PATCH** — wording clarifications, typo fixes, non-semantic refinements.
 
-**Compliance review**: `sdd-review` (SDD step 5) MUST verify the implemented
-feature against every Core Principle above, in addition to its existing
-best-practices/duplication/security/performance checks, before a feature is
-eligible for `sdd-archive`. A principle violation found at review is a
-blocking finding, not an optional suggestion, unless explicitly waived with
-recorded rationale in the feature's `plan.md`.
+**Compliance review**: `speckit-analyze` MUST be run after `speckit-tasks`
+and before `speckit-implement` to catch cross-artifact drift from any Core
+Principle above; `speckit-converge` MUST be run after `speckit-implement` to
+verify the resulting code actually matches what `spec.md`/`plan.md`/
+`tasks.md` committed to, appending corrective tasks (looped back into
+`speckit-implement`) for anything unmet. A principle violation found at
+either stage is a blocking finding, not an optional suggestion, unless
+explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-15
+**Version**: 1.1.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-15
