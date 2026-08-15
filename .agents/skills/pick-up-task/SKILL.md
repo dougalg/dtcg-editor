@@ -1,23 +1,24 @@
 ---
-name: sdd-pick-up-task
+name: pick-up-task
 description: >
-  SDD step 0.5 (optional, run before /sdd-feature). Lets the user pick an open
-  item from docs/backlog.md or propose a brand-new task, then claims it: marks
-  it in-progress with a worktree pointer directly on the backlog line and
-  opens a dedicated git worktree for the work via EnterWorktree. Also resumes
-  an already-claimed item by finding and re-entering its existing worktree
-  instead of creating a duplicate one. Use when the user wants to start work
-  on a backlog item, asks "what should I work on next", wants an isolated
-  worktree set up before /sdd-feature, or wants to come back to a task they
-  (or someone else) already started.
+  Lets the user pick an open item from docs/backlog.md or propose a
+  brand-new task, then claims it: marks it in-progress with a worktree
+  pointer directly on the backlog line and opens a dedicated git worktree
+  for the work via EnterWorktree. Also resumes an already-claimed item by
+  finding and re-entering its existing worktree instead of creating a
+  duplicate one. Use whenever the user wants to start work on a backlog or
+  todo item, asks "what should I work on next", wants an isolated worktree
+  set up before starting implementation, or wants to come back to a task
+  they (or someone else) already started. Works standalone in any repo that
+  keeps a shared backlog file — no particular spec process, framework, or
+  pipeline required.
 argument-hint: <backlog item to pick up, or new task to add (optional)>
 ---
 
-# SDD: Pick Up a Backlog Task
+# Pick Up a Task
 
-You are helping the user claim a single unit of SDD work and get it isolated
-in its own git worktree before the feature pipeline (`/sdd-feature` onward)
-starts.
+You are helping the user claim a single unit of work and get it isolated in
+its own git worktree before implementation starts.
 
 ## Why this exists
 
@@ -25,8 +26,8 @@ starts.
 agent session may be looking at it at once. This skill exists to solve two
 problems that come from that:
 
-- Without a visible "claimed" marker, two sessions can both run
-  `/sdd-feature` against the same backlog line and duplicate the work.
+- Without a visible "claimed" marker, two sessions can both start work
+  against the same backlog line and duplicate the effort.
 - Once work is claimed and living in its own worktree, a session picking the
   same line back up later (a restart, a different terminal, a teammate)
   needs to find and re-enter that worktree rather than starting a second one
@@ -34,17 +35,18 @@ problems that come from that:
 
 ## Pre-conditions
 
-- Always start in the `main` branch. If you are in a worktree, leave it and go back to main
+- Always start on the `main` branch. If you are in a worktree, leave it and
+  go back to main.
 - Make sure local `main` is up to date (`git fetch origin main && git pull`)
   before reading `docs/backlog.md` — another session may have pushed a claim
   since you last synced. This working copy, read from `main`, is the same
-  authoritative source the other SDD skills read via
-  `git show main:docs/backlog.md` when they can't assume they're on `main`
-  themselves.
-- If `docs/backlog.md` doesn't exist yet, there's nothing to pick from — treat
-  every request as "propose a new task" and create the file first, using the
-  header/intro style already established in similar SDD docs (see how
-  `docs/backlog-completed.md` introduces itself, if it exists, for the tone).
+  authoritative source any other tooling in this repo that also consumes
+  `docs/backlog.md` should treat as ground truth, even when it can't assume
+  it's on `main` itself.
+- If `docs/backlog.md` doesn't exist yet, there's nothing to pick from —
+  treat every request as "propose a new task" and create the file first,
+  using a simple header and a flat `- [ ]` item list (match the tone of
+  `docs/backlog-completed.md` if that file already exists, for consistency).
 - Before doing anything else in Step 1, run `git worktree list` and
   `git branch -a`. Treat their actual output, not anything you recall from
   earlier in the conversation, as the source of truth for which worktrees are
@@ -92,9 +94,8 @@ would fork the work in two directions and leave one half orphaned. Instead:
 
 ## Step 3: Claim the item on docs/backlog.md
 
-Derive a short kebab-case slug from the item's text — the same style
-`/sdd-archive` already uses for its archive folder names (a few meaningful
-words, not the full sentence).
+Derive a short kebab-case slug from the item's text — a few meaningful words,
+not the full sentence.
 
 Edit the item's line in `docs/backlog.md` to append a claim note. Leave the
 checkbox unchecked — claiming isn't finishing:
@@ -124,19 +125,21 @@ may _not_ contain the claim note you just committed on main — unless that
 commit was already pushed and the branch picks it up. That's expected and
 harmless: the note's job is to be visible on main for other sessions, not to
 be read from inside the worktree. It resolves itself as a small, easily
-handled conflict later, at merge/archive time (see `/sdd-archive`'s note on
-this).
+handled conflict later, whenever the branch merges back.
 
 ## Step 5: Hand off
 
-Confirm the worktree is ready, and prompt the user to run `/sdd-feature`
-next — they can hand it the item's text verbatim rather than re-typing it.
+Confirm the worktree is ready. If this project has a defined next step for
+new work — a planning phase, a spec-writing step, a ticket workflow,
+whatever this repo actually uses — point the user at it and let them hand it
+the item's text verbatim rather than re-typing it. If there's no such
+convention here, just confirm the worktree is ready and the user can start
+work in it directly.
 
-## A note for every step after this one
+## A note for anything else that reads docs/backlog.md
 
-`/sdd-feature`, `/sdd-refine`, `/sdd-plan`, `/sdd-implement`, `/sdd-review`,
-and `/sdd-archive` all know to check `docs/backlog.md` for a claim note
-matching their target feature before assuming they're starting fresh. If one
-of them tells the user to switch worktrees via `EnterWorktree` first, that's
-this skill's claim note doing its job — follow that redirect rather than
-proceeding in the wrong directory.
+Other tooling in this repo may also read `docs/backlog.md` and check for a
+claim note matching its target item before assuming it's starting fresh. If
+something tells the user to switch worktrees via `EnterWorktree` first,
+that's this skill's claim note doing its job — follow that redirect rather
+than proceeding in the wrong directory.

@@ -17,6 +17,31 @@ function getStagedFiles(exec) {
 	return output.split("\0").filter((file) => file.length > 0);
 }
 
+/**
+ * Prettier refuses to process a symlink passed explicitly on the command
+ * line (it errors instead of following or skipping it), so staged symlinks
+ * — e.g. the `.claude/skills/<name>` -> `.agents/skills/<name>` links this
+ * repo uses — must be excluded before formatting. They're already staged
+ * as-is and need no reformatting or re-adding.
+ */
+function filterFormattableFiles(files, exec) {
+	if (files.length === 0) {
+		return files;
+	}
+	const output = exec("git", ["ls-files", "-s", "-z", "--", ...files], {
+		encoding: "utf8",
+	});
+	const symlinks = new Set();
+	for (const entry of output.split("\0").filter((line) => line.length > 0)) {
+		const [meta, path] = entry.split("\t");
+		const mode = meta.split(" ")[0];
+		if (mode === "120000") {
+			symlinks.add(path);
+		}
+	}
+	return files.filter((file) => !symlinks.has(file));
+}
+
 function formatStagedFiles(files, exec) {
 	if (files.length === 0) {
 		return;
@@ -40,8 +65,9 @@ function main(exec) {
 	if (files.length === 0) {
 		return;
 	}
-	formatStagedFiles(files, exec);
-	restageStagedFiles(files, exec);
+	const formattable = filterFormattableFiles(files, exec);
+	formatStagedFiles(formattable, exec);
+	restageStagedFiles(formattable, exec);
 }
 
 if (require.main === module) {
@@ -55,6 +81,7 @@ if (require.main === module) {
 
 module.exports = {
 	getStagedFiles,
+	filterFormattableFiles,
 	formatStagedFiles,
 	restageStagedFiles,
 	main,

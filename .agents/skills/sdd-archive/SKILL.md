@@ -131,7 +131,7 @@ If the feature introduced new environment variables, configuration keys, add the
 
 If `docs/backlog.md` exists, scan its unchecked items (`- [ ] ...`) for any that describe
 the feature being archived — match on feature name, description, or an existing
-"(in progress — worktree ..., branch ...)" pointer left by `/sdd-pick-up-task`. A match
+"(in progress — worktree ..., branch ...)" pointer left by `/pick-up-task`. A match
 doesn't have to be an exact string; use judgment (e.g. a backlog line like "Enforce
 conventional commits" matches a feature named "Enforce Conventional Commits").
 
@@ -148,7 +148,7 @@ in-progress note:
 Do not leave a `[x]` copy behind in `docs/backlog.md` — the line moves, it isn't duplicated.
 
 Note that the copy of `docs/backlog.md` in this worktree may not even contain the
-in-progress note `/sdd-pick-up-task` committed to `main` (worktrees usually branch before
+in-progress note `/pick-up-task` committed to `main` (worktrees usually branch before
 that commit exists locally). That's fine — match on the item's description regardless of
 whether the note is present here. When this branch eventually merges into `main`, expect a
 small conflict on this exact line (`main` still has the in-progress note; this branch has
