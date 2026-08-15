@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `/sdd-feature` to start it.
 Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
+- [ ] When running Playwright a11y tests, failures should produce clear, human-readable output — `expect(results.violations).toEqual([])` in `apps/web-app/e2e/*.spec.ts` currently dumps the raw axe-core violations JSON on failure instead of formatted details (rule, impact, affected elements, help URL) (in progress — worktree `.claude/worktrees/playwright-a11y-output`, branch `worktree-playwright-a11y-output`)
 - [ ] Add sugarcube and refactor existing UI to use new their tokens and components
 - [ ] Improve UI by adding visible rows, header delineation, and drag and drop reordering of token rows and resolved name visibility OR sticky headers?
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
