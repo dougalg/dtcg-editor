@@ -13,21 +13,31 @@ The pluggable interface a token-type package implements and the host app
 consumes generically. Adds one new optional member; every other member is
 unchanged.
 
-| Field                    | Type                                                                      | Change    |
-| ------------------------ | ------------------------------------------------------------------------- | --------- |
-| `type`                   | `string`                                                                  | unchanged |
-| `valueSchema`            | `z.ZodType<TValue>`                                                       | unchanged |
-| `serializeValue`         | `(value: TValue) => unknown`                                              | unchanged |
-| `Editor`                 | `(props: TokenTypeEditorProps<TValue>) => ReactElement`                   | unchanged |
-| `editorOptionsSchema`    | `z.ZodType<unknown>` (optional)                                           | unchanged |
-| `ValidationErrorHandler` | `(props: { readonly value: unknown }) => ReactElement \| null` (optional) | **new**   |
+| Field                    | Type                                                                                                                                     | Change    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| `type`                   | `string`                                                                                                                                 | unchanged |
+| `valueSchema`            | `z.ZodType<TValue>`                                                                                                                      | unchanged |
+| `serializeValue`         | `(value: TValue) => unknown`                                                                                                             | unchanged |
+| `Editor`                 | `(props: TokenTypeEditorProps<TValue>) => ReactElement`                                                                                  | unchanged |
+| `editorOptionsSchema`    | `z.ZodType<unknown>` (optional)                                                                                                          | unchanged |
+| `ValidationErrorHandler` | `(props: { readonly value: unknown; readonly validation: Result<TValue, TokenTypeValidationError> }) => ReactElement \| null` (optional) | **new**   |
 
 `ValidationErrorHandler` receives the _raw, possibly-invalid_ value (not `TValue`) — unlike
 `Editor`, which only ever receives an already-validated value — because its
 purpose is specifically to render something useful (a swatch, an issue list,
-or nothing) for a value that may not yet parse. A contract with no `ValidationErrorHandler`
-falls back to the plain name/type/value text rendering `TreeNode.tsx` already
-uses for every type today.
+or nothing) for a value that may not yet parse. It also receives `validation`,
+the same `Result<TValue, TokenTypeValidationError>` `TreeNode.tsx` already
+computes via `validateTokenValue` for that value, so an implementer doesn't
+need to re-run schema validation itself just to know whether the value is
+structurally valid. `TokenTypeValidationError` gains a parallel `issues:
+readonly string[]` field (path-prefixed per-issue messages, additive
+alongside the existing `message`) for implementers that want a field-level
+breakdown — though a `z.union`-typed `valueSchema` (e.g. color's) still needs
+its own branch-schema validation for good messages, since Zod's union errors
+collapse to `"Invalid input"` regardless of which field caused them. A
+contract with no `ValidationErrorHandler` falls back to the plain
+name/type/value text rendering `TreeNode.tsx` already uses for every type
+today.
 
 ## `TreeNodeProps` (unchanged shape, changed internals)
 

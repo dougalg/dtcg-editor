@@ -54,14 +54,18 @@ opaquely, exactly as it already does for `unknown`-typed generic values.
 
 ## Decision 3: Extend `TokenTypeContract` with an optional `ValidationErrorHandler` for read-only/invalid-state display
 
-**Decision**: Add an optional `ValidationErrorHandler?(props: { readonly value: unknown })
-=> ReactElement | null` member to `TokenTypeContract`. `packages/token-type-color`
-implements it (moving the swatch-rendering and validation-issue-listing logic
+**Decision**: Add an optional `ValidationErrorHandler?(props: { readonly value: unknown;
+readonly validation: Result<TValue, TokenTypeValidationError> }) => ReactElement | null`
+member to `TokenTypeContract`, and give `TokenTypeValidationError` a parallel
+`issues: readonly string[]` field (path-prefixed per-issue messages, additive
+alongside the existing `message`). `packages/token-type-color`
+implements `ValidationErrorHandler` (moving the swatch-rendering and validation-issue-listing logic
 currently in `apps/web-app/lib/tokens/color-display.ts` into the color
 package itself, as `packages/token-type-color/src/validation-error-handler.tsx`).
 `TreeNode.tsx` renders `contract.ValidationErrorHandler` generically wherever it currently
-renders the color swatch/issues, for _any_ type that supplies one — falling
-back to plain name/type/value text (already the generic behavior for every
+renders the color swatch/issues, for _any_ type that supplies one — passing the same
+`value`/`validation` pair for whichever raw value is being displayed — and
+falls back to plain name/type/value text (already the generic behavior for every
 other type) when a contract has no `ValidationErrorHandler`.
 
 **Rationale**: Every other piece of type-specific display in `TreeNode.tsx`
@@ -90,6 +94,14 @@ string[] }` function instead of a component_ — rejected: a future
 - _Drop the swatch/issue display entirely_ — rejected: out of scope per the
   spec's Story 2 / SC-002 (no user-facing regression); the feature is a
   structural simplification, not a UI reduction.
+- _Pass only `value`, leaving validation entirely to the implementer_ —
+  rejected: `TreeNode.tsx` already computes a `Result<TValue,
+TokenTypeValidationError>` for this same value via `validateTokenValue`
+  immediately before choosing to render `ValidationErrorHandler` (Decision 1);
+  handing that result along for free avoids a redundant schema-parse an
+  implementer would otherwise have to redo, even though a `z.union`-typed
+  schema (color's) still needs its own richer branch validation for per-field
+  messages.
 
 ## Decision 4: `TokenTree.tsx` needs no logic change
 

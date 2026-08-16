@@ -32,16 +32,52 @@ export interface TokenTypeContract<TValue> {
 
 	/**
 	 * Optional read-only rendering for a token of this type, given its raw
-	 * (possibly-invalid) value — used wherever the host can't or shouldn't
-	 * show an interactive `Editor` (the value fails `valueSchema`, or the
-	 * host is in a read-only context). Types with nothing extra to show
-	 * (e.g. dimension) omit this; the host falls back to plain text.
+	 * (possibly-invalid) value and the host's already-computed validation
+	 * result for that value — used wherever the host can't or shouldn't show
+	 * an interactive `Editor` (the value fails `valueSchema`, or the host is
+	 * in a read-only context). Receiving `validation` alongside `value` lets
+	 * an implementer skip re-running basic schema validation itself; it may
+	 * still need its own type-specific checks for richer per-field messages
+	 * than `valueSchema` alone can produce (see `TokenTypeValidationError`
+	 * below for the mitigation and its limits). Types with nothing extra to
+	 * show (e.g. dimension) omit this; the host falls back to plain text.
 	 */
 	ValidationErrorHandler?(props: {
 		readonly value: unknown;
+		readonly validation: Result<TValue, TokenTypeValidationError>;
 	}): ReactElement | null;
 }
 ```
+
+## `TokenTypeValidationError` (changed)
+
+`packages/token-type-contract/src/contract.ts`
+
+```ts
+export class TokenTypeValidationError extends Error {
+	/**
+	 * Per-issue messages from `valueSchema`'s Zod parse, each prefixed with
+	 * its field path when one exists (e.g. `"colorSpace: Invalid enum
+	 * value"`) — the same granularity `ValidationErrorHandler` needs for a
+	 * field-level breakdown. `message` (inherited from `Error`) is
+	 * unchanged: still the same issues joined into one string with no path
+	 * prefix, so no existing consumer of `.message` (e.g. `TreeNode.tsx`'s
+	 * single-line field-error display) changes behavior.
+	 */
+	readonly issues: readonly string[];
+}
+```
+
+**Limit**: for a `z.union`-typed `valueSchema` (e.g. color's `ColorValueSchema`,
+a union of the object and legacy-hex shapes), Zod's default union error
+collapses every branch's issues to a content-free `"Invalid input"` — `issues`
+inherits that same limitation, since it's derived from the same `safeParse`
+call `message` already was. A contract implementer whose `valueSchema` is a
+union and that wants better structural messages for `ValidationErrorHandler`
+must still validate the raw `value` against its own branch schemas directly,
+as `packages/token-type-color` already does today — the host-supplied
+`validation` is a convenience for the common case (and a signal of overall
+ok/err), not a guaranteed replacement for type-specific validation.
 
 ## Consumer contract: what `TreeNode.tsx` may depend on
 
@@ -67,6 +103,9 @@ criteria — verifiable by grepping `TreeNode.tsx`'s import list (see
   needs to add an implementation to preserve its current swatch/issue display.
 - No existing member's type changes, so no existing `Editor`/`valueSchema`
   implementation needs to change.
+- `TokenTypeValidationError.issues` is additive — `message` keeps its exact
+  prior derivation and format, so no existing consumer of `.message` (e.g.
+  `TreeNode.tsx`'s single-line field-error display) changes behavior.
 
 ## Implementer contract: where a first-party package's contract fields live
 
