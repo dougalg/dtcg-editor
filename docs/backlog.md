@@ -3,9 +3,11 @@
 Planned features not yet in progress. Pick one and run `pick-up-task` (or `speckit-specify`) to start it.
 Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not marked `[x]` here.
 
+- [ ] references should preview the referenced value
+- [ ] references should allow hotlinking to the referenced item
+- [ ] items which are referenced should allow viewing/jumping to those referenced items
 - [ ] TreeGroupNode should be refactored to either be a disclosure element, or make sure it has all necessary aria props like controls, and expanded
 - [ ] Create linting rules based on constitution.md
-- [ ] Refactor token-type subpackages: move all parsing and type definitions (e.g. `token-type-color/src/color.ts`, `conversion.ts`, `css-color.ts`, `token-type.ts`; `token-type-dimension/src/dimension.ts`, `token-type.ts`) into `token-core`, so the `token-type-*` subpackages (`token-type-color`, `token-type-dimension`, `token-type-contract`, …) hold only editor UI (`editor.tsx` and related styles), with `token-core` as the single source of truth for parsing/type definitions. (in progress — worktree `.claude/worktrees/token-core-refactor`, branch `worktree-token-core-refactor`)
 - [ ] Add sugarcube and refactor existing UI to use new their tokens and components
 - [ ] Improve UI by adding visible rows, header delineation, and drag and drop reordering of token rows and resolved name visibility OR sticky headers?
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
