@@ -141,8 +141,8 @@ pnpm workspace monorepo: `packages/*` (library packages), `apps/web-app` (Next.j
 
 **Purpose**: Final sanity pass, no further behavior change.
 
-- [ ] T048 [P] Run quickstart.md's Section 4 manual editor smoke check (`pnpm --filter web-app dev`; edit a color and a dimension token) as a human sanity check on top of T046's automated suite
-- [ ] T049 Review `git status`/`git diff` for the whole change set and confirm no stray `token-type-*` reference, leftover empty directory, or unintended file survives outside archived spec documents (SC-006 final pass)
+- [ ] T048 [P] Run quickstart.md's Section 4 manual editor smoke check (`pnpm --filter web-app dev`; edit a color and a dimension token) as a human sanity check on top of T046's automated suite — deferred: requires a human at a browser; the automated a11y/browser suite (T046/T047) already exercises both editors per quickstart.md's own note
+- [X] T049 Review `git status`/`git diff` for the whole change set and confirm no stray `token-type-*` reference, leftover empty directory, or unintended file survives outside archived spec documents (SC-006 final pass) — clean: only two files unrelated to this feature remain uncommitted (`apps/web-app/dtcg-editor.config.mts`, `docs/backlog.md`), both being actively edited by a concurrent process/session in this same worktree, deliberately excluded from this feature's commits
 
 ---
 
