@@ -1,6 +1,99 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.0.0 → 2.0.1
+Rationale: PATCH — pure terminology sync, no principle redefinition. The
+"token-core-refactor" feature spec (specs/001-token-core-refactor/spec.md)
+was clarified to also rename the `token-type-*` package family to
+`token-editor-*` (`token-type-color` → `token-editor-color`,
+`token-type-dimension` → `token-editor-dimension`, `token-type-contract` →
+`token-editor-contract`), since post-refactor these packages hold only
+editor UI — the old name no longer describes their scope. This amendment
+updates every live body reference to that package family's name so the
+constitution stays consistent with the name the codebase is about to use;
+no rule established by the v2.0.0 amendment changes.
+
+Modified principles:
+  - II. Feature-Based Code Organization — wording only: `token-type-*` /
+    "token-type package" references renamed to `token-editor-*` / "token-editor
+    package".
+  - III. TypeScript Strictness — wording only: "token-type packages"
+    reference renamed to "token-editor packages".
+  - VII. Token-Editor Package Contract (renamed from "Token-Type Package
+    Contract") — wording only: `token-type-*` / "token-type package"
+    references renamed to `token-editor-*` / "token-editor package"
+    throughout, matching the heading rename.
+
+Added sections: none
+
+Removed sections: none
+
+Other changes:
+  - Technology Stack & Approved Dependencies — "React (UI/token-type
+    packages, web app)" reworded to "React (UI/token-editor packages, web
+    app)".
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: requested via `speckit-constitution`
+immediately after the matching `/speckit-clarify` session on
+specs/001-token-core-refactor/spec.md recorded the rename decision, so the
+constitution doesn't go stale relative to the spec it governs before
+`/speckit-plan` runs.
+-->
+
+<!--
+Sync Impact Report (v2.0.0, superseded above)
+==================
+Version change: 1.1.0 → 2.0.0
+Rationale: MAJOR — Principle VII (Token-Type Package Contract) is redefined:
+`token-core` is no longer merely the generic, type-agnostic node/group engine;
+it becomes the single source of truth for parsing, type definitions, and
+value validation for every specific `$type` (color, dimension, etc.), not
+just the generic DTCG document shape. The prior rule "the core engine MUST
+NEVER hard-code knowledge of specific token types" is narrowed to apply only
+to rendering/registration (which UI renders which type), not to parsing —
+this is a backward-incompatible redefinition of what Principle VII permits,
+so per this constitution's own versioning policy (MAJOR = "backward-
+incompatible principle removal or redefinition") this is MAJOR, not MINOR,
+regardless of how the amendment was requested. Principle II (Feature-Based
+Code Organization) is correspondingly redefined: a `token-type-*` package no
+longer owns "components, validation, and logic together" — it owns editor UI
+only, with validation/parsing logic centralized in `token-core`.
+
+Modified principles:
+  - II. Feature-Based Code Organization — redefined: `token-type-*` packages
+    are now editor-UI-only (component, styling, `TokenTypeContract` wiring);
+    parsing/type-definition/validation logic for every token type lives in
+    `token-core` as one cohesive package, not distributed per-type.
+  - VII. Token-Type Package Contract — redefined: `token-core` now owns
+    parsing, type definitions, and value validation (Zod schemas,
+    conversion/serialization helpers) for every specific `$type`, remaining
+    React-free; only the pluggable `Editor` component and contract-wiring
+    stay in `token-type-*` packages. Explicit one-way dependency rule added
+    (`token-type-*` → `token-core`, never the reverse).
+
+Added sections: none
+
+Removed sections: none
+
+Other changes:
+  - Technology Stack & Approved Dependencies — `colorjs.io`'s approved scope
+    updated from `packages/token-type-color` to `packages/token-core`,
+    matching where color conversion logic now lives.
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: requested via `speckit-constitution` to
+unblock the "refactor token-type subpackages" backlog item (all parsing/type
+definitions into `token-core`; `token-type-*` subpackages become editor-only)
+before its `speckit-specify` spec is written, so the spec doesn't contradict
+ratified principles.
+-->
+
+<!--
+Sync Impact Report (v1.1.0, superseded above)
+==================
 Version change: 1.0.0 → 1.1.0
 Rationale: MINOR — Development Workflow and Governance materially rewritten to
 reference the speckit skill pipeline (speckit-specify/clarify/checklist/plan/
@@ -71,23 +164,33 @@ bug.
 
 ### II. Feature-Based Code Organization
 
-Code is organised by feature/domain, not by technical layer. A token-type
-package owns its own components, validation, and logic together rather than
-being split across shared `components/`, `services/`, `validators/`
-directories. Tests live alongside the code they test (`parse.ts` +
-`parse.test.ts` in the same directory), not in a separate `test/` tree.
+Code is organised by feature/domain, not by technical layer, at the
+package-family level: `token-core` owns parsing, type definitions, and
+validation for every token type as one cohesive package — not split into
+per-layer `parsers/`, `validators/`, `schemas/` directories within it, and
+not distributed one copy per `token-editor-*` package. Each `token-editor-*`
+package owns that type's editor UI as its own cohesive unit — the `Editor`
+component, its styling, and the `TokenTypeContract` wiring that connects it
+to `token-core`'s schema for that type — rather than being split across
+shared `components/`, `services/` directories. Tests live alongside the code
+they test (`parse.ts` + `parse.test.ts`, `color.ts` + `color.test.ts`,
+wherever that code now lives), not in a separate `test/` tree.
 
-Rationale: this mirrors the plugin/microkernel shape of the Token-Type Package
-Contract (Principle VII) — the code-organization boundary matches the plugin
-boundary, so adding or removing a token type stays a single-directory
-operation. A test is part of the feature bundle it verifies; a separate
-`test/` tree would reintroduce the layer split this principle exists to avoid.
+Rationale: centralizing parsing/type-definitions in `token-core` keeps the
+DTCG-spec-conformant validated model in one place (Principle I) instead of
+scattered one copy per token-editor package, while keeping each type's editor
+UI independently addable/removable as a plugin (Principle VII) — the
+code-organization boundary matches the plugin boundary for UI, so adding or
+removing a token type's *editor* stays a single-directory operation even
+though its parsing lives centrally. A test is part of the feature bundle it
+verifies; a separate `test/` tree would reintroduce the layer split this
+principle exists to avoid.
 
 ### III. TypeScript Strictness
 
 All packages MUST compile under maximally strict TypeScript settings, with no
 per-package relaxation — whether the package is publishable (core engine,
-token-type packages) or internal (web app). Root `tsconfig.base.json` enables
+token-editor packages) or internal (web app). Root `tsconfig.base.json` enables
 `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
 `noImplicitOverride`, `noImplicitReturns`; every package `extends` it and MUST
 NOT loosen any flag. `any` is banned (lint-enforced); use `unknown` and narrow.
@@ -107,7 +210,7 @@ through an edge, it flows through the rest of the system — including across
 package boundaries — as trusted, typed data. Re-validating already-typed
 internal data is a bug, not a safety net.
 
-Rationale: a token-type package receiving a `TokenValue` from the core engine
+Rationale: a token-editor package receiving a `TokenValue` from the core engine
 does not need to re-validate it, because the core engine already validated it
 at the point that value first entered the system. Duplicate validation is
 redundant work and a sign the trust boundary isn't understood.
@@ -153,19 +256,33 @@ Rationale: generalizes the `Logger`-injection convention to every externality
 category, keeping host-app embeddability and testability uniform rather than
 ad hoc per feature.
 
-### VII. Token-Type Package Contract
+### VII. Token-Editor Package Contract
 
-The core engine MUST NEVER hard-code knowledge of specific token types
-(color, dimension, etc.). Every token-type package implements a shared
-interface (`validate`, `serialize`, `render`, etc.) that the core engine
-hosts generically, so adding a new token type never requires changing the
-core engine. Parsing and typing raw DTCG JSON into the validated token model
-lives in its own package (`token-core`), completely agnostic of UI/app
-tooling (no React import), separate from the pluggable contract definition
-and from the token-type packages that implement it.
+`token-core` is the single source of truth for every token type's parsing,
+type definitions, and value validation — Zod value schemas, conversion/
+serialization helpers, and any other DTCG-value-shape logic — for both the
+generic node/group document model and each specific `$type` (`color`,
+`dimension`, etc.). It remains completely agnostic of UI/app tooling: no
+React import, no `Editor` component, no knowledge of which UI framework (if
+any) a host app renders with. Rendering and registration are what stay
+pluggable: each `token-editor-*` package implements a shared `TokenTypeContract`
+interface — its `Editor` component plus a `valueSchema`/`serializeValue`
+imported directly from `token-core` — that a host app's registry hosts
+generically, so adding a new token type's *editor* never requires changing
+the core engine or any other `token-editor-*` package. The "core engine MUST
+NEVER hard-code knowledge of specific token types" rule now applies to
+rendering/registration only, not to parsing: `token-core` deliberately does
+know each type's value shape, but never which component renders it.
+Dependency direction is one-way and enforced: `token-editor-*` packages depend
+on `token-core`, never the reverse — `token-core` MUST NOT import from any
+`token-editor-*` package.
 
-Rationale: the contract itself must conform to the DTCG format spec; when
-the spec introduces breaking changes, the contract evolves backwards-
+Rationale: centralizing parsing/type-definitions in `token-core` gives every
+consumer — the editor UI, a future CLI, a server-side validator — one
+dependency-light, React-free package to import for spec-conformant parsing,
+without forcing them to depend on (or bundle) any specific type's editor UI.
+The contract itself must still conform to the DTCG format spec; when the
+spec introduces breaking changes, `token-core`'s schemas evolve backwards-
 compatibly rather than dropping support for tokens written against an
 earlier spec version.
 
@@ -203,7 +320,7 @@ survive unchanged.
 
 ## Technology Stack & Approved Dependencies
 
-- **Language**: TypeScript. **Framework**: React (UI/token-type packages,
+- **Language**: TypeScript. **Framework**: React (UI/token-editor packages,
   web app); the core engine itself is an installable module, not a full web
   app. **Package management**: pnpm workspaces. **Build orchestration**:
   Turborepo. No database, ORM, migrations, or messaging layer.
@@ -223,7 +340,7 @@ survive unchanged.
   `@commitlint/config-conventional`, `commitizen` + `cz-customizable`,
   `husky`, `prettier` (`useTabs: true`), `vitest` (`apps/web-app` only),
   `@vitejs/plugin-react`, `jsdom`, `@testing-library/react`, `colorjs.io`
-  (`packages/token-type-color` only, imported via the tree-shakable
+  (`packages/token-core` only, imported via the tree-shakable
   `colorjs.io/fn` entry point).
 
 ## Development Workflow
@@ -289,4 +406,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-15
+**Version**: 2.0.1 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-16
