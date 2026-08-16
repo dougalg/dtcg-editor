@@ -1,5 +1,5 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { applyTokenEdits, TokenEditError } from "./edit.ts";
 import { parseTokenFile } from "./parse.ts";
 import { serializeTokenFile } from "./serialize.ts";

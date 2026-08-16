@@ -1,9 +1,9 @@
-import { expect, test } from "vitest";
 import { render } from "@testing-library/react";
 import axe from "axe-core";
-import { TokenTree } from "./TokenTree.tsx";
+import { expect, test } from "vitest";
 import { WCAG_22_AA_TAGS } from "../lib/a11y/wcag-tags.ts";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
+import { TokenTree } from "./TokenTree.tsx";
 
 function treeWithGroup(): PlainDtcgNode {
 	return {

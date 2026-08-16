@@ -67,10 +67,10 @@ export function TreeTokenNode({
 	// A standard type with no built-in contract has nothing to validate
 	// against, so it's trusted as-is.
 	const isValid =
-		isUsableType && (contract === undefined || validation!.isOk());
+		isUsableType && (contract === undefined || validation?.isOk());
 	const { editor: resolvedEditor, editorOptions: resolvedEditorOptions } =
 		(isUsableType
-			? resolveEditorForType(dtcgEditorConfig.extensions, effectiveType!)
+			? resolveEditorForType(dtcgEditorConfig.extensions, effectiveType)
 			: undefined) ?? {};
 
 	if (!isValid) {
@@ -188,7 +188,8 @@ export function TreeTokenNode({
 	}
 
 	const ResolvedEditor = resolvedEditor as
-		((props: TokenTypeEditorProps<unknown>) => ReactElement) | undefined;
+		| ((props: TokenTypeEditorProps<unknown>) => ReactElement)
+		| undefined;
 
 	return (
 		<li className={styles.token}>

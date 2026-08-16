@@ -74,8 +74,9 @@ export async function register(): Promise<void> {
 	}
 
 	const onFatalError = async (message: string): Promise<void> => {
-		const { exitOnFatalStartupError } =
-			await import("./lib/fatal-startup-error.ts");
+		const { exitOnFatalStartupError } = await import(
+			"./lib/fatal-startup-error.ts"
+		);
 		exitOnFatalStartupError(message);
 	};
 

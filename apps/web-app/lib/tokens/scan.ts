@@ -1,13 +1,13 @@
 import { join, relative } from "node:path";
-import { err, ok, ResultAsync, type Result } from "neverthrow";
-import { TokenParseError } from "@dtcg-editor/token-core";
-import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
 import type { Logger, UnknownError } from "@dtcg-editor/errors";
-import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
-import { PathTraversalError } from "./path-safety.ts";
-import { isTokenDocumentStandard } from "./standard-type.ts";
-import { nodeReadDir, nodeReadFile } from "../platform/node-fs.ts";
+import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
+import { TokenParseError } from "@dtcg-editor/token-core";
+import { err, ok, type Result, ResultAsync } from "neverthrow";
 import type { ReadDirEntries, ReadTextFile } from "../platform/node-fs.ts";
+import { nodeReadDir, nodeReadFile } from "../platform/node-fs.ts";
+import { PathTraversalError } from "./path-safety.ts";
+import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
+import { isTokenDocumentStandard } from "./standard-type.ts";
 
 export type TokenFileSummary =
 	| {
@@ -23,7 +23,10 @@ export type TokenFileSummary =
 
 function describeError(
 	error:
-		PathTraversalError | FileNotFoundError | TokenParseError | UnknownError,
+		| PathTraversalError
+		| FileNotFoundError
+		| TokenParseError
+		| UnknownError,
 ): string {
 	if (
 		error instanceof PathTraversalError ||

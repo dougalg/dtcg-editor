@@ -1,5 +1,5 @@
-import { test, vi } from "vitest";
 import assert from "node:assert/strict";
+import { test, vi } from "vitest";
 import { exitOnFatalStartupError } from "./fatal-startup-error.ts";
 
 test("logs the fatal message and exits with code 1", () => {

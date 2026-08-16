@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { getConfig } from "../../../lib/config.ts";
-import { readAndParseTokenFile } from "../../../lib/tokens/read.ts";
-import { toPlainNode } from "../../../lib/tokens/plain-node.ts";
-import type { PlainDtcgNode } from "../../../lib/tokens/plain-node.ts";
 import { TokenTree } from "../../../components/TokenTree.tsx";
+import { getConfig } from "../../../lib/config.ts";
+import type { PlainDtcgNode } from "../../../lib/tokens/plain-node.ts";
+import { toPlainNode } from "../../../lib/tokens/plain-node.ts";
+import { readAndParseTokenFile } from "../../../lib/tokens/read.ts";
 import { describePageError } from "./describe-error.ts";
 
 interface PageProps {

@@ -1,9 +1,9 @@
-import { expect, test } from "vitest";
-import { TokenParseError } from "@dtcg-editor/token-core";
 import type { UnknownError } from "@dtcg-editor/errors";
-import { describePageError } from "./describe-error.ts";
-import { FileNotFoundError } from "../../../lib/tokens/read.ts";
+import { TokenParseError } from "@dtcg-editor/token-core";
+import { expect, test } from "vitest";
 import { PathTraversalError } from "../../../lib/tokens/path-safety.ts";
+import { FileNotFoundError } from "../../../lib/tokens/read.ts";
+import { describePageError } from "./describe-error.ts";
 
 test("PathTraversalError returns its own message (AC-02)", () => {
 	const error = new PathTraversalError(

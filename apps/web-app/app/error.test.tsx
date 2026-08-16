@@ -1,6 +1,6 @@
-import { afterEach, expect, test, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
 import { consoleLogger } from "@dtcg-editor/errors";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, test, vi } from "vitest";
 import GlobalError from "./error.tsx";
 
 afterEach(() => {

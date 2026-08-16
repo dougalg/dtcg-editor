@@ -1,11 +1,11 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import type { Logger } from "@dtcg-editor/errors";
 import { TokenParseError } from "@dtcg-editor/token-core";
-import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
-import { PathTraversalError } from "./path-safety.ts";
+import { test } from "vitest";
 import type { ReadTextFile } from "../platform/node-fs.ts";
+import { PathTraversalError } from "./path-safety.ts";
+import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
 
 const rootDir = "/virtual/tokens";
 

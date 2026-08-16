@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, test } from "vitest";
 import assert from "node:assert/strict";
 import {
 	chmod,
@@ -12,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Logger } from "@dtcg-editor/errors";
 import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
+import { afterAll, beforeAll, test } from "vitest";
 import { setConfigCache } from "../../../../lib/config.ts";
 import { BUILT_IN_TOKEN_TYPES } from "../../../../lib/token-editors/built-in.ts";
 import * as readRoute from "./route.ts";

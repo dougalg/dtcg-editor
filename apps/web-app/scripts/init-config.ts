@@ -4,9 +4,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { err, fromThrowable, ok, type Result } from "neverthrow";
 import { describeCause } from "../lib/config.ts";
-import { TokensDirSchema } from "../lib/token-editors/define-config.ts";
-import { nodeExistsSync, nodeWriteFileSync } from "../lib/platform/node-fs.ts";
 import type { ExistsSync, WriteTextFileSync } from "../lib/platform/node-fs.ts";
+import { nodeExistsSync, nodeWriteFileSync } from "../lib/platform/node-fs.ts";
+import { TokensDirSchema } from "../lib/token-editors/define-config.ts";
 
 const CONFIG_FILE_NAME = "dtcg-editor.config.mts";
 
@@ -76,18 +76,20 @@ function describeIssues(
 export async function runInitConfig(
 	io: InitConfigIO,
 ): Promise<Result<string, string>> {
-	let parsed;
+	const parseOptions = {
+		args: io.argv,
+		options: {
+			"tokens-dir": { type: "string" },
+			force: { type: "boolean", short: "f" },
+			help: { type: "boolean", short: "h" },
+		},
+		strict: true,
+		allowPositionals: false,
+	} as const;
+
+	let parsed: ReturnType<typeof parseArgs<typeof parseOptions>>;
 	try {
-		parsed = parseArgs({
-			args: io.argv,
-			options: {
-				"tokens-dir": { type: "string" },
-				force: { type: "boolean", short: "f" },
-				help: { type: "boolean", short: "h" },
-			},
-			strict: true,
-			allowPositionals: false,
-		});
+		parsed = parseArgs(parseOptions);
 	} catch (cause) {
 		return err(describeCause(cause));
 	}

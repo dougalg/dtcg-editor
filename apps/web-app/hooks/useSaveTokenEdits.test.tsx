@@ -1,7 +1,7 @@
-import { expect, test, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { useSaveTokenEdits } from "./useSaveTokenEdits.ts";
+import { expect, test, vi } from "vitest";
 import type { ClientEdit } from "../lib/tokens/edit-state.ts";
+import { useSaveTokenEdits } from "./useSaveTokenEdits.ts";
 
 const edits: ClientEdit[] = [
 	{ path: ["spacing", "small"], value: { value: 8, unit: "px" } },

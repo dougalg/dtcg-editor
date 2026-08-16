@@ -1,5 +1,5 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { DTCG_TOKEN_TYPES, isDtcgTokenType } from "./token-types.ts";
 
 test("contains exactly the 13 types from the DTCG 2025.10 Format Module spec's Type section", () => {

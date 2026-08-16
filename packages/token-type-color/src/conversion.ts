@@ -1,7 +1,6 @@
 import {
+	A98RGB,
 	ColorSpace as ColorJSSpace,
-	sRGB,
-	sRGB_Linear,
 	HSL,
 	HWB,
 	Lab,
@@ -9,15 +8,16 @@ import {
 	OKLab,
 	OKLCH,
 	P3,
-	A98RGB,
 	ProPhoto,
-	REC_2020,
-	XYZ_D65,
-	XYZ_D50,
 	parse,
+	REC_2020,
+	serialize,
+	sRGB,
+	sRGB_Linear,
 	to,
 	toGamut,
-	serialize,
+	XYZ_D50,
+	XYZ_D65,
 } from "colorjs.io/fn";
 import type { ColorSpace, ColorValue } from "./color.ts";
 

@@ -1,5 +1,5 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
+import { test } from "vitest";
 import { PathTraversalError, resolveSafeTokenPath } from "./path-safety.ts";
 
 const root = "/configured/tokens/root";

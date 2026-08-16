@@ -1,6 +1,6 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
 import { parseTokenFile, type TokenDocument } from "@dtcg-editor/token-core";
+import { test } from "vitest";
 import { isTokenDocumentStandard } from "./standard-type.ts";
 
 function parse(raw: unknown): TokenDocument {

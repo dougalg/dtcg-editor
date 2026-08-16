@@ -1,8 +1,8 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
 import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
-import { defineConfig, DtcgEditorConfigError } from "./define-config.ts";
+import { test } from "vitest";
 import { BUILT_IN_TOKEN_TYPES } from "./built-in.ts";
+import { DtcgEditorConfigError, defineConfig } from "./define-config.ts";
 
 test("returns a resolved config with built-in defaults merged in when no extensions given", () => {
 	const resolved = defineConfig({ tokensDir: "./tokens" });

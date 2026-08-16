@@ -5,7 +5,9 @@
 
 	--thumb-travel: calc(var(--switch-width) - var(--switch-height));
 	--thumb-size: calc(
-		var(--switch-height) - var(--form-control-border-width) * 2
+		var(--switch-height) -
+		var(--form-control-border-width) *
+		2
 	);
 	--thumb-border-color: transparent;
 

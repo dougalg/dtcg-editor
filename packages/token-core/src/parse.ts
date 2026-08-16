@@ -72,7 +72,7 @@ function parseNode(
 		}
 	}
 
-	const isToken = Object.prototype.hasOwnProperty.call(obj, "$value");
+	const isToken = Object.hasOwn(obj, "$value");
 
 	if (isToken) {
 		const hasChildKeys = Object.keys(obj).some((key) => !key.startsWith("$"));
@@ -88,7 +88,7 @@ function parseNode(
 			kind: "token",
 			name,
 			path,
-			value: obj["$value"],
+			value: obj.$value,
 			declaredType,
 			description,
 			deprecated,

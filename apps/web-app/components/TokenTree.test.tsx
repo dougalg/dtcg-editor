@@ -1,9 +1,9 @@
-import { afterEach, expect, test, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
 import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
-import { TokenTree } from "./TokenTree.tsx";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, test, vi } from "vitest";
 import { BUILT_IN_TOKEN_TYPES } from "../lib/token-editors/built-in.ts";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
+import { TokenTree } from "./TokenTree.tsx";
 
 /**
  * Replaces the real `dtcg-editor.config.mts`-sourced config with one whose
@@ -14,8 +14,9 @@ import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
  */
 const receivedColorEditorProps: unknown[] = [];
 vi.mock("../lib/token-editors/user-config.ts", async () => {
-	const { builtInExtensions } =
-		await import("../lib/token-editors/built-in.ts");
+	const { builtInExtensions } = await import(
+		"../lib/token-editors/built-in.ts"
+	);
 	return {
 		default: {
 			tokensDir: "./tokens",

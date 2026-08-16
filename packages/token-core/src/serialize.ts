@@ -12,20 +12,20 @@ export class TokenSerializeError extends Error {
 function nodeToRaw(node: DtcgNode): Record<string, unknown> {
 	const raw: Record<string, unknown> = {};
 	if (node.declaredType !== undefined) {
-		raw["$type"] = node.declaredType;
+		raw.$type = node.declaredType;
 	}
 	if (node.description !== undefined) {
-		raw["$description"] = node.description;
+		raw.$description = node.description;
 	}
 	if (node.deprecated !== undefined) {
-		raw["$deprecated"] = node.deprecated;
+		raw.$deprecated = node.deprecated;
 	}
 	for (const [key, value] of Object.entries(node.extensions)) {
 		raw[key] = value;
 	}
 
 	if (node.kind === "token") {
-		raw["$value"] = node.value;
+		raw.$value = node.value;
 		return raw;
 	}
 

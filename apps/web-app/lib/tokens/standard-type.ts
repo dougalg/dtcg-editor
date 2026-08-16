@@ -1,5 +1,5 @@
-import { isDtcgTokenType } from "@dtcg-editor/token-core";
 import type { DtcgNode, TokenDocument } from "@dtcg-editor/token-core";
+import { isDtcgTokenType } from "@dtcg-editor/token-core";
 
 function isNodeStandard(node: DtcgNode): boolean {
 	if (node.declaredType !== undefined && !isDtcgTokenType(node.declaredType)) {

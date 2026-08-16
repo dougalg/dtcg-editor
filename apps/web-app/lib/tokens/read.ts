@@ -1,12 +1,12 @@
-import { errAsync, ResultAsync } from "neverthrow";
-import { parseTokenFile } from "@dtcg-editor/token-core";
-import type { TokenDocument, TokenParseError } from "@dtcg-editor/token-core";
-import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
 import type { Logger, UnknownError } from "@dtcg-editor/errors";
-import { resolveSafeTokenPath } from "./path-safety.ts";
-import type { PathTraversalError } from "./path-safety.ts";
-import { nodeReadFile } from "../platform/node-fs.ts";
+import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
+import type { TokenDocument, TokenParseError } from "@dtcg-editor/token-core";
+import { parseTokenFile } from "@dtcg-editor/token-core";
+import { errAsync, ResultAsync } from "neverthrow";
 import type { ReadTextFile } from "../platform/node-fs.ts";
+import { nodeReadFile } from "../platform/node-fs.ts";
+import type { PathTraversalError } from "./path-safety.ts";
+import { resolveSafeTokenPath } from "./path-safety.ts";
 
 /** Returned when the requested token file does not exist. */
 export class FileNotFoundError extends Error {

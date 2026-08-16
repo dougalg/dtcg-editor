@@ -1,9 +1,9 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { PassThrough } from "node:stream";
-import { runInitConfig, type InitConfigIO } from "./init-config.ts";
+import { fileURLToPath } from "node:url";
+import { test } from "vitest";
+import { type InitConfigIO, runInitConfig } from "./init-config.ts";
 
 const CONFIG_FILE_NAME = "dtcg-editor.config.mts";
 
@@ -74,8 +74,9 @@ function assertGeneratedConfig(
 	const importMatch = /import \{ defineConfig \} from "([^"]+)";/.exec(content);
 	assert.ok(
 		importMatch,
-		'expected an import { defineConfig } from "...\"; line',
+		'expected an import { defineConfig } from "..."; line',
 	);
+	// biome-ignore lint/style/noNonNullAssertion: single capture group, assert.ok above already confirmed a match
 	assert.equal(resolve(dir, importMatch[1]!), REAL_DEFINE_CONFIG_PATH);
 	assert.match(content, /export default defineConfig\(/);
 	assert.match(content, new RegExp(`tokensDir: ${JSON.stringify(tokensDir)}`));

@@ -251,16 +251,16 @@ label:not(:has(input[type="checkbox"])):not(:has(input[type="radio"])) {
 /* Full width for labels containing text inputs/textareas/selects */
 label:has(
 	input:not(
-		[type="button"],
-		[type="checkbox"],
-		[type="color"],
-		[type="file"],
-		[type="hidden"],
-		[type="image"],
-		[type="radio"],
-		[type="reset"],
-		[type="submit"]
-	),
+			[type="button"],
+			[type="checkbox"],
+			[type="color"],
+			[type="file"],
+			[type="hidden"],
+			[type="image"],
+			[type="radio"],
+			[type="reset"],
+			[type="submit"]
+		),
 	textarea,
 	select
 ) {
@@ -410,7 +410,8 @@ input[type="color"] {
 		border: none;
 		border-radius: calc(
 			var(--form-control-radius, 0.25rem) -
-				var(--form-control-border-width, 1px) * 3
+			var(--form-control-border-width, 1px) *
+			3
 		);
 	}
 
@@ -418,7 +419,8 @@ input[type="color"] {
 		border: none;
 		border-radius: calc(
 			var(--form-control-radius, 0.25rem) -
-				var(--form-control-border-width, 1px) * 3
+			var(--form-control-border-width, 1px) *
+			3
 		);
 	}
 }

@@ -12,16 +12,16 @@
 
 .label:has(
 	input:not(
-		[type="button"],
-		[type="checkbox"],
-		[type="color"],
-		[type="file"],
-		[type="hidden"],
-		[type="image"],
-		[type="radio"],
-		[type="reset"],
-		[type="submit"]
-	),
+			[type="button"],
+			[type="checkbox"],
+			[type="color"],
+			[type="file"],
+			[type="hidden"],
+			[type="image"],
+			[type="radio"],
+			[type="reset"],
+			[type="submit"]
+		),
 	textarea,
 	select
 ) {

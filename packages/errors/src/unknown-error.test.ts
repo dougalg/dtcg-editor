@@ -1,5 +1,5 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import type { Logger } from "./logger.ts";
 import { toLoggedUnknownError } from "./unknown-error.ts";
 
@@ -43,5 +43,5 @@ test("logs exactly once, synchronously, before returning", () => {
 	toLoggedUnknownError(logger, new Error("boom"), "some-operation");
 
 	assert.equal(calls.length, 1);
-	assert.equal(calls[0]?.obj["context"], "some-operation");
+	assert.equal(calls[0]?.obj.context, "some-operation");
 });

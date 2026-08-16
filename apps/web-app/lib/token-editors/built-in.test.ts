@@ -1,6 +1,6 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
 import { colorTokenType } from "@dtcg-editor/token-type-color";
+import { test } from "vitest";
 import { BUILT_IN_TOKEN_TYPES } from "./built-in.ts";
 
 test("colorTokenType exports the color contract shape (AC-01)", () => {

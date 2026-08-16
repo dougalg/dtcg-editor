@@ -1,8 +1,8 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
 import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
-import { resolveEditorForType } from "./resolve-editor.ts";
+import { test } from "vitest";
 import { BUILT_IN_TOKEN_TYPES } from "./built-in.ts";
+import { resolveEditorForType } from "./resolve-editor.ts";
 import type { TokenEditorExtension } from "./types.ts";
 
 const dimensionEditor = () => "dimension-editor" as never;

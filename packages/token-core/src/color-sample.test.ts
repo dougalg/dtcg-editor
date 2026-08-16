@@ -1,6 +1,6 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { parseTokenFile } from "./parse.ts";
 import type { GroupNode, TokenNode } from "./types.ts";

@@ -8,6 +8,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "biome lint .",
+		"lint:write": "biome lint --write .",
 		"test": "vitest run && playwright test",
 		"init-config": "node scripts/init-config.ts"
 	},

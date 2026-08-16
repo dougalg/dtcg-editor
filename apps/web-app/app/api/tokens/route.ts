@@ -1,5 +1,5 @@
-import { consoleLogger } from "@dtcg-editor/errors";
 import type { Logger } from "@dtcg-editor/errors";
+import { consoleLogger } from "@dtcg-editor/errors";
 import { getConfig } from "../../../lib/config.ts";
 import { scanTokenDirectory } from "../../../lib/tokens/scan.ts";
 

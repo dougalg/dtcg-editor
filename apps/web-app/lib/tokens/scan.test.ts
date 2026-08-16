@@ -1,13 +1,13 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import type { Logger } from "@dtcg-editor/errors";
-import { scanTokenDirectory, type TokenFileSummary } from "./scan.ts";
+import { test } from "vitest";
 import type {
 	DirEntry,
 	ReadDirEntries,
 	ReadTextFile,
 } from "../platform/node-fs.ts";
+import { scanTokenDirectory, type TokenFileSummary } from "./scan.ts";
 
 const rootDir = "/virtual/tokens";
 

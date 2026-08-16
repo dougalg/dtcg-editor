@@ -1,9 +1,9 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createElement } from "react";
 import { z } from "zod";
-import { TokenTypeValidationError, validateTokenValue } from "./contract.ts";
 import type { TokenTypeContract } from "./contract.ts";
+import { TokenTypeValidationError, validateTokenValue } from "./contract.ts";
 
 const numberContract: TokenTypeContract<number> = {
 	type: "test-number",

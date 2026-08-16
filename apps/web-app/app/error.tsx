@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { consoleLogger } from "@dtcg-editor/errors";
+import { useEffect } from "react";
 
 /**
  * Root Next.js App Router error boundary — a safety net for genuinely

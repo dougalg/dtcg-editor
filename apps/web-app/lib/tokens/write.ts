@@ -1,15 +1,15 @@
-import { errAsync, ResultAsync } from "neverthrow";
-import { serializeTokenFile } from "@dtcg-editor/token-core";
+import type { Logger, UnknownError } from "@dtcg-editor/errors";
+import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
 import type {
 	TokenDocument,
 	TokenSerializeError,
 } from "@dtcg-editor/token-core";
-import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
-import type { Logger, UnknownError } from "@dtcg-editor/errors";
-import { resolveSafeTokenPath } from "./path-safety.ts";
-import type { PathTraversalError } from "./path-safety.ts";
-import { nodeWriteFile } from "../platform/node-fs.ts";
+import { serializeTokenFile } from "@dtcg-editor/token-core";
+import { errAsync, ResultAsync } from "neverthrow";
 import type { WriteTextFile } from "../platform/node-fs.ts";
+import { nodeWriteFile } from "../platform/node-fs.ts";
+import type { PathTraversalError } from "./path-safety.ts";
+import { resolveSafeTokenPath } from "./path-safety.ts";
 
 /**
  * Resolves `relativePath` safely against `rootDir`, serializes `document`

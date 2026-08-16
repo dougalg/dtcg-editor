@@ -1,4 +1,6 @@
-import { ResultAsync } from "neverthrow";
+import type { Logger, UnknownError } from "@dtcg-editor/errors";
+import { consoleLogger } from "@dtcg-editor/errors";
+import type { TokenEdit } from "@dtcg-editor/token-core";
 import {
 	applyTokenEdits,
 	findNode,
@@ -6,21 +8,19 @@ import {
 	resolveEffectiveType,
 	TokenParseError,
 } from "@dtcg-editor/token-core";
-import type { TokenEdit } from "@dtcg-editor/token-core";
 import { validateTokenValue } from "@dtcg-editor/token-type-contract";
-import { consoleLogger } from "@dtcg-editor/errors";
-import type { Logger, UnknownError } from "@dtcg-editor/errors";
+import { ResultAsync } from "neverthrow";
 import { getConfig } from "../../../../lib/config.ts";
+import { resolveBuiltInContract } from "../../../../lib/token-editors/built-in.ts";
+import { EditRequestSchema } from "../../../../lib/tokens/edit-request.ts";
+import { PathTraversalError } from "../../../../lib/tokens/path-safety.ts";
+import { toPlainNode } from "../../../../lib/tokens/plain-node.ts";
 import {
 	FileNotFoundError,
 	readAndParseTokenFile,
 } from "../../../../lib/tokens/read.ts";
-import { writeAndSerializeTokenFile } from "../../../../lib/tokens/write.ts";
-import { PathTraversalError } from "../../../../lib/tokens/path-safety.ts";
-import { toPlainNode } from "../../../../lib/tokens/plain-node.ts";
-import { EditRequestSchema } from "../../../../lib/tokens/edit-request.ts";
 import type { SaveError } from "../../../../lib/tokens/save-error.ts";
-import { resolveBuiltInContract } from "../../../../lib/token-editors/built-in.ts";
+import { writeAndSerializeTokenFile } from "../../../../lib/tokens/write.ts";
 
 interface RouteContext {
 	params: Promise<{ path: string[] }>;
@@ -53,7 +53,10 @@ function errorResponse(
  */
 function mapReadErrorToResponse(
 	error:
-		PathTraversalError | FileNotFoundError | TokenParseError | UnknownError,
+		| PathTraversalError
+		| FileNotFoundError
+		| TokenParseError
+		| UnknownError,
 	relativePath: string,
 ): Response {
 	if (error instanceof PathTraversalError) {

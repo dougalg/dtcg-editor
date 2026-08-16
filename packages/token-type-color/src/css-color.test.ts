@@ -1,5 +1,5 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { colorValueToCssColor } from "./css-color.ts";
 
 test("srgb (predefined color() form)", () => {

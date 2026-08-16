@@ -1,5 +1,5 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { parseTokenFile, TokenParseError } from "./parse.ts";
 import type { GroupNode, TokenNode } from "./types.ts";
 
@@ -69,10 +69,10 @@ test("preserves unrecognized $-prefixed fields as extensions, including $extensi
 	const colorGroup = result.value.root.children.get("color") as GroupNode;
 	const red = colorGroup.children.get("red") as TokenNode;
 
-	assert.deepEqual(red.extensions["$extensions"], {
+	assert.deepEqual(red.extensions.$extensions, {
 		"com.example.tool": { foo: "bar" },
 	});
-	assert.equal(red.extensions["$customField"], 42);
+	assert.equal(red.extensions.$customField, 42);
 });
 
 test("returns TokenParseError on invalid JSON", () => {

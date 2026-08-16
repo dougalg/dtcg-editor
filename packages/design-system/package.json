@@ -4,7 +4,9 @@
 	"private": true,
 	"description": "",
 	"scripts": {
-		"generate": "sugarcube generate"
+		"generate": "sugarcube generate",
+		"lint:write": "biome lint --write .",
+		"lint": "biome lint ."
 	},
 	"exports": {
 		"./styles/tokens.css": "./dist/styles/tokens.css",

@@ -1,7 +1,7 @@
-import { TokenParseError } from "@dtcg-editor/token-core";
 import type { UnknownError } from "@dtcg-editor/errors";
-import { FileNotFoundError } from "../../../lib/tokens/read.ts";
+import { TokenParseError } from "@dtcg-editor/token-core";
 import { PathTraversalError } from "../../../lib/tokens/path-safety.ts";
+import { FileNotFoundError } from "../../../lib/tokens/read.ts";
 
 /**
  * Maps `readAndParseTokenFile`'s error union to a user-facing message,
@@ -13,7 +13,10 @@ import { PathTraversalError } from "../../../lib/tokens/path-safety.ts";
  */
 export function describePageError(
 	error:
-		PathTraversalError | FileNotFoundError | TokenParseError | UnknownError,
+		| PathTraversalError
+		| FileNotFoundError
+		| TokenParseError
+		| UnknownError,
 	relativePath: string,
 ): string {
 	if (

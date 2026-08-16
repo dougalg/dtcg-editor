@@ -1,8 +1,8 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
 import { err, ok } from "neverthrow";
-import { ConfigError, type Config } from "./lib/config.ts";
-import { runRegister, type RegisterDeps } from "./instrumentation.ts";
+import { test } from "vitest";
+import { type RegisterDeps, runRegister } from "./instrumentation.ts";
+import { type Config, ConfigError } from "./lib/config.ts";
 
 function fakeDeps(overrides: Partial<RegisterDeps>): RegisterDeps & {
 	calls: { loadConfig: number; setConfigCache: number; onFatalError: number };

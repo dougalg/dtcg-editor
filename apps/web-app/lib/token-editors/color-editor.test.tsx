@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { expect, test, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
 import {
 	ColorEditor,
 	type ColorEditorOptions,
 	type ColorValue,
 } from "@dtcg-editor/token-type-color";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
+import { expect, test, vi } from "vitest";
 
 /**
  * Exercises `ColorEditor`'s two `editorOptions`-driven halves (allow-list

@@ -1,6 +1,6 @@
+import { FolderOverview } from "../components/FolderOverview.tsx";
 import { getConfig } from "../lib/config.ts";
 import { scanTokenDirectory } from "../lib/tokens/scan.ts";
-import { FolderOverview } from "../components/FolderOverview.tsx";
 
 // The configured directory is scanned fresh on every request (no
 // file-watching/caching per this feature's NFRs) — without this, Next

@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { isDtcgTokenType } from "@dtcg-editor/token-core";
+import { z } from "zod";
 import { builtInExtensions, resolveBuiltInContract } from "./built-in.ts";
 import type {
 	DtcgEditorUserConfig,

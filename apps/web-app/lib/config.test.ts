@@ -1,6 +1,6 @@
-import { afterEach, test, vi } from "vitest";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
+import { afterEach, test, vi } from "vitest";
 import { loadConfig } from "./config.ts";
 
 /**

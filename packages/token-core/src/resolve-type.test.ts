@@ -1,5 +1,5 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { resolveEffectiveType } from "./resolve-type.ts";
 import type { GroupNode, TokenNode } from "./types.ts";
 

@@ -9,6 +9,7 @@
 		"build": "turbo run build",
 		"dev": "turbo run dev",
 		"lint": "turbo run lint",
+		"lint:write": "turbo run lint:write",
 		"lint:root": "biome lint commit-conventions.cjs commitlint.config.cjs .cz-config.cjs commit-conventions.test.cjs format-staged.cjs format-staged.test.cjs",
 		"test": "turbo run test",
 		"test:commits": "node --test commit-conventions.test.cjs",

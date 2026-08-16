@@ -12,6 +12,9 @@
 		"lint": {
 			"dependsOn": ["^build", "//#lint:root"]
 		},
+		"lint:write": {
+			"dependsOn": ["^build"]
+		},
 		"test": {
 			"dependsOn": ["^build", "//#test:commits", "//#test:format-staged"]
 		},
