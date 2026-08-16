@@ -1,0 +1,7 @@
+`Date.now()` as $call where {
+    register_diagnostic(
+        span = $call,
+        message = "Inject a clock dependency instead of calling Date.now() directly.",
+        severity = "error"
+    )
+}

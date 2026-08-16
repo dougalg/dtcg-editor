@@ -9,12 +9,12 @@
 		"build": "turbo run build",
 		"dev": "turbo run dev",
 		"lint": "turbo run lint",
-		"lint:root": "eslint commit-conventions.cjs commitlint.config.cjs .cz-config.cjs commit-conventions.test.cjs format-staged.cjs format-staged.test.cjs",
+		"lint:root": "biome lint commit-conventions.cjs commitlint.config.cjs .cz-config.cjs commit-conventions.test.cjs format-staged.cjs format-staged.test.cjs",
 		"test": "turbo run test",
 		"test:commits": "node --test commit-conventions.test.cjs",
 		"test:format-staged": "node --test format-staged.test.cjs",
-		"format": "prettier --write .",
-		"format:check": "prettier --check .",
+		"format": "biome format --write .",
+		"format:check": "biome format .",
 		"commit": "cz",
 		"prepare": "husky"
 	},
@@ -27,17 +27,13 @@
 		}
 	},
 	"devDependencies": {
+		"@biomejs/biome": "2.5.8",
 		"@commitlint/cli": "^21.2.1",
 		"@commitlint/config-conventional": "^21.2.0",
-		"@typescript-eslint/eslint-plugin": "^8.67.0",
-		"@typescript-eslint/parser": "^8.67.0",
 		"commitizen": "^4.3.2",
 		"cz-customizable": "^7.5.4",
-		"eslint": "^10.8.1",
 		"husky": "^9.1.7",
-		"prettier": "^3.9.6",
 		"turbo": "^2.10.9",
-		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.67.0"
+		"typescript": "^5.9.3"
 	}
 }

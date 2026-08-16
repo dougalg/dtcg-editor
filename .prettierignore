@@ -1,6 +1,0 @@
-node_modules
-**/.next
-**/dist
-**/.turbo
-pnpm-lock.yaml
-apps/web-app/next-env.d.ts

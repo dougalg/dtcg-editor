@@ -1,0 +1,10 @@
+or {
+    `crypto.randomUUID($args)`,
+    `crypto.getRandomValues($args)`
+} as $call where {
+    register_diagnostic(
+        span = $call,
+        message = "Inject a randomness dependency instead of calling crypto directly.",
+        severity = "error"
+    )
+}

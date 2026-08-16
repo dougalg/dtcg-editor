@@ -1,0 +1,7 @@
+`console.$prop` as $expr where {
+    register_diagnostic(
+        span = $expr,
+        message = "Inject a Logger instead of calling console directly.",
+        severity = "error"
+    )
+}

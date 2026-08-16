@@ -62,7 +62,7 @@ test("filterFormattableFiles does nothing when given no files", () => {
 	assert.equal(calls.length, 0);
 });
 
-test("formatStagedFiles runs prettier on the given files", () => {
+test("formatStagedFiles runs biome check --write on the given files", () => {
 	const { exec, calls } = fakeExec([undefined]);
 	formatStagedFiles(["a.ts", "b.ts"], exec);
 	assert.equal(calls.length, 1);
@@ -70,9 +70,10 @@ test("formatStagedFiles runs prettier on the given files", () => {
 	assert.deepEqual(calls[0].args, [
 		"--no",
 		"--",
-		"prettier",
-		"--ignore-unknown",
+		"biome",
+		"check",
 		"--write",
+		"--files-ignore-unknown=true",
 		"--",
 		"a.ts",
 		"b.ts",
@@ -121,11 +122,11 @@ test("main reads staged files, filters out symlinks, formats, then restages, in 
 	assert.equal(calls.length, 4);
 	assert.deepEqual(calls[0].args.slice(0, 2), ["diff", "--cached"]);
 	assert.deepEqual(calls[1].args.slice(0, 2), ["ls-files", "-s"]);
-	assert.equal(calls[2].args.includes("prettier"), true);
+	assert.equal(calls[2].args.includes("biome"), true);
 	assert.deepEqual(calls[3].args, ["add", "--", "a.ts"]);
 });
 
-test("main skips prettier and restaging entirely when every staged file is a symlink", () => {
+test("main skips biome and restaging entirely when every staged file is a symlink", () => {
 	const { exec, calls } = fakeExec(["link\0", "120000 abc123 0\tlink\0"]);
 	main(exec);
 	assert.equal(calls.length, 2);
@@ -133,14 +134,14 @@ test("main skips prettier and restaging entirely when every staged file is a sym
 	assert.deepEqual(calls[1].args.slice(0, 2), ["ls-files", "-s"]);
 });
 
-test("main propagates a Prettier failure and never restages (AC-04)", () => {
-	const prettierError = new Error("prettier: SyntaxError");
+test("main propagates a Biome failure and never restages (AC-04)", () => {
+	const biomeError = new Error("biome: SyntaxError");
 	const { exec, calls } = fakeExec([
 		"a.ts\0",
 		"100644 def456 0\ta.ts\0",
-		prettierError,
+		biomeError,
 	]);
-	assert.throws(() => main(exec), /prettier: SyntaxError/);
+	assert.throws(() => main(exec), /biome: SyntaxError/);
 	assert.equal(calls.length, 3);
-	assert.equal(calls[2].args.includes("prettier"), true);
+	assert.equal(calls[2].args.includes("biome"), true);
 });

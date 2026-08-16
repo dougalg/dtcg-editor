@@ -1,0 +1,8 @@
+`$fn($args)` where {
+    $fn <: `process.exit`,
+    register_diagnostic(
+        span = $fn,
+        message = "Inject an onFatalError-shaped dependency instead of calling process.exit directly.",
+        severity = "error"
+    )
+}

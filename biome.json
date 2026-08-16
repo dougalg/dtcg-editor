@@ -1,0 +1,152 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.8/schema.json",
+	"files": {
+		"includes": [
+			"**",
+			"!**/node_modules",
+			"!**/dist",
+			"!**/dist-test",
+			"!**/.next",
+			"!**/.turbo",
+			"!**/coverage",
+			"!**/out",
+			"!**/build",
+			"!**/next-env.d.ts",
+			"!**/pnpm-lock.yaml"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"includes": [
+			"**/*.js",
+			"**/*.jsx",
+			"**/*.ts",
+			"**/*.tsx",
+			"**/*.mjs",
+			"**/*.cjs",
+			"**/*.mts",
+			"**/*.cts",
+			"**/*.json",
+			"**/*.jsonc",
+			"**/*.css",
+			"**/*.md"
+		]
+	},
+	"linter": {
+		"enabled": true,
+		"domains": {
+			"react": "recommended"
+		},
+		"rules": {
+			"preset": "recommended",
+			"suspicious": {
+				"noExplicitAny": "error"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["apps/web-app/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"node:fs": "Import fs bindings only in lib/platform/node-fs.ts; inject them as a parameter elsewhere.",
+									"node:fs/promises": "Import fs bindings only in lib/platform/node-fs.ts; inject them as a parameter elsewhere."
+								}
+							}
+						},
+						"noRestrictedGlobals": {
+							"level": "error",
+							"options": {
+								"deniedGlobals": {
+									"fetch": "Inject fetch as a parameter; see useSaveTokenEdits.ts's own default-parameter declaration."
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"apps/web-app/lib/platform/node-fs.ts",
+				"apps/web-app/app/api/tokens/route.test.ts",
+				"apps/web-app/app/api/tokens/*/route.test.ts",
+				"apps/web-app/e2e/keyboard-navigation.spec.ts",
+				"apps/web-app/e2e/support/axe.ts"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["apps/web-app/hooks/useSaveTokenEdits.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedGlobals": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/**"],
+			"linter": {
+				"domains": {
+					"react": "none"
+				}
+			}
+		}
+	],
+	"plugins": [
+		{
+			"path": "./biome/no-date-now.grit",
+			"includes": ["**/packages/**", "**/apps/web-app/**"]
+		},
+		{
+			"path": "./biome/no-new-date.grit",
+			"includes": ["**/packages/**", "**/apps/web-app/**"]
+		},
+		{
+			"path": "./biome/no-math-random.grit",
+			"includes": ["**/packages/**", "**/apps/web-app/**"]
+		},
+		{
+			"path": "./biome/no-crypto-random.grit",
+			"includes": ["**/packages/**", "**/apps/web-app/**"]
+		},
+		{
+			"path": "./biome/no-process-exit.grit",
+			"includes": [
+				"**/apps/web-app/**",
+				"!**/apps/web-app/lib/fatal-startup-error.ts",
+				"!**/apps/web-app/scripts/init-config.ts"
+			]
+		},
+		{
+			"path": "./biome/no-console.grit",
+			"includes": [
+				"**/apps/web-app/**",
+				"!**/apps/web-app/lib/fatal-startup-error.ts",
+				"!**/apps/web-app/scripts/init-config.ts"
+			]
+		},
+		{
+			"path": "./biome/no-process-env.grit",
+			"includes": [
+				"**/apps/web-app/**",
+				"!**/apps/web-app/instrumentation.ts",
+				"!**/apps/web-app/playwright.config.ts"
+			]
+		}
+	]
+}

@@ -11,7 +11,7 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.json",
 		"test": "node --test src/*.test.ts",
-		"lint": "eslint ."
+		"lint": "biome lint ."
 	},
 	"dependencies": {
 		"@dtcg-editor/token-type-contract": "workspace:*",

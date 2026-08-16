@@ -1,0 +1,7 @@
+`process.env` as $expr where {
+    register_diagnostic(
+        span = $expr,
+        message = "Inject an env-lookup dependency instead of reading process.env directly.",
+        severity = "error"
+    )
+}

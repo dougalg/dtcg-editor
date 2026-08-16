@@ -1,10 +1,10 @@
 /**
- * Formats every file staged for the current commit with Prettier and
+ * Formats and lints every file staged for the current commit with Biome and
  * re-stages whatever it changes. Invoked by `.husky/pre-commit`.
  *
- * Git/Prettier calls go through an injected `exec` function so this
+ * Git/Biome calls go through an injected `exec` function so this
  * module's logic can be unit-tested without a real git repo or a real
- * Prettier invocation (see format-staged.test.cjs).
+ * Biome invocation (see format-staged.test.cjs).
  */
 const { execFileSync } = require("node:child_process");
 
@@ -18,11 +18,9 @@ function getStagedFiles(exec) {
 }
 
 /**
- * Prettier refuses to process a symlink passed explicitly on the command
- * line (it errors instead of following or skipping it), so staged symlinks
- * — e.g. the `.claude/skills/<name>` -> `.agents/skills/<name>` links this
- * repo uses — must be excluded before formatting. They're already staged
- * as-is and need no reformatting or re-adding.
+ * Staged symlinks — e.g. the `.claude/skills/<name>` -> `.agents/skills/<name>`
+ * links this repo uses — are excluded before formatting. They're already
+ * staged as-is and need no reformatting or re-adding.
  */
 function filterFormattableFiles(files, exec) {
 	if (files.length === 0) {
@@ -48,7 +46,16 @@ function formatStagedFiles(files, exec) {
 	}
 	exec(
 		"npx",
-		["--no", "--", "prettier", "--ignore-unknown", "--write", "--", ...files],
+		[
+			"--no",
+			"--",
+			"biome",
+			"check",
+			"--write",
+			"--files-ignore-unknown=true",
+			"--",
+			...files,
+		],
 		{ stdio: "inherit" },
 	);
 }

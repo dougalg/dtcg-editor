@@ -1,0 +1,7 @@
+`Math.random()` as $call where {
+    register_diagnostic(
+        span = $call,
+        message = "Inject a randomness dependency instead of calling Math.random() directly.",
+        severity = "error"
+    )
+}

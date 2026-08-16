@@ -1,0 +1,7 @@
+`new Date()` as $call where {
+    register_diagnostic(
+        span = $call,
+        message = "Inject a clock dependency instead of calling new Date() directly.",
+        severity = "error"
+    )
+}

@@ -114,7 +114,7 @@ Because the DTCG spec permits extensions and tool-specific fields, the `token-co
 - TypeScript
 - React
 - Next.js (`apps/web-app`) — chosen over hand-rolling a Node server so Route Handlers + Server Components give typed, colocated server-side `fs` access without a bespoke HTTP layer.
-- ESLint + `typescript-eslint` — `tsc` has no flag that bans explicit `any`; a lint tool is required to actually enforce the "no `any`" rule in TypeScript Strictness, not just convenient. `eslint-config-next` is pulled in automatically by Next's scaffolding and kept as the standard pairing for a Next.js app.
+- Biome — `tsc` has no flag that bans explicit `any`; a lint tool is required to actually enforce the "no `any`" rule in TypeScript Strictness, not just convenient. Replaced ESLint + `typescript-eslint` + `eslint-config-next` + Prettier as the repo's single lint-and-format tool: a single Rust binary covering both concerns, with its own type-inference engine that never touches `tsc`'s Compiler API — structurally immune to the TS7/Compiler-API breakage that motivated dropping `typescript-eslint`'s `typescript<6.1.0` peer-range blocker. The 11 Dependency Injection for I/O/Platform Externalities rules (this section, above) are enforced via native rules (`noExplicitAny`, `noRestrictedImports`, `noRestrictedGlobals`, the React-hooks `domains` pair) plus 7 hand-authored GritQL plugins (`biome/*.grit`) for the restricted-call-expression patterns Biome has no native equivalent for. `eslint-config-next`'s Next.js-specific lint coverage (`no-img-tag`, `no-html-link-for-pages`, etc.) has no Biome equivalent and is a permanently accepted gap — see the Migrate ESLint + Prettier to Biome feature.
 - Zod (schema validation/parsing at all package edges — chosen because `z.infer` derives the static TypeScript type directly from the schema, making the schema the single source of truth for both runtime validation and the type; a hand-rolled validator plus a separately maintained interface could silently drift apart)
 - neverthrow (`Result`/`ResultAsync` error handling — core, cross-cutting infrastructure per the Error Handling constraint above; justified here rather than per-feature)
 - pnpm (package manager / workspaces)
@@ -122,7 +122,6 @@ Because the DTCG spec permits extensions and tool-specific fields, the `token-co
 - `@commitlint/cli` + `@commitlint/config-conventional` (commit message validation against the full Conventional Commits spec — see the Enforce Conventional Commits feature)
 - `commitizen` + `cz-customizable` (interactive commit CLI, sharing the same type/scope config as commitlint)
 - `husky` (installs the local `commit-msg` git hook automatically on `pnpm install`)
-- `prettier` (repo-wide formatter, configured with `useTabs: true`; enforced via `pnpm format:check` — see the Reformat Repo to Tabs feature)
 - `vitest` (`apps/web-app` only — `node:test` cannot execute `.tsx`/JSX at all, confirmed empirically; see the Edit Dimension Tokens in Browser feature)
 - `@vitejs/plugin-react` (Vitest's standard React-JSX transform, needed alongside `vitest` since the default esbuild transform alone doesn't reliably match the automatic JSX runtime Next.js/React 19 expect)
 - `jsdom` (the DOM environment Vitest renders `apps/web-app` components into — no built-in Node alternative exists)
