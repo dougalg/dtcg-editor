@@ -62,19 +62,19 @@ Root `package.json`: `format` → Biome's write-mode invocation, `format:check` 
 
 ## Acceptance Criteria
 
-- [ ] AC-01: All 4 root-level restricted-call rules (`Date.now()`, `new Date()`, `Math.random()`, `crypto.randomUUID`/`getRandomValues`) fail Biome lint on a violation and pass on compliant code, anywhere under `packages/*`.
-- [ ] AC-02: All 7 `apps/web-app` restricted-call rules fail Biome lint on a violation outside their exempted files, and pass inside them, matching today's exemption-by-file behavior exactly (`lib/fatal-startup-error.ts`, `scripts/init-config.ts`, `instrumentation.ts`, `playwright.config.ts`).
-- [ ] AC-03: `node:fs`/`node:fs/promises` imports fail Biome lint everywhere except `lib/platform/node-fs.ts`.
-- [ ] AC-04: Bare `fetch` fails Biome lint everywhere except `hooks/useSaveTokenEdits.ts`.
-- [ ] AC-05: `any` type usage fails Biome lint repo-wide (`packages/*` and `apps/web-app`).
-- [ ] AC-06: A React Hooks rule-of-hooks violation and a missing-dependency violation both fail Biome lint in `apps/web-app`.
-- [ ] AC-07: `node_modules`, `dist`, `.next`, `.turbo`, `coverage`, `out`, `build`, `next-env.d.ts`, and `dist-test` are excluded from both Biome lint and Biome format.
-- [ ] AC-08: `pnpm format` reformats the full repo with `biome format`'s tab-indented output; `pnpm format:check` passes on the resulting tree.
-- [ ] AC-09: `pnpm lint` (via `turbo run lint`) passes across every package and `apps/web-app` using Biome.
-- [ ] AC-10: Committing a staged file with a formatting violation auto-formats and re-stages it via the updated pre-commit hook, touching only staged files, exactly as today's Prettier-based hook does; a tool crash still aborts the commit.
-- [ ] AC-11: CI's "Check formatting" and "Lint" steps both pass on a clean branch; `eslint`, `typescript-eslint`, `@typescript-eslint/*`, `eslint-config-next`, and `prettier` are absent from every `package.json`'s `dependencies`/`devDependencies`.
-- [ ] AC-12: Next.js-specific rules (`no-img-tag`, `no-html-link-for-pages`, `no-sync-scripts`, and the rest of `eslint-config-next`'s Next-specific set) are documented in this spec's Out of Scope as a permanent, accepted gap — not silently dropped without a record.
-- [ ] AC-13: `CONTRIBUTING.md` and `docs/project.md` reflect Biome as the repo's lint/format tool; no remaining reference to ESLint or Prettier as the active tool.
+- [x] AC-01: All 4 root-level restricted-call rules (`Date.now()`, `new Date()`, `Math.random()`, `crypto.randomUUID`/`getRandomValues`) fail Biome lint on a violation and pass on compliant code, anywhere under `packages/*`.
+- [x] AC-02: All 7 `apps/web-app` restricted-call rules fail Biome lint on a violation outside their exempted files, and pass inside them, matching today's exemption-by-file behavior exactly (`lib/fatal-startup-error.ts`, `scripts/init-config.ts`, `instrumentation.ts`, `playwright.config.ts`).
+- [x] AC-03: `node:fs`/`node:fs/promises` imports fail Biome lint everywhere except `lib/platform/node-fs.ts`.
+- [x] AC-04: Bare `fetch` fails Biome lint everywhere except `hooks/useSaveTokenEdits.ts`.
+- [x] AC-05: `any` type usage fails Biome lint repo-wide (`packages/*` and `apps/web-app`).
+- [x] AC-06: A React Hooks rule-of-hooks violation and a missing-dependency violation both fail Biome lint in `apps/web-app`.
+- [x] AC-07: `node_modules`, `dist`, `.next`, `.turbo`, `coverage`, `out`, `build`, `next-env.d.ts`, and `dist-test` are excluded from both Biome lint and Biome format.
+- [x] AC-08: `pnpm format` reformats the full repo with `biome format`'s tab-indented output; `pnpm format:check` passes on the resulting tree.
+- [x] AC-09: `pnpm lint` (via `turbo run lint`) passes across every package and `apps/web-app` using Biome.
+- [x] AC-10: Committing a staged file with a formatting violation auto-formats and re-stages it via the updated pre-commit hook, touching only staged files, exactly as today's Prettier-based hook does; a tool crash still aborts the commit.
+- [x] AC-11: CI's "Check formatting" and "Lint" steps both pass on a clean branch; `eslint`, `typescript-eslint`, `@typescript-eslint/*`, `eslint-config-next`, and `prettier` are absent from every `package.json`'s `dependencies`/`devDependencies`.
+- [x] AC-12: Next.js-specific rules (`no-img-tag`, `no-html-link-for-pages`, `no-sync-scripts`, and the rest of `eslint-config-next`'s Next-specific set) are documented in this spec's Out of Scope as a permanent, accepted gap — not silently dropped without a record.
+- [x] AC-13: `CONTRIBUTING.md` and `docs/project.md` reflect Biome as the repo's lint/format tool; no remaining reference to ESLint or Prettier as the active tool.
 
 ## Technical Scope
 
