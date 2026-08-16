@@ -27,7 +27,7 @@ pnpm workspace monorepo: `packages/*` (library packages), `apps/web-app` (Next.j
 
 **Purpose**: Confirm a clean, buildable starting point before any move begins.
 
-- [ ] T001 Run `pnpm install` at the repo root to confirm the workspace resolves cleanly on current `main` (post-002-simplify-tree-node) before any package is touched
+- [X] T001 Run `pnpm install` at the repo root to confirm the workspace resolves cleanly on current `main` (post-002-simplify-tree-node) before any package is touched
 
 ---
 
@@ -37,7 +37,7 @@ pnpm workspace monorepo: `packages/*` (library packages), `apps/web-app` (Next.j
 
 **⚠️ CRITICAL**: No user story work should begin until this baseline is captured.
 
-- [ ] T002 Run `pnpm build && pnpm lint && pnpm test` at the repo root and record the pass/fail state and test count as the pre-refactor baseline (compared against in T046)
+- [X] T002 Run `pnpm build && pnpm lint && pnpm test` at the repo root and record the pass/fail state and test count as the pre-refactor baseline (compared against in T046) — baseline: build PASS, lint PASS, 31 test files / 173 tests PASS (unit + a11y), e2e 5/6 PASS with 1 pre-existing unrelated flake (`e2e/keyboard-navigation.spec.ts` "browse -> open -> edit -> save" focus-timing assertion, unrelated to token parsing/editor packages)
 
 **Checkpoint**: Baseline captured — user story implementation can now begin.
 
@@ -51,13 +51,13 @@ pnpm workspace monorepo: `packages/*` (library packages), `apps/web-app` (Next.j
 
 ### Implementation for User Story 1
 
-- [ ] T003 [US1] Create `packages/token-core/src/color.ts` containing the structural exports currently in `packages/token-type-color/src/color.ts` (`COLOR_SPACES`, `ColorSpace`, `ColorComponent`, `ColorObjectValue`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `ColorValueSchema`, `ColorValue`) — copy only; the source file is trimmed later in T010, not here, so `token-type-color` keeps building unmodified through this phase
-- [ ] T004 [P] [US1] Create `packages/token-core/src/dimension.ts` as a copy of `packages/token-type-dimension/src/dimension.ts` (`DimensionValueSchema`, `DimensionValue`) — source file deleted later in T024
-- [ ] T005 [P] [US1] Create `packages/token-core/src/color.test.ts` containing only the structural-schema test cases (`ColorValueSchema`/`ColorObjectValueSchema`/`LegacyHexColorValueSchema`) copied from `packages/token-type-color/src/color.test.ts`
-- [ ] T006 [P] [US1] Create `packages/token-core/src/dimension.test.ts` as a copy of `packages/token-type-dimension/src/dimension.test.ts`
-- [ ] T007 [US1] Update `packages/token-core/src/index.ts` to export `color.ts` and `dimension.ts`'s new modules (depends on T003, T004)
-- [ ] T008 [US1] Update the stale "must not depend on `token-type-color`" comment in `packages/token-core/src/color-sample.test.ts` to reflect that `token-core` now defines `ColorValueSchema` itself
-- [ ] T009 [US1] Confirm `packages/token-core/package.json` still declares no dependency on `react`, `colorjs.io`, or any `token-type-*`/`token-editor-*` package (zod-only addition; nothing to change, verify only)
+- [X] T003 [US1] Create `packages/token-core/src/color.ts` containing the structural exports currently in `packages/token-type-color/src/color.ts` (`COLOR_SPACES`, `ColorSpace`, `ColorComponent`, `ColorObjectValue`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `ColorValueSchema`, `ColorValue`) — copy only; the source file is trimmed later in T010, not here, so `token-type-color` keeps building unmodified through this phase
+- [X] T004 [P] [US1] Create `packages/token-core/src/dimension.ts` as a copy of `packages/token-type-dimension/src/dimension.ts` (`DimensionValueSchema`, `DimensionValue`) — source file deleted later in T024
+- [X] T005 [P] [US1] Create `packages/token-core/src/color.test.ts` containing only the structural-schema test cases (`ColorValueSchema`/`ColorObjectValueSchema`/`LegacyHexColorValueSchema`) copied from `packages/token-type-color/src/color.test.ts`
+- [X] T006 [P] [US1] Create `packages/token-core/src/dimension.test.ts` as a copy of `packages/token-type-dimension/src/dimension.test.ts`
+- [X] T007 [US1] Update `packages/token-core/src/index.ts` to export `color.ts` and `dimension.ts`'s new modules (depends on T003, T004)
+- [X] T008 [US1] Update the stale "must not depend on `token-type-color`" comment in `packages/token-core/src/color-sample.test.ts` to reflect that `token-core` now defines `ColorValueSchema` itself
+- [X] T009 [US1] Confirm `packages/token-core/package.json` still declares no dependency on `react`, `colorjs.io`, or any `token-type-*`/`token-editor-*` package (zod-only addition; nothing to change, verify only)
 
 **Checkpoint**: `token-core` now exports `ColorValueSchema`/`DimensionValueSchema` and their derived types independently of any editor package — User Story 1's acceptance scenarios are verifiable in isolation.
 

@@ -1,3 +1,17 @@
+export type {
+	ColorComponent,
+	ColorObjectValue,
+	ColorSpace,
+	ColorValue,
+} from "./color.ts";
+export {
+	COLOR_SPACES,
+	ColorObjectValueSchema,
+	ColorValueSchema,
+	LegacyHexColorValueSchema,
+} from "./color.ts";
+export type { DimensionValue } from "./dimension.ts";
+export { DimensionValueSchema } from "./dimension.ts";
 export type { TokenEdit } from "./edit.ts";
 export { applyTokenEdits, TokenEditError } from "./edit.ts";
 export { parseTokenFile, TokenParseError } from "./parse.ts";

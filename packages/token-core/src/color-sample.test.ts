@@ -22,9 +22,10 @@ test("sample_data/color_scale.tokens.json parses successfully and has the FR-07 
 	// Hue-bearing colorSpaces per the DTCG 2025.10 Color module; hue's valid
 	// range is [0, 360) in all of them. Only used here to detect the FR-07
 	// "deliberately out-of-range value" fixture — the full per-colorSpace
-	// range table itself lives in `@dtcg-editor/token-type-color`, which
-	// `token-core` must not depend on (token-type packages depend on
-	// `token-core`, never the reverse).
+	// range table itself is range/data validation (`checkColorValueIssues`),
+	// which lives in `@dtcg-editor/token-editor-color`, not `token-core`:
+	// `token-core` only owns structural parsing, not range checking (see
+	// spec-001's validation-scope clarification).
 	const HUE_BEARING_SPACES = new Set(["hsl", "hwb", "lch", "oklch"]);
 
 	const colorSpaces = new Set<string>();
