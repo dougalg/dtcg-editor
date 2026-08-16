@@ -73,26 +73,43 @@ design" for the full decision table.
 | `value` | `unknown`                               | The token's raw value, exactly as `ValidationErrorHandler` receives it                                    |
 | `error` | `TokenTypeValidationError \| undefined` | Present only when a recognized type's value failed to validate; absent when there's no usable type at all |
 
-## `TreeNodeProps` (unchanged shape, changed internals)
+## `TreeNodeProps` (unchanged shape, now shared across three components)
 
-Location: `apps/web-app/components/TreeNode.tsx`
+Location: `apps/web-app/components/TreeNode.tsx`, `TreeTokenNode.tsx`, `TreeGroupNode.tsx`
 
-No props are added, removed, or retyped. What changes is internal: the
-component's logic for resolving an editor, validating a value, and rendering
-a read-only/invalid state no longer branches on `effectiveType === "dimension"`
-or `effectiveType === "color"` anywhere, and (per the 2026-08-16 follow-up)
-collapses into an explicit 5-path dispatch instead of a single derived
-`canEdit` boolean assembled from several intermediate flags:
+No props are added, removed, or retyped. Per the 2026-08-16 follow-up,
+`TreeNode.tsx`'s `node.kind === "token"` `if` — previously splitting one
+component's body into an unrelated token half and group half — becomes a
+split into three components, each still taking the same `TreeNodeProps`:
 
-1. Valid value, registered editor → render the editor.
-2. Valid value, no registered editor → render `FallbackValueEditor`.
-3. Recognized type, invalid value, package supplies `ValidationErrorHandler` → render it.
-4. Recognized type, invalid value, no package `ValidationErrorHandler` → render `DefaultValidationErrorHandler` (with `error`).
-5. No usable type (`effectiveType` absent, or present but not a recognized DTCG type) → render `DefaultValidationErrorHandler` (without `error`).
+- **`TreeNode.tsx`** (thinned to a dispatcher): `node.kind === "token" ?
+<TreeTokenNode {...props} /> : <TreeGroupNode {...props} />`. The one
+  component `TokenTree.tsx` and `TreeGroupNode.tsx`'s own child recursion
+  both still import.
+- **`TreeTokenNode.tsx`** (new): everything token-specific — editor
+  resolution, validation, and rendering, no longer branches on
+  `effectiveType === "dimension"` or `effectiveType === "color"` anywhere,
+  and collapses into an explicit 5-path dispatch instead of a single derived
+  `canEdit` boolean assembled from several intermediate flags:
 
-See plan.md's "TreeNode.tsx dispatch design" for the exact `isUsableType`/
-`contract`/`isValid`/`Handler` derivation, and `DefaultValidationErrorHandler`
-above for the shared fallback component paths 4–5 both resolve to.
+  1. Valid value, registered editor → render the editor.
+  2. Valid value, no registered editor → render `FallbackValueEditor`.
+  3. Recognized type, invalid value, package supplies `ValidationErrorHandler` → render it.
+  4. Recognized type, invalid value, no package `ValidationErrorHandler` → render `DefaultValidationErrorHandler` (with `error`).
+  5. No usable type (`effectiveType` absent, or present but not a recognized DTCG type) → render `DefaultValidationErrorHandler` (without `error`).
+
+  See plan.md's "TreeNode.tsx dispatch design" for the exact `isUsableType`/
+  `contract`/`isValid`/`Handler` derivation, and `DefaultValidationErrorHandler`
+  above for the shared fallback component paths 4–5 both resolve to.
+
+- **`TreeGroupNode.tsx`** (new): everything group-specific — rename,
+  expand/collapse, recursion into `node.children` — moved verbatim, no logic
+  change.
+
+There's no narrower prop set worth carving out per component: group rename
+needs `root`/`pendingEdits` for the same sibling-collision check token
+rename already needs, so all three components share the one
+`TreeNodeProps` shape rather than each declaring a subset.
 
 | Field          | Type                               | Change    |
 | -------------- | ---------------------------------- | --------- |

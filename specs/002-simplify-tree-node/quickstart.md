@@ -34,7 +34,8 @@ pnpm --filter @dtcg-editor/token-type-contract test
 
 ```sh
 grep -n "@dtcg-editor/token-type-color\|@dtcg-editor/token-type-dimension" \
-  apps/web-app/components/TreeNode.tsx apps/web-app/components/TokenTree.tsx
+  apps/web-app/components/TreeNode.tsx apps/web-app/components/TreeTokenNode.tsx \
+  apps/web-app/components/TreeGroupNode.tsx apps/web-app/components/TokenTree.tsx
 ```
 
 Expect **no output** (grep exit code 1). Also confirm no type-name
@@ -42,7 +43,8 @@ conditionals remain (SC-004):
 
 ```sh
 grep -n '=== "color"\|=== "dimension"\|isDimension\|isColor' \
-  apps/web-app/components/TreeNode.tsx
+  apps/web-app/components/TreeNode.tsx apps/web-app/components/TreeTokenNode.tsx \
+  apps/web-app/components/TreeGroupNode.tsx
 ```
 
 Expect **no output**.

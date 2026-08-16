@@ -111,6 +111,45 @@ exactly as it does today. Renders `error.message` as a single-line
 (`null`) when `error` is absent (path 5, no usable type), preserving today's
 behavior for a non-standard-typed or untyped token (SC-002 no-regression).
 
+### TreeNode.tsx / TreeTokenNode.tsx / TreeGroupNode.tsx split
+
+Second half of the 2026-08-16 follow-up: `TreeNode.tsx` today is one
+component with an early `if (node.kind === "token")` splitting it into two
+unrelated bodies — everything above is token editing/validation (the 5-path
+model above), everything below is group rename/expand-collapse/recursion.
+Nothing is shared between the two branches except `pathKey` and the outer
+`TreeNodeProps` shape, so the "5-path dispatch design" above no longer
+belongs conceptually inside a component that also renders groups. Splitting
+them is a pure extraction, not a new abstraction:
+
+- **`TreeTokenNode.tsx`** (new): everything the token branch does today —
+  the entire 5-path dispatch design above, name/description editing, staging.
+  The _only_ file that ever computes `isUsableType`/`contract`/`validation`/
+  `isValid`/`errorForHandler`/`Handler`, resolves an editor via
+  `resolveEditorForType`, or renders `FallbackValueEditor`/
+  `DefaultValidationErrorHandler`/a resolved package `Editor`/
+  `ValidationErrorHandler`.
+- **`TreeGroupNode.tsx`** (new): everything the group branch does today —
+  expand/collapse state, group rename, recursing into `node.children` — moved
+  verbatim, no logic change.
+- **`TreeNode.tsx`** (kept, thinned to a dispatcher): `node.kind === "token"
+? <TreeTokenNode {...props} /> : <TreeGroupNode {...props} />`. Stays the
+  one component `TokenTree.tsx` and `TreeGroupNode.tsx`'s own child recursion
+  both import — nothing outside this file changes.
+
+Both new components take the same `TreeNodeProps` `TreeNode.tsx` already
+declares (unchanged shape, per the entity below) — group rename needs
+`root`/`pendingEdits` for the same sibling-collision check token rename
+already needs, so there's no meaningful narrower prop set to carve out for
+either half; introducing one would be an abstraction this split doesn't need.
+
+This changes FR-001/FR-003's "tree-rendering component" and SC-003/SC-004's
+audit target from "`TreeNode.tsx`" to "`TreeNode.tsx`, `TreeTokenNode.tsx`,
+and `TreeGroupNode.tsx` collectively" — no import of a concrete token-type
+package, and no type-name conditional, may exist in any of the three (see
+`quickstart.md`'s updated §2 checks and `contracts/token-type-contract.md`'s
+updated "Consumer contract" section).
+
 ## Technical Context
 
 **Language/Version**: TypeScript (strict mode, per constitution Principle III) on Node.js ≥26.5.0
@@ -129,7 +168,7 @@ behavior for a non-standard-typed or untyped token (SC-002 no-regression).
 
 **Constraints**: Must compile under the repo's strict TypeScript settings with no per-file relaxation (Principle III); must preserve all existing user-facing behavior and accessibility semantics (Story 2, SC-002); must not introduce a new third-party dependency (Principle VIII)
 
-**Scale/Scope**: Two components in `apps/web-app` (`components/TreeNode.tsx`, `components/TokenTree.tsx`), the editor-registry glue in `apps/web-app/lib/token-editors/*`, `apps/web-app/lib/tokens/edit-state.ts` and `color-display.ts`; `packages/token-type-contract` gains one new optional interface member; both `packages/token-type-color` (hosting its new `ValidationErrorHandler`, plus the `configuration.ts`/`components/` retrofit) and `packages/token-type-dimension` (structural retrofit only — `components/` + an initially-empty `configuration.ts`, no behavior change) are touched
+**Scale/Scope**: `apps/web-app`'s tree components — `components/TreeNode.tsx` (thinned to a dispatcher), two new components split out of it (`components/TreeTokenNode.tsx`, `components/TreeGroupNode.tsx`), one new fallback component (`components/DefaultValidationErrorHandler.tsx`), and `components/TokenTree.tsx` (unchanged) — the editor-registry glue in `apps/web-app/lib/token-editors/*`, `apps/web-app/lib/tokens/edit-state.ts` and `color-display.ts`; `packages/token-type-contract` gains one new optional interface member; both `packages/token-type-color` (hosting its new `ValidationErrorHandler`, plus the `configuration.ts`/`components/` retrofit) and `packages/token-type-dimension` (structural retrofit only — `components/` + an initially-empty `configuration.ts`, no behavior change) are touched
 
 ## Constitution Check
 
@@ -220,8 +259,10 @@ packages/token-type-dimension/
 
 apps/web-app/
 ├── components/
-│   ├── TreeNode.tsx                   # Delete dimension/color special cases; explicit 5-path dispatch
-│   │                                   #   (see plan.md's "TreeNode.tsx dispatch design")
+│   ├── TreeNode.tsx                   # Thinned to a dispatcher: node.kind === "token" ? TreeTokenNode : TreeGroupNode
+│   ├── TreeTokenNode.tsx              # NEW: split out of TreeNode.tsx; owns the entire explicit 5-path dispatch
+│   │                                   #   (see plan.md's "TreeNode.tsx dispatch design" + the split section below it)
+│   ├── TreeGroupNode.tsx              # NEW: split out of TreeNode.tsx; group rename/expand-collapse/recursion, moved verbatim
 │   ├── DefaultValidationErrorHandler.tsx  # NEW: fallback ValidationErrorHandler for paths 4-5
 │   │                                   #   (typed-invalid with no package handler; no usable type)
 │   └── TokenTree.tsx                  # No logic change expected (already generic); re-verified, not rewritten
@@ -242,9 +283,12 @@ split + `components/`) and `packages/token-type-dimension` (structural only:
 `components/` + an initially-empty `configuration.ts`, no behavior change) —
 per FR-009–FR-012's requirement that the new editor-package structure is
 retrofitted onto both existing packages now, not just documented for future
-ones. The 2026-08-16 follow-up adds exactly one small component,
-`apps/web-app/components/DefaultValidationErrorHandler.tsx`, and restructures
-`TreeNode.tsx`'s internal dispatch logic — no new package, no contract-shape
+ones. The 2026-08-16 follow-up restructures `TreeNode.tsx`'s internal
+dispatch logic and splits it into three components —
+`apps/web-app/components/TreeNode.tsx` (thinned to a dispatcher),
+`TreeTokenNode.tsx`, and `TreeGroupNode.tsx` (both new, split out of
+`TreeNode.tsx`) — plus one new small fallback component,
+`DefaultValidationErrorHandler.tsx`. No new package, no contract-shape
 change, no new FR.
 
 ## Complexity Tracking

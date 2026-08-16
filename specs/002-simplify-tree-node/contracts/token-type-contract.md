@@ -111,7 +111,9 @@ unwrap), not a guaranteed replacement for type-specific validation.
 
 ## Consumer contract: what `TreeNode.tsx` may depend on
 
-After this refactor, `TreeNode.tsx` (and `TokenTree.tsx`) may reference only:
+After this refactor, `TreeNode.tsx`, `TreeTokenNode.tsx`, `TreeGroupNode.tsx`
+(per the 2026-08-16 follow-up's component split — see plan.md), and
+`TokenTree.tsx` may reference only:
 
 - `@dtcg-editor/token-type-contract` — `TokenTypeContract`, `TokenTypeEditorProps`,
   `validateTokenValue`, `TokenTypeValidationError`
@@ -119,11 +121,15 @@ After this refactor, `TreeNode.tsx` (and `TokenTree.tsx`) may reference only:
 - The app-local editor registry (`lib/token-editors/*`) — `resolveEditorForType`,
   `resolveBuiltInContract`, the resolved user config
 
-It may **not** import from `@dtcg-editor/token-type-color`,
-`@dtcg-editor/token-type-dimension`, or any other concrete token-type
-package. This is the enforceable form of FR-001 / Story 3's acceptance
-criteria — verifiable by grepping `TreeNode.tsx`'s import list (see
-`quickstart.md`).
+None of these four components may import from
+`@dtcg-editor/token-type-color`, `@dtcg-editor/token-type-dimension`, or any
+other concrete token-type package. This is the enforceable form of FR-001 /
+Story 3's acceptance criteria — verifiable by grepping each component's
+import list (see `quickstart.md`). In practice only `TreeTokenNode.tsx` ever
+touches `TokenTypeContract`/`validateTokenValue`/`resolveBuiltInContract` at
+all — `TreeNode.tsx` (a plain dispatcher) and `TreeGroupNode.tsx` (rename/
+expand-collapse only) have no reason to import any of this list, but the
+constraint still applies to all four uniformly.
 
 ## Backward compatibility
 
