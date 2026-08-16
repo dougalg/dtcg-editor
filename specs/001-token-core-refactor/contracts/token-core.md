@@ -18,10 +18,11 @@ export type { DtcgTokenType } from "./token-types.ts";
 ## New exports (added by this refactor)
 
 ```ts
-// From ./color.ts (value-schema/validation subset split out of
-// token-type-color's color.ts — see research.md and data-model.md)
+// From ./color.ts (moved wholesale from token-type-color — as of 002-simplify-tree-node,
+// color.ts already contains only value-schema/validation code, no split needed)
 export {
 	COLOR_SPACES,
+	COMPONENT_RANGES,
 	ColorValueSchema,
 	ColorObjectValueSchema,
 	LegacyHexColorValueSchema,
@@ -50,15 +51,18 @@ export type { DimensionValue } from "./dimension.ts";
 
 ## Explicitly NOT exported from `token-core`
 
-- `ColorEditorOptions`, `ColorEditorOptionsSchema`, `defineColorConfig` — editor-only config, stays in `token-editor-color`.
-- `ColorEditor`, `DimensionEditor` — React components, never enter `token-core` (Principle VII: no React import).
+- `ColorEditorOptions`, `ColorEditorOptionsSchema`, `defineColorConfig` — editor-only config; already lives in `token-editor-color/src/configuration.ts` (moved there by 002-simplify-tree-node, unaffected by this refactor).
+- `ColorEditor`, `DimensionEditor`, `ColorValidationErrorHandler` — React components, never enter `token-core` (Principle VII: no React import).
 - `colorTokenType`, `dimensionTokenType` — the wired `TokenTypeContract` objects stay in their respective `token-editor-*` packages, since they hold a live `Editor` reference.
 
-## Consumers (verified against actual current imports)
+## Consumers (re-verified against actual current imports, post-002)
 
-- `apps/web-app/lib/tokens/color-display.ts` — imports `checkColorValueIssues`, `colorValueToCssColor`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema` (currently from `@dtcg-editor/token-type-color`; repointed to `@dtcg-editor/token-core`).
-- `apps/web-app/lib/token-editors/color-editor.test.tsx` — imports the `ColorValue` type (currently from `@dtcg-editor/token-type-color`; repointed to `@dtcg-editor/token-core`; `ColorEditor`/`ColorEditorOptions` stay imported from `@dtcg-editor/token-editor-color`).
-- `token-editor-color/src/token-type.ts` and `token-editor-dimension/src/token-type.ts` — import their type's value schema for `TokenTypeContract.valueSchema`.
+- `token-editor-color/src/configuration.ts` — imports `COLOR_SPACES`/`ColorSpace` (currently from `./color.ts`; repoints to `@dtcg-editor/token-core`).
+- `token-editor-color/src/components/editor.tsx` — imports `checkColorValueIssues`, `COLOR_SPACES`, `COMPONENT_RANGES`, `ColorObjectValue`, `ColorSpace`, `ColorValue` (currently from `../color.ts`), `colorValueToCssColor` (from `../css-color.ts`), and `colorValueToSrgbHex`/`srgbHexToColorSpaceComponents` (from `../conversion.ts`) — all repoint to `@dtcg-editor/token-core`; its `ColorEditorOptions` import from `../configuration.ts` is unaffected.
+- `token-editor-color/src/components/validation-error-handler.tsx` — imports `ColorObjectValueSchema`, `LegacyHexColorValueSchema` (currently from `../color.ts`; repoints to `@dtcg-editor/token-core`).
+- `token-editor-color/src/token-type.ts`, `token-editor-dimension/src/token-type.ts` — import their type's value schema (`ColorValueSchema`/`DimensionValueSchema`) and value type for `TokenTypeContract.valueSchema`/typing.
+- `token-editor-dimension/src/components/editor.tsx` — imports the `DimensionValue` type (currently from `../dimension.ts`; repoints to `@dtcg-editor/token-core`).
+- `apps/web-app/lib/token-editors/color-editor.test.tsx` — imports the `ColorValue` type (currently from `@dtcg-editor/token-type-color`; repoints to `@dtcg-editor/token-core`; its `ColorEditor`/`ColorEditorOptions` imports stay pointed at `@dtcg-editor/token-editor-color`). This is the **only new** `token-core` import this refactor adds to `apps/web-app` — the app already depends on `token-core` today for unrelated generic-tree concerns (`isDtcgTokenType`, `DtcgTokenType`, etc., in `TreeTokenNode.tsx`/`lib/token-editors/types.ts`), and every former direct-value-schema import from application code (`lib/tokens/color-display.ts`, `TreeNode.tsx`'s old color/dimension imports) was already eliminated by 002-simplify-tree-node.
 
 ## Package dependency changes
 

@@ -2,62 +2,68 @@
 
 Renamed from `@dtcg-editor/token-type-color`. Directory: `packages/token-editor-color`.
 
-## Current exports (`token-type-color/src/index.ts`, for reference)
+## Current exports (`token-type-color/src/index.ts`, post-002-simplify-tree-node, for reference)
 
 ```ts
 export {
 	COLOR_SPACES,
-	ColorEditorOptionsSchema,
 	ColorValueSchema,
 	ColorObjectValueSchema,
 	LegacyHexColorValueSchema,
 	checkColorValueIssues,
-	defineColorConfig,
 } from "./color.ts";
 export type {
 	ColorSpace,
 	ColorComponent,
-	ColorEditorOptions,
 	ColorObjectValue,
 	ColorValue,
 } from "./color.ts";
+export {
+	ColorEditorOptionsSchema,
+	defineColorConfig,
+} from "./configuration.ts";
+export type { ColorEditorOptions } from "./configuration.ts";
 export { colorValueToCssColor } from "./css-color.ts";
 export {
 	colorValueToSrgbHex,
 	srgbHexToColorSpaceComponents,
 } from "./conversion.ts";
-export { ColorEditor } from "./editor.tsx";
+export { ColorEditor } from "./components/editor.tsx";
+export { ColorValidationErrorHandler } from "./components/validation-error-handler.tsx";
 export { colorTokenType } from "./token-type.ts";
 ```
 
 ## New exports (post-refactor)
 
 ```ts
-export { ColorEditor } from "./editor.tsx";
+export { ColorEditor } from "./components/editor.tsx";
+export { ColorValidationErrorHandler } from "./components/validation-error-handler.tsx";
 export { colorTokenType } from "./token-type.ts";
 export {
-	COLOR_SPACES,           // re-exported: ColorEditorOptionsSchema still needs it (colorSpaces enum)
 	ColorEditorOptionsSchema,
 	defineColorConfig,
-} from "./token-type.ts";
-export type { ColorSpace, ColorEditorOptions } from "./token-type.ts";
+} from "./configuration.ts";
+export type { ColorEditorOptions } from "./configuration.ts";
 ```
 
-`COLOR_SPACES`/`ColorSpace` are needed by `ColorEditorOptionsSchema`'s own definition (it validates a `colorSpaces` array against this enum) and by `editor.tsx` (dropdown of selectable spaces), so they are re-exported here from wherever `token-type.ts` sources them (either its own copy or, preferably, imported from `token-core` and re-exported — a task-level decision, since both `token-core`'s `color.ts` and this package need the same 14-value list; avoid two independently-maintained copies).
+Unlike the pre-002 version of this contract (which anticipated moving `ColorEditorOptions`/`ColorEditorOptionsSchema`/`defineColorConfig` into `token-type.ts` and re-exporting `COLOR_SPACES` from there), 002-simplify-tree-node already established `configuration.ts` as their permanent home and `configuration.ts` already imports `COLOR_SPACES`/`ColorSpace` itself (repointed to `@dtcg-editor/token-core` by this refactor, not re-exported through this package) — so this package's index no longer needs to re-export `COLOR_SPACES`/`ColorSpace` at all; any consumer needing them imports directly from `@dtcg-editor/token-core`.
 
 ## Removed from this package's public API
 
 - `ColorValueSchema`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `checkColorValueIssues` — moved to `token-core`.
 - `colorValueToCssColor`, `colorValueToSrgbHex`, `srgbHexToColorSpaceComponents` — moved to `token-core`.
-- `ColorObjectValue`, `ColorValue` types — moved to `token-core`.
+- `COLOR_SPACES`, `ColorSpace`, `ColorComponent`, `ColorObjectValue`, `ColorValue` — moved to `token-core`.
 
 ## `package.json` changes
 
 - `name`: `@dtcg-editor/token-type-color` → `@dtcg-editor/token-editor-color`.
-- Dependencies: `colorjs.io` removed (moves to `token-core`); `@dtcg-editor/token-core` added as a `workspace:*` dependency (needed by `token-type.ts` for `ColorValueSchema`).
+- Dependencies: `colorjs.io` removed (moves to `token-core`); `@dtcg-editor/token-core` added as a `workspace:*` dependency (needed by `configuration.ts`, `components/editor.tsx`, `components/validation-error-handler.tsx`, and `token-type.ts`).
 - `@dtcg-editor/token-type-contract` dependency renamed to `@dtcg-editor/token-editor-contract`.
 
-## Consumers (verified against actual current imports, repointed to new package name only — no export changed for these)
+## Consumers (re-verified against actual current imports, post-002; repointed to new package name only — no export changed for these)
 
-- `apps/web-app/components/TokenTree.tsx`, `apps/web-app/lib/token-editors/built-in.ts`, `built-in.test.ts`, `built-in.a11y.test.tsx` — import `colorTokenType`.
+- `apps/web-app/lib/token-editors/built-in.ts`, `built-in.test.ts`, `built-in.a11y.test.tsx` — import `colorTokenType`.
 - `apps/web-app/lib/token-editors/color-editor.test.tsx` — imports `ColorEditor`, `ColorEditorOptions` (the `ColorValue` type import in this same file moves to `token-core`, see `token-core.md`).
+- `apps/web-app/lib/token-editors/color-validation-error-handler.test.tsx` — imports `ColorValidationErrorHandler`, `colorTokenType`.
+
+Note: `apps/web-app/components/TokenTree.tsx` and `TreeNode.tsx`, which the pre-002 version of this contract listed as consumers of `colorTokenType`, no longer import this package at all — 002-simplify-tree-node routed all dispatch through `lib/token-editors/built-in.ts`'s registry, so `built-in.ts` is now the sole production-code import site.
