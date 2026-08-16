@@ -32,7 +32,7 @@ tool (not by improvising the equivalent yourself):**
 4. `sdd-implement` -- always. Follow `plan.md` step by step, committing
    your work as you go.
 
-**Stop there.** Do not run `sdd-review` or `sdd-archive`, and do not merge
+**Stop there.** Do not run `sdd-review` or `archive-task`, and do not merge
 anything to main -- a separate fresh agent picks up from here specifically
 so it can review your work without any of the context or assumptions you
 built up while writing it. Your final report should summarize what you

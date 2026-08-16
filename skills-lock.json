@@ -1,12 +1,6 @@
 {
 	"version": 1,
 	"skills": {
-		"sdd-archive": {
-			"source": "sivaprasadreddy/sdd-skills",
-			"sourceType": "github",
-			"skillPath": "skills/sdd-archive/SKILL.md",
-			"computedHash": "2bb0ddcf4963a42bc12eeff419d08d7bc9ef58bdfc434d2c83111a45dfa6d889"
-		},
 		"sdd-feature": {
 			"source": "sivaprasadreddy/sdd-skills",
 			"sourceType": "github",

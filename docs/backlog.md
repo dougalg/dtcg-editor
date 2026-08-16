@@ -1,7 +1,7 @@
 # Backlog
 
 Planned features not yet in progress. Pick one and run `/sdd-feature` to start it.
-Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
+Completed items are moved to `docs/backlog-completed.md` by `/archive-task`, not marked `[x]` here.
 
 - [ ] TreeGroupNode should be refactored to either be a disclosure element, or make sure it has all necessary aria props like controls, and expanded
 - [ ] Remove legacy sdd-* and project.md files. Migrate all docs into speckit

@@ -2,7 +2,7 @@
 name: sdd-backlog-runner
 description: >
   Runs the full SDD pipeline (sdd-feature -> sdd-refine -> sdd-plan ->
-  sdd-implement -> sdd-review -> sdd-archive) end-to-end over open items in
+  sdd-implement -> sdd-review -> archive-task) end-to-end over open items in
   docs/backlog.md, splitting each feature across two fresh dedicated
   background agents (a build agent for feature/plan/implement, then a brand
   new review agent for review/archive/merge) and merging each to main as
@@ -135,7 +135,7 @@ across features either.
 This agent runs `sdd-review`, fixing anything it finds and re-reviewing in
 a loop itself (it has full edit/build/test access -- it doesn't need a
 third agent for this), until the review is clean or it's genuinely stuck.
-Once clean, it runs `sdd-archive`, then merges its branch into `main`
+Once clean, it runs `archive-task`, then merges its branch into `main`
 itself. Once it reports the merge:
 
 1. Verify with `git log` on `main`.

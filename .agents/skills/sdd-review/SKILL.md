@@ -240,4 +240,4 @@ Ask the user:
 > "Would you like me to fix any of these findings now? You can say 'fix all critical and major' or call out specific items."
 
 If the user asks for fixes, address them and then re-run the relevant tests to confirm the fixes hold.
-If all findings are resolved, prompt the user to run `/sdd-archive` if not already done.
+If all findings are resolved, prompt the user to run `/archive-task` if not already done.

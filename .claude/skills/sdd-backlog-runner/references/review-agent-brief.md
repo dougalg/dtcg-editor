@@ -32,7 +32,7 @@ actually happened.
    review comes back clean. Only stop and surface the problem (see "When
    you need the user" below) if you've made a real attempt and are
    genuinely stuck -- not on the first sign of friction.
-2. `sdd-archive` -- only once review is clean. This archives the spec and
+2. `archive-task` -- only once review is clean. This archives the spec and
    updates `docs/project.md` / `docs/backlog-completed.md`.
 
 **When you need the user:**
@@ -56,7 +56,7 @@ rather than guess.
 
 **Merging when you're done:**
 
-Once `sdd-archive` has committed its changes on your branch, you are
+Once `archive-task` has committed its changes on your branch, you are
 responsible for landing this feature on `main` yourself:
 
 1. Fetch/check `main`'s current state. If it has moved since the build

@@ -133,7 +133,7 @@ Anything outside this list requires a flag before adding.
 ## Backlog & History
 
 - `docs/backlog.md` — planned features not yet started; pick one and run `/sdd-feature` to start it.
-- `docs/backlog-completed.md` — backlog items closed out by `/sdd-archive` once their feature has merged, moved out of `docs/backlog.md` so the active backlog only shows what's still open.
+- `docs/backlog-completed.md` — backlog items closed out by `/archive-task` once their feature has merged, moved out of `docs/backlog.md` so the active backlog only shows what's still open.
 
 ## Features
 
