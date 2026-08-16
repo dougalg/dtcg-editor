@@ -28,3 +28,11 @@
 	align-items: center;
 	gap: 0.25rem;
 }
+
+.colorIssues {
+	width: 100%;
+	color: var(--error);
+	font-size: 0.7rem;
+	margin: 0;
+	padding-left: 1rem;
+}

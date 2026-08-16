@@ -1,11 +1,12 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
+import { validateTokenValue } from "@dtcg-editor/token-type-contract";
 import {
 	applyEditsToPlainNode,
 	checkRenameAvailable,
 	findSiblings,
-	validateDimensionValue,
 } from "./edit-state.ts";
+import { resolveBuiltInContract } from "../token-editors/built-in.ts";
 import type { PlainDtcgNode } from "./plain-node.ts";
 
 function tokenNode(
@@ -111,14 +112,18 @@ test("findSiblings returns the other children of the parent group, excluding the
 	assert.ok(!siblings.some((sibling) => sibling.name === "small"));
 });
 
-test("validateDimensionValue accepts a valid value", () => {
-	const result = validateDimensionValue({ value: 4, unit: "px" });
-	assert.equal(result.ok, true);
+test("validateTokenValue accepts a valid dimension value via the generic dispatch path", () => {
+	const contract = resolveBuiltInContract("dimension");
+	assert.ok(contract !== undefined);
+	const result = validateTokenValue(contract, { value: 4, unit: "px" });
+	assert.equal(result.isOk(), true);
 });
 
-test("validateDimensionValue rejects an invalid value", () => {
-	const result = validateDimensionValue({ value: 4 });
-	assert.equal(result.ok, false);
+test("validateTokenValue rejects an invalid dimension value via the generic dispatch path", () => {
+	const contract = resolveBuiltInContract("dimension");
+	assert.ok(contract !== undefined);
+	const result = validateTokenValue(contract, { value: 4 });
+	assert.equal(result.isErr(), true);
 });
 
 test("applyEditsToPlainNode renames a group and cascades descendant paths", () => {

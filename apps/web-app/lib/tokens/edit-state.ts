@@ -1,5 +1,3 @@
-import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
-import type { DimensionValue } from "@dtcg-editor/token-type-dimension";
 import type { PlainDtcgNode } from "./plain-node.ts";
 
 /** A single staged (not yet saved) edit to one token, identified by its original path. */
@@ -8,30 +6,6 @@ export interface ClientEdit {
 	readonly name?: string;
 	readonly value?: unknown;
 	readonly description?: string;
-}
-
-export type DimensionValidationResult =
-	| { readonly ok: true; readonly value: DimensionValue }
-	| { readonly ok: false; readonly error: string };
-
-/**
- * Validates a raw value against the Dimension contract's schema. Returns a
- * plain discriminated union rather than a `neverthrow` `Result` — this
- * repo's Error Handling constraint governs engine/library code, and
- * explicitly leaves UI-layer `Result` consumption undefined, so this is a
- * feature-local choice for wiring validation into component state.
- */
-export function validateDimensionValue(
-	raw: unknown,
-): DimensionValidationResult {
-	const result = dimensionTokenType.valueSchema.safeParse(raw);
-	if (!result.success) {
-		return {
-			ok: false,
-			error: result.error.issues.map((issue) => issue.message).join(", "),
-		};
-	}
-	return { ok: true, value: result.data };
 }
 
 function pathKey(path: readonly string[]): string {

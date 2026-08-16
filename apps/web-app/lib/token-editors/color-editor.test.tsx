@@ -196,3 +196,28 @@ test("the legacy hex path's picker matches the current bare-hex value and update
 	fireEvent.change(picker, { target: { value: "#abcdef" } });
 	expect(onChange).toHaveBeenCalledWith("#abcdef");
 });
+
+test("a structurally valid but out-of-range component value stays editable, with the range issue visibly displayed (AC-05)", () => {
+	render(
+		<ColorEditor
+			value={{ colorSpace: "hsl", components: [400, 50, 40] }}
+			onChange={vi.fn()}
+		/>,
+	);
+
+	expect(screen.getByLabelText("hsl component H")).toBeTruthy();
+	expect(screen.getByRole("alert").textContent).toMatch(
+		/H\) must be >= 0 and < 360/,
+	);
+});
+
+test("an in-range component value shows no range-issue alert", () => {
+	render(
+		<ColorEditor
+			value={{ colorSpace: "srgb", components: [0.5, 0.2, 0.8] }}
+			onChange={vi.fn()}
+		/>,
+	);
+
+	expect(screen.queryByRole("alert")).toBeNull();
+});

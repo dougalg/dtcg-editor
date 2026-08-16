@@ -3,18 +3,19 @@
 import { useState, type ChangeEvent } from "react";
 import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
 import {
+	checkColorValueIssues,
 	COLOR_SPACES,
 	COMPONENT_RANGES,
-	type ColorEditorOptions,
 	type ColorObjectValue,
 	type ColorSpace,
 	type ColorValue,
-} from "./color.ts";
-import { colorValueToCssColor } from "./css-color.ts";
+} from "../color.ts";
+import type { ColorEditorOptions } from "../configuration.ts";
+import { colorValueToCssColor } from "../css-color.ts";
 import {
 	colorValueToSrgbHex,
 	srgbHexToColorSpaceComponents,
-} from "./conversion.ts";
+} from "../conversion.ts";
 import styles from "./editor.module.css";
 
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
@@ -74,6 +75,7 @@ function ObjectColorEditor({
 	);
 	const cssColor = colorValueToCssColor(value);
 	const offeredSpaces = offeredColorSpaces(colorSpaces, value.colorSpace);
+	const rangeIssues = checkColorValueIssues(value);
 
 	function handleColorSpaceChange(event: ChangeEvent<HTMLSelectElement>) {
 		onChange({
@@ -220,6 +222,15 @@ function ObjectColorEditor({
 					placeholder="#rrggbb"
 				/>
 			</label>
+			{rangeIssues.length > 0 && (
+				<div role="alert">
+					<ul className={styles.colorIssues}>
+						{rangeIssues.map((issue) => (
+							<li key={issue}>{issue}</li>
+						))}
+					</ul>
+				</div>
+			)}
 		</span>
 	);
 }

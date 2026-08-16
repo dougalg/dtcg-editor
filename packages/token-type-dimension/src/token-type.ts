@@ -1,6 +1,6 @@
 import type { TokenTypeContract } from "@dtcg-editor/token-type-contract";
 import { DimensionValueSchema, type DimensionValue } from "./dimension.ts";
-import { DimensionEditor } from "./editor.tsx";
+import { DimensionEditor } from "./components/editor.tsx";
 
 /**
  * The first concrete implementation of `TokenTypeContract`. Kept in its own

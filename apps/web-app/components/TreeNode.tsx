@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
-import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
-import type { DimensionValue } from "@dtcg-editor/token-type-dimension";
-import { colorTokenType } from "@dtcg-editor/token-type-color";
 import {
 	validateTokenValue,
 	type TokenTypeEditorProps,
@@ -15,28 +12,13 @@ import {
 	applyEditsToPlainNode,
 	checkRenameAvailable,
 	findSiblings,
-	validateDimensionValue,
 } from "../lib/tokens/edit-state.ts";
-import { describeColorForDisplay } from "../lib/tokens/color-display.ts";
 import type { ClientEdit } from "../lib/tokens/edit-state.ts";
 import { FallbackValueEditor } from "./FallbackValueEditor.tsx";
 import dtcgEditorConfig from "../lib/token-editors/user-config.ts";
 import { resolveEditorForType } from "../lib/token-editors/resolve-editor.ts";
 import { resolveBuiltInContract } from "../lib/token-editors/built-in.ts";
 import styles from "./TokenTree.module.css";
-
-/**
- * The registry's `editor` values are typed generically (`TokenTypeEditorProps<unknown>`)
- * so heterogeneous editors can share one array — see `lib/token-editors/built-in.ts`.
- * At a dimension-token render call site the concrete value shape is always
- * `DimensionValue`, since this cast is only ever applied when `isDimension`
- * is true; safe for the same reason the registry's own cast is: nothing here
- * inspects `value`, it's only threaded through to whichever component
- * renders it.
- */
-type DimensionEditorComponent = (
-	props: TokenTypeEditorProps<DimensionValue>,
-) => ReactElement;
 
 function formatValue(value: unknown): string {
 	return typeof value === "string" ? value : JSON.stringify(value);
@@ -81,44 +63,33 @@ export function TreeNode({
 		const effectiveType = node.effectiveType;
 		const isStandard =
 			effectiveType !== undefined && isDtcgTokenType(effectiveType);
-		const isDimension = effectiveType === dimensionTokenType.type;
-		const dimensionValueValidation = isDimension
-			? validateDimensionValue(node.value)
-			: undefined;
-		// Narrowed via its own `if`, not derived from `canEdit` below, so this
-		// stays type-safe regardless of how `canEdit` combines it with the
-		// other standard-type branches.
-		let existingDimensionValue: DimensionValue | undefined;
-		if (dimensionValueValidation?.ok === true) {
-			existingDimensionValue = dimensionValueValidation.value;
-		}
-		// A standard, non-dimension type is only editable if its value actually
-		// parses against that type's own contract schema (when a built-in
-		// contract exists for it) — generalizes the dimension guard above.
-		// A standard type with no built-in contract (e.g. a user-registered
-		// extension for a type with no schema) has nothing to validate
-		// against, so its value is trusted as-is, matching the existing
-		// generic-editor design.
+		// A standard type is only editable if its value actually parses
+		// against that type's own contract schema (when a built-in contract
+		// exists for it). A standard type with no built-in contract (e.g. a
+		// user-registered extension for a type with no schema) has nothing
+		// to validate against, so its value is trusted as-is, matching the
+		// existing generic-editor design.
 		const builtInContract =
-			isStandard && !isDimension && effectiveType !== undefined
+			isStandard && effectiveType !== undefined
 				? resolveBuiltInContract(effectiveType)
 				: undefined;
 		const genericValueValidation = builtInContract
 			? validateTokenValue(builtInContract, node.value)
 			: undefined;
-		const canEdit = isDimension
-			? existingDimensionValue !== undefined
-			: (genericValueValidation?.isOk() ?? isStandard);
+		const canEdit = genericValueValidation?.isOk() ?? isStandard;
 		const { editor: resolvedEditor, editorOptions: resolvedEditorOptions } =
 			(isStandard && effectiveType !== undefined
 				? resolveEditorForType(dtcgEditorConfig.extensions, effectiveType)
 				: undefined) ?? {};
 
 		if (!canEdit) {
-			const isColor = node.effectiveType === colorTokenType.type;
-			const colorDisplay = isColor
-				? describeColorForDisplay(node.value)
-				: undefined;
+			// Safe: `!canEdit` with a defined `builtInContract` only occurs
+			// when `genericValueValidation.isErr()` (per `canEdit`'s formula
+			// above), so `.error` always exists here.
+			const validationErrorHandler =
+				genericValueValidation?.isErr() === true
+					? builtInContract?.ValidationErrorHandler
+					: undefined;
 
 			return (
 				<li className={styles.token}>
@@ -137,49 +108,23 @@ export function TreeNode({
 							</span>
 						</span>
 					)}
-					{colorDisplay?.cssColor !== undefined && (
-						<span
-							className={styles.swatch}
-							style={{ backgroundColor: colorDisplay.cssColor }}
-							aria-hidden="true"
-						/>
-					)}
 					<span className={styles.field}>
 						<span className={styles.fieldLabel}>{node.name} value</span>
 						<span className={styles.value}>{formatValue(node.value)}</span>
 					</span>
-					{colorDisplay !== undefined && colorDisplay.issues.length > 0 && (
-						<div role="alert">
-							<ul className={styles.colorIssues}>
-								{colorDisplay.issues.map((issue) => (
-									<li key={issue}>{issue}</li>
-								))}
-							</ul>
-						</div>
-					)}
+					{validationErrorHandler !== undefined &&
+						genericValueValidation?.isErr() === true &&
+						validationErrorHandler({
+							value: node.value,
+							error: genericValueValidation.error,
+						})}
 				</li>
 			);
 		}
 
 		const currentName = pending?.name ?? node.name;
-		// Safe: the only place that stages `pending.value` for a dimension token
-		// is `handleDimensionValueChange` below, which validates it against
-		// `DimensionValueSchema` before ever calling `onStageEdit` — nothing
-		// else writes to `pendingEdits`.
-		const currentDimensionValue =
-			(pending?.value as DimensionValue | undefined) ?? existingDimensionValue;
 		const currentRawValue = pending?.value ?? node.value;
 		const currentDescription = pending?.description ?? node.description ?? "";
-		// `ColorValueSchema` only checks shape (used above to gate `canEdit`),
-		// not per-colorSpace numeric ranges — so a structurally valid but
-		// out-of-range color value passes validation and becomes editable.
-		// Surface `checkColorValueIssues`' range violations here too, so an
-		// out-of-range value isn't silently editable with no indication
-		// anything's wrong.
-		const editableColorIssues =
-			effectiveType === colorTokenType.type
-				? describeColorForDisplay(currentRawValue).issues
-				: undefined;
 
 		function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
 			const nextName = event.target.value;
@@ -202,23 +147,24 @@ export function TreeNode({
 			onStageEdit(node.path, { name: nextName });
 		}
 
-		function handleDimensionValueChange(nextValue: DimensionValue) {
-			const validation = validateDimensionValue(nextValue);
-			if (!validation.ok) {
-				onFieldError(node.path, {
-					name: errors?.name,
-					value: validation.error,
-				});
-				return;
+		// Validates the next value against the resolved built-in contract (if
+		// any) before staging, blocking the stage and calling `onFieldError`
+		// on failure — applies uniformly to every standard type with a
+		// built-in contract (dimension, color, ...). A standard type with no
+		// built-in contract, or a non-standard type, has nothing to validate
+		// against, so the value is trusted as-is, matching the existing
+		// generic-editor design.
+		function handleValueChange(next: unknown) {
+			if (builtInContract) {
+				const validation = validateTokenValue(builtInContract, next);
+				if (validation.isErr()) {
+					onFieldError(node.path, {
+						name: errors?.name,
+						value: validation.error.message,
+					});
+					return;
+				}
 			}
-			onFieldError(node.path, { name: errors?.name, value: undefined });
-			onStageEdit(node.path, { value: validation.value });
-		}
-
-		// A standard, non-dimension type with a registered editor — no core
-		// contract schema exists for any type but dimension yet, so (like the
-		// fallback path below) the value is trusted as-is.
-		function handleGenericValueChange(next: unknown) {
 			onFieldError(node.path, { name: errors?.name, value: undefined });
 			onStageEdit(node.path, { value: next });
 		}
@@ -242,9 +188,7 @@ export function TreeNode({
 			onStageEdit(node.path, { description: event.target.value });
 		}
 
-		const DimensionEditor = resolvedEditor as
-			DimensionEditorComponent | undefined;
-		const GenericEditor = resolvedEditor as
+		const ResolvedEditor = resolvedEditor as
 			((props: TokenTypeEditorProps<unknown>) => ReactElement) | undefined;
 
 		return (
@@ -263,38 +207,18 @@ export function TreeNode({
 						<span className={styles.type}>{effectiveType}</span>
 					</span>
 				)}
-				{isDimension &&
-					DimensionEditor !== undefined &&
-					currentDimensionValue !== undefined && (
-						<DimensionEditor
-							value={currentDimensionValue}
-							onChange={handleDimensionValueChange}
-							options={resolvedEditorOptions}
-						/>
-					)}
-				{!isDimension && GenericEditor !== undefined && (
-					<GenericEditor
+				{ResolvedEditor !== undefined ? (
+					<ResolvedEditor
 						value={currentRawValue}
-						onChange={handleGenericValueChange}
+						onChange={handleValueChange}
 						options={resolvedEditorOptions}
 					/>
-				)}
-				{!isDimension && GenericEditor === undefined && (
+				) : (
 					<FallbackValueEditor
 						value={JSON.stringify(currentRawValue, null, 2)}
 						onChange={handleFallbackValueChange}
 					/>
 				)}
-				{editableColorIssues !== undefined &&
-					editableColorIssues.length > 0 && (
-						<div role="alert">
-							<ul className={styles.colorIssues}>
-								{editableColorIssues.map((issue) => (
-									<li key={issue}>{issue}</li>
-								))}
-							</ul>
-						</div>
-					)}
 				<label className={styles.field}>
 					<span className={styles.fieldLabel}>{node.name} description</span>
 					<input
