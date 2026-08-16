@@ -4,7 +4,7 @@ description: >
   Speckit final step. Archive a completed feature's spec.md, plan.md, and tasks.md
   (plus research.md, data-model.md, quickstart.md, contracts/, and checklists/ when present)
   from specs/<NNN-feature-name>/ into docs/specs-archive/<yyyymmddHHMM>-<feature-name>/,
-  then update docs/project.md with the new feature, and any architecture decisions made,
+  then update docs/history.md with the new feature, and any architecture decisions made,
   and move any matching item out of docs/backlog.md into docs/backlog-completed.md.
   Use after speckit-implement (and speckit-analyze, if run) is complete and the feature is ready to merge.
 argument-hint: <feature-name> (optional, derived from spec.md if omitted)
@@ -56,10 +56,10 @@ Read `tasks.md` in `FEATURE_DIR` and check that all tasks are checked off. If `s
 its own acceptance-criteria or success-criteria checkboxes, check those too. If any are
 unchecked, warn the user and ask for confirmation before archiving.
 
-### 3. Update docs/project.md
+### 3. Update docs/history.md
 
-This is a critical step. Read `docs/project.md` in full, then read the `spec.md` and `plan.md`
-being archived to extract what actually changed. Update `project.md` across the following
+This is a critical step. Read `docs/history.md` in full, then read the `spec.md` and `plan.md`
+being archived to extract what actually changed. Update `history.md` across the following
 sections — add sections if they do not already exist.
 
 #### 3a. Features List
@@ -167,13 +167,13 @@ If nothing in `docs/backlog.md` matches, that's fine — note "no matching backl
 in the Step 4 preview rather than silently skipping it or inventing a match. If
 `docs/backlog.md` doesn't exist at all, skip this substep entirely (don't create either file).
 
-### 4. Show the project.md and Backlog Changes
+### 4. Show the history.md and Backlog Changes
 
-Before writing, present a summary of every change you are about to make — to `project.md`
+Before writing, present a summary of every change you are about to make — to `history.md`
 and, if applicable, `docs/backlog.md` / `docs/backlog-completed.md`:
 
 ```
-## Proposed project.md Updates
+## Proposed history.md Updates
 
 ### Features (1 addition)
 - Added: JWT Authentication
@@ -188,9 +188,6 @@ and, if applicable, `docs/backlog.md` / `docs/backlog-completed.md`:
 ### Environment & Configuration (2 additions)
 - Added: JWT_SECRET
 - Added: JWT_EXPIRY_MINUTES
-
-### No changes to
-- Tech Stack, Architecture overview, Conventions
 
 ## Proposed Backlog Changes
 - Removing from docs/backlog.md: "JWT Authentication"
@@ -246,6 +243,6 @@ Report the final summary to the user:
 - Files archived to `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/` (`spec.md`, `plan.md`,
   `tasks.md`, and any of `research.md`, `data-model.md`, `quickstart.md`, `contracts/`,
   `checklists/` that existed)
-- Sections updated in `docs/project.md`
+- Sections updated in `docs/history.md`
 - Backlog item moved from `docs/backlog.md` to `docs/backlog-completed.md`, if a match was found (or a note that none was)
-- Remind them to commit `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/`, `docs/project.md`, `docs/backlog.md`, and `docs/backlog-completed.md` (if changed) to version control
+- Remind them to commit `docs/specs-archive/<yyyymmddHHMM>-<feature-name>/`, `docs/history.md`, `docs/backlog.md`, and `docs/backlog-completed.md` (if changed) to version control
