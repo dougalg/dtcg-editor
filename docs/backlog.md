@@ -3,6 +3,9 @@
 Planned features not yet in progress. Pick one and run `/sdd-feature` to start it.
 Completed items are moved to `docs/backlog-completed.md` by `/sdd-archive`, not marked `[x]` here.
 
+- [ ] TreeGroupNode should be refactored to either be a disclosure element, or make sure it has all necessary aria props like controls, and expanded
+- [ ] Remove legacy sdd-* and project.md files. Migrate all docs into speckit
+- [ ] Create linting rules based on constitution.md
 - [ ] Refactor token-type subpackages: move all parsing and type definitions (e.g. `token-type-color/src/color.ts`, `conversion.ts`, `css-color.ts`, `token-type.ts`; `token-type-dimension/src/dimension.ts`, `token-type.ts`) into `token-core`, so the `token-type-*` subpackages (`token-type-color`, `token-type-dimension`, `token-type-contract`, …) hold only editor UI (`editor.tsx` and related styles), with `token-core` as the single source of truth for parsing/type definitions. (in progress — worktree `.claude/worktrees/token-core-refactor`, branch `worktree-token-core-refactor`)
 - [ ] Add sugarcube and refactor existing UI to use new their tokens and components
 - [ ] Improve UI by adding visible rows, header delineation, and drag and drop reordering of token rows and resolved name visibility OR sticky headers?
