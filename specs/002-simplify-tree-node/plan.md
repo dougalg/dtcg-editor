@@ -1,8 +1,8 @@
 # Implementation Plan: Simplify TokenTree / TreeNode Editor Coupling
 
-**Branch**: `001-simplify-tree-node` | **Date**: 2026-08-16 | **Spec**: [spec.md](./spec.md)
+**Branch**: `002-simplify-tree-node` | **Date**: 2026-08-16 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Feature specification from `/specs/001-simplify-tree-node/spec.md`
+**Input**: Feature specification from `/specs/002-simplify-tree-node/spec.md`
 
 **Note**: This template is filled in by the `/speckit-plan` command; its definition describes the execution workflow.
 
@@ -81,7 +81,7 @@ not needed.
 ### Documentation (this feature)
 
 ```text
-specs/001-simplify-tree-node/
+specs/002-simplify-tree-node/
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output (/speckit-plan command)
 ├── data-model.md        # Phase 1 output (/speckit-plan command)

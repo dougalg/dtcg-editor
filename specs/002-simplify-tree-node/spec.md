@@ -1,6 +1,6 @@
 # Feature Specification: Simplify TokenTree / TreeNode Editor Coupling
 
-**Feature Branch**: `001-simplify-tree-node`
+**Feature Branch**: `002-simplify-tree-node`
 
 **Created**: 2026-08-16
 
