@@ -164,6 +164,53 @@ test("shows editable controls for a dimension token but not for a non-standard t
 	expect(screen.getByText(/non-standard/)).toBeTruthy();
 });
 
+test("an invalid dimension token renders a generic alert via DefaultValidationErrorHandler (path 4)", () => {
+	const node: PlainDtcgNode = {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			{
+				kind: "token",
+				name: "broken",
+				path: ["broken"],
+				value: { value: 4 },
+				declaredType: "dimension",
+				effectiveType: "dimension",
+				description: undefined,
+				deprecated: undefined,
+			},
+		],
+	};
+
+	render(<TokenTree node={node} relativePath="tokens.json" />);
+
+	// Dimension has a built-in contract but no package `ValidationErrorHandler`
+	// of its own, so an invalid value now falls back to
+	// `DefaultValidationErrorHandler` — previously this showed no error
+	// indication at all in read-only mode; this is the intentionally-added
+	// path 4 behavior, not a regression.
+	expect(screen.queryByLabelText("broken name")).toBeNull();
+	expect(screen.getByRole("alert").textContent).toMatch(
+		/Invalid dimension value/,
+	);
+});
+
+test("a non-standard-type token renders read-only with no extra alert (path 5)", () => {
+	render(<TokenTree node={tree()} relativePath="tokens.json" />);
+
+	// "weird" (declaredType/effectiveType "not-a-real-type") is not editable
+	// and, per path 5 of the model, `DefaultValidationErrorHandler` is called
+	// with no `error` — no `role="alert"` anywhere in the tree for it.
+	expect(screen.queryByLabelText("weird name")).toBeNull();
+	expect(screen.getByText(/non-standard/)).toBeTruthy();
+	expect(screen.queryByRole("alert")).toBeNull();
+});
+
 test("an out-of-range color token still renders, editable (AC-05)", () => {
 	const node: PlainDtcgNode = {
 		kind: "group",
