@@ -20,7 +20,39 @@ argument-hint: <feature-name> (optional, derived from spec.md if omitted)
 
 ## Steps
 
-### Step 0: Validate Inputs (ALWAYS DO THIS FIRST)
+### Step 0: Sync with main (ALWAYS DO THIS FIRST, before touching any file)
+
+This skill's own output — `docs/history.md`, `docs/backlog.md`, `docs/backlog-completed.md` —
+is shared state that other `archive-task` runs, other feature branches, and other sessions
+write to as well. If the branch this skill is running on has fallen behind local `main`, its
+edits to those files are based on a stale copy: two runs archiving different features can each
+append to the same table/list independently and unknowingly, and whichever one commits second
+either conflicts or silently clobbers the first. Catch this before Step 1 does any resolution
+or writing, not after.
+
+- Compare the current branch against local `main` — not `origin/main`; per this repo's
+  local-first convention, "main" always means the local branch: `git merge-base --is-ancestor
+  main HEAD`. If that succeeds, the branch already contains everything on `main`; proceed
+  straight to Step 1.
+- If it fails, `main` has moved ahead. Rebase onto it: `git rebase main`. This repo rebases
+  rather than merges (see `CONTRIBUTING.md`), and since this is a local, not-yet-merged feature
+  branch, rewriting its history here is safe — nothing else depends on these commits' current
+  SHAs yet.
+- If the rebase hits conflicts, they will most likely land in exactly the shared files named
+  above, because they're the ones this skill (and others like it) habitually append to. That's
+  expected, not a sign something went wrong: resolve by keeping both sides' additions side by
+  side — a new `## Features` entry, a new `## Architecture Decisions` row, a new
+  `docs/backlog-completed.md` line — rather than discarding either one. These files are
+  additive logs; a conflict here almost never means the two changes actually contradict each
+  other, only that they landed at the same list position.
+- After resolving (`git add` the fixed files, `git rebase --continue`), re-run this repo's
+  build/lint/test commands once before continuing — a rebase can replay commits in a different
+  tree state than they were originally written against, and it's cheap to confirm nothing broke
+  before layering the archive changes on top.
+- Only once the branch is confirmed even with `main` (the ancestor check above passes) should
+  Step 1 begin.
+
+### Step 1: Validate Inputs (before any file is written)
 
 Check the conversation for `feature_name` and resolve the feature directory the same way
 speckit does: run `.specify/scripts/bash/check-prerequisites.sh --json` (or read
@@ -48,7 +80,7 @@ speckit does: run `.specify/scripts/bash/check-prerequisites.sh --json` (or read
 
 ### 1. Determine the Feature Name
 
-Use `feature_name` from Step 0. Capture the current timestamp using `date +"%Y%m%d%H%M"` and prepend it to form the archive directory name: `<yyyymmddHHMM>-<feature-name>` (e.g. `202604191430-jwt-authentication`).
+Use `feature_name` from Step 1. Capture the current timestamp using `date +"%Y%m%d%H%M"` and prepend it to form the archive directory name: `<yyyymmddHHMM>-<feature-name>` (e.g. `202604191430-jwt-authentication`).
 
 ### 2. Verify Completion
 
@@ -208,7 +240,7 @@ picking individual files — `spec.md`/`plan.md`/`tasks.md` are always present, 
 else is copied only if it exists:
 
 ```bash
-FEATURE_DIR="specs/<NNN-feature-name>"   # from Step 0's check-prerequisites.sh resolution
+FEATURE_DIR="specs/<NNN-feature-name>"   # from Step 1's check-prerequisites.sh resolution
 ARCHIVE_DIR="docs/specs-archive/$(date +"%Y%m%d%H%M")-<feature-name>"
 mkdir -p "$ARCHIVE_DIR"
 mv "$FEATURE_DIR"/spec.md "$ARCHIVE_DIR/spec.md"
