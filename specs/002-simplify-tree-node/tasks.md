@@ -120,6 +120,26 @@ description: "Task list template for feature implementation"
 
 ---
 
+## Phase 7: User Story 1 follow-up - Simplify TreeNode.tsx dispatch to the explicit 5-path model
+
+**Purpose**: Post-implementation design refinement (2026-08-16 follow-up, see plan.md). Phase 3's `TreeNode.tsx` rewrite works but its dispatch logic (`isStandard`/`builtInContract`/`canEdit` computed piecemeal, an `effectiveType !== undefined` guard duplicated at three call sites) reads as more branches than the behavior actually has. This phase restates the same dispatch as the explicit 5-path model in plan.md's "TreeNode.tsx dispatch design" and data-model.md's `TreeNodeProps`/`DefaultValidationErrorHandler` entries. No FR, user story, or `TokenTypeContract` shape changes.
+
+**Goal**: `TreeNode.tsx`'s token-branch logic computes exactly `isUsableType` → `contract` → `validation` → `isValid`, then dispatches to one of the two branches (editable: registered editor or `FallbackValueEditor`; read-only: `contract?.ValidationErrorHandler ?? DefaultValidationErrorHandler`, called once) — with no other intermediate flags.
+
+**Independent Test**: Read `TreeNode.tsx`'s token branch top to bottom; confirm each of the 5 paths (valid+editor, valid+no editor, invalid+package handler, invalid+no package handler, no usable type) is reachable through exactly one shared derivation, with no duplicated `effectiveType !== undefined` guard.
+
+- [ ] T035 [P] [US1] Create `apps/web-app/components/DefaultValidationErrorHandler.tsx` implementing `(props: { readonly value: unknown; readonly error?: TokenTypeValidationError }) => ReactElement | null` — renders `<span role="alert">{error.message}</span>` when `error` is defined, `null` otherwise; this is the same "extra content below name/type/value" slot a package's own `ValidationErrorHandler` already fills (e.g. `packages/token-type-color/src/components/validation-error-handler.tsx`), not the name/type/value shell itself, which stays `TreeNode.tsx`'s own unconditional rendering. Add `apps/web-app/components/DefaultValidationErrorHandler.test.tsx` covering both cases (with `error`, without) directly, unit-level, no `TreeNode` involvement
+- [ ] T036 [US1] Rewrite `apps/web-app/components/TreeNode.tsx`'s token-branch dispatch to the explicit 5-path model per plan.md's "TreeNode.tsx dispatch design": compute `isUsableType` (`effectiveType !== undefined && isDtcgTokenType(effectiveType)`), `contract` (`resolveBuiltInContract(effectiveType)`, only when `isUsableType`), `validation` (`validateTokenValue(contract, node.value)`, only when `contract` exists), and `isValid` (`isUsableType && (contract === undefined || validation.isOk())`) — replacing the old `isStandard`/`builtInContract`/`canEdit` computed piecemeal; the editable branch (paths 1-2, `isValid`) resolves and renders `resolveEditorForType`'s editor or falls back to `FallbackValueEditor`, exactly as today (no behavior change); the read-only branch (paths 3-5, `!isValid`) computes `errorForHandler = validation?.isErr() === true ? validation.error : undefined` and `Handler = contract?.ValidationErrorHandler ?? DefaultValidationErrorHandler`, calling it once (`<Handler value={node.value} error={errorForHandler} />`) as the sole extra-content call site beneath the unconditional name/type/value fields; delete the `effectiveType !== undefined` guard duplicated across the old `isStandard` computation and both JSX label conditionals, deriving the type label directly from `effectiveType` where still needed (depends on T035)
+- [ ] T037 [P] [US1] Add a `apps/web-app/components/TokenTree.test.tsx` case: a token with a recognized standard type (`dimension`) and a value that fails `DimensionValueSchema` now renders a generic `role="alert"` with `error.message` via `DefaultValidationErrorHandler` — previously showed no error indication at all in this case, since dimension has no package `ValidationErrorHandler` (this is path 4 of the model, explicitly requested per the 2026-08-16 clarification, not a regression) (depends on T036)
+- [ ] T038 [P] [US1] Add a `apps/web-app/components/TokenTree.test.tsx` case: a token with a non-standard/unrecognized declared type (or no `effectiveType`) still renders read-only with no extra alert (path 5, `DefaultValidationErrorHandler` called with `error` undefined) — regression coverage confirming the existing "(non-standard)" read-only behavior is unchanged (depends on T036)
+- [ ] T039 [US1] Run `pnpm --filter @dtcg-editor/web-app test` and confirm every suite passes, including T035/T037/T038's new coverage, with no changes to any other test's existing assertions (depends on T035, T037, T038)
+- [ ] T040 [P] [US1] Re-run `grep -n "@dtcg-editor/token-type-color\|@dtcg-editor/token-type-dimension" apps/web-app/components/TreeNode.tsx apps/web-app/components/TokenTree.tsx` and `grep -n '=== "color"\|=== "dimension"\|isDimension\|isColor' apps/web-app/components/TreeNode.tsx`, confirming both still produce no output after the rewrite (SC-003/SC-004 still hold) (depends on T036)
+- [ ] T041 [P] Run the repo's strict TypeScript build/typecheck (`next build`) and lint (`eslint`) across `apps/web-app` to confirm no relaxation was needed (Constitution Principle III) (depends on T036)
+
+**Checkpoint**: `TreeNode.tsx`'s token-branch dispatch matches plan.md's 5-path model exactly; SC-001–SC-005 and FR-001–FR-008 still hold; the only observable behavior change is the intentionally-requested one (an invalid dimension value now shows a generic error line in read-only mode, per path 4).
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -130,6 +150,7 @@ description: "Task list template for feature implementation"
 - **User Story 2 (Phase 4)**: Depends on Phase 3 (verifies the Phase 3 refactor introduced no regression)
 - **User Story 3 (Phase 5)**: Depends on Phase 3 (audits the Phase 3 refactor's structure); independent of Phase 4 — Phases 4 and 5 may run in parallel once Phase 3 completes
 - **Polish (Phase 6)**: Depends on Phases 3, 4, and 5 all being complete
+- **User Story 1 follow-up (Phase 7)**: Depends on Phase 6 (the whole feature was already shipped once); restates Phase 3's `TreeNode.tsx` dispatch, so it re-touches the same file — no other phase depends on it
 
 ### Within Phase 2 (Foundational)
 
@@ -152,6 +173,10 @@ description: "Task list template for feature implementation"
 - T022 and T023 — different test files, no dependency on each other
 - T025 can run alongside T024 — different package test suites
 - All of T027–T031 (Phase 5) are read-only verification steps and can run fully in parallel once their respective Phase 3 prerequisites land
+
+### Within Phase 7 (User Story 1 follow-up)
+
+- T036 depends on T035 (the read-only branch calls `DefaultValidationErrorHandler`); T037, T038, T040, T041 all depend on T036 but are independent of each other (different files/read-only checks); T039 depends on T037 and T038 (runs the suite they add to)
 
 ---
 
@@ -193,6 +218,7 @@ Task: "Move editor.tsx to packages/token-type-dimension/src/components/ (T012)"
 ### Notes
 
 - Every phase after Phase 3 largely re-examines the _same_ files Phase 3 changed (verification, not new construction) — this matches spec.md's own priority rationale: Story 3 is "a consequence of satisfying [Stories 1–2] correctly, not a separately testable behavior in itself."
-- `ValidationErrorHandler` (T002) is invoked exactly once in `TreeNode.tsx`, in the read-only/invalid branch (T017), and always with a concrete `error` — never in the editable branch (T018), since a value reaching that branch has already passed validation. Any "valid but flagged" display (color's range check) is the `Editor`'s own concern (T007), not `ValidationErrorHandler`'s.
+- `ValidationErrorHandler` (T002) is invoked exactly once in `TreeNode.tsx`, in the read-only/invalid branch (T017, restated by T036), and always with a concrete `error` — never in the editable branch (T018), since a value reaching that branch has already passed validation. Any "valid but flagged" display (color's range check) is the `Editor`'s own concern (T007), not `ValidationErrorHandler`'s.
 - No task in this list adds a new third-party dependency, changes the `TokenTypeContract` interface's existing members, or alters DTCG token file I/O — consistent with plan.md's Constraints and Assumptions.
+- Phase 7 is a design-clarity refactor of Phase 3's own output, not new scope: `isUsableType`/`contract`/`validation`/`isValid`/`errorForHandler`/`Handler` are the same facts Phase 3's `isStandard`/`builtInContract`/`canEdit` already computed, just named and sequenced to match plan.md's 5-path model instead of being interleaved. The one deliberate, disclosed behavior change (T037) — an invalid dimension value now shows a generic alert in read-only mode, where before it silently showed nothing — is exactly path 4 of the model the user asked for, not a side effect.
 - Commit after each task or logical group; stop at any checkpoint to validate independently.

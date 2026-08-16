@@ -58,9 +58,12 @@ Not part of `TokenTypeContract` — a plain `apps/web-app` component, sibling
 of the existing `FallbackValueEditor`, that `TreeNode.tsx`'s read-only branch
 falls back to whenever a token-type contract has no `ValidationErrorHandler`
 of its own, or the token has no usable type to look a contract up for at
-all. Renders the same name/type/value read-only fields `TreeNode.tsx` shows
-for every token, plus — only when `error` is passed — that error's `message`
-as a `role="alert"` line. Resolved once per token, alongside a package's own
+all. Fills the same slot a package's own `ValidationErrorHandler` already
+fills — extra content rendered _below_ the name/type/value fields, which
+`TreeNode.tsx` itself renders unconditionally for every read-only token
+regardless of path, exactly as it does today. Renders that error's `message`
+as a `role="alert"` line only when `error` is passed; renders `null` when
+absent. Resolved once per token, alongside a package's own
 `ValidationErrorHandler`, as `contract?.ValidationErrorHandler ??
 DefaultValidationErrorHandler` — see plan.md's "TreeNode.tsx dispatch
 design" for the full decision table.

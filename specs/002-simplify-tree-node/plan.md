@@ -102,13 +102,14 @@ non-editable case instead of an inline fallback plus a separate
 `effectiveType !== undefined` label check.
 
 `DefaultValidationErrorHandler` (new, `apps/web-app/components/`, sibling of
-the existing `FallbackValueEditor`): renders the plain name/type/value
-read-only fields `TreeNode.tsx` already shows for every token, plus — only
-when `error` is passed (path 4) — `error.message` as the same generic
-single-line `role="alert"` text `TreeNode.tsx` already renders for a staged
-field-validation error elsewhere. When `error` is absent (path 5, no usable
-type), it renders no extra line, preserving today's behavior for a
-non-standard-typed or untyped token (SC-002 no-regression).
+the existing `FallbackValueEditor`): same slot a package's own
+`ValidationErrorHandler` already fills (e.g. color's, per T008) — extra
+content rendered _below_ the name/type/value fields, which `TreeNode.tsx`
+itself renders unconditionally for every read-only token regardless of path,
+exactly as it does today. Renders `error.message` as a single-line
+`role="alert"` line only when `error` is passed (path 4); renders nothing
+(`null`) when `error` is absent (path 5, no usable type), preserving today's
+behavior for a non-standard-typed or untyped token (SC-002 no-regression).
 
 ## Technical Context
 
