@@ -1,6 +1,65 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.1.0 → 2.2.0
+Rationale: MINOR — materially expands Principle X (Component Granularity &
+Testing) with a component-reuse-detection rule: 3+ structurally/
+stylistically/functionally similar components MUST be flagged as a
+candidate for extraction into `packages/design-system`. No existing rule
+within the principle is redefined or removed, so this is not MAJOR; a new
+enforceable rule is materially more than a wording clarification, so this
+is not PATCH.
+
+Added sections: none (extends the existing Principle X body + rationale)
+
+Modified principles:
+  - X. Component Granularity & Testing — rule paragraph gains the 3+
+    similar-components reuse-flagging requirement; rationale expanded to
+    explain the count-based threshold and why `design-system` is the
+    consolidation target.
+
+Removed sections: none
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: requested directly via
+`speckit-constitution` immediately following the v2.1.0 amendment, as a
+follow-up extension to the same principle — when 3+ repeated component
+instances are identified (by structure, style, and function), they should
+be flagged as a candidate for a shared component contributed to
+`packages/design-system`.
+-->
+
+<!--
+Sync Impact Report (v2.1.0, superseded above)
+==================
+Version change: 2.0.1 → 2.1.0
+Rationale: MINOR — adds a new Core Principle (X. Component Granularity &
+Testing) governing React component structure and test coverage: one
+component per file, a single nameable purpose per component, a 300-line
+soft ceiling, and mandatory unit + accessibility test coverage for every
+component. No existing principle is redefined or removed, so this is not
+MAJOR; a new principle is materially more than a wording clarification, so
+this is not PATCH.
+
+Added sections:
+  - X. Component Granularity & Testing
+
+Modified principles: none
+
+Removed sections: none
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: requested directly via
+`speckit-constitution` — components should be small (ideally < 300 lines),
+aim for a single purpose, always live in their own file, and be fully unit
+tested and accessibility tested.
+-->
+
+<!--
+Sync Impact Report (v2.0.1, superseded above)
+==================
 Version change: 2.0.0 → 2.0.1
 Rationale: PATCH — pure terminology sync, no principle redefinition. The
 "token-core-refactor" feature spec (specs/001-token-core-refactor/spec.md)
@@ -181,7 +240,7 @@ DTCG-spec-conformant validated model in one place (Principle I) instead of
 scattered one copy per token-editor package, while keeping each type's editor
 UI independently addable/removable as a plugin (Principle VII) — the
 code-organization boundary matches the plugin boundary for UI, so adding or
-removing a token type's *editor* stays a single-directory operation even
+removing a token type's _editor_ stays a single-directory operation even
 though its parsing lives centrally. A test is part of the feature bundle it
 verifies; a separate `test/` tree would reintroduce the layer split this
 principle exists to avoid.
@@ -268,7 +327,7 @@ any) a host app renders with. Rendering and registration are what stay
 pluggable: each `token-editor-*` package implements a shared `TokenTypeContract`
 interface — its `Editor` component plus a `valueSchema`/`serializeValue`
 imported directly from `token-core` — that a host app's registry hosts
-generically, so adding a new token type's *editor* never requires changing
+generically, so adding a new token type's _editor_ never requires changing
 the core engine or any other `token-editor-*` package. The "core engine MUST
 NEVER hard-code knowledge of specific token types" rule now applies to
 rendering/registration only, not to parsing: `token-core` deliberately does
@@ -317,6 +376,44 @@ Rationale: the DTCG spec permits extensions and tool-specific fields; when
 the user edits one token, only that value should change semantically —
 everything else, even fields with no typed internal representation, must
 survive unchanged.
+
+### X. Component Granularity & Testing
+
+Every React component MUST be defined in its own file — a file MUST NOT
+export more than one component. A component MUST have a single, nameable
+purpose; if its responsibility can't be stated in one sentence, it MUST be
+split into narrower components. A component SHOULD stay under 300 lines —
+approaching or exceeding that is a signal to extract a subcomponent, not a
+target to defend. Every component MUST have unit test coverage (Vitest +
+`@testing-library/react`) verifying its rendered behavior, and MUST be
+covered by this project's existing accessibility test tiers (Vitest Browser
+Mode + `axe-core` at the component level; `@playwright/test` for
+whole-page/keyboard flows — see Technology Stack below) — a component with
+no accessibility semantics of its own still needs an explicit test asserting
+that, not a silent exemption. When 3 or more components across the codebase
+are structurally, stylistically, and functionally similar enough to be the
+same component with different data — not merely coincidentally similar-
+looking — that MUST be flagged (in the PR/task introducing the 3rd instance,
+or in a dedicated cleanup task if found later) as a candidate for extraction
+into a shared, reusable component contributed to `packages/design-system`,
+rather than left as three independently-maintained near-duplicates.
+
+Rationale: small, single-purpose, individually-tested components are the
+concrete, component-level form of Principle II's "own cohesive unit" — a
+large component doing several unrelated jobs is the same hidden layering
+Principle II already prohibits between packages, just relocated inside one
+file. Testing every component individually, not only at the page/
+integration level, catches regressions at the smallest unit that can
+meaningfully break, and keeps the two-tier accessibility testing this
+project already runs applied uniformly rather than only where someone
+remembered to add it. The reuse threshold is deliberately a count (3), not a
+subjective judgment call, so it's flaggable in review without relying on
+someone happening to remember every component that already exists;
+consolidating into `design-system` — rather than a fourth copy, or a
+one-off shared file wherever the third instance happens to live — keeps
+reusable UI addressable from one place instead of accreting duplicate
+near-identical components across `apps/web-app` and the `token-editor-*`
+packages.
 
 ## Technology Stack & Approved Dependencies
 
@@ -406,4 +503,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 2.0.1 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-16
+**Version**: 2.2.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-16
