@@ -8,6 +8,13 @@
 
 **Input**: User description: "simplify tokentree, treenode. tokentree and treenode are too complex. they should be completely generic and not know about the details of the editors. they should only pass the data to the determined editor itself."
 
+## Clarifications
+
+### Session 2026-08-16
+
+- Q: Should this feature also restructure the existing `token-type-color` and `token-type-dimension` packages to match the new editor layout, or should the new layout only apply to editors added after this feature ships? → A: Retrofit both existing packages now — `token-type-color`'s editor-specific config moves into `configuration.ts` and its components (including the new `ValidationErrorHandler`) move under `components/`; `token-type-dimension` adopts the same skeleton even though it has no editor-specific options today.
+- Q: Does the new `components/` + `configuration.ts` structure apply only to the token-type packages this repo ships, or does it also constrain how a project organizes its own custom editor extension registered inline via `dtcg-editor.config.mts`? → A: First-party `packages/token-type-*` packages only — a host app's inline custom extension is unaffected and keeps whatever internal shape it already has.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Add a new token-type editor without touching the tree (Priority: P1)
@@ -62,6 +69,7 @@ A maintainer reviewing the tree-rendering component should be able to confirm, j
 - What happens when a token has no `$type` and none is inherited from an ancestor group? The tree must handle this the same way it does today (routed to the same "no matching editor" fallback path, not a special case).
 - What happens when a user-defined extension registers an editor for a type name that collides with a built-in type (e.g. the user supplies their own "color" editor)? The user's registered editor must take precedence, consistent with today's extension-merge order.
 - What happens when an editor's validation reports an invalid value? Error display and save-blocking must be handled generically by the tree, using only the contract's validation result — not through type-specific handling.
+- What happens when a first-party token-type package has no editor-specific configuration (e.g. `token-type-dimension` today)? Its `configuration.ts` module still exists per FR-009/FR-010/FR-011, even though it currently has nothing to export — the convention's presence, not its content, is what's required.
 
 ## Requirements _(mandatory)_
 
@@ -75,6 +83,10 @@ A maintainer reviewing the tree-rendering component should be able to confirm, j
 - **FR-006**: The root tree container MUST remain limited to tree state management, edit staging, and save orchestration, with no editor-type-specific logic — preserving its current generic role through the refactor.
 - **FR-007**: Adding a new token-type editor MUST be possible by registering it as an extension (via user config or the built-in registry) without modifying the tree-rendering or tree-container components' source.
 - **FR-008**: Existing automated tests covering tree/editor behavior (color, dimension, generic editor, override, accessibility) MUST continue to pass; tests may only be updated where they assert internal implementation details that necessarily change with the refactor, never where they assert user-facing behavior.
+- **FR-009**: Every first-party token-type package (e.g. `token-type-color`, `token-type-dimension`) MUST organize its editor's UI under a `components/` directory, with its main editor at `components/editor.tsx`; any subcomponents the editor needs (including the new validation-error display introduced by this feature) MUST live in that same `components/` directory, one component per file.
+- **FR-010**: Every first-party token-type package MUST declare its editor-specific configuration (e.g. `ColorEditorOptions` and its validation schema) in a dedicated `configuration.ts` module, kept separate from that package's core token value type and validator definitions (e.g. `ColorValueSchema`) — configuration concerns and core token-type/value-validation concerns MUST NOT be defined in the same module.
+- **FR-011**: This feature MUST retrofit the existing `token-type-color` and `token-type-dimension` packages to the FR-009/FR-010 structure, not merely document it for future packages — including relocating `token-type-color`'s existing `ColorEditorOptions`/`ColorEditorOptionsSchema` out of its core value-schema module into `configuration.ts`, and moving each package's editor component(s) under `components/`.
+- **FR-012**: The FR-009/FR-010 structure applies to first-party token-type packages shipped by this repo; it does not constrain how a host application organizes its own custom editor extension registered via user config, whose internal shape remains outside this repo's control.
 
 ### Key Entities
 
@@ -82,6 +94,7 @@ A maintainer reviewing the tree-rendering component should be able to confirm, j
 - **Tree node renderer**: The recursive component that walks the token tree and, for each token, resolves and delegates to the appropriate editor via the registry — after this change, with no knowledge of any specific editor's implementation.
 - **Editor registry / extension**: The existing mapping from a token type name to its editor component and options, merging built-in and user-defined entries; becomes the single path by which every editor (built-in or custom) is resolved.
 - **Token type contract**: The existing per-type contract (value shape, serialization, validation, editor component) that a concrete editor package implements and registers; unchanged in shape, but now the only interface the tree ever touches.
+- **Editor package structure**: The required file/folder convention every first-party token-type package follows — a `components/` directory holding the editor's UI (one component per file, main entry at `components/editor.tsx`), and a `configuration.ts` module holding editor-specific configuration (e.g. `ColorEditorOptions`), kept separate from the package's core token value type and validator definitions (e.g. `ColorValueSchema`). This is a structural convention on first-party packages, distinct from the (unstructured) `Token type contract` interface those packages implement.
 
 ## Success Criteria _(mandatory)_
 
@@ -91,6 +104,7 @@ A maintainer reviewing the tree-rendering component should be able to confirm, j
 - **SC-002**: 100% of existing color- and dimension-token editing scenarios (display, edit, validation, save) behave identically to before the refactor, as verified by the existing automated test suite.
 - **SC-003**: The tree-rendering component contains zero direct imports of any specific token-type editor package after the refactor (down from two today: color and dimension).
 - **SC-004**: The tree-rendering component contains zero conditional branches keyed on a specific token-type name after the refactor (down from two today: the dimension and color special cases).
+- **SC-005**: 100% of first-party token-type packages (`token-type-color`, `token-type-dimension`) organize their editor UI under a `components/` directory and their editor-specific configuration in a dedicated `configuration.ts` module, with zero editor-configuration exports remaining in either package's core value-schema module.
 
 ## Assumptions
 

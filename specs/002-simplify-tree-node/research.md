@@ -52,22 +52,22 @@ opaquely, exactly as it already does for `unknown`-typed generic values.
   in `TreeNode.tsx` inspects the value, so the cast buys no real safety, only
   an extra branch.
 
-## Decision 3: Extend `TokenTypeContract` with an optional `Preview` for read-only/invalid-state display
+## Decision 3: Extend `TokenTypeContract` with an optional `ValidationErrorHandler` for read-only/invalid-state display
 
-**Decision**: Add an optional `Preview?(props: { readonly value: unknown })
+**Decision**: Add an optional `ValidationErrorHandler?(props: { readonly value: unknown })
 => ReactElement | null` member to `TokenTypeContract`. `packages/token-type-color`
 implements it (moving the swatch-rendering and validation-issue-listing logic
 currently in `apps/web-app/lib/tokens/color-display.ts` into the color
-package itself, as `packages/token-type-color/src/preview.tsx`).
-`TreeNode.tsx` renders `contract.Preview` generically wherever it currently
+package itself, as `packages/token-type-color/src/validation-error-handler.tsx`).
+`TreeNode.tsx` renders `contract.ValidationErrorHandler` generically wherever it currently
 renders the color swatch/issues, for _any_ type that supplies one — falling
 back to plain name/type/value text (already the generic behavior for every
-other type) when a contract has no `Preview`.
+other type) when a contract has no `ValidationErrorHandler`.
 
 **Rationale**: Every other piece of type-specific display in `TreeNode.tsx`
 already has a generic equivalent (`Editor` for editing, `valueSchema` +
 `validateTokenValue` for validation) except the swatch/issue-list shown for
-color specifically. A `Preview` component closes that last gap the same way
+color specifically. A `ValidationErrorHandler` component closes that last gap the same way
 `Editor` closes the editing gap — extending the _contract_ rather than adding
 another type-name branch to the host, per Principle VII.
 
@@ -83,7 +83,7 @@ string[] }` function instead of a component_ — rejected: a future
 - _Reuse `Editor` itself for the read-only/invalid case (e.g. a `disabled`
   prop)_ — rejected: today's invalid-value state intentionally does _not_
   render an interactive editor (a structurally-invalid raw value can't be
-  safely handed to an editor expecting `TValue`); a separate `Preview`,
+  safely handed to an editor expecting `TValue`); a separate `ValidationErrorHandler`,
   receiving the raw untyped value, is the correct shape for a
   possibly-invalid input, whereas `Editor` only ever receives an
   already-validated `TValue`.
@@ -105,3 +105,65 @@ token-type packages.
 
 **Alternatives considered**: None — this is a confirmation, not a choice
 between options.
+
+## Decision 5: Retrofit both token-type packages to a `components/` + `configuration.ts` structure now
+
+**Decision**: Per the 2026-08-16 clarification, both `packages/token-type-color`
+and `packages/token-type-dimension` are restructured as part of this feature
+(not deferred to a future package): each package's editor component(s) move
+under a `components/` directory (`components/editor.tsx` as the main entry,
+one component per file — this is also where `token-type-color`'s new
+`ValidationErrorHandler` from Decision 3 lives, as `components/validation-error-handler.tsx`), and each
+package gains a `configuration.ts` module holding its editor-specific
+configuration, kept out of its core value-schema module. For
+`token-type-color`, this means moving `ColorEditorOptions`,
+`ColorEditorOptionsSchema`, and `defineColorConfig` out of `color.ts` (which
+keeps only `ColorValueSchema`, `ColorObjectValueSchema`,
+`LegacyHexColorValueSchema`, `checkColorValueIssues`, and the
+`COLOR_SPACES`/`ColorSpace` primitives the configuration schema itself needs
+to import) into the new `configuration.ts`.
+
+**Rationale**: The clarification session confirmed this repo's own
+`color.ts` already exhibits, one layer down, the same coupling problem
+spec-002 exists to fix in `TreeNode.tsx`: editor-only concerns
+(`ColorEditorOptions`) mixed into the module defining core token-value
+validation (`ColorValueSchema`). Since this feature already touches
+`token-type-color` to add `ValidationErrorHandler`, it is the natural point to also correct
+that file layout, rather than leaving the new `ValidationErrorHandler` component as a third
+loose file alongside `editor.tsx` while the config-vs-core-validation split
+remains unaddressed.
+
+**Alternatives considered**:
+
+- _Retrofit only `token-type-color` (already being touched for `ValidationErrorHandler`);
+  leave `token-type-dimension`'s flat layout alone_ — rejected by the user
+  during clarification: `token-type-dimension` adopts the same skeleton for
+  consistency across every first-party editor package, even though it has no
+  editor-specific options to relocate today.
+- _Document the new layout as guidance for future packages only, leaving
+  both existing packages unchanged_ — rejected: this would leave the exact
+  coupling this feature is meant to close (per the user's own framing:
+  "this also points to needing a clear distinction... in the spec document")
+  unresolved in the two packages that exist today.
+
+## Decision 6: `token-type-dimension`'s `configuration.ts` starts empty
+
+**Decision**: `packages/token-type-dimension/src/configuration.ts` is created
+as part of this feature even though `dimensionTokenType` has no
+`editorOptionsSchema` today — it has nothing to export yet, but the module's
+_presence_ is what FR-009/FR-010/FR-011 require, not its content.
+
+**Rationale**: Matches spec.md's edge case: "the convention's presence, not
+its content, is what's required." This keeps `token-type-dimension`
+structurally identical to `token-type-color` (and to any future first-party
+package), so a maintainer never has to guess whether a missing
+`configuration.ts` means "this type has no options" versus "this package
+predates the convention."
+
+**Alternatives considered**:
+
+- _Omit `configuration.ts` from `token-type-dimension` until it actually has
+  an option to declare_ — rejected: reintroduces exactly the ambiguity
+  Decision 5 exists to remove (is a missing file a deliberate "no options"
+  signal, or an unretrofitted package?); a present-but-empty module is
+  unambiguous.

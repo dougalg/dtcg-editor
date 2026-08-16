@@ -21,10 +21,12 @@ they assert an internal implementation detail that necessarily changed (e.g.
 a direct call to the now-deleted `validateDimensionValue`), never where they
 assert rendered output or user-facing behavior.
 
-Also run the token-type package suites, since `Preview` moves logic there:
+Also run the token-type package suites, since `ValidationErrorHandler` moves logic there and
+both packages are restructured:
 
 ```sh
 pnpm --filter @dtcg-editor/token-type-color test
+pnpm --filter @dtcg-editor/token-type-dimension test
 pnpm --filter @dtcg-editor/token-type-contract test
 ```
 
@@ -45,7 +47,28 @@ grep -n '=== "color"\|=== "dimension"\|isDimension\|isColor' \
 
 Expect **no output**.
 
-## 3. Behavioral: a brand-new type works with zero tree-component changes (Story 1 / SC-001)
+## 3. Structural check: editor package layout (Story 3 / SC-005)
+
+```sh
+test -f packages/token-type-color/src/components/editor.tsx && \
+test -f packages/token-type-color/src/components/validation-error-handler.tsx && \
+test -f packages/token-type-color/src/configuration.ts && \
+test -f packages/token-type-dimension/src/components/editor.tsx && \
+test -f packages/token-type-dimension/src/configuration.ts && \
+echo "editor package layout OK"
+```
+
+Expect `editor package layout OK`. Then confirm no editor-configuration
+exports remain in either package's core value-schema module (SC-005):
+
+```sh
+grep -n "EditorOptions" packages/token-type-color/src/color.ts \
+  packages/token-type-dimension/src/dimension.ts
+```
+
+Expect **no output**.
+
+## 4. Behavioral: a brand-new type works with zero tree-component changes (Story 1 / SC-001)
 
 1. In a scratch/test config (not committed), register a stub extension for an
    unused type name, e.g.:
@@ -65,7 +88,9 @@ Expect **no output**.
 
 ## Expected outcome
 
-All three checks pass: existing tests green, zero concrete token-type
-imports/conditionals in the tree layer, and a new type editor works purely
+All four checks pass: existing tests green, zero concrete token-type
+imports/conditionals in the tree layer, both first-party token-type packages
+follow the `components/` + `configuration.ts` layout with no editor config
+left in their core value-schema modules, and a new type editor works purely
 through registration. This is the full acceptance bar from `spec.md`'s three
 user stories.
