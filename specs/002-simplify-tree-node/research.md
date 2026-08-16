@@ -57,8 +57,12 @@ opaquely, exactly as it already does for `unknown`-typed generic values.
 **Decision**: Add an optional `ValidationErrorHandler?(props: { readonly value: unknown;
 readonly validation: Result<TValue, TokenTypeValidationError> }) => ReactElement | null`
 member to `TokenTypeContract`, and give `TokenTypeValidationError` a parallel
-`issues: readonly string[]` field (path-prefixed per-issue messages, additive
-alongside the existing `message`). `packages/token-type-color`
+`issues: readonly TokenTypeValidationIssue[]` field — each issue a structured
+`{ path: readonly PropertyKey[]; message: string; code: string }` object
+(mirroring Zod's own issue shape) rather than a pre-formatted string, additive
+alongside the existing `message`, so a future consumer can use `path` to
+target one specific field or `code` for non-text handling without another
+contract change. `packages/token-type-color`
 implements `ValidationErrorHandler` (moving the swatch-rendering and validation-issue-listing logic
 currently in `apps/web-app/lib/tokens/color-display.ts` into the color
 package itself, as `packages/token-type-color/src/validation-error-handler.tsx`).

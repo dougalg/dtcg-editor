@@ -30,11 +30,14 @@ the same `Result<TValue, TokenTypeValidationError>` `TreeNode.tsx` already
 computes via `validateTokenValue` for that value, so an implementer doesn't
 need to re-run schema validation itself just to know whether the value is
 structurally valid. `TokenTypeValidationError` gains a parallel `issues:
-readonly string[]` field (path-prefixed per-issue messages, additive
-alongside the existing `message`) for implementers that want a field-level
-breakdown — though a `z.union`-typed `valueSchema` (e.g. color's) still needs
-its own branch-schema validation for good messages, since Zod's union errors
-collapse to `"Invalid input"` regardless of which field caused them. A
+readonly TokenTypeValidationIssue[]` field (each a structured `{ path:
+readonly PropertyKey[]; message: string; code: string }`, additive alongside
+the existing `message`) for implementers that want a field-level breakdown —
+an array of objects rather than pre-formatted strings, so a future consumer
+can extend how it uses `code`/`path` without another contract change. A
+`z.union`-typed `valueSchema` (e.g. color's) still needs its own
+branch-schema validation for good messages, since Zod's union errors report
+one top-level `"invalid_union"` issue rather than one per failing field. A
 contract with no `ValidationErrorHandler` falls back to the plain
 name/type/value text rendering `TreeNode.tsx` already uses for every type
 today.

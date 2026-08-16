@@ -54,30 +54,54 @@ export interface TokenTypeContract<TValue> {
 `packages/token-type-contract/src/contract.ts`
 
 ```ts
+/** One issue from a `valueSchema` parse, in the same shape Zod itself reports it. */
+export interface TokenTypeValidationIssue {
+	/**
+	 * Raw path segments to the offending field (e.g. `["components", 0]`),
+	 * left unjoined so an implementer can decide how to use it — format it,
+	 * match against it to highlight one specific input, group issues by
+	 * top-level field, etc. Empty for a top-level/whole-value issue.
+	 */
+	readonly path: readonly PropertyKey[];
+	/** Zod's human-readable message for this issue alone. */
+	readonly message: string;
+	/**
+	 * Zod's issue code (e.g. `"invalid_type"`, `"invalid_enum_value"`,
+	 * `"invalid_union"`). Exists for future non-text handling (e.g. a
+	 * code-specific fix suggestion) and to let an implementer detect the
+	 * `"invalid_union"` case called out below.
+	 */
+	readonly code: string;
+}
+
 export class TokenTypeValidationError extends Error {
 	/**
-	 * Per-issue messages from `valueSchema`'s Zod parse, each prefixed with
-	 * its field path when one exists (e.g. `"colorSpace: Invalid enum
-	 * value"`) — the same granularity `ValidationErrorHandler` needs for a
-	 * field-level breakdown. `message` (inherited from `Error`) is
-	 * unchanged: still the same issues joined into one string with no path
-	 * prefix, so no existing consumer of `.message` (e.g. `TreeNode.tsx`'s
-	 * single-line field-error display) changes behavior.
+	 * Structured per-issue detail from `valueSchema`'s Zod parse — the
+	 * granularity `ValidationErrorHandler` needs for a field-level
+	 * breakdown, as an array of objects (not pre-formatted strings) so a
+	 * future consumer can extend how it uses `code`/`path` without a
+	 * contract change. `message` (inherited from `Error`) is unchanged:
+	 * still the same issues joined into one string with no path prefix, so
+	 * no existing consumer of `.message` (e.g. `TreeNode.tsx`'s single-line
+	 * field-error display) changes behavior.
 	 */
-	readonly issues: readonly string[];
+	readonly issues: readonly TokenTypeValidationIssue[];
 }
 ```
 
 **Limit**: for a `z.union`-typed `valueSchema` (e.g. color's `ColorValueSchema`,
 a union of the object and legacy-hex shapes), Zod's default union error
-collapses every branch's issues to a content-free `"Invalid input"` — `issues`
-inherits that same limitation, since it's derived from the same `safeParse`
-call `message` already was. A contract implementer whose `valueSchema` is a
-union and that wants better structural messages for `ValidationErrorHandler`
-must still validate the raw `value` against its own branch schemas directly,
-as `packages/token-type-color` already does today — the host-supplied
-`validation` is a convenience for the common case (and a signal of overall
-ok/err), not a guaranteed replacement for type-specific validation.
+reports one top-level issue (`code: "invalid_union"`, `path: []`, `message:
+"Invalid input"`) rather than one issue per failing field — `issues` inherits
+that same limitation, since it's derived from the same `safeParse` call
+`message` already was; an implementer can check for `code === "invalid_union"`
+to detect this case, but doing so still doesn't recover per-field detail. A
+contract implementer whose `valueSchema` is a union and that wants better
+structural messages for `ValidationErrorHandler` must still validate the raw
+`value` against its own branch schemas directly, as `packages/token-type-color`
+already does today — the host-supplied `validation` is a convenience for the
+common case (and a signal of overall ok/err), not a guaranteed replacement
+for type-specific validation.
 
 ## Consumer contract: what `TreeNode.tsx` may depend on
 
