@@ -1,6 +1,6 @@
-import { expect, test } from "vitest";
+import { TokenTypeValidationError } from "@dtcg-editor/token-editor-contract";
 import { render, screen } from "@testing-library/react";
-import { TokenTypeValidationError } from "@dtcg-editor/token-type-contract";
+import { expect, test } from "vitest";
 import { DefaultValidationErrorHandler } from "./DefaultValidationErrorHandler.tsx";
 
 test("renders the error message as a role=alert line when error is passed", () => {

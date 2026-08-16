@@ -1,6 +1,6 @@
-import { colorTokenType } from "@dtcg-editor/token-type-color";
-import type { TokenTypeContract } from "@dtcg-editor/token-type-contract";
-import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
+import { colorTokenType } from "@dtcg-editor/token-editor-color";
+import type { TokenTypeContract } from "@dtcg-editor/token-editor-contract";
+import { dimensionTokenType } from "@dtcg-editor/token-editor-dimension";
 import type { TokenEditorExtension } from "./types.ts";
 
 /**

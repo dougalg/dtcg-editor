@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { colorTokenType } from "@dtcg-editor/token-type-color";
+import { colorTokenType } from "@dtcg-editor/token-editor-color";
 import { test } from "vitest";
 import { BUILT_IN_TOKEN_TYPES } from "./built-in.ts";
 

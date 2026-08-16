@@ -8,7 +8,7 @@ import {
 	resolveEffectiveType,
 	TokenParseError,
 } from "@dtcg-editor/token-core";
-import { validateTokenValue } from "@dtcg-editor/token-type-contract";
+import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
 import { ResultAsync } from "neverthrow";
 import { getConfig } from "../../../../lib/config.ts";
 import { resolveBuiltInContract } from "../../../../lib/token-editors/built-in.ts";

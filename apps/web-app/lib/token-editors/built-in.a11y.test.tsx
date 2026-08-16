@@ -1,5 +1,5 @@
-import { colorTokenType } from "@dtcg-editor/token-type-color";
-import { dimensionTokenType } from "@dtcg-editor/token-type-dimension";
+import { colorTokenType } from "@dtcg-editor/token-editor-color";
+import { dimensionTokenType } from "@dtcg-editor/token-editor-dimension";
 import { render } from "@testing-library/react";
 import axe from "axe-core";
 import { expect, test, vi } from "vitest";

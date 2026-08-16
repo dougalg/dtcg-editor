@@ -1,24 +1,24 @@
 "use client";
 
-import type { ChangeEvent, ReactElement } from "react";
-import {
-	validateTokenValue,
-	type TokenTypeEditorProps,
-} from "@dtcg-editor/token-type-contract";
 import { isDtcgTokenType } from "@dtcg-editor/token-core";
+import {
+	type TokenTypeEditorProps,
+	validateTokenValue,
+} from "@dtcg-editor/token-editor-contract";
+import type { ChangeEvent, ReactElement } from "react";
+import { resolveBuiltInContract } from "../lib/token-editors/built-in.ts";
+import { resolveEditorForType } from "../lib/token-editors/resolve-editor.ts";
+import dtcgEditorConfig from "../lib/token-editors/user-config.ts";
 import {
 	applyEditsToPlainNode,
 	checkRenameAvailable,
 	findSiblings,
 } from "../lib/tokens/edit-state.ts";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
-import { FallbackValueEditor } from "./FallbackValueEditor.tsx";
 import { DefaultValidationErrorHandler } from "./DefaultValidationErrorHandler.tsx";
-import dtcgEditorConfig from "../lib/token-editors/user-config.ts";
-import { resolveEditorForType } from "../lib/token-editors/resolve-editor.ts";
-import { resolveBuiltInContract } from "../lib/token-editors/built-in.ts";
-import type { TreeNodeProps } from "./TreeNode.tsx";
+import { FallbackValueEditor } from "./FallbackValueEditor.tsx";
 import styles from "./TokenTree.module.css";
+import type { TreeNodeProps } from "./TreeNode.tsx";
 
 function formatValue(value: unknown): string {
 	return typeof value === "string" ? value : JSON.stringify(value);

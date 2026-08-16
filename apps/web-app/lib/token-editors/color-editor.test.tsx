@@ -1,8 +1,8 @@
+import type { ColorValue } from "@dtcg-editor/token-core";
 import {
 	ColorEditor,
 	type ColorEditorOptions,
-	type ColorValue,
-} from "@dtcg-editor/token-type-color";
+} from "@dtcg-editor/token-editor-color";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { expect, test, vi } from "vitest";
@@ -11,7 +11,7 @@ import { expect, test, vi } from "vitest";
  * Exercises `ColorEditor`'s two `editorOptions`-driven halves (allow-list
  * dropdown restriction and the native color picker) directly, rather than
  * through `TokenTree.tsx` — these behaviors live entirely inside
- * `packages/token-type-color`, which has no JSX-capable test runner of its
+ * `packages/token-editor-color`, which has no JSX-capable test runner of its
  * own (`node --test` can't load `.tsx`), so `apps/web-app`'s Vitest/jsdom
  * setup is the nearest place that can render and interact with it.
  */

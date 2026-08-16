@@ -1,4 +1,4 @@
-import type { TokenTypeValidationError } from "@dtcg-editor/token-type-contract";
+import type { TokenTypeValidationError } from "@dtcg-editor/token-editor-contract";
 
 /**
  * `TreeTokenNode`'s fallback for the extra-content slot beneath a token's

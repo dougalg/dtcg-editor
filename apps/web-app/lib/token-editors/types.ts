@@ -1,5 +1,5 @@
 import type { DtcgTokenType } from "@dtcg-editor/token-core";
-import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
+import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
 import type { ReactElement } from "react";
 
 /** Pairs a DTCG `$type` with the editor component to render for tokens of that type. */

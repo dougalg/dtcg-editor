@@ -118,20 +118,20 @@ pnpm workspace monorepo: `packages/*` (library packages), `apps/web-app` (Next.j
 
 ### Implementation for User Story 3
 
-- [ ] T034 [P] [US3] Update the import in `apps/web-app/app/api/tokens/[...path]/route.ts` from `@dtcg-editor/token-type-contract` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
-- [ ] T035 [P] [US3] Update the import in `apps/web-app/components/DefaultValidationErrorHandler.tsx` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
-- [ ] T036 [P] [US3] Update the import in `apps/web-app/components/TreeTokenNode.tsx` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
-- [ ] T037 [P] [US3] Update the import in `apps/web-app/components/FallbackValueEditor.tsx` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
-- [ ] T038 [P] [US3] Update the import in `apps/web-app/lib/token-editors/types.ts` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
-- [ ] T039 [US3] Update `apps/web-app/lib/token-editors/built-in.ts`: `colorTokenType`/`dimensionTokenType` imports from `@dtcg-editor/token-editor-color`/`@dtcg-editor/token-editor-dimension`; contract types from `@dtcg-editor/token-editor-contract` (depends on T027, T028, T029)
-- [ ] T040 [P] [US3] Update imports in `apps/web-app/lib/token-editors/built-in.test.ts` to `token-editor-*` (depends on T039)
-- [ ] T041 [P] [US3] Update imports in `apps/web-app/lib/token-editors/built-in.a11y.test.tsx` to `token-editor-*` (depends on T039)
-- [ ] T042 [P] [US3] Update `apps/web-app/lib/token-editors/color-editor.test.tsx`: `ColorEditor`/`ColorEditorOptions` import stays on `@dtcg-editor/token-editor-color` (name change only); its `ColorValue` type import repoints to `@dtcg-editor/token-core` (depends on T003, T027)
-- [ ] T043 [P] [US3] Update `apps/web-app/lib/token-editors/color-validation-error-handler.test.tsx`: `ColorValidationErrorHandler`/`colorTokenType` imports to `@dtcg-editor/token-editor-color` (depends on T027)
-- [ ] T044 [US3] Update `apps/web-app/package.json` dependency names `token-type-*` → `token-editor-*` via `pnpm remove`/`pnpm add --filter web-app` per each renamed package (depends on T030–T032)
-- [ ] T045 [US3] Run `pnpm install` at the repo root to resolve all renamed workspace dependencies (depends on T021, T026, T030–T032, T044)
-- [ ] T046 [US3] Run `pnpm build && pnpm lint && pnpm test` at the repo root and confirm zero errors with no reduction in test count versus the T002 baseline (SC-003, SC-004) (depends on T045 and all prior tasks)
-- [ ] T047 [US3] Run quickstart.md's Section 1 (structural checks) and Section 3 (import-boundary smoke test) and confirm expected output (depends on T046)
+- [X] T034 [P] [US3] Update the import in `apps/web-app/app/api/tokens/[...path]/route.ts` from `@dtcg-editor/token-type-contract` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
+- [X] T035 [P] [US3] Update the import in `apps/web-app/components/DefaultValidationErrorHandler.tsx` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
+- [X] T036 [P] [US3] Update the import in `apps/web-app/components/TreeTokenNode.tsx` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
+- [X] T037 [P] [US3] Update the import in `apps/web-app/components/FallbackValueEditor.tsx` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
+- [X] T038 [P] [US3] Update the import in `apps/web-app/lib/token-editors/types.ts` to `@dtcg-editor/token-editor-contract` (depends on T029, T032)
+- [X] T039 [US3] Update `apps/web-app/lib/token-editors/built-in.ts`: `colorTokenType`/`dimensionTokenType` imports from `@dtcg-editor/token-editor-color`/`@dtcg-editor/token-editor-dimension`; contract types from `@dtcg-editor/token-editor-contract` (depends on T027, T028, T029)
+- [X] T040 [P] [US3] Update imports in `apps/web-app/lib/token-editors/built-in.test.ts` to `token-editor-*` (depends on T039)
+- [X] T041 [P] [US3] Update imports in `apps/web-app/lib/token-editors/built-in.a11y.test.tsx` to `token-editor-*` (depends on T039)
+- [X] T042 [P] [US3] Update `apps/web-app/lib/token-editors/color-editor.test.tsx`: `ColorEditor`/`ColorEditorOptions` import stays on `@dtcg-editor/token-editor-color` (name change only); its `ColorValue` type import repoints to `@dtcg-editor/token-core` (depends on T003, T027)
+- [X] T043 [P] [US3] Update `apps/web-app/lib/token-editors/color-validation-error-handler.test.tsx`: `ColorValidationErrorHandler`/`colorTokenType` imports to `@dtcg-editor/token-editor-color` (depends on T027)
+- [X] T044 [US3] Update `apps/web-app/package.json` dependency names `token-type-*` → `token-editor-*` via `pnpm remove`/`pnpm add --filter web-app` per each renamed package (depends on T030–T032)
+- [X] T045 [US3] Run `pnpm install` at the repo root to resolve all renamed workspace dependencies (depends on T021, T026, T030–T032, T044)
+- [X] T046 [US3] Run `pnpm build && pnpm lint && pnpm test` at the repo root and confirm zero errors with no reduction in test count versus the T002 baseline (SC-003, SC-004) (depends on T045 and all prior tasks)
+- [X] T047 [US3] Run quickstart.md's Section 1 (structural checks) and Section 3 (import-boundary smoke test) and confirm expected output (depends on T046)
 
 **Checkpoint**: All user stories are complete — the refactor is fully verifiable end-to-end.
 

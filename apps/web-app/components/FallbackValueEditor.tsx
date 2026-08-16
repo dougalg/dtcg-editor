@@ -1,6 +1,6 @@
 "use client";
 
-import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
+import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
 import type { ChangeEvent } from "react";
 import styles from "./FallbackValueEditor.module.css";
 

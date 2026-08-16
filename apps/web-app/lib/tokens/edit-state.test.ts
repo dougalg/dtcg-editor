@@ -1,12 +1,12 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
-import { validateTokenValue } from "@dtcg-editor/token-type-contract";
+import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
+import { test } from "vitest";
+import { resolveBuiltInContract } from "../token-editors/built-in.ts";
 import {
 	applyEditsToPlainNode,
 	checkRenameAvailable,
 	findSiblings,
 } from "./edit-state.ts";
-import { resolveBuiltInContract } from "../token-editors/built-in.ts";
 import type { PlainDtcgNode } from "./plain-node.ts";
 
 function tokenNode(
