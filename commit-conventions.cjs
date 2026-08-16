@@ -32,7 +32,8 @@ const types = [
 
 const scopes = [
 	{ value: "design-system", description: "packages/design-system" },
-	{ value: "token-*", description: "packages/token-*" },
+	{ value: "token-core", description: "packages/token-core" },
+	{ value: "token-editor-*", description: "packages/token-editor-*" },
 	{ value: "web-app", description: "apps/web-app" },
 	{
 		value: "root",
