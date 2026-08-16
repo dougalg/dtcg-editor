@@ -35,6 +35,81 @@ config, kept out of the core value-schema module) and require retrofitting
 both `token-type-color` and `token-type-dimension` to it now, not just
 documenting it for future packages.
 
+**2026-08-16 follow-up (post-implementation design refinement)**: the first
+implementation of `TreeNode.tsx`'s dispatch replaced the old dimension/color
+special cases with a generic path, but the replacement logic itself
+(`isStandard`, `builtInContract`, `canEdit` computed piecemeal, an
+`effectiveType !== undefined` guard duplicated at three call sites) reads as
+more branches than the behavior actually has. This follow-up doesn't change
+any FR, user story, or the `TokenTypeContract` shape — it restates the same
+dispatch as the explicit 5-path model in "TreeNode.tsx dispatch design"
+below, and introduces one new small component (`DefaultValidationErrorHandler`)
+so the read-only branch has exactly one call site instead of an inline
+fallback. See `data-model.md`'s `TreeNodeProps` entry and
+`DefaultValidationErrorHandler` entity for the corresponding data-level
+detail.
+
+### TreeNode.tsx dispatch design
+
+For a token node, exactly one of two states holds — **editable** or
+**read-only** — decided by two independent facts, not a single derived
+`canEdit` flag:
+
+- `isUsableType`: `effectiveType` is defined _and_ recognized as a standard
+  DTCG type (`isDtcgTokenType`). A declared-but-unrecognized type (e.g. a
+  typo or a pre-standard `$type`) and an entirely absent `effectiveType` are
+  treated identically here — neither is "usable" for validation purposes.
+- `contract`: `resolveBuiltInContract(effectiveType)`, only looked up when
+  `isUsableType` is true. May still be `undefined` for a standard type this
+  repo ships no built-in package for yet (e.g. a future `fontFamily`).
+
+From those two facts:
+
+```text
+validation = contract ? validateTokenValue(contract, node.value) : undefined
+isValid    = isUsableType && (contract === undefined || validation.isOk())
+```
+
+A standard type with no built-in contract has nothing to validate against,
+so it's trusted as-is (`isValid` true) — this is what already lets a
+user-registered extension for a schema-less standard type stay editable
+today, and that behavior is unchanged.
+
+**If `isValid`** (paths 1–2), resolve the registered editor
+(`resolveEditorForType`) and render it if present, else render
+`FallbackValueEditor` (the existing raw-JSON editor) — this is the only
+place `resolveEditorForType` is ever consulted; there is no separate
+"is there an editor" branch upstream of it.
+
+**If not `isValid`** (paths 3–5), the read-only branch renders exactly one
+component, resolved once:
+
+```text
+errorForHandler = validation?.isErr() === true ? validation.error : undefined
+Handler         = contract?.ValidationErrorHandler ?? DefaultValidationErrorHandler
+```
+
+`errorForHandler` is only ever defined when `contract` is defined and
+validation failed (paths 3–4: a recognized type whose value doesn't parse).
+It's `undefined` when `isUsableType` is false (path 5: no type to validate
+against at all) or when `contract` is undefined (which can't reach the
+read-only branch, since a standard type with no contract is always `isValid`
+per the formula above). `Handler` is the package's own
+`ValidationErrorHandler` when the package supplies one (path 3), otherwise
+the new `DefaultValidationErrorHandler` (paths 4–5) — one call site,
+`<Handler value={node.value} error={errorForHandler} />`, covering every
+non-editable case instead of an inline fallback plus a separate
+`effectiveType !== undefined` label check.
+
+`DefaultValidationErrorHandler` (new, `apps/web-app/components/`, sibling of
+the existing `FallbackValueEditor`): renders the plain name/type/value
+read-only fields `TreeNode.tsx` already shows for every token, plus — only
+when `error` is passed (path 4) — `error.message` as the same generic
+single-line `role="alert"` text `TreeNode.tsx` already renders for a staged
+field-validation error elsewhere. When `error` is absent (path 5, no usable
+type), it renders no extra line, preserving today's behavior for a
+non-standard-typed or untyped token (SC-002 no-regression).
+
 ## Technical Context
 
 **Language/Version**: TypeScript (strict mode, per constitution Principle III) on Node.js ≥26.5.0
@@ -144,7 +219,10 @@ packages/token-type-dimension/
 
 apps/web-app/
 ├── components/
-│   ├── TreeNode.tsx                   # Delete dimension/color special cases; single generic dispatch path
+│   ├── TreeNode.tsx                   # Delete dimension/color special cases; explicit 5-path dispatch
+│   │                                   #   (see plan.md's "TreeNode.tsx dispatch design")
+│   ├── DefaultValidationErrorHandler.tsx  # NEW: fallback ValidationErrorHandler for paths 4-5
+│   │                                   #   (typed-invalid with no package handler; no usable type)
 │   └── TokenTree.tsx                  # No logic change expected (already generic); re-verified, not rewritten
 ├── lib/
 │   ├── token-editors/
@@ -163,7 +241,10 @@ split + `components/`) and `packages/token-type-dimension` (structural only:
 `components/` + an initially-empty `configuration.ts`, no behavior change) —
 per FR-009–FR-012's requirement that the new editor-package structure is
 retrofitted onto both existing packages now, not just documented for future
-ones.
+ones. The 2026-08-16 follow-up adds exactly one small component,
+`apps/web-app/components/DefaultValidationErrorHandler.tsx`, and restructures
+`TreeNode.tsx`'s internal dispatch logic — no new package, no contract-shape
+change, no new FR.
 
 ## Complexity Tracking
 

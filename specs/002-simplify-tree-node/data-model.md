@@ -43,9 +43,32 @@ reason (e.g. color's in-range check on an otherwise-valid value) is not
 `ValidationErrorHandler`'s concern — that display is the `Editor`'s own
 responsibility, computed from the already-validated `TValue` it already
 receives (see `packages/token-type-color/src/components/editor.tsx`). A
-contract with no `ValidationErrorHandler` falls back to the plain
-name/type/value text rendering `TreeNode.tsx` already uses for every type
-today.
+contract with no `ValidationErrorHandler` — or a token with no usable type at
+all (see `DefaultValidationErrorHandler` below) — falls back to
+`DefaultValidationErrorHandler`, `TreeNode.tsx`'s own component with the same
+call shape (`{ value: unknown; error?: TokenTypeValidationError }`, `error`
+optional there since it also covers the no-usable-type case, where nothing
+was validated).
+
+## `DefaultValidationErrorHandler` (new)
+
+Location: `apps/web-app/components/DefaultValidationErrorHandler.tsx`
+
+Not part of `TokenTypeContract` — a plain `apps/web-app` component, sibling
+of the existing `FallbackValueEditor`, that `TreeNode.tsx`'s read-only branch
+falls back to whenever a token-type contract has no `ValidationErrorHandler`
+of its own, or the token has no usable type to look a contract up for at
+all. Renders the same name/type/value read-only fields `TreeNode.tsx` shows
+for every token, plus — only when `error` is passed — that error's `message`
+as a `role="alert"` line. Resolved once per token, alongside a package's own
+`ValidationErrorHandler`, as `contract?.ValidationErrorHandler ??
+DefaultValidationErrorHandler` — see plan.md's "TreeNode.tsx dispatch
+design" for the full decision table.
+
+| Prop    | Type                                    | Notes                                                                                                     |
+| ------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `value` | `unknown`                               | The token's raw value, exactly as `ValidationErrorHandler` receives it                                    |
+| `error` | `TokenTypeValidationError \| undefined` | Present only when a recognized type's value failed to validate; absent when there's no usable type at all |
 
 ## `TreeNodeProps` (unchanged shape, changed internals)
 
@@ -54,7 +77,19 @@ Location: `apps/web-app/components/TreeNode.tsx`
 No props are added, removed, or retyped. What changes is internal: the
 component's logic for resolving an editor, validating a value, and rendering
 a read-only/invalid state no longer branches on `effectiveType === "dimension"`
-or `effectiveType === "color"` anywhere.
+or `effectiveType === "color"` anywhere, and (per the 2026-08-16 follow-up)
+collapses into an explicit 5-path dispatch instead of a single derived
+`canEdit` boolean assembled from several intermediate flags:
+
+1. Valid value, registered editor → render the editor.
+2. Valid value, no registered editor → render `FallbackValueEditor`.
+3. Recognized type, invalid value, package supplies `ValidationErrorHandler` → render it.
+4. Recognized type, invalid value, no package `ValidationErrorHandler` → render `DefaultValidationErrorHandler` (with `error`).
+5. No usable type (`effectiveType` absent, or present but not a recognized DTCG type) → render `DefaultValidationErrorHandler` (without `error`).
+
+See plan.md's "TreeNode.tsx dispatch design" for the exact `isUsableType`/
+`contract`/`isValid`/`Handler` derivation, and `DefaultValidationErrorHandler`
+above for the shared fallback component paths 4–5 both resolve to.
 
 | Field          | Type                               | Change    |
 | -------------- | ---------------------------------- | --------- |
