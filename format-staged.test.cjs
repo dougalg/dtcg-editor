@@ -56,6 +56,15 @@ test("filterFormattableFiles excludes staged symlinks (git ls-files mode 120000)
 	]);
 });
 
+test("filterFormattableFiles excludes markdown files (Biome has no Markdown support)", () => {
+	const { exec, calls } = fakeExec([
+		"100644 abc123 0\tREADME.md\u10344 def456 0\ta.ts\0",
+	]);
+	const result = filterFormattableFiles(["README.md", "a.ts"], exec);
+	assert.deepEqual(result, ["a.ts"]);
+	assert.equal(calls[0].command, "git");
+});
+
 test("filterFormattableFiles does nothing when given no files", () => {
 	const { exec, calls } = fakeExec([]);
 	assert.deepEqual(filterFormattableFiles([], exec), []);
