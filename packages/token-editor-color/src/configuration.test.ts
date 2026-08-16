@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { COLOR_SPACES } from "./color.ts";
+import { COLOR_SPACES } from "@dtcg-editor/token-core";
 import {
 	ColorEditorOptionsSchema,
 	defineColorConfig,

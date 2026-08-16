@@ -1,8 +1,8 @@
 "use client";
 
 import type { ChangeEvent } from "react";
-import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
-import type { DimensionValue } from "../dimension.ts";
+import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
+import type { DimensionValue } from "@dtcg-editor/token-core";
 
 const UNITS = ["px", "rem"] as const;
 const labelTextStyle = { fontSize: "0.7rem", opacity: 0.6 } as const;

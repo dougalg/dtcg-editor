@@ -1,4 +1,4 @@
-import type { ColorComponent, ColorValue } from "./color.ts";
+import type { ColorComponent, ColorValue } from "@dtcg-editor/token-core";
 
 function formatRaw(component: ColorComponent): string {
 	return component === "none" ? "none" : String(component);

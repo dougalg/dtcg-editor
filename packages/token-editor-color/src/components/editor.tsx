@@ -1,21 +1,23 @@
 "use client";
 
 import { useState, type ChangeEvent } from "react";
-import type { TokenTypeEditorProps } from "@dtcg-editor/token-type-contract";
+import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
 import {
-	checkColorValueIssues,
 	COLOR_SPACES,
-	COMPONENT_RANGES,
 	type ColorObjectValue,
 	type ColorSpace,
 	type ColorValue,
-} from "../color.ts";
+} from "@dtcg-editor/token-core";
 import type { ColorEditorOptions } from "../configuration.ts";
-import { colorValueToCssColor } from "../css-color.ts";
+import {
+	checkColorValueIssues,
+	COMPONENT_RANGES,
+} from "../utils/range-validation.ts";
+import { colorValueToCssColor } from "../utils/css-color.ts";
 import {
 	colorValueToSrgbHex,
 	srgbHexToColorSpaceComponents,
-} from "../conversion.ts";
+} from "../utils/conversion.ts";
 import styles from "./editor.module.css";
 
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;

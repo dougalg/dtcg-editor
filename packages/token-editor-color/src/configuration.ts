@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { COLOR_SPACES, type ColorSpace } from "./color.ts";
+import { COLOR_SPACES, type ColorSpace } from "@dtcg-editor/token-core";
 
 /**
  * `editorOptions` shape for the `color` extension entry (FR-04). Restricts

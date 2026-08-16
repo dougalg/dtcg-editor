@@ -19,7 +19,7 @@ import {
 	XYZ_D50,
 	XYZ_D65,
 } from "colorjs.io/fn";
-import type { ColorSpace, ColorValue } from "./color.ts";
+import type { ColorSpace, ColorValue } from "@dtcg-editor/token-core";
 
 // Module-load-time side effect: `colorjs.io/fn`'s tree-shakable entry point
 // requires each space to be explicitly registered before `parse`/`to` can

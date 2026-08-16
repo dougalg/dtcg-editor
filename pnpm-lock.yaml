@@ -53,15 +53,15 @@ importers:
       '@dtcg-editor/token-core':
         specifier: workspace:*
         version: link:../../packages/token-core
-      '@dtcg-editor/token-type-color':
+      '@dtcg-editor/token-editor-color':
         specifier: workspace:*
-        version: link:../../packages/token-type-color
-      '@dtcg-editor/token-type-contract':
+        version: link:../../packages/token-editor-color
+      '@dtcg-editor/token-editor-contract':
         specifier: workspace:*
-        version: link:../../packages/token-type-contract
-      '@dtcg-editor/token-type-dimension':
+        version: link:../../packages/token-editor-contract
+      '@dtcg-editor/token-editor-dimension':
         specifier: workspace:*
-        version: link:../../packages/token-type-dimension
+        version: link:../../packages/token-editor-dimension
       neverthrow:
         specifier: ^8.2.0
         version: 8.2.0
@@ -204,11 +204,14 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/token-type-color:
+  packages/token-editor-color:
     dependencies:
-      '@dtcg-editor/token-type-contract':
+      '@dtcg-editor/token-core':
         specifier: workspace:*
-        version: link:../token-type-contract
+        version: link:../token-core
+      '@dtcg-editor/token-editor-contract':
+        specifier: workspace:*
+        version: link:../token-editor-contract
       colorjs.io:
         specifier: ^0.7.1
         version: 0.7.1
@@ -229,7 +232,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/token-type-contract:
+  packages/token-editor-contract:
     dependencies:
       neverthrow:
         specifier: ^8.2.0
@@ -251,11 +254,14 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/token-type-dimension:
+  packages/token-editor-dimension:
     dependencies:
-      '@dtcg-editor/token-type-contract':
+      '@dtcg-editor/token-core':
         specifier: workspace:*
-        version: link:../token-type-contract
+        version: link:../token-core
+      '@dtcg-editor/token-editor-contract':
+        specifier: workspace:*
+        version: link:../token-editor-contract
       react:
         specifier: 19.2.8
         version: 19.2.8

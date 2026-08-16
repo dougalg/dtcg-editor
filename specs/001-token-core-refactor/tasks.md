@@ -73,36 +73,36 @@ pnpm workspace monorepo: `packages/*` (library packages), `apps/web-app` (Next.j
 
 ### Implementation for User Story 2 — trim & reorganize `token-type-color`
 
-- [ ] T010 [P] [US2] Create `packages/token-type-color/src/utils/range-validation.ts`, moved and trimmed from `src/color.ts`: keep only `COMPONENT_RANGES`, `checkColorValueIssues`, and their private helpers (`ComponentRange`, `ComponentRanges`, `isWithinRange`, `UNIT_RGB_RANGES`, `UNIT_XYZ_RANGES`); import `ColorSpace`/`ColorValue`/`ColorComponent` from `@dtcg-editor/token-core` instead of defining them locally; delete `src/color.ts` (depends on T003)
-- [ ] T011 [P] [US2] Create `packages/token-type-color/src/utils/range-validation.test.ts`, moved and trimmed from `src/color.test.ts` to keep only `checkColorValueIssues`/`COMPONENT_RANGES` test cases; delete `src/color.test.ts` (depends on T010)
-- [ ] T012 [P] [US2] Move `packages/token-type-color/src/conversion.ts` to `packages/token-type-color/src/utils/conversion.ts` unchanged (`colorjs.io` import and dependency stay as-is)
-- [ ] T013 [P] [US2] Move `packages/token-type-color/src/conversion.test.ts` to `packages/token-type-color/src/utils/conversion.test.ts` unchanged
-- [ ] T014 [P] [US2] Move `packages/token-type-color/src/css-color.ts` to `packages/token-type-color/src/utils/css-color.ts` unchanged
-- [ ] T015 [P] [US2] Move `packages/token-type-color/src/css-color.test.ts` to `packages/token-type-color/src/utils/css-color.test.ts` unchanged
-- [ ] T016 [US2] Update imports in `packages/token-type-color/src/components/editor.tsx`: `COLOR_SPACES`/`ColorObjectValue`/`ColorSpace`/`ColorValue` from `@dtcg-editor/token-core`; `checkColorValueIssues`/`COMPONENT_RANGES` from `../utils/range-validation.ts`; `colorValueToCssColor` from `../utils/css-color.ts`; `colorValueToSrgbHex`/`srgbHexToColorSpaceComponents` from `../utils/conversion.ts` (depends on T003, T010, T012, T014)
-- [ ] T017 [US2] Update imports in `packages/token-type-color/src/components/validation-error-handler.tsx`: `ColorObjectValueSchema`/`LegacyHexColorValueSchema` from `@dtcg-editor/token-core` (depends on T003)
-- [ ] T018 [US2] Update the import in `packages/token-type-color/src/configuration.ts`: `COLOR_SPACES`/`ColorSpace` from `@dtcg-editor/token-core` instead of `./color.ts` (depends on T003)
-- [ ] T019 [US2] Update `packages/token-type-color/src/token-type.ts`: `colorTokenType` imports `ColorValueSchema`/`ColorValue` from `@dtcg-editor/token-core` instead of `./color.ts` (depends on T003)
-- [ ] T020 [US2] Update `packages/token-type-color/src/index.ts` exports: `components/`'s `Editor`/`ValidationErrorHandler`, `configuration.ts`'s config type/schema, `utils/`'s `checkColorValueIssues`/`COMPONENT_RANGES`/`colorValueToCssColor`/`colorValueToSrgbHex`/`srgbHexToColorSpaceComponents`, and the wired contract — drop the structural schema/type exports (depends on T010–T019)
-- [ ] T021 [US2] Add `@dtcg-editor/token-core` as a `workspace:*` dependency to `packages/token-type-color/package.json` via `pnpm add @dtcg-editor/token-core@workspace:* --filter token-type-color` (depends on T016–T019)
+- [X] T010 [P] [US2] Create `packages/token-type-color/src/utils/range-validation.ts`, moved and trimmed from `src/color.ts`: keep only `COMPONENT_RANGES`, `checkColorValueIssues`, and their private helpers (`ComponentRange`, `ComponentRanges`, `isWithinRange`, `UNIT_RGB_RANGES`, `UNIT_XYZ_RANGES`); import `ColorSpace`/`ColorValue`/`ColorComponent` from `@dtcg-editor/token-core` instead of defining them locally; delete `src/color.ts` (depends on T003)
+- [X] T011 [P] [US2] Create `packages/token-type-color/src/utils/range-validation.test.ts`, moved and trimmed from `src/color.test.ts` to keep only `checkColorValueIssues`/`COMPONENT_RANGES` test cases; delete `src/color.test.ts` (depends on T010)
+- [X] T012 [P] [US2] Move `packages/token-type-color/src/conversion.ts` to `packages/token-type-color/src/utils/conversion.ts` unchanged (`colorjs.io` import and dependency stay as-is)
+- [X] T013 [P] [US2] Move `packages/token-type-color/src/conversion.test.ts` to `packages/token-type-color/src/utils/conversion.test.ts` unchanged
+- [X] T014 [P] [US2] Move `packages/token-type-color/src/css-color.ts` to `packages/token-type-color/src/utils/css-color.ts` unchanged
+- [X] T015 [P] [US2] Move `packages/token-type-color/src/css-color.test.ts` to `packages/token-type-color/src/utils/css-color.test.ts` unchanged
+- [X] T016 [US2] Update imports in `packages/token-type-color/src/components/editor.tsx`: `COLOR_SPACES`/`ColorObjectValue`/`ColorSpace`/`ColorValue` from `@dtcg-editor/token-core`; `checkColorValueIssues`/`COMPONENT_RANGES` from `../utils/range-validation.ts`; `colorValueToCssColor` from `../utils/css-color.ts`; `colorValueToSrgbHex`/`srgbHexToColorSpaceComponents` from `../utils/conversion.ts` (depends on T003, T010, T012, T014)
+- [X] T017 [US2] Update imports in `packages/token-type-color/src/components/validation-error-handler.tsx`: `ColorObjectValueSchema`/`LegacyHexColorValueSchema` from `@dtcg-editor/token-core` (depends on T003)
+- [X] T018 [US2] Update the import in `packages/token-type-color/src/configuration.ts`: `COLOR_SPACES`/`ColorSpace` from `@dtcg-editor/token-core` instead of `./color.ts` (depends on T003)
+- [X] T019 [US2] Update `packages/token-type-color/src/token-type.ts`: `colorTokenType` imports `ColorValueSchema`/`ColorValue` from `@dtcg-editor/token-core` instead of `./color.ts` (depends on T003)
+- [X] T020 [US2] Update `packages/token-type-color/src/index.ts` exports: `components/`'s `Editor`/`ValidationErrorHandler`, `configuration.ts`'s config type/schema, `utils/`'s `checkColorValueIssues`/`COMPONENT_RANGES`/`colorValueToCssColor`/`colorValueToSrgbHex`/`srgbHexToColorSpaceComponents`, and the wired contract — drop the structural schema/type exports (depends on T010–T019)
+- [X] T021 [US2] Add `@dtcg-editor/token-core` as a `workspace:*` dependency to `packages/token-type-color/package.json` via `pnpm add @dtcg-editor/token-core@workspace:* --filter token-type-color` (depends on T016–T019)
 
 ### Implementation for User Story 2 — trim `token-type-dimension`
 
-- [ ] T022 [P] [US2] Update the import in `packages/token-type-dimension/src/components/editor.tsx`: `DimensionValue` type from `@dtcg-editor/token-core` instead of `../dimension.ts` (depends on T004)
-- [ ] T023 [P] [US2] Update `packages/token-type-dimension/src/token-type.ts`: `dimensionTokenType` imports `DimensionValueSchema`/`DimensionValue` from `@dtcg-editor/token-core` (depends on T004)
-- [ ] T024 [P] [US2] Delete `packages/token-type-dimension/src/dimension.ts` and `dimension.test.ts` (moved to `token-core` in T004/T006)
-- [ ] T025 [US2] Update `packages/token-type-dimension/src/index.ts` exports to `Editor` + wired contract only (depends on T022–T024)
-- [ ] T026 [US2] Add `@dtcg-editor/token-core` as a `workspace:*` dependency to `packages/token-type-dimension/package.json` via `pnpm add @dtcg-editor/token-core@workspace:* --filter token-type-dimension` (depends on T022–T023)
+- [X] T022 [P] [US2] Update the import in `packages/token-type-dimension/src/components/editor.tsx`: `DimensionValue` type from `@dtcg-editor/token-core` instead of `../dimension.ts` (depends on T004)
+- [X] T023 [P] [US2] Update `packages/token-type-dimension/src/token-type.ts`: `dimensionTokenType` imports `DimensionValueSchema`/`DimensionValue` from `@dtcg-editor/token-core` (depends on T004)
+- [X] T024 [P] [US2] Delete `packages/token-type-dimension/src/dimension.ts` and `dimension.test.ts` (moved to `token-core` in T004/T006)
+- [X] T025 [US2] Update `packages/token-type-dimension/src/index.ts` exports to `Editor` + wired contract only (depends on T022–T024)
+- [X] T026 [US2] Add `@dtcg-editor/token-core` as a `workspace:*` dependency to `packages/token-type-dimension/package.json` via `pnpm add @dtcg-editor/token-core@workspace:* --filter token-type-dimension` (depends on T022–T023)
 
 ### Implementation for User Story 2 — rename the package family
 
-- [ ] T027 [US2] Rename `packages/token-type-color` to `packages/token-editor-color` via `git mv` (depends on T010–T021)
-- [ ] T028 [P] [US2] Rename `packages/token-type-dimension` to `packages/token-editor-dimension` via `git mv` (depends on T022–T026)
-- [ ] T029 [P] [US2] Rename `packages/token-type-contract` to `packages/token-editor-contract` via `git mv` (content unchanged)
-- [ ] T030 [US2] Update `packages/token-editor-color/package.json`'s `name` to `@dtcg-editor/token-editor-color` via `pnpm pkg set name=@dtcg-editor/token-editor-color --filter <path>`, and its `@dtcg-editor/token-type-contract` dependency entry to `@dtcg-editor/token-editor-contract` via `pnpm remove`/`pnpm add` (depends on T027, T029)
-- [ ] T031 [P] [US2] Update `packages/token-editor-dimension/package.json`'s `name` to `@dtcg-editor/token-editor-dimension` and its contract dependency to `@dtcg-editor/token-editor-contract` (depends on T028, T029)
-- [ ] T032 [P] [US2] Update `packages/token-editor-contract/package.json`'s `name` to `@dtcg-editor/token-editor-contract` (depends on T029)
-- [ ] T033 [US2] Run `grep -rn "token-type-" --include="*.ts" --include="*.tsx" --include="*.json" packages apps | grep -v node_modules` and confirm no remaining source-code matches (SC-006) (depends on T027–T032)
+- [X] T027 [US2] Rename `packages/token-type-color` to `packages/token-editor-color` via `git mv` (depends on T010–T021)
+- [X] T028 [P] [US2] Rename `packages/token-type-dimension` to `packages/token-editor-dimension` via `git mv` (depends on T022–T026)
+- [X] T029 [P] [US2] Rename `packages/token-type-contract` to `packages/token-editor-contract` via `git mv` (content unchanged)
+- [X] T030 [US2] Update `packages/token-editor-color/package.json`'s `name` to `@dtcg-editor/token-editor-color` via `pnpm pkg set name=@dtcg-editor/token-editor-color --filter <path>`, and its `@dtcg-editor/token-type-contract` dependency entry to `@dtcg-editor/token-editor-contract` via `pnpm remove`/`pnpm add` (depends on T027, T029)
+- [X] T031 [P] [US2] Update `packages/token-editor-dimension/package.json`'s `name` to `@dtcg-editor/token-editor-dimension` and its contract dependency to `@dtcg-editor/token-editor-contract` (depends on T028, T029)
+- [X] T032 [P] [US2] Update `packages/token-editor-contract/package.json`'s `name` to `@dtcg-editor/token-editor-contract` (depends on T029)
+- [X] T033 [US2] Run `grep -rn "token-type-" --include="*.ts" --include="*.tsx" --include="*.json" packages apps | grep -v node_modules` and confirm no remaining source-code matches (SC-006) (depends on T027–T032)
 
 **Checkpoint**: All three packages are renamed `token-editor-*`, each holding only UI/config/`utils/`/wiring — User Story 2's acceptance scenarios are verifiable (packages still won't build against `apps/web-app` until US3 repoints it).
 

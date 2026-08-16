@@ -1,5 +1,8 @@
-import type { TokenTypeValidationError } from "@dtcg-editor/token-type-contract";
-import { ColorObjectValueSchema, LegacyHexColorValueSchema } from "../color.ts";
+import type { TokenTypeValidationError } from "@dtcg-editor/token-editor-contract";
+import {
+	ColorObjectValueSchema,
+	LegacyHexColorValueSchema,
+} from "@dtcg-editor/token-core";
 import styles from "./editor.module.css";
 
 /**
@@ -12,7 +15,7 @@ import styles from "./editor.module.css";
  * which field had the wrong shape). `error` (the host-supplied
  * `TokenTypeValidationError`) is used only as a signal that something
  * failed, not as the source of this message text — see
- * `contracts/token-type-contract.md`'s "Limit" note on `z.union` collapse.
+ * `contracts/token-editor-contract.md`'s "Limit" note on `z.union` collapse.
  */
 function describeIssues(raw: unknown): readonly string[] {
 	if (typeof raw === "string") {

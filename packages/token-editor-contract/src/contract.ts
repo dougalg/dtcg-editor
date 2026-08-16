@@ -11,7 +11,7 @@ export interface TokenTypeEditorProps<TValue> {
 }
 
 /**
- * The pluggable interface a token-type package (e.g. `@dtcg-editor/token-type-dimension`)
+ * The pluggable interface a token-editor package (e.g. `@dtcg-editor/token-editor-dimension`)
  * implements, and that host apps use generically without hard-coding
  * knowledge of any specific DTCG `$type`.
  */

@@ -1,5 +1,5 @@
 {
-	"name": "@dtcg-editor/token-type-color",
+	"name": "@dtcg-editor/token-editor-color",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
@@ -10,12 +10,13 @@
 	},
 	"scripts": {
 		"build": "tsc -p tsconfig.json && mkdir -p dist/src/components && cp src/components/editor.module.css dist/src/components/editor.module.css",
-		"test": "node --test src/*.test.ts",
+		"test": "node --test 'src/**/*.test.ts'",
 		"lint:write": "biome lint --write .",
 		"lint": "biome lint ."
 	},
 	"dependencies": {
-		"@dtcg-editor/token-type-contract": "workspace:*",
+		"@dtcg-editor/token-core": "workspace:*",
+		"@dtcg-editor/token-editor-contract": "workspace:*",
 		"colorjs.io": "^0.7.1",
 		"react": "19.2.8",
 		"zod": "^4.4.3"

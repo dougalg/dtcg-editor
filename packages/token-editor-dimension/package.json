@@ -1,5 +1,5 @@
 {
-	"name": "@dtcg-editor/token-type-contract",
+	"name": "@dtcg-editor/token-editor-dimension",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
@@ -15,7 +15,8 @@
 		"lint": "biome lint ."
 	},
 	"dependencies": {
-		"neverthrow": "^8.2.0",
+		"@dtcg-editor/token-core": "workspace:*",
+		"@dtcg-editor/token-editor-contract": "workspace:*",
 		"react": "19.2.8",
 		"zod": "^4.4.3"
 	},

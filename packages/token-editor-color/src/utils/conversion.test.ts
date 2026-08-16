@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { COLOR_SPACES, type ColorObjectValue } from "./color.ts";
+import { COLOR_SPACES, type ColorObjectValue } from "@dtcg-editor/token-core";
 import {
 	colorValueToSrgbHex,
 	srgbHexToColorSpaceComponents,
