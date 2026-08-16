@@ -34,14 +34,11 @@ export type {
 	ColorValue,
 } from "./color.ts";
 
-// From ./css-color.ts (moved wholesale from token-type-color)
-export { colorValueToCssColor } from "./css-color.ts";
-
-// From ./conversion.ts (moved wholesale from token-type-color)
-export {
-	colorValueToSrgbHex,
-	srgbHexToColorSpaceComponents,
-} from "./conversion.ts";
+// NOTE: css-color.ts and conversion.ts do NOT move here — both are Editor-only
+// presentation/native-widget-interop code (colorValueToCssColor's CSS rendering;
+// colorValueToSrgbHex/srgbHexToColorSpaceComponents's <input type="color"> interop),
+// not DTCG structural parsing. They stay in token-editor-color/src/utils/ — see
+// contracts/token-editor-color.md.
 
 // From ./dimension.ts (moved wholesale from token-type-dimension)
 export { DimensionValueSchema } from "./dimension.ts";
@@ -53,12 +50,13 @@ export type { DimensionValue } from "./dimension.ts";
 - `ColorEditorOptions`, `ColorEditorOptionsSchema`, `defineColorConfig` — editor-only config; already lives in `token-editor-color/src/configuration.ts` (moved there by 002-simplify-tree-node, unaffected by this refactor).
 - `ColorEditor`, `DimensionEditor`, `ColorValidationErrorHandler` — React components, never enter `token-core` (Principle VII: no React import).
 - `colorTokenType`, `dimensionTokenType` — the wired `TokenTypeContract` objects stay in their respective `token-editor-*` packages, since they hold a live `Editor` reference.
-- `COMPONENT_RANGES`, `checkColorValueIssues` — data/range validation of an already-structurally-valid value (e.g. an out-of-range hue); user-recoverable directly in the Editor UI, so it stays in `token-editor-color/src/color.ts` per the `/speckit-clarify` validation-scope session (spec FR-003, Assumptions).
+- `COMPONENT_RANGES`, `checkColorValueIssues` — data/range validation of an already-structurally-valid value (e.g. an out-of-range hue); user-recoverable directly in the Editor UI, so it stays in `token-editor-color/src/utils/range-validation.ts` (spec FR-003/FR-011, Assumptions).
+- `colorValueToCssColor`, `colorValueToSrgbHex`, `srgbHexToColorSpaceComponents` — Editor-only CSS rendering and native `<input type="color">` widget interop; no headless consumer needs them, so they stay in `token-editor-color/src/utils/` (spec FR-001/FR-003/FR-011).
 
 ## Consumers (re-verified against actual current imports, post-002)
 
 - `token-editor-color/src/configuration.ts` — imports `COLOR_SPACES`/`ColorSpace` (currently from `./color.ts`; repoints to `@dtcg-editor/token-core`).
-- `token-editor-color/src/components/editor.tsx` — imports `COLOR_SPACES`, `ColorObjectValue`, `ColorSpace`, `ColorValue` (currently from `../color.ts`), `colorValueToCssColor` (from `../css-color.ts`), and `colorValueToSrgbHex`/`srgbHexToColorSpaceComponents` (from `../conversion.ts`) — all repoint to `@dtcg-editor/token-core`; its `checkColorValueIssues`/`COMPONENT_RANGES` import stays pointed at `../color.ts` (unmoved), and its `ColorEditorOptions` import from `../configuration.ts` is unaffected.
+- `token-editor-color/src/components/editor.tsx` — imports `COLOR_SPACES`, `ColorObjectValue`, `ColorSpace`, `ColorValue` (currently from `../color.ts`; repoints to `@dtcg-editor/token-core`); its `checkColorValueIssues`/`COMPONENT_RANGES`/`colorValueToCssColor`/`colorValueToSrgbHex`/`srgbHexToColorSpaceComponents` imports repoint to `../utils/range-validation.ts`/`../utils/css-color.ts`/`../utils/conversion.ts` (unmoved packages, moved subfolder within the package), and its `ColorEditorOptions` import from `../configuration.ts` is unaffected.
 - `token-editor-color/src/components/validation-error-handler.tsx` — imports `ColorObjectValueSchema`, `LegacyHexColorValueSchema` (currently from `../color.ts`; repoints to `@dtcg-editor/token-core`).
 - `token-editor-color/src/token-type.ts`, `token-editor-dimension/src/token-type.ts` — import their type's value schema (`ColorValueSchema`/`DimensionValueSchema`) and value type for `TokenTypeContract.valueSchema`/typing.
 - `token-editor-dimension/src/components/editor.tsx` — imports the `DimensionValue` type (currently from `../dimension.ts`; repoints to `@dtcg-editor/token-core`).
@@ -66,5 +64,5 @@ export type { DimensionValue } from "./dimension.ts";
 
 ## Package dependency changes
 
-- `package.json` gains `colorjs.io` (moved from `token-type-color`, same `colorjs.io/fn` entry point).
+- None. `package.json` gains no new dependency — `colorjs.io` stays in `token-editor-color` (its only consumer, `conversion.ts`, doesn't move here).
 - `package.json` continues to declare zero dependency on `react` or any `token-editor-*` package (verified as a plan gate, not just asserted — see `quickstart.md`).

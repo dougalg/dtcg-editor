@@ -44,9 +44,14 @@ export {
 	defineColorConfig,
 } from "./configuration.ts";
 export type { ColorEditorOptions } from "./configuration.ts";
-// Data/range validation (per /speckit-clarify's validation-scope session): stays in this
-// package, NOT moved to token-core, since it's user-recoverable in the Editor UI.
-export { COMPONENT_RANGES, checkColorValueIssues } from "./color.ts";
+// Value-adjacent utilities (FR-011): stay in this package, grouped under utils/,
+// NOT moved to token-core — none is structural DTCG parsing.
+export { COMPONENT_RANGES, checkColorValueIssues } from "./utils/range-validation.ts";
+export { colorValueToCssColor } from "./utils/css-color.ts";
+export {
+	colorValueToSrgbHex,
+	srgbHexToColorSpaceComponents,
+} from "./utils/conversion.ts";
 ```
 
 Unlike the pre-002 version of this contract (which anticipated moving `ColorEditorOptions`/`ColorEditorOptionsSchema`/`defineColorConfig` into `token-type.ts` and re-exporting `COLOR_SPACES` from there), 002-simplify-tree-node already established `configuration.ts` as their permanent home and `configuration.ts` already imports `COLOR_SPACES`/`ColorSpace` itself (repointed to `@dtcg-editor/token-core` by this refactor, not re-exported through this package) — so this package's index no longer needs to re-export `COLOR_SPACES`/`ColorSpace` at all; any consumer needing them imports directly from `@dtcg-editor/token-core`.
@@ -54,17 +59,22 @@ Unlike the pre-002 version of this contract (which anticipated moving `ColorEdit
 ## Removed from this package's public API
 
 - `ColorValueSchema`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema` — moved to `token-core` (structural validation).
-- `colorValueToCssColor`, `colorValueToSrgbHex`, `srgbHexToColorSpaceComponents` — moved to `token-core`.
-- `COLOR_SPACES`, `ColorSpace`, `ColorComponent`, `ColorObjectValue`, `ColorValue` — moved to `token-core` (imported back into `color.ts` where still needed by `checkColorValueIssues`/`COMPONENT_RANGES`).
+- `COLOR_SPACES`, `ColorSpace`, `ColorComponent`, `ColorObjectValue`, `ColorValue` — moved to `token-core` (imported back into `utils/range-validation.ts` where still needed by `checkColorValueIssues`/`COMPONENT_RANGES`).
 
-## NOT removed (stays in this package)
+## NOT removed (stays in this package, moved into `utils/`)
 
-- `COMPONENT_RANGES`, `checkColorValueIssues` — data/range validation of an already-structurally-valid value (e.g. an out-of-range hue); user-recoverable directly in the Editor UI, so it does not move to `token-core` (`/speckit-clarify` validation-scope session, spec FR-003). `color.ts` is updated in place, not deleted, to keep just this.
+- `COMPONENT_RANGES`, `checkColorValueIssues` — data/range validation of an already-structurally-valid value (e.g. an out-of-range hue); user-recoverable directly in the Editor UI, so it does not move to `token-core` (spec FR-003/FR-011). Moves from `color.ts` into `utils/range-validation.ts` (renamed, not just relocated, since its old name no longer fits its narrowed contents).
+- `colorValueToCssColor` (from `css-color.ts`), `colorValueToSrgbHex`/`srgbHexToColorSpaceComponents` (from `conversion.ts`) — Editor-only CSS rendering and native `<input type="color">` widget interop; no headless consumer needs them, so neither moves to `token-core` either (spec FR-001/FR-003/FR-011). Both move unchanged into `utils/`.
+
+## File layout changes (FR-011)
+
+- New `src/utils/` subfolder groups this package's value-adjacent utilities, separate from `components/` (UI), `configuration.ts` (editor config), and `token-type.ts` (contract wiring): `utils/range-validation.ts` (+ test, renamed from `color.ts`), `utils/conversion.ts` (+ test, moved unchanged), `utils/css-color.ts` (+ test, moved unchanged).
+- `src/` root no longer holds any value-adjacent utility file directly — only `components/`, `configuration.ts` (+ test), `token-type.ts`, `utils/`, `index.ts`, and `css-modules.d.ts`.
 
 ## `package.json` changes
 
 - `name`: `@dtcg-editor/token-type-color` → `@dtcg-editor/token-editor-color`.
-- Dependencies: `colorjs.io` removed (moves to `token-core`); `@dtcg-editor/token-core` added as a `workspace:*` dependency (needed by `configuration.ts`, `components/editor.tsx`, `components/validation-error-handler.tsx`, `color.ts` (for `ColorSpace`/`ColorValue`/`ColorComponent` types), and `token-type.ts`).
+- Dependencies: `colorjs.io` stays, unchanged (`utils/conversion.ts`, its only consumer, doesn't move packages); `@dtcg-editor/token-core` added as a `workspace:*` dependency (needed by `configuration.ts`, `components/editor.tsx`, `components/validation-error-handler.tsx`, `utils/range-validation.ts` (for `ColorSpace`/`ColorValue`/`ColorComponent` types), and `token-type.ts`).
 - `@dtcg-editor/token-type-contract` dependency renamed to `@dtcg-editor/token-editor-contract`.
 
 ## Consumers (re-verified against actual current imports, post-002; repointed to new package name only — no export changed for these)
