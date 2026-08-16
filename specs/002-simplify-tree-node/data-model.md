@@ -13,31 +13,36 @@ The pluggable interface a token-type package implements and the host app
 consumes generically. Adds one new optional member; every other member is
 unchanged.
 
-| Field                    | Type                                                                                                                                     | Change    |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| `type`                   | `string`                                                                                                                                 | unchanged |
-| `valueSchema`            | `z.ZodType<TValue>`                                                                                                                      | unchanged |
-| `serializeValue`         | `(value: TValue) => unknown`                                                                                                             | unchanged |
-| `Editor`                 | `(props: TokenTypeEditorProps<TValue>) => ReactElement`                                                                                  | unchanged |
-| `editorOptionsSchema`    | `z.ZodType<unknown>` (optional)                                                                                                          | unchanged |
-| `ValidationErrorHandler` | `(props: { readonly value: unknown; readonly validation: Result<TValue, TokenTypeValidationError> }) => ReactElement \| null` (optional) | **new**   |
+| Field                    | Type                                                                                                                | Change    |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- | --------- |
+| `type`                   | `string`                                                                                                            | unchanged |
+| `valueSchema`            | `z.ZodType<TValue>`                                                                                                 | unchanged |
+| `serializeValue`         | `(value: TValue) => unknown`                                                                                        | unchanged |
+| `Editor`                 | `(props: TokenTypeEditorProps<TValue>) => ReactElement`                                                             | unchanged |
+| `editorOptionsSchema`    | `z.ZodType<unknown>` (optional)                                                                                     | unchanged |
+| `ValidationErrorHandler` | `(props: { readonly value: unknown; readonly error: TokenTypeValidationError }) => ReactElement \| null` (optional) | **new**   |
 
-`ValidationErrorHandler` receives the _raw, possibly-invalid_ value (not `TValue`) — unlike
-`Editor`, which only ever receives an already-validated value — because its
-purpose is specifically to render something useful (a swatch, an issue list,
-or nothing) for a value that may not yet parse. It also receives `validation`,
-the same `Result<TValue, TokenTypeValidationError>` `TreeNode.tsx` already
-computes via `validateTokenValue` for that value, so an implementer doesn't
-need to re-run schema validation itself just to know whether the value is
-structurally valid. `TokenTypeValidationError` gains a parallel `issues:
-readonly TokenTypeValidationIssue[]` field (each a structured `{ path:
-readonly PropertyKey[]; message: string; code: string }`, additive alongside
-the existing `message`) for implementers that want a field-level breakdown —
-an array of objects rather than pre-formatted strings, so a future consumer
-can extend how it uses `code`/`path` without another contract change. A
+`ValidationErrorHandler` receives the _raw, invalid_ value (not `TValue`) — unlike
+`Editor`, which only ever receives an already-validated value — plus `error`,
+the concrete `TokenTypeValidationError` `TreeNode.tsx` already produced via
+`validateTokenValue` for that value. `TreeNode.tsx` only ever calls
+`ValidationErrorHandler` after confirming `validateTokenValue`'s result is an
+`err`, so `error` is never wrapped in a `Result` an implementer would need to
+unwrap — this component exists purely for the "doesn't parse at all" case.
+`TokenTypeValidationError` gains a parallel `issues: readonly
+TokenTypeValidationIssue[]` field (each a structured `{ path: readonly
+PropertyKey[]; message: string; code: string }`, additive alongside the
+existing `message`) for implementers that want a field-level breakdown — an
+array of objects rather than pre-formatted strings, so a future consumer can
+extend how it uses `code`/`path` without another contract change. A
 `z.union`-typed `valueSchema` (e.g. color's) still needs its own
 branch-schema validation for good messages, since Zod's union errors report
 one top-level `"invalid_union"` issue rather than one per failing field. A
+value that parses successfully but that a type wants to flag for some other
+reason (e.g. color's in-range check on an otherwise-valid value) is not
+`ValidationErrorHandler`'s concern — that display is the `Editor`'s own
+responsibility, computed from the already-validated `TValue` it already
+receives (see `packages/token-type-color/src/components/editor.tsx`). A
 contract with no `ValidationErrorHandler` falls back to the plain
 name/type/value text rendering `TreeNode.tsx` already uses for every type
 today.
@@ -89,19 +94,34 @@ TokenTypeValidationError>` from `@dtcg-editor/token-type-contract`, called
 with `resolveBuiltInContract("dimension")`'s contract exactly as it already
 is for every other built-in type.
 
-## `ColorDisplayInfo` / `describeColorForDisplay` (relocated)
+## `ColorDisplayInfo` / `describeColorForDisplay` (relocated and split)
 
 Old location: `apps/web-app/lib/tokens/color-display.ts` (deleted)
-New location: `packages/token-type-color/src/components/validation-error-handler.tsx` (as the
-implementation backing that package's new `ValidationErrorHandler` contract member)
 
-Shape is preserved internally (still resolves a CSS color string plus a list
-of human-readable issue strings from the same `ColorObjectValueSchema` /
-`LegacyHexColorValueSchema` / `checkColorValueIssues` / `colorValueToCssColor`
-building blocks) but is no longer a standalone type the host app imports —
-it becomes a private implementation detail of `packages/token-type-color`'s
-`ValidationErrorHandler` component, consistent with Principle II (a token-type package owns
-its own components).
+`describeColorForDisplay` today serves two distinct cases from one function —
+(1) the value fails to parse at all (returns no swatch, issues from the parse
+failure) and (2) the value parses successfully but has out-of-range
+components (returns a swatch plus `checkColorValueIssues`' range-issue
+strings). Post-refactor these two cases have two different homes, since
+`ValidationErrorHandler` (per its updated contract shape above) is only ever
+invoked for case (1):
+
+- Case (1) (doesn't parse) → `packages/token-type-color/src/components/validation-error-handler.tsx`,
+  as the implementation backing the package's `ValidationErrorHandler`
+  contract member. No swatch is ever rendered here, since `TreeNode.tsx` only
+  calls `ValidationErrorHandler` once a value has already failed
+  `ColorValueSchema` — `LegacyHexColorValueSchema`/`ColorObjectValueSchema`
+  would fail too, consistent with today's behavior in this case.
+- Case (2) (parses, but flagged) → `packages/token-type-color/src/components/editor.tsx`,
+  where `ColorEditor`'s existing `ObjectColorEditor` already renders its own
+  swatch and now also renders `checkColorValueIssues(value)`'s issue list
+  directly against its already-validated `ColorValue` prop — no raw/unknown
+  value or contract addition needed, since `Editor` already receives `TValue`.
+
+Neither half is a standalone type the host app imports anymore — both become
+private implementation details of `packages/token-type-color`'s own
+components, consistent with Principle II (a token-type package owns its own
+components).
 
 ## `ColorEditorOptions` / `ColorEditorOptionsSchema` / `defineColorConfig` (relocated)
 

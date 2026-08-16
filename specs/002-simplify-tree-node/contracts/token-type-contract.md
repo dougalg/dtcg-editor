@@ -31,20 +31,26 @@ export interface TokenTypeContract<TValue> {
 	readonly editorOptionsSchema?: z.ZodType<unknown>;
 
 	/**
-	 * Optional read-only rendering for a token of this type, given its raw
-	 * (possibly-invalid) value and the host's already-computed validation
-	 * result for that value — used wherever the host can't or shouldn't show
-	 * an interactive `Editor` (the value fails `valueSchema`, or the host is
-	 * in a read-only context). Receiving `validation` alongside `value` lets
-	 * an implementer skip re-running basic schema validation itself; it may
-	 * still need its own type-specific checks for richer per-field messages
-	 * than `valueSchema` alone can produce (see `TokenTypeValidationError`
-	 * below for the mitigation and its limits). Types with nothing extra to
-	 * show (e.g. dimension) omit this; the host falls back to plain text.
+	 * Read-only rendering for a token of this type whose raw value has
+	 * already failed `valueSchema` — used wherever the host can't show an
+	 * interactive `Editor` because the value doesn't parse. The host (`TreeNode.tsx`)
+	 * only ever calls this once it has already run `validateTokenValue` and
+	 * confirmed the result is an `err`, so `error` is always a concrete
+	 * `TokenTypeValidationError`, not a `Result` an implementer would need to
+	 * unwrap. It may still need its own type-specific checks for richer
+	 * per-field messages than `error.issues` alone can produce (see
+	 * `TokenTypeValidationError` below for the mitigation and its limits).
+	 * Types with nothing extra to show (e.g. dimension) omit this; the host
+	 * falls back to plain text. Note this is strictly for the
+	 * doesn't-parse-at-all case — a value that parses successfully but that a
+	 * type wants to flag for some other reason (e.g. color's in-range check)
+	 * is the `Editor`'s own concern, rendered alongside the interactive UI,
+	 * since `Editor` already receives an already-validated `TValue` to
+	 * inspect (see `packages/token-type-color`'s `components/editor.tsx`).
 	 */
 	ValidationErrorHandler?(props: {
 		readonly value: unknown;
-		readonly validation: Result<TValue, TokenTypeValidationError>;
+		readonly error: TokenTypeValidationError;
 	}): ReactElement | null;
 }
 ```
@@ -92,16 +98,16 @@ export class TokenTypeValidationError extends Error {
 **Limit**: for a `z.union`-typed `valueSchema` (e.g. color's `ColorValueSchema`,
 a union of the object and legacy-hex shapes), Zod's default union error
 reports one top-level issue (`code: "invalid_union"`, `path: []`, `message:
-"Invalid input"`) rather than one issue per failing field — `issues` inherits
-that same limitation, since it's derived from the same `safeParse` call
-`message` already was; an implementer can check for `code === "invalid_union"`
-to detect this case, but doing so still doesn't recover per-field detail. A
-contract implementer whose `valueSchema` is a union and that wants better
-structural messages for `ValidationErrorHandler` must still validate the raw
-`value` against its own branch schemas directly, as `packages/token-type-color`
-already does today — the host-supplied `validation` is a convenience for the
-common case (and a signal of overall ok/err), not a guaranteed replacement
-for type-specific validation.
+"Invalid input"`) rather than one issue per failing field — `error.issues`
+inherits that same limitation, since it's derived from the same `safeParse`
+call `error.message` already was; an implementer can check for `code ===
+"invalid_union"` to detect this case, but doing so still doesn't recover
+per-field detail. A contract implementer whose `valueSchema` is a union and
+that wants better structural messages for `ValidationErrorHandler` must still
+validate the raw `value` against its own branch schemas directly, as
+`packages/token-type-color` already does today — the host-supplied `error` is
+a convenience (a ready-made `TokenTypeValidationError`, with no `Result` to
+unwrap), not a guaranteed replacement for type-specific validation.
 
 ## Consumer contract: what `TreeNode.tsx` may depend on
 

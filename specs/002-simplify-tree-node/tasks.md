@@ -34,11 +34,11 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 Add an optional `ValidationErrorHandler?(props: { readonly value: unknown; readonly validation: Result<TValue, TokenTypeValidationError> }): ReactElement | null` member to `TokenTypeContract<TValue>` in `packages/token-type-contract/src/contract.ts`, per `contracts/token-type-contract.md`'s "After" shape (no other member's type changes)
+- [ ] T002 Add an optional `ValidationErrorHandler?(props: { readonly value: unknown; readonly error: TokenTypeValidationError }): ReactElement | null` member to `TokenTypeContract<TValue>` in `packages/token-type-contract/src/contract.ts`, per `contracts/token-type-contract.md`'s "After" shape — `error` is a plain `TokenTypeValidationError`, not a `Result`, since the host only ever calls this once it has already confirmed validation failed (no other member's type changes)
 - [ ] T003 Export a new `TokenTypeValidationIssue` interface (`{ readonly path: readonly PropertyKey[]; readonly message: string; readonly code: string }`) and add a parallel `readonly issues: readonly TokenTypeValidationIssue[]` field to `TokenTypeValidationError`, both in `packages/token-type-contract/src/contract.ts`; populate `issues` in `validateTokenValue` by mapping each Zod issue to `{ path: issue.path, message: issue.message, code: issue.code }` from the same `safeParse` call already producing `message`, without changing `message`'s existing derivation/format (depends on T002)
-- [ ] T004 [P] Extend `packages/token-type-contract/src/contract.test.ts` to cover: a contract that omits `ValidationErrorHandler` and one that supplies it both type-check and behave correctly; `validateTokenValue`'s returned `err`'s `issues` array has one `{ path, message, code }` entry per Zod issue (with `path` as the raw unjoined segment array) while `message` is unchanged from today's joined format (depends on T003)
+- [ ] T004 [P] Extend `packages/token-type-contract/src/contract.test.ts` to cover: a contract that omits `ValidationErrorHandler` and one that supplies it (receiving `{ value, error }`, `error` always a concrete `TokenTypeValidationError`) both type-check and behave correctly; `validateTokenValue`'s returned `err`'s `issues` array has one `{ path, message, code }` entry per Zod issue (with `path` as the raw unjoined segment array) while `message` is unchanged from today's joined format (depends on T003)
 
-**Checkpoint**: `TokenTypeContract` now has the `ValidationErrorHandler` member (receiving both `value` and `validation`) and `TokenTypeValidationError` now has `issues`; every implementer of the interface (built-in or third-party) remains valid unmodified.
+**Checkpoint**: `TokenTypeContract` now has the `ValidationErrorHandler` member (receiving `value` and a plain `error`) and `TokenTypeValidationError` now has `issues`; every implementer of the interface (built-in or third-party) remains valid unmodified.
 
 ---
 
@@ -51,27 +51,28 @@ description: "Task list template for feature implementation"
 ### Package retrofit: `token-type-color` (FR-009/FR-010/FR-011)
 
 - [ ] T005 [P] [US1] Create `packages/token-type-color/src/configuration.ts` holding `ColorEditorOptions`, `ColorEditorOptionsSchema`, and `defineColorConfig`, moved out of `packages/token-type-color/src/color.ts` (importing `ColorSpace`/`COLOR_SPACES` from `color.ts`); `color.ts` keeps only `ColorValueSchema`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `checkColorValueIssues`, and `COLOR_SPACES`/`ColorSpace`
-- [ ] T006 [P] [US1] Create `packages/token-type-color/src/components/` and move `packages/token-type-color/src/editor.tsx` → `packages/token-type-color/src/components/editor.tsx` and `packages/token-type-color/src/editor.module.css` → `packages/token-type-color/src/components/editor.module.css`, updating the `./editor.module.css` import; logic unchanged
-- [ ] T007 [P] [US1] Create `packages/token-type-color/src/components/validation-error-handler.tsx` implementing the new `ValidationErrorHandler` contract member (`(props: { value: unknown; validation: Result<ColorValue, TokenTypeValidationError> }) => ReactElement | null`), moving `ColorDisplayInfo`/`describeColorForDisplay`'s logic from `apps/web-app/lib/tokens/color-display.ts` (built from `color.ts`'s `ColorObjectValueSchema`/`LegacyHexColorValueSchema`/`checkColorValueIssues` and `css-color.ts`'s `colorValueToCssColor`); since `ColorValueSchema` is a `z.union`, the incoming `validation.error.issues` collapses to a single `{ code: "invalid_union", path: [], message: "Invalid input" }` entry on structural failure (per `contracts/token-type-contract.md`'s noted limit) — keep validating the raw `value` against `ColorObjectValueSchema`/`LegacyHexColorValueSchema` directly for the per-field issue text exactly as `describeColorForDisplay` does today, using `validation` only as an available ok/err signal, not as the source of message text
-- [ ] T008 [US1] Update `packages/token-type-color/src/token-type.ts` to assemble `colorTokenType` with `Editor` from `./components/editor.tsx`, the new `ValidationErrorHandler` from `./components/validation-error-handler.tsx`, and `editorOptionsSchema` from `./configuration.ts` (depends on T005, T006, T007)
-- [ ] T009 [P] [US1] Update `packages/token-type-color/src/index.ts`'s export paths to match the new `components/`/`configuration.ts` locations (depends on T005, T006, T007)
+- [ ] T006 [P] [US1] Create `packages/token-type-color/src/components/` and move `packages/token-type-color/src/editor.tsx` → `packages/token-type-color/src/components/editor.tsx` and `packages/token-type-color/src/editor.module.css` → `packages/token-type-color/src/components/editor.module.css`, updating the `./editor.module.css` import; logic unchanged (new range-issue-display logic is added separately in T007)
+- [ ] T007 [P] [US1] In `packages/token-type-color/src/components/editor.tsx`'s `ObjectColorEditor`, render `checkColorValueIssues(value)`'s issue list (the same `<div role="alert"><ul>...</ul></div>` structure `TreeNode.tsx` currently renders via `editableColorIssues`), computed directly from the `ColorValue` already available as its `value` prop — no new prop, no `TreeNode.tsx` involvement; `LegacyHexColorEditor` needs no equivalent since `checkColorValueIssues` always returns `[]` for string (legacy-hex) values (depends on T006)
+- [ ] T008 [P] [US1] Create `packages/token-type-color/src/components/validation-error-handler.tsx` implementing the new `ValidationErrorHandler` contract member (`(props: { value: unknown; error: TokenTypeValidationError }) => ReactElement | null`), moving only the doesn't-parse-at-all half of `ColorDisplayInfo`/`describeColorForDisplay`'s logic from `apps/web-app/lib/tokens/color-display.ts` (the range-issue/swatch half for successfully-parsed values moved separately into `components/editor.tsx` per T007); this component only ever renders once a value has failed `ColorValueSchema` (a `z.union`), so no swatch is ever shown here (both `LegacyHexColorValueSchema` and `ColorObjectValueSchema` also fail in that case) and the incoming `error.issues` collapses to a single `{ code: "invalid_union", path: [], message: "Invalid input" }` entry — validate the raw `value` against `ColorObjectValueSchema`/`LegacyHexColorValueSchema` directly for the per-field issue text exactly as `describeColorForDisplay` does today, using `error` only as a signal that something failed, not as the source of message text (depends on T006)
+- [ ] T009 [US1] Update `packages/token-type-color/src/token-type.ts` to assemble `colorTokenType` with `Editor` from `./components/editor.tsx`, the new `ValidationErrorHandler` from `./components/validation-error-handler.tsx`, and `editorOptionsSchema` from `./configuration.ts` (depends on T005, T007, T008)
+- [ ] T010 [P] [US1] Update `packages/token-type-color/src/index.ts`'s export paths to match the new `components/`/`configuration.ts` locations (depends on T005, T007, T008)
 
 ### Package retrofit: `token-type-dimension` (FR-009/FR-010/FR-011, structural only)
 
-- [ ] T010 [P] [US1] Create `packages/token-type-dimension/src/configuration.ts` as an initially empty module (no exports yet) per FR-009/FR-010/FR-011 and research.md Decision 6
-- [ ] T011 [P] [US1] Create `packages/token-type-dimension/src/components/` and move `packages/token-type-dimension/src/editor.tsx` → `packages/token-type-dimension/src/components/editor.tsx`; logic unchanged
-- [ ] T012 [US1] Update `packages/token-type-dimension/src/token-type.ts` to import `DimensionEditor` from `./components/editor.tsx` (depends on T011)
-- [ ] T013 [P] [US1] Update `packages/token-type-dimension/src/index.ts`'s export path for the moved editor (depends on T011)
+- [ ] T011 [P] [US1] Create `packages/token-type-dimension/src/configuration.ts` as an initially empty module (no exports yet) per FR-009/FR-010/FR-011 and research.md Decision 6
+- [ ] T012 [P] [US1] Create `packages/token-type-dimension/src/components/` and move `packages/token-type-dimension/src/editor.tsx` → `packages/token-type-dimension/src/components/editor.tsx`; logic unchanged
+- [ ] T013 [US1] Update `packages/token-type-dimension/src/token-type.ts` to import `DimensionEditor` from `./components/editor.tsx` (depends on T012)
+- [ ] T014 [P] [US1] Update `packages/token-type-dimension/src/index.ts`'s export path for the moved editor (depends on T012)
 
 ### `TreeNode.tsx` generic dispatch (FR-001–FR-003, FR-006)
 
-- [ ] T014 [US1] In `apps/web-app/components/TreeNode.tsx`, remove the direct imports of `dimensionTokenType`/`DimensionValue` (`@dtcg-editor/token-type-dimension`) and `colorTokenType` (`@dtcg-editor/token-type-color`), and remove the `DimensionEditorComponent` cast type (depends on T008, T012)
-- [ ] T015 [US1] In `apps/web-app/components/TreeNode.tsx`, replace the `isDimension`-gated `builtInContract` resolution with a single `resolveBuiltInContract(effectiveType)` lookup used for every standard type; delete `isDimension`, `dimensionValueValidation`, and `existingDimensionValue` (depends on T014)
-- [ ] T016 [US1] In `apps/web-app/components/TreeNode.tsx`'s read-only (`!canEdit`) branch, replace the `isColor`/`describeColorForDisplay` swatch-and-issues rendering with a generic render of `builtInContract?.ValidationErrorHandler`, invoked with `{ value: node.value, validation: genericValueValidation }` (reusing the `Result` already computed in T015 for `node.value`), falling back to today's plain name/type/value text when `ValidationErrorHandler` is absent (depends on T015, T007)
-- [ ] T017 [US1] In `apps/web-app/components/TreeNode.tsx`'s editable branch, replace the `editableColorIssues` color-specific computation with the same generic `builtInContract?.ValidationErrorHandler`-driven rendering introduced in T016, computing a fresh `validateTokenValue(builtInContract, currentRawValue)` Result for the currently-displayed (possibly-staged) `currentRawValue` — distinct from T016's `node.value`-based Result — and passing `{ value: currentRawValue, validation: <that fresh Result> }` (depends on T016)
-- [ ] T018 [US1] In `apps/web-app/components/TreeNode.tsx`, collapse `handleDimensionValueChange`/`handleGenericValueChange` into one value-change handler used for every standard type, and replace the `DimensionEditor`/`GenericEditor` dual-cast render branch with a single resolved-editor render (depends on T017)
-- [ ] T019 [P] [US1] In `apps/web-app/lib/tokens/edit-state.ts`, delete `DimensionValidationResult` and `validateDimensionValue`, and remove the now-unused `dimensionTokenType`/`DimensionValue` imports (depends on T018)
-- [ ] T020 [P] [US1] Delete `apps/web-app/lib/tokens/color-display.ts` now that its logic lives in `packages/token-type-color/src/components/validation-error-handler.tsx` (depends on T018, T007)
+- [ ] T015 [US1] In `apps/web-app/components/TreeNode.tsx`, remove the direct imports of `dimensionTokenType`/`DimensionValue` (`@dtcg-editor/token-type-dimension`) and `colorTokenType` (`@dtcg-editor/token-type-color`), and remove the `DimensionEditorComponent` cast type (depends on T009, T013)
+- [ ] T016 [US1] In `apps/web-app/components/TreeNode.tsx`, replace the `isDimension`-gated `builtInContract` resolution with a single `resolveBuiltInContract(effectiveType)` lookup used for every standard type; delete `isDimension`, `dimensionValueValidation`, and `existingDimensionValue` (depends on T015)
+- [ ] T017 [US1] In `apps/web-app/components/TreeNode.tsx`'s read-only (`!canEdit`) branch, replace the `isColor`/`describeColorForDisplay` swatch-and-issues rendering with a generic render of `builtInContract?.ValidationErrorHandler`, invoked with `{ value: node.value, error: genericValueValidation.error }` — safe because `!canEdit` with a defined `builtInContract` only occurs when `genericValueValidation.isErr()` (per T016's `canEdit` formula), so `.error` always exists — falling back to today's plain name/type/value text when `ValidationErrorHandler` is absent (depends on T016, T008)
+- [ ] T018 [US1] In `apps/web-app/components/TreeNode.tsx`'s editable branch, delete the `editableColorIssues` computation and its rendering entirely — no replacement needed in `TreeNode.tsx`, since `ColorEditor` now renders this range-issue list itself (T007); `ValidationErrorHandler` is never invoked from the editable branch, since (per T002) it's only ever called once validation has already failed, and `canEdit` being true here means it hasn't (depends on T017, T007)
+- [ ] T019 [US1] In `apps/web-app/components/TreeNode.tsx`, collapse `handleDimensionValueChange`/`handleGenericValueChange` into one value-change handler used for every standard type: when `builtInContract` is defined, validate the next value via `validateTokenValue(builtInContract, next)` before staging, blocking the stage and calling `onFieldError` on failure exactly as `handleDimensionValueChange` does today (generalizing dimension's validate-before-stage gate to color too, per research.md's Decision 1 addendum); when no `builtInContract` exists, stage the value as-is (today's generic-editor trust-as-is behavior). Also replace the `DimensionEditor`/`GenericEditor` dual-cast render branch with a single resolved-editor render (depends on T018)
+- [ ] T020 [P] [US1] In `apps/web-app/lib/tokens/edit-state.ts`, delete `DimensionValidationResult` and `validateDimensionValue`, and remove the now-unused `dimensionTokenType`/`DimensionValue` imports (depends on T019)
+- [ ] T021 [P] [US1] Delete `apps/web-app/lib/tokens/color-display.ts` now that both halves of its logic live in `packages/token-type-color/src/components/editor.tsx` (T007) and `packages/token-type-color/src/components/validation-error-handler.tsx` (T008) (depends on T019, T007, T008)
 
 **Checkpoint**: A new token-type editor can be registered purely as an extension (built-in `built-in.ts` entry or user `dtcg-editor.config.mts` entry) with zero source changes to `TreeNode.tsx`/`TokenTree.tsx`; dimension and color are two ordinary entries in that same mechanism.
 
@@ -83,11 +84,11 @@ description: "Task list template for feature implementation"
 
 **Independent Test**: Run the existing color/dimension editing scenarios and confirm every outcome matches pre-refactor behavior.
 
-- [ ] T021 [P] [US2] Update `apps/web-app/lib/token-editors/color-editor.test.tsx` (and any other test importing from the old `packages/token-type-color/src/editor.tsx` or `color.ts`'s config exports) to the new `components/editor.tsx`/`configuration.ts` locations, without changing any assertion on rendered/user-facing behavior (depends on T005–T009)
-- [ ] T022 [P] [US2] Update any test in `apps/web-app/components/TokenTree*.test.tsx` or `apps/web-app/lib/tokens/*.test.ts` that directly references the deleted `validateDimensionValue` or `describeColorForDisplay`/`color-display.ts` to use the generic `validateTokenValue`/`resolveBuiltInContract` path instead, without changing any user-facing assertion (depends on T019, T020)
-- [ ] T023 [US2] Run `pnpm --filter @dtcg-editor/web-app test` and confirm `components/TokenTree.test.tsx`, `components/TokenTree.generic-editor.test.tsx`, `components/TokenTree.override.test.tsx`, and `components/TokenTree.a11y.test.tsx` all pass with no changes to user-facing assertions (depends on T021, T022)
-- [ ] T024 [P] [US2] Run `pnpm --filter @dtcg-editor/token-type-color test` and `pnpm --filter @dtcg-editor/token-type-dimension test` and confirm both suites pass against the retrofitted package layout (depends on T021)
-- [ ] T025 [US2] Manually verify color and dimension token editing (view, edit, invalid-value feedback, save) via `pnpm dev`, per quickstart.md §1, confirming the swatch, inputs, and validation messages are behaviorally identical to before the refactor (depends on T023, T024)
+- [ ] T022 [P] [US2] Update `apps/web-app/lib/token-editors/color-editor.test.tsx` (and any other test importing from the old `packages/token-type-color/src/editor.tsx` or `color.ts`'s config exports) to the new `components/editor.tsx`/`configuration.ts` locations, including coverage for the range-issue list now rendered by `ObjectColorEditor` itself (T007), without changing any assertion on rendered/user-facing behavior (depends on T005–T010)
+- [ ] T023 [P] [US2] Update any test in `apps/web-app/components/TokenTree*.test.tsx` or `apps/web-app/lib/tokens/*.test.ts` that directly references the deleted `validateDimensionValue` or `describeColorForDisplay`/`color-display.ts` to use the generic `validateTokenValue`/`resolveBuiltInContract` path instead, without changing any user-facing assertion (depends on T020, T021)
+- [ ] T024 [US2] Run `pnpm --filter @dtcg-editor/web-app test` and confirm `components/TokenTree.test.tsx`, `components/TokenTree.generic-editor.test.tsx`, `components/TokenTree.override.test.tsx`, and `components/TokenTree.a11y.test.tsx` all pass with no changes to user-facing assertions (depends on T022, T023)
+- [ ] T025 [P] [US2] Run `pnpm --filter @dtcg-editor/token-type-color test` and `pnpm --filter @dtcg-editor/token-type-dimension test` and confirm both suites pass against the retrofitted package layout (depends on T022)
+- [ ] T026 [US2] Manually verify color and dimension token editing (view, edit, invalid-value feedback, save) via `pnpm dev`, per quickstart.md §1, confirming the swatch, inputs, and validation messages — including the color range-issue list while editing — are behaviorally identical to before the refactor (depends on T024, T025)
 
 **Checkpoint**: Stories 1 and 2 both hold — dispatch is generic and no user-facing behavior regressed.
 
@@ -99,11 +100,11 @@ description: "Task list template for feature implementation"
 
 **Independent Test**: Inspect `TreeNode.tsx`'s imports and logic; confirm no direct references to a specific token-type package and no branching on a specific type name.
 
-- [ ] T026 [P] [US3] Run `grep -n "@dtcg-editor/token-type-color\|@dtcg-editor/token-type-dimension" apps/web-app/components/TreeNode.tsx apps/web-app/components/TokenTree.tsx` and confirm no output (SC-003) (depends on T014)
-- [ ] T027 [P] [US3] Run `grep -n '=== "color"\|=== "dimension"\|isDimension\|isColor' apps/web-app/components/TreeNode.tsx` and confirm no output (SC-004) (depends on T015, T016, T017, T018)
-- [ ] T028 [P] [US3] Confirm `packages/token-type-color/src/components/editor.tsx`, `packages/token-type-color/src/components/validation-error-handler.tsx`, `packages/token-type-color/src/configuration.ts`, `packages/token-type-dimension/src/components/editor.tsx`, and `packages/token-type-dimension/src/configuration.ts` all exist (SC-005) (depends on T005–T013)
-- [ ] T029 [P] [US3] Run `grep -n "EditorOptions" packages/token-type-color/src/color.ts packages/token-type-dimension/src/dimension.ts` and confirm no output (SC-005) (depends on T005)
-- [ ] T030 [P] [US3] Re-verify `apps/web-app/components/TokenTree.tsx` contains no editor-type-specific logic (FR-006) — confirm no source change was needed beyond re-verification, per plan.md Decision 4
+- [ ] T027 [P] [US3] Run `grep -n "@dtcg-editor/token-type-color\|@dtcg-editor/token-type-dimension" apps/web-app/components/TreeNode.tsx apps/web-app/components/TokenTree.tsx` and confirm no output (SC-003) (depends on T015)
+- [ ] T028 [P] [US3] Run `grep -n '=== "color"\|=== "dimension"\|isDimension\|isColor' apps/web-app/components/TreeNode.tsx` and confirm no output (SC-004) (depends on T016, T017, T018, T019)
+- [ ] T029 [P] [US3] Confirm `packages/token-type-color/src/components/editor.tsx`, `packages/token-type-color/src/components/validation-error-handler.tsx`, `packages/token-type-color/src/configuration.ts`, `packages/token-type-dimension/src/components/editor.tsx`, and `packages/token-type-dimension/src/configuration.ts` all exist (SC-005) (depends on T005–T014)
+- [ ] T030 [P] [US3] Run `grep -n "EditorOptions" packages/token-type-color/src/color.ts packages/token-type-dimension/src/dimension.ts` and confirm no output (SC-005) (depends on T005)
+- [ ] T031 [P] [US3] Re-verify `apps/web-app/components/TokenTree.tsx` contains no editor-type-specific logic (FR-006) — confirm no source change was needed beyond re-verification, per plan.md Decision 4
 
 **Checkpoint**: All three stories' acceptance criteria and every SC-00x measurable outcome hold.
 
@@ -113,9 +114,9 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Final, whole-feature acceptance gate.
 
-- [ ] T031 Register a stub editor extension for an unused token type (e.g. `fontFamily`) in a scratch/local `dtcg-editor.config.mts`, add a matching token under `sample_data/`, confirm it renders and handles value changes/validation in the running tree (`pnpm dev`) with zero source changes to `TreeNode.tsx`/`TokenTree.tsx` (quickstart.md §4 / SC-001), then revert the scratch config and sample data
-- [ ] T032 [P] Run the repo's strict TypeScript build/typecheck and lint across `packages/token-type-contract`, `packages/token-type-color`, `packages/token-type-dimension`, and `apps/web-app` to confirm no relaxation was needed (Constitution Principle III)
-- [ ] T033 Run the complete quickstart.md validation checklist end-to-end (all four sections) as the final acceptance gate before merge
+- [ ] T032 Register a stub editor extension for an unused token type (e.g. `fontFamily`) in a scratch/local `dtcg-editor.config.mts`, add a matching token under `sample_data/`, confirm it renders and handles value changes/validation in the running tree (`pnpm dev`) with zero source changes to `TreeNode.tsx`/`TokenTree.tsx` (quickstart.md §4 / SC-001), then revert the scratch config and sample data
+- [ ] T033 [P] Run the repo's strict TypeScript build/typecheck and lint across `packages/token-type-contract`, `packages/token-type-color`, `packages/token-type-dimension`, and `apps/web-app` to confirm no relaxation was needed (Constitution Principle III)
+- [ ] T034 Run the complete quickstart.md validation checklist end-to-end (all four sections) as the final acceptance gate before merge
 
 ---
 
@@ -136,20 +137,21 @@ description: "Task list template for feature implementation"
 
 ### Within Phase 3 (User Story 1)
 
-- The two package retrofits (T005–T009 for color, T010–T013 for dimension) are independent of each other and of the `TreeNode.tsx` work, but T014 (removing `TreeNode.tsx`'s direct package imports) depends on both retrofits' `token-type.ts` updates (T008, T012) being done first
-- T014 → T015 → T016 → T017 → T018 is a strict sequence (all edit the same file, each building on the last)
-- T019 and T020 can run in parallel once T018 completes (different files)
+- The two package retrofits (T005–T010 for color, T011–T014 for dimension) are independent of each other and of the `TreeNode.tsx` work, but T015 (removing `TreeNode.tsx`'s direct package imports) depends on both retrofits' `token-type.ts` updates (T009, T013) being done first
+- Within the color retrofit: T007 and T008 both depend on T006 (they add logic to/alongside the file T006 creates) but are independent of each other (different files); T009/T010 depend on T005, T007, T008
+- T015 → T016 → T017 → T018 → T019 is a strict sequence (all edit the same file, each building on the last)
+- T020 and T021 can run in parallel once T019 completes (different files)
 
 ### Parallel Opportunities
 
-- T005, T006, T007 (color: configuration.ts, components/editor.tsx, components/validation-error-handler.tsx) — different files, no dependency on each other
-- T010, T011 (dimension: configuration.ts, components/editor.tsx) — different files, no dependency on each other
-- T008 and T009 — different files, both depend on T005–T007 but not on each other
-- T012 and T013 — different files, both depend on T011 but not on each other
-- T019 and T020 — different files, both depend on T018
-- T021 and T022 — different test files, no dependency on each other
-- T024 can run alongside T023 — different package test suites
-- All of T026–T030 (Phase 5) are read-only verification steps and can run fully in parallel once their respective Phase 3 prerequisites land
+- T005, T006 (color: configuration.ts, components/editor.tsx move) — different files, no dependency on each other; T007 and T008 can then run in parallel once T006 lands (different files)
+- T011, T012 (dimension: configuration.ts, components/editor.tsx) — different files, no dependency on each other
+- T009 and T010 — different files, both depend on T005, T007, T008 but not on each other
+- T013 and T014 — different files, both depend on T012 but not on each other
+- T020 and T021 — different files, both depend on T019
+- T022 and T023 — different test files, no dependency on each other
+- T025 can run alongside T024 — different package test suites
+- All of T027–T031 (Phase 5) are read-only verification steps and can run fully in parallel once their respective Phase 3 prerequisites land
 
 ---
 
@@ -159,11 +161,14 @@ description: "Task list template for feature implementation"
 # Launch the color package's independent file moves/splits together:
 Task: "Create packages/token-type-color/src/configuration.ts (T005)"
 Task: "Move editor.tsx to packages/token-type-color/src/components/ (T006)"
-Task: "Create packages/token-type-color/src/components/validation-error-handler.tsx (T007)"
+
+# Once T006 lands, its two independent follow-ons:
+Task: "Add range-issue rendering to ObjectColorEditor (T007)"
+Task: "Create packages/token-type-color/src/components/validation-error-handler.tsx (T008)"
 
 # In parallel, the dimension package's independent structural work:
-Task: "Create packages/token-type-dimension/src/configuration.ts (T010)"
-Task: "Move editor.tsx to packages/token-type-dimension/src/components/ (T011)"
+Task: "Create packages/token-type-dimension/src/configuration.ts (T011)"
+Task: "Move editor.tsx to packages/token-type-dimension/src/components/ (T012)"
 ```
 
 ---
@@ -188,5 +193,6 @@ Task: "Move editor.tsx to packages/token-type-dimension/src/components/ (T011)"
 ### Notes
 
 - Every phase after Phase 3 largely re-examines the _same_ files Phase 3 changed (verification, not new construction) — this matches spec.md's own priority rationale: Story 3 is "a consequence of satisfying [Stories 1–2] correctly, not a separately testable behavior in itself."
+- `ValidationErrorHandler` (T002) is invoked exactly once in `TreeNode.tsx`, in the read-only/invalid branch (T017), and always with a concrete `error` — never in the editable branch (T018), since a value reaching that branch has already passed validation. Any "valid but flagged" display (color's range check) is the `Editor`'s own concern (T007), not `ValidationErrorHandler`'s.
 - No task in this list adds a new third-party dependency, changes the `TokenTypeContract` interface's existing members, or alters DTCG token file I/O — consistent with plan.md's Constraints and Assumptions.
 - Commit after each task or logical group; stop at any checkpoint to validate independently.
