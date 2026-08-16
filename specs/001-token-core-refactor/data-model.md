@@ -8,12 +8,12 @@ A Zod schema defining and validating one DTCG token type's `$value` shape.
 
 | Attribute | Description |
 | --- | --- |
-| Location (post-refactor) | `token-core/src/{color,dimension}.ts` (one module per type, same filename it had before the move). Both move wholesale — as of 002-simplify-tree-node, `color.ts` already contains only value-schema/validation code (its editor-config exports were already split into a sibling `configuration.ts` by 002), so no further in-file splitting is needed; see `research.md`. |
+| Location (post-refactor) | `token-core/src/{color,dimension}.ts` (one module per type, same filename it had before the move). `dimension.ts` moves wholesale. `color.ts` splits: its structural exports move to `token-core/src/color.ts`; its data/range-validation exports (`checkColorValueIssues`, `COMPONENT_RANGES`) stay behind in `token-editor-color/src/color.ts` — see `research.md`'s validation-scope decision. |
 | Instances today | `ColorValueSchema` (+ `ColorObjectValueSchema`, `LegacyHexColorValueSchema`), `DimensionValueSchema` |
-| Owns | The `z.ZodType<TValue>` schema itself, its derived TypeScript type (`ColorValue`, `DimensionValue`), and pure value-level helpers that operate on it (`checkColorValueIssues`, `colorValueToCssColor`, `colorValueToSrgbHex`, `srgbHexToColorSpaceComponents`) |
-| Does NOT own | Editor-specific configuration schemas (`ColorEditorOptions`, `ColorEditorOptionsSchema`, `defineColorConfig`) — those validate how the *Editor* is configured, not the token `$value`, and already live in `token-editor-color/src/configuration.ts` (moved there by 002-simplify-tree-node, unaffected by this refactor) |
+| Owns | The `z.ZodType<TValue>` schema itself, its derived TypeScript type (`ColorValue`, `DimensionValue`), and pure structural helpers (`colorValueToCssColor`, `colorValueToSrgbHex`, `srgbHexToColorSpaceComponents`) |
+| Does NOT own | Editor-specific configuration schemas (`ColorEditorOptions`, `ColorEditorOptionsSchema`, `defineColorConfig`) — those validate how the *Editor* is configured, not the token `$value`, and already live in `token-editor-color/src/configuration.ts` (moved there by 002-simplify-tree-node, unaffected by this refactor). Also does NOT own data/range validation (`checkColorValueIssues`, `COMPONENT_RANGES`) — a structurally-valid value with an out-of-range component is user-recoverable in the Editor UI, so this stays in `token-editor-color`, not `token-core` (per `/speckit-clarify`). |
 | Depends on | `zod`, and for color: `colorjs.io` (moves with `conversion.ts`) |
-| Consumed by | `TokenTypeContract.valueSchema`/`serializeValue` (wired in the corresponding `token-editor-*` package's `token-type.ts`), `token-editor-color`'s `components/editor.tsx`/`components/validation-error-handler.tsx` (for rendering/range-checking), and `configuration.ts` (for `COLOR_SPACES`/`ColorSpace`) |
+| Consumed by | `TokenTypeContract.valueSchema`/`serializeValue` (wired in the corresponding `token-editor-*` package's `token-type.ts`), `token-editor-color`'s `components/editor.tsx`/`components/validation-error-handler.tsx` (for rendering; range-checking now sources from `token-editor-color`'s own `color.ts`, not `token-core`), and `configuration.ts` (for `COLOR_SPACES`/`ColorSpace`) |
 
 ## TokenTypeContract
 
@@ -33,8 +33,8 @@ A package such as `token-editor-color` or `token-editor-dimension`.
 | Attribute | Description |
 | --- | --- |
 | Renamed from | `token-type-color` → `token-editor-color`; `token-type-dimension` → `token-editor-dimension`; `token-type-contract` → `token-editor-contract` |
-| Contains (post-refactor) | `components/` (`Editor` + styling +, for color, `ValidationErrorHandler`), `configuration.ts` (editor-specific config schema, if any — both already exist per 002-simplify-tree-node), and `token-type.ts` (`TokenTypeContract` implementation) only |
-| No longer contains | Value schema, value type, conversion functions, or value-level validation logic — all moved to `token-core` |
+| Contains (post-refactor) | `components/` (`Editor` + styling +, for color, `ValidationErrorHandler`), `configuration.ts` (editor-specific config schema, if any — both already exist per 002-simplify-tree-node), `token-type.ts` (`TokenTypeContract` implementation), and — for `token-editor-color` only — the trimmed `color.ts` holding `checkColorValueIssues`/`COMPONENT_RANGES` (data/range validation, user-recoverable in the Editor UI) |
+| No longer contains | Structural value schema, value type, or conversion functions — all moved to `token-core`. Data/range validation (`checkColorValueIssues`/`COMPONENT_RANGES`) is the one exception: it stays, per `/speckit-clarify`'s validation-scope split. |
 | Depends on | `token-core` (for the type's value schema/serializer), `token-editor-contract` (for the `TokenTypeContract` interface), `react` |
 | Never depended on by | `token-core` (one-way dependency direction, Principle VII) |
 

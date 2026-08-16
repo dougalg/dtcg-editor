@@ -6,11 +6,13 @@
 
 **Revision note (2026-08-16, re-planned after 002-simplify-tree-node landed)**: 002-simplify-tree-node has since been implemented and merged. It already retrofitted `token-type-color`/`token-type-dimension` to a `components/` + `configuration.ts` structure, deleted `apps/web-app/lib/tokens/color-display.ts` (its logic moved into `token-type-color/src/components/{editor.tsx,validation-error-handler.tsx}`), and made `apps/web-app`'s tree components (`TreeNode.tsx`/`TreeTokenNode.tsx`/`TreeGroupNode.tsx`/`TokenTree.tsx`) fully generic — none of them import `token-type-color`/`token-type-dimension` directly any more. This plan is rewritten against that current codebase rather than the pre-002 layout the original plan assumed; the feature's scope (FR-001–FR-010) is unchanged, but the concrete file inventory below is not.
 
+**Revision note (2026-08-16, validation-scope clarification)**: `/speckit-clarify` drew a line between two kinds of color validation that `color.ts` previously lumped together: **structural validation** (`ColorValueSchema`/`ColorObjectValueSchema`/`LegacyHexColorValueSchema` — does the raw value parse into a `ColorValue` shape at all) moves to `token-core` per FR-001; **data/range validation** (`checkColorValueIssues`/`COMPONENT_RANGES` — a structurally-valid value with an out-of-range component, user-recoverable in the editor UI) stays in `token-editor-color` per FR-003. This plan and its Phase 0/1 artifacts are updated accordingly: `color.ts` now splits (not moves wholesale) between the two packages.
+
 ## Summary
 
-Move every DTCG token type's value schema, conversion, and validation logic (`ColorValueSchema`, `checkColorValueIssues`, `colorValueToCssColor`, color-space `conversion.ts`, `DimensionValueSchema`) out of `token-type-color`/`token-type-dimension` and into `token-core`, which becomes the single source of truth for parsing across all token types (not just the generic node/group document shape it already owned). The three `token-type-*` packages are renamed `token-editor-*` and reduced to holding only their `Editor` UI (already organized under `components/` per 002-simplify-tree-node), editor-specific configuration (already organized in `configuration.ts` per 002-simplify-tree-node), and `TokenTypeContract` wiring (`token-type.ts`, including the `ValidationErrorHandler` member 002 added). All call sites across the monorepo are repointed to the new package names and import locations, with zero intended change to parsing, validation, or editor behavior. This enacts constitution v2.0.1+ (Principles II, VII).
+Move every DTCG token type's value schema, conversion, and structural-validation logic (`ColorValueSchema`, `colorValueToCssColor`, color-space `conversion.ts`, `DimensionValueSchema`) out of `token-type-color`/`token-type-dimension` and into `token-core`, which becomes the single source of truth for parsing across all token types (not just the generic node/group document shape it already owned). `checkColorValueIssues`/`COMPONENT_RANGES` (data/range validation of an already-structurally-valid value) stays behind in `token-editor-color`, since it's user-recoverable directly in the editor UI rather than part of whether a value is a valid token at all. The three `token-type-*` packages are renamed `token-editor-*` and reduced to holding only their `Editor` UI (already organized under `components/` per 002-simplify-tree-node), editor-specific configuration (already organized in `configuration.ts` per 002-simplify-tree-node), their data/range validation, and `TokenTypeContract` wiring (`token-type.ts`, including the `ValidationErrorHandler` member 002 added). All call sites across the monorepo are repointed to the new package names and import locations, with zero intended change to parsing, validation, or editor behavior. This enacts constitution v2.0.1+ (Principles II, VII).
 
-Because 002 already did the "split editor config out of the value-schema module" work (`configuration.ts` already exists and already imports `COLOR_SPACES`/`ColorSpace` from `color.ts`), this plan's only remaining split inside `color.ts` is moving its value-schema/validation exports (`COLOR_SPACES`, `ColorSpace`, `ColorComponent`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `ColorValueSchema`, `ColorValue`, `COMPONENT_RANGES`, `checkColorValueIssues`) to `token-core`, and repointing `configuration.ts` to import `COLOR_SPACES`/`ColorSpace` from `token-core` instead of the sibling file. No new file-splitting decision is needed for editor config — that boundary already exists.
+Because 002 already did the "split editor config out of the value-schema module" work (`configuration.ts` already exists and already imports `COLOR_SPACES`/`ColorSpace` from `color.ts`), this plan's remaining split inside `color.ts` is two-way: its structural exports (`COLOR_SPACES`, `ColorSpace`, `ColorComponent`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `ColorValueSchema`, `ColorValue`, `ColorObjectValue`) move to `token-core`; its range-check exports (`COMPONENT_RANGES`, `checkColorValueIssues`, and their private `ComponentRange`/`ComponentRanges`/`isWithinRange`/`UNIT_RGB_RANGES`/`UNIT_XYZ_RANGES` helpers) stay in `token-editor-color/src/color.ts`, repointed to import `ColorSpace`/`ColorValue`/`ColorComponent` from `@dtcg-editor/token-core` instead of defining them locally. `configuration.ts` is repointed the same way, to import `COLOR_SPACES`/`ColorSpace` from `token-core`. No new file-splitting decision is needed for editor config — that boundary already exists.
 
 ## Technical Context
 
@@ -44,7 +46,7 @@ Evaluated against the current constitution (`.specify/memory/constitution.md`, v
 | II. Feature-Based Code Organization | PASS | This refactor is the direct enactment of the redefined principle: `token-core` centralizes parsing per type; each `token-editor-*` package owns editor UI as its own cohesive unit. 002-simplify-tree-node already delivered the `components/`-per-package half of this; this plan delivers the `token-core`-centralization half. |
 | III. TypeScript Strictness | PASS | Moved code keeps `tsconfig.base.json`'s strict settings unchanged; no per-package relaxation introduced by the move. |
 | IV. Validation at the Edges | PASS | No new validation edge introduced or removed — the same Zod schemas validate at the same edges (file parse, `editorOptions` config), just relocated. |
-| V. Result-Pattern Error Handling | PASS | Existing `Result`/`neverthrow`-based error handling in moved code (e.g. `checkColorValueIssues`) and in `TokenTypeContract`'s `validateTokenValue`/`TokenTypeValidationError` (extended by 002) is carried over unchanged, not rewritten. |
+| V. Result-Pattern Error Handling | PASS | Existing `Result`/`neverthrow`-based error handling in `TokenTypeContract`'s `validateTokenValue`/`TokenTypeValidationError` (extended by 002) is carried over unchanged, not rewritten; `checkColorValueIssues` itself stays in `token-editor-color`, unmoved and unchanged. |
 | VI. Dependency Injection for I/O and Platform Externalities | N/A | No I/O/platform externality is touched by this refactor. |
 | VII. Token-Editor Package Contract | PASS | This refactor is the direct enactment of the redefined principle, including the explicit one-way dependency rule; 002 already added the optional `ValidationErrorHandler` member as part of this same pluggable contract, unaffected by this plan's parsing move. |
 | VIII. Minimal Dependencies | PASS | No new third-party dependency is introduced; `colorjs.io` moves with the code that uses it (FR-008), it isn't newly added. |
@@ -80,14 +82,17 @@ packages/
 │   └── src/
 │       ├── parse.ts, serialize.ts, schema.ts, resolve-type.ts,
 │       │   token-types.ts, types.ts, edit.ts        # unchanged, pre-existing
-│       ├── color.ts                                  # NEW: value-schema/validation exports MOVED from token-type-color's color.ts
-│       │                                              #   (COLOR_SPACES, ColorSpace, ColorComponent, ColorObjectValueSchema,
-│       │                                              #   LegacyHexColorValueSchema, ColorValueSchema, ColorValue,
-│       │                                              #   COMPONENT_RANGES, checkColorValueIssues)
+│       ├── color.ts                                  # NEW: structural exports MOVED from token-type-color's color.ts
+│       │                                              #   (COLOR_SPACES, ColorSpace, ColorComponent, ColorObjectValue,
+│       │                                              #   ColorObjectValueSchema, LegacyHexColorValueSchema, ColorValueSchema, ColorValue)
+│       │                                              #   NOTE: COMPONENT_RANGES/checkColorValueIssues (range/data validation)
+│       │                                              #   do NOT move — they stay in token-editor-color/src/color.ts (see below)
 │       ├── conversion.ts                              # MOVED wholesale from token-type-color (colorValueToSrgbHex, srgbHexToColorSpaceComponents)
 │       ├── css-color.ts                                # MOVED wholesale from token-type-color (colorValueToCssColor)
 │       ├── dimension.ts                                 # MOVED wholesale from token-type-dimension (DimensionValueSchema, DimensionValue)
-│       ├── color.test.ts, conversion.test.ts,
+│       ├── color.test.ts                                 # NEW: tests for the MOVED structural exports only
+│       │                                                  #   (range-check tests stay behind, see token-editor-color below)
+│       ├── conversion.test.ts,
 │       │   css-color.test.ts, dimension.test.ts          # MOVED wholesale alongside their code
 │       ├── color-sample.test.ts                        # UPDATED (stale "must not depend on token-type-color" comment)
 │       └── index.ts                                      # UPDATED: exports the 4 new modules above
@@ -95,15 +100,19 @@ packages/
 ├── token-editor-color/            # RENAMED from token-type-color
 │   └── src/
 │       ├── components/editor.tsx, editor.module.css,
-│       │   validation-error-handler.tsx                  # unchanged logic; UPDATED imports (../color.ts → @dtcg-editor/token-core)
+│       │   validation-error-handler.tsx                  # unchanged logic; UPDATED imports (../color.ts → @dtcg-editor/token-core for structural types/schemas;
+│       │                                                  #   checkColorValueIssues/COMPONENT_RANGES import stays ../color.ts, now unmoved)
 │       ├── css-modules.d.ts                              # unchanged
 │       ├── configuration.ts                              # unchanged content; UPDATED import (./color.ts → @dtcg-editor/token-core for COLOR_SPACES/ColorSpace)
 │       ├── configuration.test.ts                         # unchanged
 │       ├── token-type.ts                                 # UPDATED: colorTokenType imports ColorValueSchema/ColorValue from @dtcg-editor/token-core
-│       ├── color.ts, color.test.ts, conversion.ts,
-│       │   conversion.test.ts, css-color.ts,
+│       ├── color.ts                                       # UPDATED (not deleted): keeps only COMPONENT_RANGES/checkColorValueIssues
+│       │                                                  #   (+ private ComponentRange/ComponentRanges/isWithinRange/UNIT_RGB_RANGES/UNIT_XYZ_RANGES);
+│       │                                                  #   ColorSpace/ColorValue/ColorComponent types now imported from @dtcg-editor/token-core
+│       ├── color.test.ts                                  # UPDATED (not deleted): keeps only checkColorValueIssues/COMPONENT_RANGES tests
+│       ├── conversion.ts, conversion.test.ts, css-color.ts,
 │       │   css-color.test.ts                             # DELETED (moved to token-core)
-│       └── index.ts                                      # UPDATED exports (Editor + config + contract only, no value schema)
+│       └── index.ts                                      # UPDATED exports (Editor + config + contract + checkColorValueIssues/COMPONENT_RANGES, no structural schema)
 │
 ├── token-editor-dimension/        # RENAMED from token-type-dimension
 │   └── src/

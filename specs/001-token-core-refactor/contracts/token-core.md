@@ -18,15 +18,14 @@ export type { DtcgTokenType } from "./token-types.ts";
 ## New exports (added by this refactor)
 
 ```ts
-// From ./color.ts (moved wholesale from token-type-color — as of 002-simplify-tree-node,
-// color.ts already contains only value-schema/validation code, no split needed)
+// From ./color.ts (structural exports only, split from token-type-color's color.ts
+// per the /speckit-clarify validation-scope session — COMPONENT_RANGES/checkColorValueIssues
+// are data/range validation and stay behind in token-editor-color, NOT exported here)
 export {
 	COLOR_SPACES,
-	COMPONENT_RANGES,
 	ColorValueSchema,
 	ColorObjectValueSchema,
 	LegacyHexColorValueSchema,
-	checkColorValueIssues,
 } from "./color.ts";
 export type {
 	ColorSpace,
@@ -54,11 +53,12 @@ export type { DimensionValue } from "./dimension.ts";
 - `ColorEditorOptions`, `ColorEditorOptionsSchema`, `defineColorConfig` — editor-only config; already lives in `token-editor-color/src/configuration.ts` (moved there by 002-simplify-tree-node, unaffected by this refactor).
 - `ColorEditor`, `DimensionEditor`, `ColorValidationErrorHandler` — React components, never enter `token-core` (Principle VII: no React import).
 - `colorTokenType`, `dimensionTokenType` — the wired `TokenTypeContract` objects stay in their respective `token-editor-*` packages, since they hold a live `Editor` reference.
+- `COMPONENT_RANGES`, `checkColorValueIssues` — data/range validation of an already-structurally-valid value (e.g. an out-of-range hue); user-recoverable directly in the Editor UI, so it stays in `token-editor-color/src/color.ts` per the `/speckit-clarify` validation-scope session (spec FR-003, Assumptions).
 
 ## Consumers (re-verified against actual current imports, post-002)
 
 - `token-editor-color/src/configuration.ts` — imports `COLOR_SPACES`/`ColorSpace` (currently from `./color.ts`; repoints to `@dtcg-editor/token-core`).
-- `token-editor-color/src/components/editor.tsx` — imports `checkColorValueIssues`, `COLOR_SPACES`, `COMPONENT_RANGES`, `ColorObjectValue`, `ColorSpace`, `ColorValue` (currently from `../color.ts`), `colorValueToCssColor` (from `../css-color.ts`), and `colorValueToSrgbHex`/`srgbHexToColorSpaceComponents` (from `../conversion.ts`) — all repoint to `@dtcg-editor/token-core`; its `ColorEditorOptions` import from `../configuration.ts` is unaffected.
+- `token-editor-color/src/components/editor.tsx` — imports `COLOR_SPACES`, `ColorObjectValue`, `ColorSpace`, `ColorValue` (currently from `../color.ts`), `colorValueToCssColor` (from `../css-color.ts`), and `colorValueToSrgbHex`/`srgbHexToColorSpaceComponents` (from `../conversion.ts`) — all repoint to `@dtcg-editor/token-core`; its `checkColorValueIssues`/`COMPONENT_RANGES` import stays pointed at `../color.ts` (unmoved), and its `ColorEditorOptions` import from `../configuration.ts` is unaffected.
 - `token-editor-color/src/components/validation-error-handler.tsx` — imports `ColorObjectValueSchema`, `LegacyHexColorValueSchema` (currently from `../color.ts`; repoints to `@dtcg-editor/token-core`).
 - `token-editor-color/src/token-type.ts`, `token-editor-dimension/src/token-type.ts` — import their type's value schema (`ColorValueSchema`/`DimensionValueSchema`) and value type for `TokenTypeContract.valueSchema`/typing.
 - `token-editor-dimension/src/components/editor.tsx` — imports the `DimensionValue` type (currently from `../dimension.ts`; repoints to `@dtcg-editor/token-core`).

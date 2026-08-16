@@ -19,10 +19,16 @@ ls packages | grep "^token-type-"   # expect no output
 # token-core has no React and no token-editor-* dependency (Principle VII, FR-002/FR-007)
 grep -E "\"(react|@dtcg-editor/token-editor)" packages/token-core/package.json   # expect no output
 
-# Zero parsing/validation modules remain in the renamed editor packages (SC-002)
+# Zero structural parsing/validation modules remain in the renamed editor packages (SC-002)
 ls packages/token-editor-color/src packages/token-editor-dimension/src
-# expect: components/, configuration.ts (+ its test), token-type.ts, index.ts, css-modules.d.ts (color only)
-# — no color.ts/dimension.ts/conversion.ts/css-color.ts or their tests
+# expect (dimension): components/, configuration.ts (+ its test), token-type.ts, index.ts
+# — no dimension.ts/conversion.ts/css-color.ts or their tests
+# expect (color): components/, configuration.ts (+ its test), token-type.ts, index.ts, css-modules.d.ts,
+#   AND color.ts/color.test.ts — deliberately NOT deleted, per the /speckit-clarify validation-scope
+#   session: they now hold only checkColorValueIssues/COMPONENT_RANGES (data/range validation,
+#   user-recoverable in the Editor UI), not the structural schema. Confirm they no longer export
+#   ColorValueSchema/ColorObjectValueSchema/LegacyHexColorValueSchema:
+grep -E "ColorValueSchema|ColorObjectValueSchema|LegacyHexColorValueSchema" packages/token-editor-color/src/color.ts   # expect no output
 ```
 
 ## 2. Full test/build/lint pass (User Story 3, SC-003, SC-004)
@@ -41,14 +47,13 @@ Confirm a value schema is usable from `token-core` alone, with no `token-editor-
 
 ```sh
 node -e "
-const { ColorValueSchema, checkColorValueIssues } = require('./packages/token-core/dist/src/index.js');
+const { ColorValueSchema } = require('./packages/token-core/dist/src/index.js');
 const result = ColorValueSchema.safeParse({ colorSpace: 'srgb', components: [1, 0, 0] });
 console.log('parsed ok:', result.success);
-console.log('issues:', checkColorValueIssues(result.data));
 "
 ```
 
-Expected: `parsed ok: true`, `issues: []` — and no error requiring `react` or any `@dtcg-editor/token-editor-*` package to be installed.
+Expected: `parsed ok: true` — and no error requiring `react` or any `@dtcg-editor/token-editor-*` package to be installed. Note `checkColorValueIssues` (data/range validation) is deliberately NOT exported from `token-core` per the validation-scope clarification — it stays importable only from `@dtcg-editor/token-editor-color`, which does require React/the editor package tree, so it's intentionally excluded from this React-free smoke test.
 
 ## 4. Manual editor smoke check (User Story 3, optional — automated a11y suite already covers this)
 
@@ -60,4 +65,4 @@ Open the app, edit a `color` token (confirm the color-space picker, value entry,
 
 ## Success
 
-The refactor is validated when steps 1–3 all pass with the expected output above, and step 2's full `pnpm test` run shows no reduction in test count relative to the pre-refactor (post-002) baseline (i.e., every moved test — `color.test.ts`, `conversion.test.ts`, `css-color.test.ts`, `dimension.test.ts` — is present and passing in its new `token-core` location, and `token-editor-color`/`token-editor-dimension`'s remaining tests — `configuration.test.ts`, any `components/` tests — are unaffected).
+The refactor is validated when steps 1–3 all pass with the expected output above, and step 2's full `pnpm test` run shows no reduction in test count relative to the pre-refactor (post-002) baseline (i.e., every moved test — `conversion.test.ts`, `css-color.test.ts`, `dimension.test.ts`, and the structural half of `color.test.ts` — is present and passing in its new `token-core` location; the range-check half of `color.test.ts` stays and passes in `token-editor-color`, alongside its unaffected `configuration.test.ts`/`components/` tests; `token-editor-dimension`'s remaining tests are likewise unaffected).
