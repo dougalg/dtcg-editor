@@ -14,6 +14,10 @@
 
 - Q: Should the `token-type-*` packages also be renamed, now that they hold only editor UI? → A: Yes — rename the package family from `token-type-*` to `token-editor-*` (`token-type-color` → `token-editor-color`, `token-type-dimension` → `token-editor-dimension`, `token-type-contract` → `token-editor-contract`), so the package name matches its editor-only scope.
 
+### Session 2026-08-16 (review — post 002-simplify-tree-node)
+
+- Q: 002-simplify-tree-node has since been implemented and merged — does its retrofit of `token-type-color`/`token-type-dimension` already satisfy any part of this spec's scope? → A: Partially, but only the editor-package-structure half. 002 already moved each package's editor UI under `components/` (`components/editor.tsx`, plus `components/validation-error-handler.tsx` for color) and split editor-specific configuration into a dedicated `configuration.ts` (`ColorEditorOptions`/`ColorEditorOptionsSchema`/`defineColorConfig` for color; an initially-empty module for dimension), and added an optional `ValidationErrorHandler` member to `TokenTypeContract`. None of that touched parsing/type-definition code (`color.ts`, `conversion.ts`, `css-color.ts`, `dimension.ts` still live in the `token-type-*` packages, not `token-core`) or the package names — this spec's full scope (FR-001–FR-010: moving parsing into `token-core` and renaming `token-type-*` to `token-editor-*`) remains entirely unbuilt.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Import type-specific parsing without pulling in editor UI (Priority: P1)
@@ -64,7 +68,7 @@ As a user of the dtcg-editor web app, I want the token tree, color editor, dimen
 
 ### Edge Cases
 
-- What happens to a token type's editor-specific configuration schema (e.g. the schema validating the `editorOptions` a host app supplies for that type's Editor)? It configures UI behavior, not the token's `$value` shape, so it stays with the Editor in the `token-type-*` package rather than moving to `token-core`.
+- What happens to a token type's editor-specific configuration schema (e.g. the schema validating the `editorOptions` a host app supplies for that type's Editor)? It configures UI behavior, not the token's `$value` shape, so it stays with the Editor in the `token-type-*` package rather than moving to `token-core` — as of 002-simplify-tree-node, it already lives in that package's dedicated `configuration.ts` module (e.g. `ColorEditorOptions`), separate from the value-schema module; this refactor leaves that placement unchanged.
 - What happens to `token-type-contract`'s existing generic value-validation dispatcher? It works against any `TokenTypeContract` and holds no type-specific parsing logic of its own, so it is unaffected by this refactor and stays where it is.
 - What happens to existing code comments/tests in `token-core` that assert it "must not depend on `token-type-color`"? They become obsolete once that type's parsing lives in `token-core` itself, and must be updated to no longer reference a constraint that no longer applies in that form.
 - How does a consumer that currently imports a parsing function or type directly from a `token-type-*` package (rather than just the wired contract object) find it after the move? It now imports that schema/type/function directly from `token-core` instead.
@@ -77,7 +81,7 @@ As a user of the dtcg-editor web app, I want the token tree, color editor, dimen
 
 - **FR-001**: `token-core` MUST be the single source of truth for every DTCG token type's value schema, parsing, conversion, and validation logic, including the logic currently implemented inside `token-type-color` and `token-type-dimension`.
 - **FR-002**: `token-core` MUST remain free of any React import and free of any dependency on a `token-type-*` package, for both its existing and its newly-moved code.
-- **FR-003**: Each `token-type-*` package (`token-type-color`, `token-type-dimension`, and any future ones — renamed to the `token-editor-*` family per FR-010) MUST contain only its `Editor` UI component, editor-specific styling, editor-specific configuration schemas, and the `TokenTypeContract` wiring that connects that Editor to the corresponding `token-core` schema.
+- **FR-003**: Each `token-type-*` package (`token-type-color`, `token-type-dimension`, and any future ones — renamed to the `token-editor-*` family per FR-010) MUST contain only its `Editor` UI component and any subcomponents (already organized under `components/`, per 002-simplify-tree-node), editor-specific configuration (already organized in `configuration.ts`, per 002-simplify-tree-node), and the `TokenTypeContract` wiring that connects that Editor to the corresponding `token-core` schema.
 - **FR-004**: Each `token-type-*` package's `TokenTypeContract` wiring MUST import that type's value schema and serialization logic directly from `token-core`, not redefine it locally.
 - **FR-005**: Every test currently covering moved parsing/conversion/validation logic MUST move alongside its code into `token-core`, continuing to pass with the same coverage.
 - **FR-006**: Any consumer outside these packages (e.g. the web app) that currently imports a value schema, type, or parsing/conversion function directly from a `token-type-*` package MUST be updated to import it from `token-core` instead; consumers that only need the wired `TokenTypeContract` object or the `Editor` component continue importing from the `token-type-*` package unchanged.
@@ -89,7 +93,7 @@ As a user of the dtcg-editor web app, I want the token tree, color editor, dimen
 ### Key Entities
 
 - **Token Value Schema**: A schema defining and validating one DTCG token type's `$value` shape (e.g. a color or dimension value); now defined exclusively in `token-core`.
-- **TokenTypeContract**: The pluggable interface wiring a `token-core` value schema to a `token-type-*` package's `Editor` component (type name, value schema, serializer, editor component, optional editor-config schema); remains defined in `token-type-contract`, implemented by each `token-type-*` package.
+- **TokenTypeContract**: The pluggable interface wiring a `token-core` value schema to a `token-type-*` package's `Editor` component (type name, value schema, serializer, editor component, optional editor-config schema, optional `ValidationErrorHandler` for the doesn't-parse-at-all read-only case added by 002-simplify-tree-node); remains defined in `token-type-contract`, implemented by each `token-type-*` package.
 - **Token-Editor Package** (formerly "Token-Type Package"): A package such as `token-editor-color` or `token-editor-dimension` (renamed from `token-type-color`/`token-type-dimension`); after this refactor, holds only the `Editor` component, its styling, editor-specific config schemas, and its `TokenTypeContract` implementation.
 
 ## Success Criteria _(mandatory)_
@@ -111,3 +115,4 @@ As a user of the dtcg-editor web app, I want the token tree, color editor, dimen
 - This project's packages are all `"private": true` workspace packages with no external npm consumers, so the rename carries no semver/publishing concerns — every reference to the old name lives inside this repository and can be updated as part of the same change.
 - This is a pure internal reorganization: no DTCG-spec behavior, validation outcome, or rendered editor UI changes as a result of this refactor.
 - Consumers that currently import a moved schema/type/function directly from a `token-type-*` package (rather than the wired contract object) will have their import statements updated to point at `token-core` as part of this work.
+- 002-simplify-tree-node has already been implemented and merged: it retrofitted `token-type-color`/`token-type-dimension` to the `components/` + `configuration.ts` structure this spec references (Edge Cases, FR-003, Key Entities) and added an optional `ValidationErrorHandler` member to `TokenTypeContract`. It did not touch any parsing/type-definition code or package names, so this spec's full remaining scope — moving `color.ts`/`conversion.ts`/`css-color.ts`/`dimension.ts`/`token-type.ts`'s parsing logic into `token-core`, and the `token-type-*` → `token-editor-*` rename (FR-001–FR-010) — is entirely unbuilt and unaffected by it.
