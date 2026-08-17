@@ -5,8 +5,8 @@
 	padding: 0.65rem 1.4rem;
 	border: none;
 	border-radius: 0.5rem;
-	background: var(--accent);
-	color: var(--accent-foreground);
+	background: var(--dtcg-ed-color-accent-fill-quiet);
+	color: var(--dtcg-ed-color-accent-on-quiet);
 	font-size: 1rem;
 	font-weight: 600;
 	font-family: inherit;
@@ -14,12 +14,13 @@
 }
 
 .button:hover:not(:disabled) {
-	background: var(--accent-hover);
+	background: var(--dtcg-ed-color-accent-fill-loud);
 }
 
 .button:focus-visible {
-	outline: 2px solid var(--accent-hover);
-	outline-offset: 2px;
+	outline: var(--dtcg-ed-focus-ring-width) var(--dtcg-ed-focus-ring-style)
+		var(--dtcg-ed-focus-ring-color);
+	outline-offset: var(--dtcg-ed-focus-ring-offset);
 }
 
 .button:disabled {

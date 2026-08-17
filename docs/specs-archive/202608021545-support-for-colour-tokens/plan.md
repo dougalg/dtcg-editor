@@ -64,7 +64,7 @@ Add a new `packages/token-type-color` package implementing the Token-Type Packag
   - `alpha` numeric input (optional — an unchecked "has alpha" checkbox omits the field entirely from `onChange`'s emitted value, matching the schema's `optional()`).
   - `hex` text input (optional, free-form, validated against the 6-digit pattern only on change — an invalid entry doesn't call `onChange`, mirroring `DimensionEditor`'s no-op-on-invalid pattern... actually simpler: hex is advisory metadata alongside the object shape, so validate on blur/change and only include it in the emitted value when it matches the pattern).
   - Fully controlled: `(value: ColorValue, onChange: (next: ColorValue) => void)`, per `TokenTypeEditorProps<ColorValue>`.
-- [x] `packages/token-type-color/src/editor.module.css` — swatch sizing (`width`/`height`/`border-radius`/`border: 1px solid var(--border)`), reusing existing CSS custom properties, no new colors invented.
+- [x] `packages/token-type-color/src/editor.module.css` — swatch sizing (`width`/`height`/`border-radius`/`border: 1px solid var(--dtcg-ed-color-neutral-border-normal)`), reusing existing CSS custom properties, no new colors invented.
 - Files: `packages/token-type-color/src/editor.tsx`, `packages/token-type-color/src/editor.module.css`.
 
 ### Step 5: Contract Wiring + Package Barrel

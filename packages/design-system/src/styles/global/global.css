@@ -44,11 +44,11 @@ body {
 	margin: 0;
 	padding: 0;
 	min-height: 100vh;
-	color: var(--color-text-normal);
-	background: var(--color-surface-default);
-	font-size: var(--body-default, var(--text-base, 1rem));
-	font-family: var(--font-body, system-ui, sans-serif);
-	line-height: var(--leading-body, var(--leading-normal, 1.5));
+	color: var(--dtcg-ed-color-text-normal);
+	background: var(--dtcg-ed-color-surface-default);
+	font-size: var(--dtcg-ed-body-default, var(--dtcg-ed-text-base, 1rem));
+	font-family: var(--dtcg-ed-font-body, system-ui, sans-serif);
+	line-height: var(--dtcg-ed-leading-body, var(--dtcg-ed-leading-normal, 1.5));
 }
 
 /* ============================================
@@ -61,35 +61,35 @@ h3,
 h4,
 h5,
 h6 {
-	font-weight: var(--font-weight-bold, bold);
-	font-family: var(--font-heading, inherit);
-	line-height: var(--leading-heading, var(--leading-none, 1.1));
+	font-weight: var(--dtcg-ed-font-weight-bold, bold);
+	font-family: var(--dtcg-ed-font-heading, inherit);
+	line-height: var(--dtcg-ed-leading-heading, var(--dtcg-ed-leading-none, 1.1));
 	text-wrap: balance;
 	overflow-wrap: break-word;
 }
 
 h1 {
-	font-size: var(--heading-1, var(--text-4xl, 2.25rem));
+	font-size: var(--dtcg-ed-heading-1, var(--dtcg-ed-text-4xl, 2.25rem));
 }
 
 h2 {
-	font-size: var(--heading-2, var(--text-3xl, 1.875rem));
+	font-size: var(--dtcg-ed-heading-2, var(--dtcg-ed-text-3xl, 1.875rem));
 }
 
 h3 {
-	font-size: var(--heading-3, var(--text-2xl, 1.5rem));
+	font-size: var(--dtcg-ed-heading-3, var(--dtcg-ed-text-2xl, 1.5rem));
 }
 
 h4 {
-	font-size: var(--heading-4, var(--text-xl, 1.25rem));
+	font-size: var(--dtcg-ed-heading-4, var(--dtcg-ed-text-xl, 1.25rem));
 }
 
 h5 {
-	font-size: var(--text-lg, 1.125rem);
+	font-size: var(--dtcg-ed-text-lg, 1.125rem);
 }
 
 h6 {
-	font-size: var(--text-base, 1rem);
+	font-size: var(--dtcg-ed-text-base, 1rem);
 }
 
 p {
@@ -131,7 +131,7 @@ blockquote {
 }
 
 blockquote footer {
-	margin-block-start: var(--space-sm, 1rem);
+	margin-block-start: var(--dtcg-ed-space-sm, 1rem);
 	font-style: normal;
 }
 
@@ -149,9 +149,10 @@ q {
 
 hr {
 	border: 0;
-	border-block-start: var(--border-width-thin, 1px) var(--border-style, solid)
-		var(--color-surface-border, currentColor);
-	margin-block: var(--flow-space, var(--space-xl, 2rem));
+	border-block-start: var(--dtcg-ed-border-width-thin, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-color-surface-border, currentColor);
+	margin-block: var(--dtcg-ed-flow-space, var(--dtcg-ed-space-xl, 2rem));
 }
 
 abbr {
@@ -168,9 +169,9 @@ mark {
    ============================================ */
 
 a {
-	color: var(--color-text-link, revert);
-	text-decoration: var(--link-decoration-default, underline);
-	-webkit-text-decoration: var(--link-decoration-default, underline);
+	color: var(--dtcg-ed-color-text-link, revert);
+	text-decoration: var(--dtcg-ed-link-decoration-default, underline);
+	-webkit-text-decoration: var(--dtcg-ed-link-decoration-default, underline);
 	text-decoration-skip-ink: auto;
 	text-underline-offset: 0.25em;
 }
@@ -204,7 +205,7 @@ li {
 }
 
 dt {
-	font-weight: var(--font-weight-bold, bold);
+	font-weight: var(--dtcg-ed-font-weight-bold, bold);
 }
 
 [role="list"][class],
@@ -220,14 +221,15 @@ dt {
 
 /* Form Structure */
 form > * + * {
-	margin-block-start: var(--space-sm, 1rem);
+	margin-block-start: var(--dtcg-ed-space-sm, 1rem);
 }
 
 fieldset {
 	margin-inline: 0;
-	border: var(--panel-border-width, 1px) var(--border-style, solid)
-		var(--panel-border-color, currentColor);
-	padding: var(--space-sm, 1rem);
+	border: var(--dtcg-ed-panel-border-width, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-panel-border-color, currentColor);
+	padding: var(--dtcg-ed-space-sm, 1rem);
 }
 
 legend {
@@ -239,13 +241,13 @@ label {
 	display: inline-block;
 	position: relative;
 	font: inherit;
-	color: var(--form-control-label-color);
-	line-height: var(--form-control-label-line-height);
+	color: var(--dtcg-ed-form-control-label-color);
+	line-height: var(--dtcg-ed-form-control-label-line-height);
 }
 
 /* Font weight for labels that aren't checkbox/radio */
 label:not(:has(input[type="checkbox"])):not(:has(input[type="radio"])) {
-	font-weight: var(--font-weight-medium);
+	font-weight: var(--dtcg-ed-font-weight-medium);
 }
 
 /* Full width for labels containing text inputs/textareas/selects */
@@ -283,10 +285,10 @@ label:has(input[type="radio"]) {
 	width: fit-content;
 
 	font: inherit;
-	font-size: var(--form-control-font-size);
-	line-height: var(--form-control-line-height);
+	font-size: var(--dtcg-ed-form-control-font-size);
+	line-height: var(--dtcg-ed-form-control-line-height);
 
-	accent-color: var(--color-accent-fill-loud);
+	accent-color: var(--dtcg-ed-color-accent-fill-loud);
 
 	user-select: none;
 	-webkit-user-select: none;
@@ -311,8 +313,8 @@ input[type="radio"] {
 	align-items: center;
 	justify-content: center;
 
-	width: var(--form-control-toggle-size, 1.125rem);
-	height: var(--form-control-toggle-size, 1.125rem);
+	width: var(--dtcg-ed-form-control-toggle-size, 1.125rem);
+	height: var(--dtcg-ed-form-control-toggle-size, 1.125rem);
 	margin: 0;
 	margin-inline-end: 0.5em;
 	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -321,8 +323,8 @@ input[type="radio"] {
 
 input[type="checkbox"] {
 	border-radius: min(
-		calc(var(--form-control-toggle-size) * 0.375),
-		var(--radius-md)
+		calc(var(--dtcg-ed-form-control-toggle-size) * 0.375),
+		var(--dtcg-ed-radius-md)
 	);
 }
 
@@ -347,23 +349,23 @@ input:not(
 textarea,
 select {
 	width: 100%;
-	height: var(--_form-control-height, 2.5rem);
+	height: var(--dtcg-ed-_form-control-height, 2.5rem);
 	padding: 0 0.75em;
 
-	color: var(--form-control-value-color);
+	color: var(--dtcg-ed-form-control-value-color);
 	font: inherit;
-	font-size: var(--form-control-font-size);
-	line-height: var(--form-control-line-height);
+	font-size: var(--dtcg-ed-form-control-font-size);
+	line-height: var(--dtcg-ed-form-control-line-height);
 	vertical-align: middle;
 
-	background-color: var(--form-control-background-color, transparent);
-	border: var(--form-control-border-width, 1px)
-		var(--form-control-border-style, solid)
-		var(--form-control-border-color, currentColor);
-	border-radius: var(--form-control-radius, 0.25rem);
+	background-color: var(--dtcg-ed-form-control-background-color, transparent);
+	border: var(--dtcg-ed-form-control-border-width, 1px)
+		var(--dtcg-ed-form-control-border-style, solid)
+		var(--dtcg-ed-form-control-border-color, currentColor);
+	border-radius: var(--dtcg-ed-form-control-radius, 0.25rem);
 
 	&::placeholder {
-		color: var(--form-control-placeholder-color, currentColor);
+		color: var(--dtcg-ed-form-control-placeholder-color, currentColor);
 		opacity: 0.5;
 		user-select: none;
 		-webkit-user-select: none;
@@ -378,9 +380,9 @@ select {
 /* Textarea specific */
 textarea {
 	height: auto;
-	min-height: var(--_form-control-height, 2.5rem);
+	min-height: var(--dtcg-ed-_form-control-height, 2.5rem);
 	padding: 0.65em 0.75em;
-	line-height: var(--leading-normal, 1.5);
+	line-height: var(--dtcg-ed-leading-normal, 1.5);
 	resize: vertical;
 }
 
@@ -391,14 +393,15 @@ textarea:not([rows]) {
 /* Color input */
 input[type="color"] {
 	display: block;
-	width: var(--_form-control-height, 2.5rem);
-	height: var(--_form-control-height, 2.5rem);
-	padding: calc(var(--form-control-border-width, 1px) * 2);
+	width: var(--dtcg-ed-_form-control-height, 2.5rem);
+	height: var(--dtcg-ed-_form-control-height, 2.5rem);
+	padding: calc(var(--dtcg-ed-form-control-border-width, 1px) * 2);
 
 	background: transparent;
-	border: var(--form-control-border-width, 1px) var(--border-style, solid)
-		var(--form-control-border-color, currentColor);
-	border-radius: var(--form-control-radius, 0.25rem);
+	border: var(--dtcg-ed-form-control-border-width, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-form-control-border-color, currentColor);
+	border-radius: var(--dtcg-ed-form-control-radius, 0.25rem);
 	cursor: pointer;
 
 	&::-webkit-color-swatch-wrapper {
@@ -409,8 +412,8 @@ input[type="color"] {
 	&::-webkit-color-swatch {
 		border: none;
 		border-radius: calc(
-			var(--form-control-radius, 0.25rem) -
-			var(--form-control-border-width, 1px) *
+			var(--dtcg-ed-form-control-radius, 0.25rem) -
+			var(--dtcg-ed-form-control-border-width, 1px) *
 			3
 		);
 	}
@@ -418,8 +421,8 @@ input[type="color"] {
 	&::-moz-color-swatch {
 		border: none;
 		border-radius: calc(
-			var(--form-control-radius, 0.25rem) -
-			var(--form-control-border-width, 1px) *
+			var(--dtcg-ed-form-control-radius, 0.25rem) -
+			var(--dtcg-ed-form-control-border-width, 1px) *
 			3
 		);
 	}
@@ -431,7 +434,7 @@ input[type="range"] {
 	width: 100%;
 	margin: 0;
 
-	border-radius: var(--radius-full, 9999px);
+	border-radius: var(--dtcg-ed-radius-full, 9999px);
 	cursor: pointer;
 
 	&:disabled {
@@ -464,7 +467,7 @@ select {
 code,
 kbd,
 samp {
-	font-family: var(--font-mono, ui-monospace, monospace);
+	font-family: var(--dtcg-ed-font-mono, ui-monospace, monospace);
 	background: var(
 		--color-fill-normal,
 		color-mix(in srgb, currentColor 10%, transparent)
@@ -482,7 +485,7 @@ samp {
 
 pre {
 	white-space: pre-wrap;
-	padding: var(--space-sm, 0.875rem);
+	padding: var(--dtcg-ed-space-sm, 0.875rem);
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 }
@@ -502,20 +505,25 @@ pre code {
 kbd {
 	--_kbd-border-color: color-mix(
 		in srgb,
-		var(--color-text-normal, currentColor) 20%,
+		var(--dtcg-ed-color-text-normal, currentColor) 20%,
 		#0000
 	);
-	border: var(--border-width-thin, 1px) var(--border-style, solid)
-		var(--_kbd-border-color, currentColor);
-	border-bottom: calc(var(--border-width-thin, 1px) + 1px) solid
-		color-mix(in srgb, var(--color-text-normal, currentColor) 20%, transparent);
+	border: var(--dtcg-ed-border-width-thin, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-_kbd-border-color, currentColor);
+	border-bottom: calc(var(--dtcg-ed-border-width-thin, 1px) + 1px) solid
+		color-mix(
+			in srgb,
+			var(--dtcg-ed-color-text-normal, currentColor) 20%,
+			transparent
+		);
 	border-radius: min(
-		calc(var(--form-control-toggle-size, 1.125rem) * 0.375),
-		var(--radius-md, 0.25rem)
+		calc(var(--dtcg-ed-form-control-toggle-size, 1.125rem) * 0.375),
+		var(--dtcg-ed-radius-md, 0.25rem)
 	);
 	font-size: 0.825em;
 	display: inline-flex;
-	gap: var(--space-3xs, 0.25rem);
+	gap: var(--dtcg-ed-space-3xs, 0.25rem);
 	justify-content: center;
 	align-items: center;
 	vertical-align: middle;
@@ -542,8 +550,8 @@ figure {
 
 figcaption {
 	padding-block-start: 0.5em;
-	font-size: var(--caption, var(--text-xs, 0.75rem));
-	font-family: var(--font-mono, monospace);
+	font-size: var(--dtcg-ed-caption, var(--dtcg-ed-text-xs, 0.75rem));
+	font-family: var(--dtcg-ed-font-mono, monospace);
 }
 
 video,
@@ -558,8 +566,8 @@ iframe[src*="vimeo"] {
 svg {
 	flex-shrink: 0;
 	vertical-align: middle;
-	height: var(--icon-size, 1em);
-	width: var(--icon-size, 1em);
+	height: var(--dtcg-ed-icon-size, 1em);
+	width: var(--dtcg-ed-icon-size, 1em);
 }
 
 svg:not([class]) {
@@ -570,7 +578,7 @@ svg:not([class]) {
 svg[role="img"] {
 	width: revert;
 	height: revert;
-	padding: var(--space-xs, 0.75rem);
+	padding: var(--dtcg-ed-space-xs, 0.75rem);
 }
 
 /* ============================================
@@ -578,51 +586,56 @@ svg[role="img"] {
    ============================================ */
 
 table {
-	border: var(--border-width-thin, 1px) var(--border-style, solid)
-		var(--color-surface-border, currentColor);
+	border: var(--dtcg-ed-border-width-thin, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-color-surface-border, currentColor);
 	border-collapse: collapse;
 	width: 100%;
 }
 
 th {
 	text-align: left;
-	font-weight: var(--font-weight-bold, bold);
-	line-height: var(--leading-tight, 1.1);
+	font-weight: var(--dtcg-ed-font-weight-bold, bold);
+	line-height: var(--dtcg-ed-leading-tight, 1.1);
 }
 
 thead th {
-	padding-block: var(--space-sm, 1rem);
+	padding-block: var(--dtcg-ed-space-sm, 1rem);
 }
 
 td,
 th {
-	padding-block: var(--space-xs, 0.75rem);
-	padding-inline: var(--space-sm, 1rem);
+	padding-block: var(--dtcg-ed-space-xs, 0.75rem);
+	padding-inline: var(--dtcg-ed-space-sm, 1rem);
 }
 
 th:not(:only-of-type) {
-	border-block-end: var(--border-width-thin, 1px) var(--border-style, solid)
-		var(--color-surface-border, currentColor);
+	border-block-end: var(--dtcg-ed-border-width-thin, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-color-surface-border, currentColor);
 }
 
 th:only-of-type {
-	border-inline-end: var(--border-width-thin, 1px) var(--border-style, solid)
-		var(--color-surface-border, currentColor);
+	border-inline-end: var(--dtcg-ed-border-width-thin, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-color-surface-border, currentColor);
 }
 
 :is(th, td) ~ :is(th, td) {
-	border-inline-start: var(--border-width-thin, 1px) var(--border-style, solid)
-		var(--color-surface-border, currentColor);
+	border-inline-start: var(--dtcg-ed-border-width-thin, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-color-surface-border, currentColor);
 }
 
 tr + tr :is(th, td) {
-	border-block-start: var(--border-width-thin, 1px) var(--border-style, solid)
-		var(--color-surface-border, currentColor);
+	border-block-start: var(--dtcg-ed-border-width-thin, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-color-surface-border, currentColor);
 }
 
 caption {
 	caption-side: bottom;
-	margin-block-start: var(--space-sm, 1rem);
+	margin-block-start: var(--dtcg-ed-space-sm, 1rem);
 }
 
 /* ============================================
@@ -634,7 +647,7 @@ summary {
 }
 
 [open] > summary {
-	margin-block-end: var(--space-xs, 0.75rem);
+	margin-block-end: var(--dtcg-ed-space-xs, 0.75rem);
 }
 
 /* ============================================
@@ -642,17 +655,18 @@ summary {
    ============================================ */
 
 dialog {
-	background-color: var(--color-bg, Canvas);
-	border: var(--panel-border-width, 1px) var(--border-style, solid)
-		var(--panel-border-color, currentColor);
-	border-radius: var(--panel-radius, 0.5rem);
-	max-height: calc(100% - var(--space-xl, 3rem));
-	max-width: calc(100% - var(--space-xl, 3rem));
+	background-color: var(--dtcg-ed-color-bg, Canvas);
+	border: var(--dtcg-ed-panel-border-width, 1px)
+		var(--dtcg-ed-border-style, solid)
+		var(--dtcg-ed-panel-border-color, currentColor);
+	border-radius: var(--dtcg-ed-panel-radius, 0.5rem);
+	max-height: calc(100% - var(--dtcg-ed-space-xl, 3rem));
+	max-width: calc(100% - var(--dtcg-ed-space-xl, 3rem));
 	width: 32em;
 }
 
 dialog:modal::backdrop {
-	background-color: var(--color-overlay, rgba(0, 0, 0, 0.5));
+	background-color: var(--dtcg-ed-color-overlay, rgba(0, 0, 0, 0.5));
 }
 
 /* ============================================
@@ -660,10 +674,10 @@ dialog:modal::backdrop {
    ============================================ */
 
 :focus {
-	outline-color: var(--focus-ring-color, currentColor);
-	outline-style: var(--focus-ring-style, auto);
-	outline-offset: var(--focus-ring-offset, 4px);
-	outline-width: var(--focus-ring-width, 2px);
+	outline-color: var(--dtcg-ed-focus-ring-color, currentColor);
+	outline-style: var(--dtcg-ed-focus-ring-style, auto);
+	outline-offset: var(--dtcg-ed-focus-ring-offset, 4px);
+	outline-width: var(--dtcg-ed-focus-ring-width, 2px);
 }
 
 @supports selector(:focus-visible) {
@@ -672,10 +686,10 @@ dialog:modal::backdrop {
 	}
 
 	:focus-visible {
-		outline-color: var(--focus-ring-color, currentColor);
-		outline-style: var(--focus-ring-style, auto);
-		outline-offset: var(--focus-ring-offset, 4px);
-		outline-width: var(--focus-ring-width, 2px);
+		outline-color: var(--dtcg-ed-focus-ring-color, currentColor);
+		outline-style: var(--dtcg-ed-focus-ring-style, auto);
+		outline-offset: var(--dtcg-ed-focus-ring-offset, 4px);
+		outline-width: var(--dtcg-ed-focus-ring-width, 2px);
 	}
 }
 
@@ -686,8 +700,8 @@ dialog:modal::backdrop {
 }
 
 ::selection {
-	background: var(--color-selection-bg, Highlight);
-	color: var(--color-selection-fg, HighlightText);
+	background: var(--dtcg-ed-color-selection-bg, Highlight);
+	color: var(--dtcg-ed-color-selection-fg, HighlightText);
 	text-shadow: none;
 }
 

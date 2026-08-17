@@ -1,8 +1,8 @@
 .root {
+	font-family: var(--dtcg-ed-font-mono);
 	list-style: none;
 	padding: 0;
 	margin: 0;
-	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 0.9rem;
 }
 
@@ -10,7 +10,7 @@
 	list-style: none;
 	margin: 0;
 	padding-left: 1.25rem;
-	border-left: 1px solid var(--border);
+	border-left: 1px solid var(--dtcg-ed-color-neutral-border-normal);
 }
 
 .group {
@@ -41,12 +41,12 @@
 
 .type {
 	font-size: 0.75rem;
-	color: var(--foreground);
+	color: var(--dtcg-ed-color-neutral-text-quiet);
 	opacity: 0.6;
 }
 
 .nonStandard {
-	color: var(--error);
+	color: var(--dtcg-ed-color-error-on-normal);
 	opacity: 1;
 }
 
@@ -62,25 +62,30 @@
 
 .fieldLabel {
 	font-size: 0.7rem;
-	color: var(--muted-foreground);
+	color: var(--dtcg-ed-color-neutral-text-quiet);
+	display: block;
 }
 
 .groupName {
 	font-weight: 600;
+	background-color: black;
+	border: none;
+	color: rgba(255, 255, 255, 0.8);
+	border-bottom: 1px dotted rgba(255, 255, 255, 0.8);
 }
 
 .swatch {
 	display: inline-block;
 	width: 0.9rem;
 	height: 0.9rem;
-	border: 1px solid var(--border);
+	border: 1px solid var(--dtcg-ed-color-neutral-border-normal);
 	border-radius: 0.2rem;
 	vertical-align: middle;
 }
 
 .colorIssues {
 	width: 100%;
-	color: var(--error);
+	color: var(--dtcg-ed-color-error-on-normal);
 	font-size: 0.7rem;
 	margin: 0;
 	padding-left: 1rem;

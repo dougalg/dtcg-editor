@@ -9,7 +9,9 @@
 		"start": "next start",
 		"lint": "biome lint .",
 		"lint:write": "biome lint --write .",
-		"test": "vitest run && playwright test",
+		"test": "pnpm test:unit && pnpm test:a11y",
+		"test:unit": "vitest run",
+		"test:a11y": "playwright test",
 		"init-config": "node scripts/init-config.ts"
 	},
 	"dependencies": {

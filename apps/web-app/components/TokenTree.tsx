@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
-import { applyEditsToPlainNode } from "../lib/tokens/edit-state.ts";
-import type { ClientEdit } from "../lib/tokens/edit-state.ts";
-import type { SaveError } from "../lib/tokens/save-error.ts";
 import { useSaveTokenEdits } from "../hooks/useSaveTokenEdits.ts";
+import type { ClientEdit } from "../lib/tokens/edit-state.ts";
+import { applyEditsToPlainNode } from "../lib/tokens/edit-state.ts";
+import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
+import type { SaveError } from "../lib/tokens/save-error.ts";
 import { SaveButton } from "./SaveButton.tsx";
-import { TreeNode, type EditablePatch, type FieldErrors } from "./TreeNode.tsx";
-import styles from "./TokenTree.module.css";
+import { type EditablePatch, type FieldErrors, TreeNode } from "./TreeNode.tsx";
 
 /** Renders a `SaveError` (see `hooks/useSaveTokenEdits.ts`) as a single display string. */
 function describeSaveError(error: SaveError): string {
@@ -79,16 +78,14 @@ export function TokenTree({
 
 	return (
 		<div>
-			<ul className={styles.root}>
-				<TreeNode
-					node={treeState}
-					root={treeState}
-					pendingEdits={pendingEdits}
-					fieldErrors={fieldErrors}
-					onStageEdit={stageEdit}
-					onFieldError={setFieldError}
-				/>
-			</ul>
+			<TreeNode
+				node={treeState}
+				root={treeState}
+				pendingEdits={pendingEdits}
+				fieldErrors={fieldErrors}
+				onStageEdit={stageEdit}
+				onFieldError={setFieldError}
+			/>
 			<SaveButton
 				onClick={handleSave}
 				disabled={!hasPendingEdits || saveState === "pending"}

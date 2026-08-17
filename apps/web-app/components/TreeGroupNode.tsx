@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import type { ChangeEvent } from "react";
+import { useState } from "react";
 import {
 	applyEditsToPlainNode,
 	checkRenameAvailable,
 	findSiblings,
 } from "../lib/tokens/edit-state.ts";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
-import { TreeNode, type TreeNodeProps } from "./TreeNode.tsx";
 import styles from "./TokenTree.module.css";
+import { TreeNode, type TreeNodeProps } from "./TreeNode.tsx";
 
 function pathKey(path: readonly string[]): string {
 	return path.join(".");
@@ -63,6 +63,24 @@ export function TreeGroupNode({
 		onStageEdit(node.path, { name: nextName });
 	}
 
+	if (isRoot) {
+		return (
+			<ul className={styles.root}>
+				{node.children.map((child) => (
+					<TreeNode
+						key={child.path.join(".")}
+						node={child}
+						root={root}
+						pendingEdits={pendingEdits}
+						fieldErrors={fieldErrors}
+						onStageEdit={onStageEdit}
+						onFieldError={onFieldError}
+					/>
+				))}
+			</ul>
+		);
+	}
+
 	return (
 		<li className={styles.group}>
 			<button
@@ -73,18 +91,14 @@ export function TreeGroupNode({
 			>
 				{expanded ? "▾" : "▸"}
 			</button>
-			{isRoot ? (
-				<span className={styles.groupName}>{node.name || "/"}</span>
-			) : (
-				<label className={styles.field}>
-					<span className={styles.fieldLabel}>{node.name} name</span>
-					<input
-						className={styles.groupName}
-						value={currentGroupName}
-						onChange={handleGroupNameChange}
-					/>
-				</label>
-			)}
+			<label className={styles.field}>
+				<p className={styles.fieldLabel}>Group Name:</p>
+				<input
+					className={styles.groupName}
+					value={currentGroupName}
+					onChange={handleGroupNameChange}
+				/>
+			</label>
 			{groupErrors?.name !== undefined && (
 				<span role="alert">{groupErrors.name}</span>
 			)}

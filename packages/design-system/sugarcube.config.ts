@@ -8,5 +8,13 @@ export default defineConfig({
 	variables: {
 		path: "dist/styles/tokens.css",
 		prefix: "dtcg-ed",
+		permutations: [
+			{ input: { mode: "light" }, selector: ":root" },
+			{
+				input: { mode: "dark" },
+				selector: ":root",
+				atRule: "@media (prefers-color-scheme: dark)",
+			},
+		],
 	},
 });

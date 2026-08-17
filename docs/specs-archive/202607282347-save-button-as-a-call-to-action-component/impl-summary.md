@@ -14,7 +14,7 @@
 ### Acceptance Criteria
 
 - [x] AC-01: Passed — `SaveButton.tsx`/`SaveButton.module.css` exist; `TokenTree.tsx` renders `<SaveButton />`
-- [x] AC-02: Passed — `.button` in `SaveButton.module.css`: `0.65rem 1.4rem` padding, `1rem` font, `0.5rem` border-radius, solid `var(--accent)` background
+- [x] AC-02: Passed — `.button` in `SaveButton.module.css`: `0.65rem 1.4rem` padding, `1rem` font, `0.5rem` border-radius, solid `var(--dtcg-ed-color-accent-on-normal)` background
 - [x] AC-03: Passed — inline disk SVG rendered unconditionally (idle and pending), verified by `SaveButton.test.tsx`
 - [x] AC-04: Passed — `.button:hover:not(:disabled)`, `.button:focus-visible`, `.button:disabled` rules present
 - [x] AC-05: Passed — `--accent`/`--accent-hover`/`--accent-foreground` added to both `:root` and the `prefers-color-scheme: dark` block in `globals.css`

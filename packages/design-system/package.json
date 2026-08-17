@@ -4,7 +4,8 @@
 	"private": true,
 	"description": "",
 	"scripts": {
-		"generate": "sugarcube generate",
+		"build": "sugarcube generate",
+		"dev": "pnpm build --watch",
 		"lint:write": "biome lint --write .",
 		"lint": "biome lint ."
 	},
