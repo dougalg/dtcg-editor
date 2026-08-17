@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `pick-up-task` (or `speckit-specify`) to start it.
 Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not marked `[x]` here.
 
+- [ ] Add linting rules enforcing React component filename/folder conventions: component filenames must be PascalCase, and each component must live in its own folder alongside its co-located tests, styles (CSS modules), and other component-scoped files (in progress — worktree `.claude/worktrees/react-component-file-lint`, branch `worktree-react-component-file-lint`)
 - [ ] references should preview the referenced value
 - [ ] references should allow hotlinking to the referenced item
 - [ ] items which are referenced should allow viewing/jumping to those referenced items
