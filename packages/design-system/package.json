@@ -39,11 +39,11 @@
 		"clsx": "^2.1.1",
 		"cmdk": "^1.1.1",
 		"lucide-react": "^1.31.0",
-		"react": "19.2.8",
-		"react-dom": "19.2.8"
+		"react": "catalog:",
+		"react-dom": "catalog:"
 	},
 	"devDependencies": {
 		"@sugarcube-sh/cli": "^0.1.23",
-		"@types/react": "^19.2.18"
+		"@types/react": "catalog:"
 	}
 }

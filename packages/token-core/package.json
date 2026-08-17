@@ -15,11 +15,11 @@
 		"lint": "biome lint ."
 	},
 	"dependencies": {
-		"neverthrow": "^8.2.0",
-		"zod": "^4.4.3"
+		"neverthrow": "catalog:",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@types/node": "^26.2.0",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
 	}
 }

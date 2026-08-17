@@ -5,6 +5,15 @@ packages:
 catalogMode: strict
 cleanupUnusedCatalogs: true
 
+catalog:
+  typescript: ^5.9.3
+  neverthrow: ^8.2.0
+  react: 19.2.8
+  react-dom: 19.2.8
+  zod: ^4.4.3
+  "@types/node": ^26.2.0
+  "@types/react": ^19.2.18
+
 allowBuilds:
   sharp: true
   unrs-resolver: true

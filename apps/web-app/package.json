@@ -21,17 +21,17 @@
 		"@dtcg-editor/token-editor-color": "workspace:*",
 		"@dtcg-editor/token-editor-contract": "workspace:*",
 		"@dtcg-editor/token-editor-dimension": "workspace:*",
-		"neverthrow": "^8.2.0",
+		"neverthrow": "catalog:",
 		"next": "16.2.12",
-		"react": "19.2.8",
-		"react-dom": "19.2.8",
-		"zod": "^4.4.3"
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.62.1",
 		"@testing-library/react": "^16.3.2",
-		"@types/node": "^26.2.0",
-		"@types/react": "^19.2.18",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
 		"@types/react-dom": "^19.2.4",
 		"@vitejs/plugin-react": "^6.0.5",
 		"@vitest/browser": "^4.1.10",
@@ -39,7 +39,7 @@
 		"axe-core": "^4.13.0",
 		"jsdom": "^30.0.1",
 		"playwright": "^1.62.1",
-		"typescript": "^5.9.3",
+		"typescript": "catalog:",
 		"vitest": "^4.1.10"
 	}
 }
