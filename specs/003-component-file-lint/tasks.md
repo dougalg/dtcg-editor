@@ -90,10 +90,10 @@ Monorepo root: `/Users/dougalgraham/Projects/dtcg-editor/.claude/worktrees/react
 
 ### Implementation for User Story 4
 
-- [ ] T017 [P] [US4] In `.ls-lint.yml`, add a rule group for `apps/web-app/hooks/*`: `.ts: camelCase`, `.tsx: camelCase` (matches the existing `useSaveTokenEdits.ts`/`.test.tsx` convention; test files use the same camelCase rule as their non-test sibling, per FR-016 — no separate exemption)
-- [ ] T018 [P] [US4] In `.ls-lint.yml`, add a rule group for `apps/web-app/lib/**` (recursive, since `lib/` has nested subdirectories like `lib/token-editors/`, `lib/tokens/`): `.ts: kebab-case`, `.tsx: kebab-case`
-- [ ] T019 [US4] Run `pnpm lint:filenames` and confirm exit 0 — every existing file in `apps/web-app/hooks/` (~2 files) and `apps/web-app/lib/**` (~24 files) already complies, per the repository inspection recorded in research.md §5, so no migration task is needed
-- [ ] T020 [US4] Manually validate User Story 4's acceptance scenarios per `quickstart.md`'s "US4" section: add a misnamed file to each of `apps/web-app/hooks/` and `apps/web-app/lib/`, confirm `pnpm lint:filenames` fails for each with a violation identifying the file, then remove them and confirm it passes again
+- [X] T017 [P] [US4] In `.ls-lint.yml`, add a rule group for `apps/web-app/hooks`: `.ts: camelCase`, `.tsx: camelCase` (matches the existing `useSaveTokenEdits.ts`/`.test.tsx` convention; test files use the same camelCase rule as their non-test sibling, per FR-016 — no separate exemption)
+- [X] T018 [P] [US4] In `.ls-lint.yml`, add a rule group for `apps/web-app/lib/**` (recursive, since `lib/` has nested subdirectories like `lib/token-editors/`, `lib/tokens/`): `.ts: kebab-case`, `.tsx: kebab-case`. **Verified** via `-debug` output that `**` correctly expands to every nested subdirectory (`lib/platform`, `lib/token-editors`, `lib/tokens`, `lib/a11y`), not just top-level `lib/`.
+- [X] T019 [US4] Run `pnpm lint:filenames` and confirm exit 0 — every existing file in `apps/web-app/hooks/` (~2 files) and `apps/web-app/lib/**` (~24 files) already complies, per the repository inspection recorded in research.md §5, so no migration task is needed
+- [X] T020 [US4] Manually validate User Story 4's acceptance scenarios per `quickstart.md`'s "US4" section: add a misnamed file to each of `apps/web-app/hooks/` and `apps/web-app/lib/`, confirm `pnpm lint:filenames` fails for each with a violation identifying the file, then remove them and confirm it passes again
 
 **Checkpoint**: User Story 4 is fully functional and independently testable — hooks/lib naming is enforced with zero pre-existing violations.
 
@@ -107,7 +107,7 @@ Monorepo root: `/Users/dougalgraham/Projects/dtcg-editor/.claude/worktrees/react
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Extend Principle X ("Component Granularity & Testing") in `.specify/memory/constitution.md` with the PascalCase-filename + folder-per-component convention this feature enforces, plus the `apps/web-app/hooks/`/`apps/web-app/lib/` naming conventions from User Story 4, following the constitution's own amendment procedure (a Sync Impact Report comment documenting the version bump and rationale), and explicitly noting that the one-component-per-file clause already in Principle X remains unenforced by any tooling (per spec.md Assumptions) — a known, pre-existing gap this feature does not close
+- [X] T021 [US3] Extend Principle X ("Component Granularity & Testing") in `.specify/memory/constitution.md` with the PascalCase-filename + folder-per-component convention this feature enforces, plus the `apps/web-app/hooks/`/`apps/web-app/lib/` naming conventions from User Story 4, following the constitution's own amendment procedure (a Sync Impact Report comment documenting the version bump and rationale), and explicitly noting that the one-component-per-file clause already in Principle X remains unenforced by any tooling (per spec.md Assumptions) — a known, pre-existing gap this feature does not close
 
 **Checkpoint**: All four user stories are independently functional.
 

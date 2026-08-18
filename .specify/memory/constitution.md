@@ -1,6 +1,44 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.2.0 → 2.3.0
+Rationale: MINOR — materially expands Principle X (Component Granularity &
+Testing) with an automatically-enforced file/folder naming convention:
+every React component file MUST be PascalCase and MUST live in its own
+folder alongside its co-located tests/styles, and files under
+`apps/web-app/hooks/` MUST be camelCase while files under
+`apps/web-app/lib/` MUST be kebab-case. No existing rule within the
+principle is redefined or removed (the pre-existing "a file MUST NOT
+export more than one component" clause is explicitly noted as still
+unenforced by tooling, not weakened), so this is not MAJOR; a new
+enforceable rule set is materially more than a wording clarification, so
+this is not PATCH.
+
+Added sections: none (extends the existing Principle X body + rationale;
+adds `@ls-lint/ls-lint` to Technology Stack & Approved Dependencies)
+
+Modified principles:
+  - X. Component Granularity & Testing — rule paragraph gains the
+    PascalCase-filename / folder-per-component / hooks-camelCase /
+    lib-kebab-case convention, enforced by `@ls-lint/ls-lint` under
+    `pnpm lint`; rationale expanded to explain the enforcement mechanism
+    and to note the one-component-per-file clause remains a known,
+    tooling-unenforced gap (see spec `003-component-file-lint`).
+
+Removed sections: none
+
+Deferred / TODO items: the one-component-per-file clause above remains
+unenforced by any tooling; a future feature could close this gap.
+
+Source of truth for this amendment: specs/003-component-file-lint
+(FR-001–FR-016), implemented via `/speckit-implement` — the file/folder
+convention this principle already implied is now both stated explicitly
+and automatically enforced.
+-->
+
+<!--
+Sync Impact Report (v2.2.0, superseded above)
+==================
 Version change: 2.1.0 → 2.2.0
 Rationale: MINOR — materially expands Principle X (Component Granularity &
 Testing) with a component-reuse-detection rule: 3+ structurally/
@@ -396,7 +434,26 @@ same component with different data — not merely coincidentally similar-
 looking — that MUST be flagged (in the PR/task introducing the 3rd instance,
 or in a dedicated cleanup task if found later) as a candidate for extraction
 into a shared, reusable component contributed to `packages/design-system`,
-rather than left as three independently-maintained near-duplicates.
+rather than left as three independently-maintained near-duplicates. Every
+component file MUST be named in PascalCase matching its component (e.g.
+`SaveButton.tsx` exporting `SaveButton`) and MUST live in its own folder
+named after that same PascalCase name, alongside its co-located test
+file(s) and style file(s) — e.g.
+`apps/web-app/components/SaveButton/{SaveButton.tsx,SaveButton.test.tsx,SaveButton.module.css}`.
+Files under `apps/web-app/hooks/` MUST be camelCase (e.g.
+`useSaveTokenEdits.ts`); files under `apps/web-app/lib/` (at any nesting
+depth) MUST be kebab-case (e.g. `fatal-startup-error.ts`). These naming/
+folder rules are automatically enforced under `pnpm lint` via
+`@ls-lint/ls-lint` (configured in `.ls-lint.yml`) — Next.js's own
+framework-reserved filenames under `apps/web-app/app/` (`page.tsx`,
+`layout.tsx`, `route.ts`, etc.) are exempt, since their naming is
+dictated by the framework, not this convention. This paragraph's
+enforcement covers naming and folder placement only: the "a file MUST
+NOT export more than one component" rule above remains a known,
+constitution-level requirement that no tooling currently enforces —
+`@ls-lint/ls-lint` checks filenames and directory structure, not file
+contents, so it cannot verify how many components a file exports;
+closing that gap would require separate tooling and is not yet built.
 
 Rationale: small, single-purpose, individually-tested components are the
 concrete, component-level form of Principle II's "own cohesive unit" — a
@@ -413,7 +470,11 @@ consolidating into `design-system` — rather than a fourth copy, or a
 one-off shared file wherever the third instance happens to live — keeps
 reusable UI addressable from one place instead of accreting duplicate
 near-identical components across `apps/web-app` and the `token-editor-*`
-packages.
+packages. The naming/folder convention makes a component's full context
+(implementation, tests, styles) discoverable from one directory listing
+without needing to know the codebase's history, and enforcing it
+automatically — rather than relying on review — keeps it from drifting
+the way an unenforced convention inevitably does.
 
 ## Technology Stack & Approved Dependencies
 
@@ -438,7 +499,9 @@ packages.
   `husky`, `prettier` (`useTabs: true`), `vitest` (`apps/web-app` only),
   `@vitejs/plugin-react`, `jsdom`, `@testing-library/react`, `colorjs.io`
   (`packages/token-core` only, imported via the tree-shakable
-  `colorjs.io/fn` entry point).
+  `colorjs.io/fn` entry point), `@ls-lint/ls-lint` (root devDependency,
+  filename/directory-structure linting per Principle X, configured in
+  `.ls-lint.yml`).
 
 ## Development Workflow
 
@@ -503,4 +566,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 2.2.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-16
+**Version**: 2.3.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-19
