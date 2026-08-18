@@ -12,5 +12,11 @@ export default defineConfig({
 		url: "http://localhost:3000",
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000,
+		// Serve stable, e2e-owned fixture tokens instead of the real design
+		// system, whose content can change for unrelated reasons and break
+		// these tests. See dtcg-editor.config.mts.
+		env: {
+			DTCG_EDITOR_TOKENS_DIR: "./e2e/fixtures/tokens",
+		},
 	},
 });

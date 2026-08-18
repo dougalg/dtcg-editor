@@ -149,7 +149,8 @@
 			"includes": [
 				"**/apps/web-app/**",
 				"!**/apps/web-app/instrumentation.ts",
-				"!**/apps/web-app/playwright.config.ts"
+				"!**/apps/web-app/playwright.config.ts",
+				"!**/apps/web-app/dtcg-editor.config.mts"
 			]
 		}
 	]
