@@ -22,7 +22,7 @@
 		"@dtcg-editor/token-editor-contract": "workspace:*",
 		"@dtcg-editor/token-editor-dimension": "workspace:*",
 		"neverthrow": "catalog:",
-		"next": "16.2.12",
+		"next": "16.3.1",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"zod": "catalog:"

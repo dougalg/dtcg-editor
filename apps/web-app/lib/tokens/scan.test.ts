@@ -42,7 +42,7 @@ function mockReadFile(files: Record<string, string>): ReadTextFile {
 			error.code = "ENOENT";
 			throw error;
 		}
-		return files[path];
+		return files[path] as string;
 	};
 }
 

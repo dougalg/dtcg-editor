@@ -21,7 +21,7 @@ const REAL_DEFINE_CONFIG_PATH = resolve(
  * end-to-end without touching real `process.stdin`/`process.stdout`/disk.
  */
 function createIO(
-	overrides: Partial<InitConfigIO> & { cwd: string },
+	overrides: Omit<Partial<InitConfigIO>, "input" | "output"> & { cwd: string },
 ): InitConfigIO & {
 	input: PassThrough;
 	answer: (line: string) => void;

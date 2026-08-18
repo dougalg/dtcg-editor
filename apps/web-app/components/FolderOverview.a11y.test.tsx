@@ -7,7 +7,7 @@ import { FolderOverview } from "./FolderOverview.tsx";
 
 function files(): readonly TokenFileSummary[] {
 	return [
-		{ relativePath: "spacing.tokens.json", valid: true },
+		{ relativePath: "spacing.tokens.json", valid: true, standard: true },
 		{
 			relativePath: "broken.tokens.json",
 			valid: false,

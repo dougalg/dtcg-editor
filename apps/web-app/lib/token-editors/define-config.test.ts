@@ -52,7 +52,10 @@ test("throws DtcgEditorConfigError when an extension's type is not a valid DTCG 
 	assert.throws(() => {
 		defineConfig({
 			tokensDir: "./tokens",
-			extensions: [{ type: "not-a-real-type", editor: () => null }],
+			extensions: [
+				// @ts-expect-error -- deliberately malformed, mirroring a plain-JS author's mistake
+				{ type: "not-a-real-type", editor: () => null as never },
+			],
 		});
 	}, DtcgEditorConfigError);
 });
@@ -117,7 +120,7 @@ test("throws DtcgEditorConfigError when editorOptions fails the built-in color c
 			extensions: [
 				{
 					type: "color",
-					editor: () => null,
+					editor: () => null as never,
 					editorOptions: { colorSpaces: ["cmyk"] },
 				},
 			],
@@ -132,7 +135,7 @@ test("throws DtcgEditorConfigError when editorOptions has an empty colorSpaces a
 			extensions: [
 				{
 					type: "color",
-					editor: () => null,
+					editor: () => null as never,
 					editorOptions: { colorSpaces: [] },
 				},
 			],
@@ -146,7 +149,7 @@ test("accepts valid editorOptions for the built-in color contract", () => {
 		extensions: [
 			{
 				type: "color",
-				editor: () => null,
+				editor: () => null as never,
 				editorOptions: { colorSpaces: ["srgb", "hsl"] },
 			},
 		],
@@ -162,7 +165,7 @@ test("passes editorOptions through unchecked for a type with no built-in editorO
 		extensions: [
 			{
 				type: "dimension",
-				editor: () => null,
+				editor: () => null as never,
 				editorOptions: { anything: "goes" },
 			},
 		],
@@ -177,9 +180,9 @@ test("editorOptions present but editor invalid still fails for the existing edit
 		defineConfig({
 			tokensDir: "./tokens",
 			extensions: [
-				// @ts-expect-error -- deliberately malformed, mirroring a plain-JS author's mistake
 				{
 					type: "color",
+					// @ts-expect-error -- deliberately malformed, mirroring a plain-JS author's mistake
 					editor: "not a function",
 					editorOptions: { colorSpaces: ["srgb"] },
 				},
