@@ -10,7 +10,7 @@
 			"persistent": true
 		},
 		"lint": {
-			"dependsOn": ["^build", "//#lint:root"]
+			"dependsOn": ["^build", "//#lint:root", "//#lint:filenames"]
 		},
 		"lint:write": {
 			"dependsOn": ["^build"]
@@ -19,6 +19,9 @@
 			"dependsOn": ["^build", "//#test:commits", "//#test:format-staged"]
 		},
 		"//#lint:root": {
+			"outputs": []
+		},
+		"//#lint:filenames": {
 			"outputs": []
 		},
 		"//#test:commits": {

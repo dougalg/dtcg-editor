@@ -1,0 +1,43 @@
+ls:
+  # React component filename/folder conventions (specs/003-component-file-lint).
+  #
+  # Split into a bare directory key (forbids stray .tsx files sitting flat,
+  # outside any per-component folder) plus a `/*` glob key (enforces the
+  # per-component folder's own rules) for each location — required because
+  # ls-lint's `/*` glob only matches directories that already exist one level
+  # down; a flat file sitting directly in the parent is otherwise invisible to
+  # it. `.dir: PascalCase` and `.tsx: regex:${0}` are kept as separate rules
+  # (not combined with `|`) because `|` is a logical OR across the rules it
+  # joins, not AND — combining them would let a PascalCase-but-wrongly-placed
+  # file (or vice versa) silently pass. `regex:${0}` alone already forces the
+  # file's basename to exactly equal its (PascalCase-enforced) folder name, so
+  # no separate PascalCase rule is needed on the .tsx key itself.
+  apps/web-app/components:
+    .tsx: exists:0
+  apps/web-app/components/*:
+    .dir: PascalCase
+    .tsx: regex:${0} | exists:1
+
+  packages/design-system/src/components/ui:
+    .tsx: exists:0
+  packages/design-system/src/components/ui/*:
+    .dir: PascalCase
+    .tsx: regex:${0} | exists:1
+
+  # Naming-only conventions (no folder-per-file requirement) confirmed by
+  # direct inspection to already match every existing file in both locations.
+  apps/web-app/hooks:
+    .ts: camelCase
+    .tsx: camelCase
+  apps/web-app/lib/**:
+    .ts: kebab-case
+    .tsx: kebab-case
+
+ignore:
+  - node_modules
+  - dist
+  - .next
+  - coverage
+  - out
+  - build
+  - apps/web-app/app
