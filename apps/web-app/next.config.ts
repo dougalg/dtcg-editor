@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
 		root: path.resolve(import.meta.dirname, "../.."),
 	},
 	transpilePackages: ["@dtcg-editor/design-system"],
+	experimental: {
+		useTypeScriptCli: true,
+	},
 };
 
 export default nextConfig;
