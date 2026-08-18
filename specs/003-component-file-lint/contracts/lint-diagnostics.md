@@ -8,7 +8,7 @@ This is the interface `check-component-structure.cjs` exposes to the rest of the
 node check-component-structure.cjs
 ```
 
-Run with no arguments; it scans the whole repository from the root it's invoked at (mirroring `commit-conventions.cjs`/`format-staged.cjs`, which also take no CLI flags). Wired into `pnpm lint` via `turbo.json`'s `"//#lint:component-structure"` task, so it does not need its own separate CI step.
+Run with no arguments; it scans the whole repository from the root it's invoked at (mirroring `commit-conventions.cjs`/`format-staged.cjs`, which also take no CLI flags). Wired into `pnpm lint` via `turbo.json`'s `"//#lint:component-structure"` task — listed alongside `"//#lint:root"` in the `"lint"` task's `dependsOn`, so Turborepo runs both root-level checks in parallel with each other under the single `pnpm lint`/`turbo run lint` invocation. It does not need its own separate CI step, and is never invoked as a standalone command in CI.
 
 ## Exit code
 
