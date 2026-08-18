@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `pick-up-task` (or `speckit-specify`) to start it.
 Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not marked `[x]` here.
 
+- [ ] Refactor web-app tests to use mock token files instead of referencing internal token files that can change at any time and break tests; the web-app is generic and loads any token files supplied via config, so tests should reflect that. Also audit for other similar cases (tests coupled to internal/example data rather than fixtures) and address them in the same pass. (in progress — worktree `.claude/worktrees/mock-token-test-fixtures`, branch `worktree-mock-token-test-fixtures`)
 - [ ] Add linting rules enforcing React component filename/folder conventions: component filenames must be PascalCase, and each component must live in its own folder alongside its co-located tests, styles (CSS modules), and other component-scoped files (in progress — worktree `.claude/worktrees/react-component-file-lint`, branch `worktree-react-component-file-lint`)
 - [ ] references should preview the referenced value
 - [ ] references should allow hotlinking to the referenced item
