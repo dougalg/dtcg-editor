@@ -64,7 +64,7 @@ pnpm lint:filenames   # expect: exit 0 — every existing hooks/lib file already
 
 ```sh
 find apps/web-app/components -maxdepth 1 -type f            # expect: empty — every file now lives in a per-component folder
-find packages/design-system/src/components/ui -iname "*.tsx" # expect: every result is PascalCase
+find packages/*/src/components -iname "*.tsx" # expect: every result is PascalCase, across design-system, token-editor-color, token-editor-dimension
 pnpm build && pnpm test                                       # expect: green — confirms every import was updated correctly
 pnpm lint                                                      # expect: green — confirms zero ls-lint violations repo-wide (FR-012)
 ```

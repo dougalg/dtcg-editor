@@ -12,7 +12,7 @@
 	"exports": {
 		"./styles/tokens.css": "./dist/styles/tokens.css",
 		"./styles/*": "./src/styles/*",
-		"./components/*": "./src/components/ui/*"
+		"./components/*": "./src/components/*"
 	},
 	"files": [
 		"./dist/",

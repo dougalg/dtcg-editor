@@ -1,11 +1,11 @@
-import { z } from "zod";
 import { COLOR_SPACES, type ColorSpace } from "@dtcg-editor/token-core";
+import { z } from "zod";
 
 /**
  * `editorOptions` shape for the `color` extension entry (FR-04). Restricts
  * which `colorSpace`s `ColorEditor`'s dropdown offers when authoring —
  * purely a client-side authoring affordance, not a new validation boundary
- * (see `components/editor.tsx`'s allow-list handling and
+ * (see `components/ColorEditor/ColorEditor.tsx`'s allow-list handling and
  * `checkColorValueIssues`, which this doesn't touch).
  */
 export interface ColorEditorOptions {

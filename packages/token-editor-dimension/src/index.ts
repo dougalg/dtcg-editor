@@ -1,2 +1,2 @@
-export { DimensionEditor } from "./components/editor.tsx";
+export { DimensionEditor } from "./components/DimensionEditor/DimensionEditor.tsx";
 export { dimensionTokenType } from "./token-type.ts";

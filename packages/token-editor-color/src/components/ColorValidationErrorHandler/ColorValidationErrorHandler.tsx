@@ -3,7 +3,7 @@ import {
 	ColorObjectValueSchema,
 	LegacyHexColorValueSchema,
 } from "@dtcg-editor/token-core";
-import styles from "./editor.module.css";
+import styles from "../ColorEditor/ColorEditor.module.css";
 
 /**
  * Formats a single structural-parse issue for display. `ColorValueSchema`

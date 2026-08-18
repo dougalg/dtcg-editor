@@ -8,17 +8,17 @@ import {
 	type ColorSpace,
 	type ColorValue,
 } from "@dtcg-editor/token-core";
-import type { ColorEditorOptions } from "../configuration.ts";
+import type { ColorEditorOptions } from "../../configuration.ts";
 import {
 	checkColorValueIssues,
 	COMPONENT_RANGES,
-} from "../utils/range-validation.ts";
-import { colorValueToCssColor } from "../utils/css-color.ts";
+} from "../../utils/range-validation.ts";
+import { colorValueToCssColor } from "../../utils/css-color.ts";
 import {
 	colorValueToSrgbHex,
 	srgbHexToColorSpaceComponents,
-} from "../utils/conversion.ts";
-import styles from "./editor.module.css";
+} from "../../utils/conversion.ts";
+import styles from "./ColorEditor.module.css";
 
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
