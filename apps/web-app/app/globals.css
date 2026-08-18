@@ -1,5 +1,7 @@
 @import "@dtcg-editor/design-system/styles/tokens.css";
 @import "@dtcg-editor/design-system/styles/global/global.css";
+@import "@dtcg-editor/design-system/styles/utilities/region.css";
+@import "@dtcg-editor/design-system/styles/utilities/visually-hidden.css";
 
 html,
 body {

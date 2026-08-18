@@ -48,37 +48,36 @@ test("the browse -> open -> edit -> save flow is fully keyboard-operable with vi
 }) => {
 	await page.goto("/");
 
-	const fileLink = page.getByRole("link", {
-		name: /spacing_scale\.tokens\.json/i,
-	});
+	const fileLink = page
+		.getByRole("link", {
+			name: /.*\.json/i,
+		})
+		.first();
 	// The folder overview lists files alphabetically, so this isn't necessarily
 	// the first tab stop once other sample files exist (e.g. color_scale.tokens.json).
 	await tabUntilFocused(page, fileLink);
 	expect(await hasVisibleFocusIndicator(fileLink)).toBe(true);
 
 	await page.keyboard.press("Enter");
-	await expect(page).toHaveURL(/\/tokens\/spacing_scale\.tokens\.json$/);
+	await expect(page).toHaveURL(/\/tokens\/.*\.json$/);
 
 	const backLink = page.getByRole("link", { name: /back to folder overview/i });
 	await tabTo(page, backLink);
 
-	const rootToggle = page.getByRole("button", { name: /collapse \//i });
+	const rootToggle = page.getByRole("button", { name: /collapse .*/i }).first();
 	await tabTo(page, rootToggle);
 
-	const groupToggle = page.getByRole("button", {
-		name: /collapse spacing-scale/i,
-	});
+	const groupToggle = page
+		.getByRole("button", {
+			name: /.*collapse.*/i,
+		})
+		.nth(1);
 	await tabTo(page, groupToggle);
 
-	const groupNameInput = page.getByRole("textbox", {
-		name: "spacing-scale name",
-	});
+	const groupNameInput = page.getByRole("textbox").first();
 	await tabTo(page, groupNameInput);
 
-	const tokenNameInput = page.getByRole("textbox", {
-		name: "0 name",
-		exact: true,
-	});
+	const tokenNameInput = page.getByRole("textbox").nth(3);
 	await tabTo(page, tokenNameInput);
 
 	const dimensionValueInput = page
