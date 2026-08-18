@@ -1,48 +1,25 @@
-# Contract: `check-component-structure` CLI Output
+# Contract: `ls-lint` CLI Output
 
-This is the interface `check-component-structure.cjs` exposes to the rest of the lint pipeline (`pnpm lint`, CI) and to a contributor reading its output. It has no network/API surface — its "contract" is its process exit code and stdout/stderr format, since other tooling (Turborepo, CI log parsing, a human reading a failed PR check) depends on both.
+This is the interface `ls-lint` exposes to the rest of the lint pipeline (`pnpm lint`, CI) and to a contributor reading its output. Its exact diagnostic text is owned by the `@ls-lint/ls-lint` package, not this repository — this contract documents the parts other tooling and contributors depend on, confirmed against `ls-lint`'s own documentation; the literal message format should be spot-checked against the installed version during implementation (a `/speckit-tasks` task) rather than assumed to match verbatim.
 
 ## Invocation
 
 ```sh
-node check-component-structure.cjs
+pnpm lint:filenames
+# equivalent to: ls-lint
 ```
 
-Run with no arguments; it scans the whole repository from the root it's invoked at (mirroring `commit-conventions.cjs`/`format-staged.cjs`, which also take no CLI flags). Wired into `pnpm lint` via `turbo.json`'s `"//#lint:component-structure"` task — listed alongside `"//#lint:root"` in the `"lint"` task's `dependsOn`, so Turborepo runs both root-level checks in parallel with each other under the single `pnpm lint`/`turbo run lint` invocation. It does not need its own separate CI step, and is never invoked as a standalone command in CI.
+Run with no arguments; `ls-lint` auto-discovers `.ls-lint.yml` at the repository root and scans every path its `ls:` glob keys match. Wired into `pnpm lint` via `turbo.json`'s `"//#lint:filenames"` task — listed alongside `"//#lint:root"` in the `"lint"` task's `dependsOn`, so Turborepo runs both root-level checks in parallel with each other under the single `pnpm lint`/`turbo run lint` invocation. It is never invoked as a standalone command in CI, only through that turbo task.
 
 ## Exit code
 
-- `0` — no violations found (FR-012's "zero violations" state).
-- `1` — one or more violations found. Turborepo/CI treats any non-zero exit from a `lint`-task-listed script as a failed `pnpm lint` run, same as an existing Biome failure.
+- `0` — no violations found (the FR-012 "zero violations" state).
+- Non-zero — one or more violations found. Turborepo/CI treats any non-zero exit from a `lint`-task-listed script as a failed `pnpm lint` run, same as an existing Biome failure.
 
-## Success output (stdout)
+## Diagnostic content (per FR-007)
 
-```text
-✔ check-component-structure: 28 component files checked, no violations found.
-```
+`ls-lint` reports, per violation: the offending path, and which configured rule it failed to match (e.g. the `PascalCase` case rule, or the `regex:${0}` folder-name-match rule, or the `exists:1` count rule) — sufficient to satisfy FR-007's requirement that a violation identify the offending file/folder and which specific rule was broken, since each `.ls-lint.yml` rule maps 1:1 to one of this feature's FRs (see `data-model.md`'s mapping table). The exact wording/formatting of that output is `ls-lint`'s own and is not re-specified here.
 
-## Failure output (stdout, one block per violation, per FR-007)
+## Consuming this contract
 
-```text
-✖ apps/web-app/components/saveButton.tsx
-  pascal-case-filename: filename must be PascalCase (expected "SaveButton.tsx")
-
-✖ apps/web-app/components/SaveButton.tsx
-  folder-placement: component files must live in their own folder (expected "SaveButton/SaveButton.tsx")
-
-✖ packages/design-system/src/components/ui/badge/Badge.tsx
-  folder-name-mismatch: folder "badge" does not match component name "Badge" (expected folder "Badge")
-
-✖ apps/web-app/components/Modal.tsx
-  multiple-unrelated-components: file exports "Modal" and "Tooltip", which do not share a common
-  primary-component name prefix — split into separate component files/folders
-
-check-component-structure: 4 violations found in 3 files.
-```
-
-Each violation block:
-1. Starts with `✖ <repo-relative path>`.
-2. One indented line per rule broken in that file: `<rule>: <message>` — `<rule>` is one of the `Violation.rule` enum values from `data-model.md` (`pascal-case-filename`, `folder-placement`, `folder-name-mismatch`, `multiple-unrelated-components`).
-3. A final summary line with the total violation and file counts.
-
-This mirrors Biome's own diagnostic shape (file path header, indented rule detail, summary line) so a contributor reading `pnpm lint` output sees a consistent style across both checks, even though this script itself does not depend on or invoke Biome directly.
+A contributor or CI log reader distinguishes "this feature's check failed" from "Biome failed" by which of the two parallel `pnpm lint` sub-tasks (`//#lint:root` vs `//#lint:filenames`) reported the failure — Turborepo's own task-labeled log output (not something this feature needs to add) already does this for every task in the graph.

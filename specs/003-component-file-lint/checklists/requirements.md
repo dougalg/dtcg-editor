@@ -32,3 +32,4 @@
 ## Notes
 
 - Resolved via clarification: scope is repo-wide (`apps/web-app/components` and `packages/design-system/src/components/ui`), Next.js App Router reserved files are excluded, and existing non-conforming files are migrated as part of this feature (FR-009–FR-012).
+- The one-component-per-file rule was considered, then dropped: enforcing it would require a content-parsing tool distinct from the filename/directory linter chosen for FR-001–FR-003, and the project chose not to add a second custom tool for that single rule (see spec.md Assumptions). Constitution Principle X's matching clause remains a known, out-of-scope gap.
