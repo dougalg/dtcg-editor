@@ -117,9 +117,9 @@ Monorepo root: `/Users/dougalgraham/Projects/dtcg-editor/.claude/worktrees/react
 
 **Purpose**: Final repo-wide verification that the feature is complete per FR-012/SC-002/SC-005.
 
-- [ ] T022 [P] Run `pnpm lint` from the repo root and confirm zero violations — both `//#lint:root` (Biome) and `//#lint:filenames` (`ls-lint`) pass, running in parallel under the single command (FR-006, FR-012)
-- [ ] T023 [P] Run `pnpm build && pnpm test` from the repo root to confirm the full migration (T007–T009, T011–T014) is safe repo-wide
-- [ ] T024 Delete the throwaway migration script created in T011 (`$CLAUDE_JOB_DIR/tmp/migrate-web-app-components.mjs`) — it is a one-time migration aid, not part of the shipped feature, per research.md §4
+- [X] T022 [P] Run `pnpm lint` from the repo root and confirm zero violations — both `//#lint:root` (Biome) and `//#lint:filenames` (`ls-lint`) pass, running in parallel under the single command (FR-006, FR-012). **Result**: 15/15 tasks passed; turbo's own log confirms `//:lint:root` and `//:lint:filenames` both started as concurrent "cache miss, executing" tasks, not one after the other.
+- [X] T023 [P] Run `pnpm build && pnpm test` from the repo root to confirm the full migration (T007–T009, T011–T014) is safe repo-wide. **Result**: `pnpm build` — 7/7 tasks passed. `pnpm test` — 13/14 tasks passed; the one failure is `@dtcg-editor/web-app#test`, specifically the same 2 pre-existing, unrelated `keyboard-navigation.spec.ts` e2e tests documented in T014 (reproduced consistently, confirming it's the `dtcg-editor.config.mts`/`sample_data/` fixture-path mismatch, not a flake or a regression from this migration). All 173 unit tests and 4/6 e2e tests pass.
+- [X] T024 Delete the throwaway migration script created in T011 (`$CLAUDE_JOB_DIR/tmp/migrate-web-app-components.mjs`) — it is a one-time migration aid, not part of the shipped feature, per research.md §4. **Result**: it was written directly in the job's scratch tmp directory (never the repo working tree, per this environment's convention for throwaway tooling), so it was never tracked by git and is cleaned up automatically with the job — confirmed nothing matching it exists in the repo.
 
 ---
 
