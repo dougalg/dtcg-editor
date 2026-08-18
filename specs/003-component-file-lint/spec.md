@@ -55,15 +55,34 @@ A maintainer reviewing a PR, or a new contributor setting up a component for the
 
 ---
 
+### User Story 4 - Enforce existing naming conventions for hooks and lib utility files (Priority: P2)
+
+A contributor adds a file under `apps/web-app/hooks/` or `apps/web-app/lib/` that doesn't match the naming convention already consistently followed there (camelCase for hooks, matching the existing `useSaveTokenEdits.ts`; kebab-case for lib files, matching the existing `fatal-startup-error.ts`). The lint check fails with a clear, actionable message.
+
+**Why this priority**: These are pre-existing, already-consistent conventions in the codebase today (every current file in both directories already complies) — this closes the same "unenforced convention will eventually drift" gap the component rules (User Story 1) close, for two more directories, at the same time this feature is already touching filename linting.
+
+**Independent Test**: Can be fully tested by adding a file named `MyHelper.ts` (PascalCase) under `apps/web-app/lib/` and confirming the lint run fails, and a file named `use-thing.ts` (kebab-case) under `apps/web-app/hooks/` and confirming it fails, then confirming correctly-cased files in each location pass.
+
+**Acceptance Scenarios**:
+
+1. **Given** a file under `apps/web-app/hooks/` whose name is not camelCase, **When** the lint check runs, **Then** it fails and reports the file as violating the hooks naming rule.
+2. **Given** a file under `apps/web-app/lib/` (at any depth) whose name is not kebab-case, **When** the lint check runs, **Then** it fails and reports the file as violating the lib naming rule.
+3. **Given** the existing files in both directories today, **When** the lint check runs, **Then** it passes with no violations — no migration is needed for this rule, since every existing file already conforms.
+
+---
+
 ### Edge Cases
 
 - A component file is the sole file in its folder (no test or style file yet, e.g. a brand-new component) — placement rule must still pass; co-location is only required for files that exist, not files that must exist.
 - A folder contains a barrel/re-export file (e.g. `index.ts`) alongside the PascalCase component file — the barrel file must not itself be flagged as a second, incorrectly-named component file.
 - A `.ts`/`.tsx` file exports something other than a component (a hook, a utility, a type, a constant) — it must not be misidentified as a component subject to the PascalCase/folder rule.
-- Test files use varying suffixes already present in the codebase (`.test.tsx`, `.a11y.test.tsx`) — all must be recognized as belonging to their component, not flagged as unrelated stray files.
+- Test files use varying suffixes already present in the codebase (`.test.tsx`, `.a11y.test.tsx`, `.generic-editor.test.tsx`, `.override.test.tsx` — `TokenTree` alone has four) — all must be recognized as belonging to their component and excluded from both the PascalCase rule and any per-folder "one component file" count, not flagged as unrelated stray files or counted as extra component files.
+- A component folder legitimately contains more than one `.tsx`-suffixed file once test files are counted (e.g. `TokenTree.tsx` plus its four test variants) — this must not be misread as "more than one component file per folder."
 - A component folder name and its component file's base name diverge (e.g. `Button/button.tsx` or `save-button/SaveButton.tsx`) — this must be flagged as a violation even though the `.tsx` file itself is present and PascalCase.
 - A Next.js App Router special file (`page.tsx`, `layout.tsx`, `route.ts`, etc.) sits flat in `apps/web-app/app/` — it must be excluded from both the naming and folder-placement rules rather than flagged or migrated.
 - A migrated component is imported elsewhere in the repo, or referenced by a generated artifact (e.g. the sugarcube design-system generator, a package's public entry point/barrel export) — those references must be updated so nothing breaks after the rename/move.
+- A file under `apps/web-app/lib/` sits in a nested subdirectory (e.g. `lib/token-editors/resolve-editor.ts`, `lib/tokens/edit-state.ts`) — the kebab-case naming rule (User Story 4) must apply at any depth under `lib/`, not just top-level files.
+- A test file under `apps/web-app/hooks/` or `apps/web-app/lib/` (e.g. `useSaveTokenEdits.test.tsx`, `fatal-startup-error.test.ts`) — must be evaluated against the same naming rule as its non-test sibling (camelCase for hooks, kebab-case for lib), not exempted or held to a different standard.
 
 ## Requirements _(mandatory)_
 
@@ -81,6 +100,10 @@ A maintainer reviewing a PR, or a new contributor setting up a component for the
 - **FR-010**: The lint check MUST exclude Next.js's framework-reserved files (e.g. `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `template.tsx`, `default.tsx`, `route.ts`) from the PascalCase and folder-placement rules, since their filenames and flat placement within `apps/web-app/app/` are dictated by the Next.js App Router, not by this convention.
 - **FR-011**: All existing React component files within scope (including `packages/design-system/src/components/ui/*`, currently lowercase, and `apps/web-app/components/*`, currently flat) MUST be migrated — renamed to PascalCase and moved into a dedicated folder alongside their co-located tests/styles — as part of delivering this feature, with all internal imports and any generated/derived references (e.g. the sugarcube token/component generator, barrel exports) updated to match.
 - **FR-012**: After migration, the lint check MUST pass with zero violations across the full repository, with no files grandfathered or exempted other than the Next.js reserved files covered by FR-010.
+- **FR-013**: The lint check MUST flag any file under `apps/web-app/hooks/` whose filename is not camelCase, matching the convention already established by the existing `useSaveTokenEdits.ts`.
+- **FR-014**: The lint check MUST flag any file under `apps/web-app/lib/` (at any nesting depth) whose filename is not kebab-case, matching the convention already established by existing files (e.g. `fatal-startup-error.ts`, `color-validation-error-handler.test.tsx`).
+- **FR-015**: The hooks and lib naming rules (FR-013, FR-014) MUST NOT require folder-per-file placement — unlike the component rules (FR-002/FR-003), files in `apps/web-app/hooks/` and `apps/web-app/lib/` are not restructured into one-folder-per-file; only their naming casing is enforced.
+- **FR-016**: The hooks and lib naming rules MUST apply to test files in those directories the same as their non-test siblings (no separate exemption), and MUST NOT apply to any directory other than `apps/web-app/hooks/` and `apps/web-app/lib/`.
 
 ## Success Criteria _(mandatory)_
 
@@ -90,6 +113,7 @@ A maintainer reviewing a PR, or a new contributor setting up a component for the
 - **SC-002**: 100% of React component files repo-wide (excluding Next.js reserved files) conform to PascalCase naming and folder-per-component placement once migration is complete.
 - **SC-003**: A contributor can locate a given component's test and style files with zero additional navigation beyond opening that component's folder, for 100% of components in scope.
 - **SC-004**: A new contributor creating a component from scratch and following the documented convention passes the lint check on the first attempt, without needing a reviewer to flag naming or placement issues.
+- **SC-005**: 100% of files under `apps/web-app/hooks/` and `apps/web-app/lib/` conform to their existing camelCase/kebab-case convention, with zero violations from the moment the rule is added (no migration required, since every existing file already complies).
 
 ## Assumptions
 
@@ -102,3 +126,5 @@ A maintainer reviewing a PR, or a new contributor setting up a component for the
 - Migrating `packages/design-system/src/components/ui/*` off its current lowercase, shadcn-style filenames is in scope and accepted as an intentional divergence from that upstream convention for the sake of a single repo-wide standard.
 - Migration is a one-time bulk restructuring (renames, folder moves, import updates) delivered alongside the lint rule in this same feature, not a gradual/opt-in rollout.
 - This feature does not enforce the project constitution's Principle X clause "a file MUST NOT export more than one component" — that remains a known, pre-existing gap between the ratified constitution and the current codebase (e.g. `packages/design-system/src/components/ui/card/card.tsx` defines 8 components in one file), left for separate future work. This was an explicit scoping decision: enforcing it would require content-parsing (which components a file exports) that a filename/directory linter cannot do, and the project chose not to add a second, custom tool solely for that one rule.
+- The hooks/lib naming rules (FR-013–FR-016) were scoped to `apps/web-app/hooks/` and `apps/web-app/lib/` only, since a repo-wide search confirmed these are the only two such directories in the repository today (`packages/*` has no `hooks/`/`lib/` directories of this kind); the rule is not written to generically cover "any future hooks/lib directory" — a new one would need an explicit addition to the lint config, same as any other new rule scope.
+- Every existing file in `apps/web-app/hooks/` and `apps/web-app/lib/` was confirmed (by direct repository inspection) to already comply with the camelCase/kebab-case convention FR-013/FR-014 enforce, so no migration task is needed for this scope, unlike FR-011's component migration.

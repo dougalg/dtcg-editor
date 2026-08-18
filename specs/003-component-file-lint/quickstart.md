@@ -36,11 +36,29 @@ rm apps/web-app/components/saveButton.tsx
 ```sh
 ls apps/web-app/components/SaveButton/   # expect: SaveButton.tsx, SaveButton.test.tsx, SaveButton.a11y.test.tsx, SaveButton.module.css all present
 pnpm lint:filenames                      # expect: no violation mentions any file in this folder
+
+ls apps/web-app/components/TokenTree/    # expect: TokenTree.tsx + all 4 test variants + TokenTree.module.css
+pnpm lint:filenames                      # expect: still zero violations — confirms the sub-extension fix (research.md §1a) works
+                                          #         for a component with more than one test file
 ```
 
 **US3 — documented convention** (FR-008):
 
 Consult `.specify/memory/constitution.md`'s Principle X (or a contributing guide, per how FR-008 is ultimately documented) for the expected structure; creating a new component folder following it should pass `pnpm lint:filenames` on the first attempt.
+
+**US4 — hooks/lib naming conventions are enforced** (FR-013–FR-016):
+
+```sh
+cp apps/web-app/hooks/useSaveTokenEdits.ts apps/web-app/hooks/use-save-token-edits.ts
+pnpm lint:filenames   # expect: non-zero exit, violation for apps/web-app/hooks/use-save-token-edits.ts (not camelCase)
+rm apps/web-app/hooks/use-save-token-edits.ts
+
+cp apps/web-app/lib/config.ts apps/web-app/lib/Config.ts
+pnpm lint:filenames   # expect: non-zero exit, violation for apps/web-app/lib/Config.ts (not kebab-case)
+rm apps/web-app/lib/Config.ts
+
+pnpm lint:filenames   # expect: exit 0 — every existing hooks/lib file already complies, no migration needed
+```
 
 ## Validate the migration itself
 

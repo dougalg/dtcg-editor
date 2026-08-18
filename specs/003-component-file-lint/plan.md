@@ -6,7 +6,7 @@
 
 ## Summary
 
-Add a repo-wide, automated check enforcing that every React component file has a PascalCase filename matching its component, and lives in its own dedicated folder alongside its co-located tests/styles. Migrate all existing non-conforming files (`apps/web-app/components/*` flat PascalCase files; `packages/design-system/src/components/ui/*` lowercase files) to comply, updating every internal import. The check is implemented with `@ls-lint/ls-lint`, a purpose-built filename/directory linter (MIT-licensed, npm-distributed prebuilt binary, no Go toolchain required), configured via a root `.ls-lint.yml` and wired into Turborepo's `lint` task as a task that runs in parallel with the existing `//#lint:root` Biome check, under the single `pnpm lint` command. No custom script is written — the earlier plan to hand-roll a Node/TypeScript-compiler-API script was superseded once `ls-lint`'s `regex:${0}` (parent-directory-name substitution) and `exists:N` (per-directory file-count) rules were confirmed to cover every FR without custom code. The one-component-per-file rule considered earlier (compound-component families like `card.tsx`) is explicitly out of scope for this feature — enforcing it would require content-parsing (reading which components a file exports), which `ls-lint` cannot do and which the project chose not to build a second custom tool for; this leaves Principle X's matching clause as a known, pre-existing gap, unchanged by this feature.
+Add a repo-wide, automated check enforcing that every React component file has a PascalCase filename matching its component, and lives in its own dedicated folder alongside its co-located tests/styles. Migrate all existing non-conforming files (`apps/web-app/components/*` flat PascalCase files; `packages/design-system/src/components/ui/*` lowercase files) to comply, updating every internal import. The check is implemented with `@ls-lint/ls-lint`, a purpose-built filename/directory linter (MIT-licensed, npm-distributed prebuilt binary, no Go toolchain required), configured via a root `.ls-lint.yml` and wired into Turborepo's `lint` task as a task that runs in parallel with the existing `//#lint:root` Biome check, under the single `pnpm lint` command. No custom script is written — the earlier plan to hand-roll a Node/TypeScript-compiler-API script was superseded once `ls-lint`'s `regex:${0}` (parent-directory-name substitution) and `exists:N` (per-directory file-count) rules were confirmed to cover every FR without custom code. The one-component-per-file rule considered earlier (compound-component families like `card.tsx`) is explicitly out of scope for this feature — enforcing it would require content-parsing (reading which components a file exports), which `ls-lint` cannot do and which the project chose not to build a second custom tool for; this leaves Principle X's matching clause as a known, pre-existing gap, unchanged by this feature. `/speckit-analyze` surfaced one CRITICAL coverage gap (FR-004: co-located test files sharing the `.tsx` terminal extension — e.g. `TokenTree.a11y.test.tsx` — were not distinguished from the component file itself in the originally planned `.tsx:` rule, which would have broken `exists:1` on every multi-test-file component); the fix is explicit sub-extension rule keys for those `.tsx`-suffixed test variants, folded into this plan below. (`.module.css` was not actually affected — it's already a distinct extension from `.tsx`, never at risk of being caught by that rule.) Scope was also extended, per explicit request, to add naming-convention enforcement (FR-013–FR-016) for `apps/web-app/hooks/` (camelCase) and `apps/web-app/lib/` (kebab-case) — two directories confirmed, by direct repository inspection, to already consistently follow those conventions today, so this addition needs no migration, only the rule itself.
 
 ## Technical Context
 
@@ -26,7 +26,7 @@ Add a repo-wide, automated check enforcing that every React component file has a
 
 **Constraints**: Must run under the single `pnpm lint` command, not a second command contributors/CI must separately invoke (FR-006). Since `ls-lint` is a separate program (not a Biome rule — Biome's Grit plugins see only one file's AST, never filenames or directory structure), it MUST be wired into Turborepo's task graph as a task that runs *in parallel* with the repo's other lint work, not serially appended after it: add `"//#lint:filenames"` as a second entry in `turbo.json`'s `"lint"` task `dependsOn`, alongside the existing `"//#lint:root"` entry. Turborepo schedules sibling `dependsOn` entries that don't depend on each other concurrently, so `//#lint:root` (Biome) and `//#lint:filenames` (`ls-lint`) run at the same time, both still under one `pnpm lint` invocation.
 
-**Scale/Scope**: ~13 component files in `apps/web-app/components/` (to be moved into per-component folders) + ~15 component files across `packages/design-system/src/components/ui/*` (to be renamed lowercase → PascalCase) migrated once; `ls-lint` then runs on every future `pnpm lint` invocation with no ongoing maintenance beyond `.ls-lint.yml` updates as new component locations are added.
+**Scale/Scope**: ~13 component files in `apps/web-app/components/` (to be moved into per-component folders) + ~19 component files across `packages/design-system/src/components/ui/*` (to be renamed lowercase → PascalCase) migrated once, plus ~2 files in `apps/web-app/hooks/` and ~24 files in `apps/web-app/lib/**` (naming rule only, already compliant, no migration); `ls-lint` then runs on every future `pnpm lint` invocation with no ongoing maintenance beyond `.ls-lint.yml` updates as new component/hook/lib locations are added.
 
 ## Constitution Check
 
@@ -59,8 +59,17 @@ specs/003-component-file-lint/
 
 ```text
 .ls-lint.yml                         # new — declares PascalCase filename, folder-placement, and
-                                      # folder-name-match rules for both component locations; excludes
-                                      # apps/web-app/app/ (Next.js reserved files) via its "ignore" list
+                                      # folder-name-match rules for both component locations, with
+                                      # explicit sub-extension keys (.test.tsx, .a11y.test.tsx,
+                                      # .generic-editor.test.tsx, .override.test.tsx) so co-located
+                                      # test files sharing the .tsx terminal extension are never
+                                      # caught by the .tsx rule or counted against its exists:1
+                                      # (fixes the analyze-surfaced FR-004 gap — .module.css needs no
+                                      # such fix, since it's already a distinct extension from .tsx);
+                                      # excludes apps/web-app/app/ (Next.js reserved files) via its
+                                      # "ignore" list; also declares a camelCase rule for
+                                      # apps/web-app/hooks/* and a kebab-case rule for
+                                      # apps/web-app/lib/** (FR-013–FR-016)
 
 turbo.json                           # add "//#lint:filenames" to the "lint" task's dependsOn,
                                       # alongside the existing "//#lint:root"
@@ -106,9 +115,13 @@ packages/design-system/src/components/ui/
 └── ...same rename pattern for the remaining accordion/alert/avatar/badge/checkbox/combobox/
     command/dialog/dropdown-menu/input/label/popover/radio-group/select/switch/tabs/textarea
     folders already present under ui/
+
+# Hooks/lib naming scope — no file moves, naming already compliant, rule-only addition:
+apps/web-app/hooks/       # camelCase rule (FR-013); useSaveTokenEdits.ts/.test.tsx already pass
+apps/web-app/lib/**       # kebab-case rule, applied recursively (FR-014); all ~24 existing files already pass
 ```
 
-**Structure Decision**: No new app, service, or package. This is (1) a new devDependency (`@ls-lint/ls-lint`) plus one root config file (`.ls-lint.yml`) wired into the existing Turborepo `lint` task exactly as `lint:root` already is, and (2) an in-place file migration within the two existing component directories (`apps/web-app/components/`, `packages/design-system/src/components/ui/`) — folder moves and renames, no directory relocation to a new top-level path. `apps/web-app/app/` (Next.js App Router) is untouched, per FR-010's exclusion of framework-reserved filenames.
+**Structure Decision**: No new app, service, or package. This is (1) a new devDependency (`@ls-lint/ls-lint`) plus one root config file (`.ls-lint.yml`) wired into the existing Turborepo `lint` task exactly as `lint:root` already is, and (2) an in-place file migration within the two existing component directories (`apps/web-app/components/`, `packages/design-system/src/components/ui/`) — folder moves and renames, no directory relocation to a new top-level path, plus (3) a naming-only rule addition for `apps/web-app/hooks/` and `apps/web-app/lib/**` that requires no file changes (both already compliant). `apps/web-app/app/` (Next.js App Router) is untouched, per FR-010's exclusion of framework-reserved filenames.
 
 ## Complexity Tracking
 
