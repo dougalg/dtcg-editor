@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
+import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 
 /**
  * `TokenTree.tsx` resolves editors through `../lib/token-editors/user-config.ts`
@@ -10,7 +10,7 @@ import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
  * `TokenTree.test.tsx`) since `vi.mock` is file-scoped — mixing it into the
  * main suite would mock the config for every other test there too.
  */
-vi.mock("../lib/token-editors/user-config.ts", () => ({
+vi.mock("../../lib/token-editors/user-config.ts", () => ({
 	default: {
 		tokensDir: "/virtual/tokens",
 		extensions: [

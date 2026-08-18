@@ -1,4 +1,4 @@
-import { FolderOverview } from "../components/FolderOverview.tsx";
+import { FolderOverview } from "../components/FolderOverview/FolderOverview.tsx";
 import { getConfig } from "../lib/config.ts";
 import { scanTokenDirectory } from "../lib/tokens/scan.ts";
 

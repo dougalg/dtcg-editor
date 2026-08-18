@@ -1,7 +1,7 @@
-import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
-import type { ClientEdit } from "../lib/tokens/edit-state.ts";
-import { TreeTokenNode } from "./TreeTokenNode.tsx";
-import { TreeGroupNode } from "./TreeGroupNode.tsx";
+import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
+import type { ClientEdit } from "../../lib/tokens/edit-state.ts";
+import { TreeTokenNode } from "../TreeTokenNode/TreeTokenNode.tsx";
+import { TreeGroupNode } from "../TreeGroupNode/TreeGroupNode.tsx";
 
 export interface FieldErrors {
 	readonly name: string | undefined;

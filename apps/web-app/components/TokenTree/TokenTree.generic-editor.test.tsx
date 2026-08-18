@@ -1,8 +1,8 @@
 import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
 import { render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import { BUILT_IN_TOKEN_TYPES } from "../lib/token-editors/built-in.ts";
-import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
+import { BUILT_IN_TOKEN_TYPES } from "../../lib/token-editors/built-in.ts";
+import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 
 /**
  * Proves FR-05's generalized "standard type with a registered editor" branch
@@ -25,10 +25,10 @@ if (typeWithoutBuiltIn === undefined) {
 	);
 }
 
-vi.mock("../lib/token-editors/user-config.ts", async () => {
+vi.mock("../../lib/token-editors/user-config.ts", async () => {
 	const { DTCG_TOKEN_TYPES } = await import("@dtcg-editor/token-core");
 	const { BUILT_IN_TOKEN_TYPES } = await import(
-		"../lib/token-editors/built-in.ts"
+		"../../lib/token-editors/built-in.ts"
 	);
 	const type = DTCG_TOKEN_TYPES.find(
 		(candidate) =>

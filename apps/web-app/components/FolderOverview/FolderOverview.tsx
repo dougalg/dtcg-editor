@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { TokenFileSummary } from "../lib/tokens/scan.ts";
+import type { TokenFileSummary } from "../../lib/tokens/scan.ts";
 import styles from "./FolderOverview.module.css";
 
 function hrefFor(relativePath: string): string {

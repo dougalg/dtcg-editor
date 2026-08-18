@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import axe from "axe-core";
 import { expect, test, vi } from "vitest";
-import { WCAG_22_AA_TAGS } from "../lib/a11y/wcag-tags.ts";
+import { WCAG_22_AA_TAGS } from "../../lib/a11y/wcag-tags.ts";
 import { SaveButton } from "./SaveButton.tsx";
 
 async function expectNoViolations(container: Element) {

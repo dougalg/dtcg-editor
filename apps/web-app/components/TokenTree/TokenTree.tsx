@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useSaveTokenEdits } from "../hooks/useSaveTokenEdits.ts";
-import type { ClientEdit } from "../lib/tokens/edit-state.ts";
-import { applyEditsToPlainNode } from "../lib/tokens/edit-state.ts";
-import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
-import type { SaveError } from "../lib/tokens/save-error.ts";
-import { SaveButton } from "./SaveButton.tsx";
-import { type EditablePatch, type FieldErrors, TreeNode } from "./TreeNode.tsx";
+import { useSaveTokenEdits } from "../../hooks/useSaveTokenEdits.ts";
+import type { ClientEdit } from "../../lib/tokens/edit-state.ts";
+import { applyEditsToPlainNode } from "../../lib/tokens/edit-state.ts";
+import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
+import type { SaveError } from "../../lib/tokens/save-error.ts";
+import { SaveButton } from "../SaveButton/SaveButton.tsx";
+import { type EditablePatch, type FieldErrors, TreeNode } from "../TreeNode/TreeNode.tsx";
 
 /** Renders a `SaveError` (see `hooks/useSaveTokenEdits.ts`) as a single display string. */
 function describeSaveError(error: SaveError): string {

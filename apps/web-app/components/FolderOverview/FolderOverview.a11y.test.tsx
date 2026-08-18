@@ -1,8 +1,8 @@
 import { render } from "@testing-library/react";
 import axe from "axe-core";
 import { expect, test } from "vitest";
-import { WCAG_22_AA_TAGS } from "../lib/a11y/wcag-tags.ts";
-import type { TokenFileSummary } from "../lib/tokens/scan.ts";
+import { WCAG_22_AA_TAGS } from "../../lib/a11y/wcag-tags.ts";
+import type { TokenFileSummary } from "../../lib/tokens/scan.ts";
 import { FolderOverview } from "./FolderOverview.tsx";
 
 function files(): readonly TokenFileSummary[] {

@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
-import type { TokenFileSummary } from "../lib/tokens/scan.ts";
+import type { TokenFileSummary } from "../../lib/tokens/scan.ts";
 import { FolderOverview } from "./FolderOverview.tsx";
 
 afterEach(() => {

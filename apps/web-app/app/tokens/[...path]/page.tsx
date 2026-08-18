@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TokenTree } from "../../../components/TokenTree.tsx";
+import { TokenTree } from "../../../components/TokenTree/TokenTree.tsx";
 import { getConfig } from "../../../lib/config.ts";
 import type { PlainDtcgNode } from "../../../lib/tokens/plain-node.ts";
 import { toPlainNode } from "../../../lib/tokens/plain-node.ts";
