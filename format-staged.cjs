@@ -11,7 +11,7 @@ const { execFileSync } = require("node:child_process");
 function getStagedFiles(exec) {
 	const output = exec(
 		"git",
-		["diff", "--cached", "--name-only", "--diff-filter=ACM", "-z"],
+		["diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z"],
 		{ encoding: "utf8" },
 	);
 	return output.split("\0").filter((file) => file.length > 0);
