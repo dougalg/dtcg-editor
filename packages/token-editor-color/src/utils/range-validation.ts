@@ -1,4 +1,8 @@
-import type { ColorComponent, ColorSpace, ColorValue } from "@dtcg-editor/token-core";
+import type {
+	ColorComponent,
+	ColorSpace,
+	ColorValue,
+} from "@dtcg-editor/token-core";
 
 interface ComponentRange {
 	readonly label: string;
