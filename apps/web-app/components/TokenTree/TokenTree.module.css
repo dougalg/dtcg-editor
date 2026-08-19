@@ -42,12 +42,10 @@
 .type {
 	font-size: 0.75rem;
 	color: var(--dtcg-ed-color-neutral-text-quiet);
-	opacity: 0.6;
 }
 
 .nonStandard {
 	color: var(--dtcg-ed-color-error-on-normal);
-	opacity: 1;
 }
 
 .value {
