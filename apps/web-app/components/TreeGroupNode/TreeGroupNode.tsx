@@ -1,5 +1,7 @@
 "use client";
 
+import { Input } from "@dtcg-editor/design-system/components/Input/Input.tsx";
+import { Label } from "@dtcg-editor/design-system/components/Label/Label.tsx";
 import type { ChangeEvent } from "react";
 import { useState } from "react";
 import {
@@ -91,14 +93,15 @@ export function TreeGroupNode({
 			>
 				{expanded ? "▾" : "▸"}
 			</button>
-			<label className={styles.field}>
-				<p className={styles.fieldLabel}>Group Name:</p>
-				<input
-					className={styles.groupName}
+			<Label>
+				Group Name:
+				<Input
+					type="text"
 					value={currentGroupName}
 					onChange={handleGroupNameChange}
+					data-inline
 				/>
-			</label>
+			</Label>
 			{groupErrors?.name !== undefined && (
 				<span role="alert">{groupErrors.name}</span>
 			)}

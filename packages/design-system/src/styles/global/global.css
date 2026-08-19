@@ -238,7 +238,7 @@ legend {
 
 /* Labels */
 label {
-	display: inline-block;
+	display: inline;
 	position: relative;
 	font: inherit;
 	color: var(--dtcg-ed-form-control-label-color);
@@ -261,7 +261,7 @@ label:has(
 			[type="image"],
 			[type="radio"],
 			[type="reset"],
-			[type="submit"]
+			[type="submit"] [type="text"]
 		),
 	textarea,
 	select
@@ -272,7 +272,7 @@ label:has(
 /* Spacing between label and input */
 label + :is(input:not([type="checkbox"], [type="radio"]), textarea, select),
 label > :is(input:not([type="checkbox"], [type="radio"]), textarea, select) {
-	margin-block-start: 0.5em;
+	margin-inline-start: var(--dtcg-ed-space-sm);
 }
 
 /* Checkbox/Radio alignment with labels */
@@ -348,8 +348,8 @@ input:not(
 ),
 textarea,
 select {
-	width: 100%;
 	height: var(--dtcg-ed-_form-control-height, 2.5rem);
+	width: 100%;
 	padding: 0 0.75em;
 
 	color: var(--dtcg-ed-form-control-value-color);
@@ -359,10 +359,10 @@ select {
 	vertical-align: middle;
 
 	background-color: var(--dtcg-ed-form-control-background-color, transparent);
-	border: var(--dtcg-ed-form-control-border-width, 1px)
+	border: none;
+	border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
 		var(--dtcg-ed-form-control-border-style, solid)
 		var(--dtcg-ed-form-control-border-color, currentColor);
-	border-radius: var(--dtcg-ed-form-control-radius, 0.25rem);
 
 	&::placeholder {
 		color: var(--dtcg-ed-form-control-placeholder-color, currentColor);
@@ -374,6 +374,11 @@ select {
 	&:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	&[data-inline] {
+		height: auto;
+		width: auto;
 	}
 }
 
