@@ -1,4 +1,4 @@
-# Feature Specification: CommonJS to ES Module Migration
+# Feature Specification: CommonJS to ES Module Migration & Modern-Defaults Constitution Principle
 
 **Feature Branch**: `004-cjs-to-esm-migration`
 
@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Refactor all CommonJS (.cjs, require/module.exports) files in the repo to ES modules, and add a constitution requirement to default to modern module syntax (ESM) over CommonJS where possible."
+**Input**: User description: "Refactor all CommonJS (.cjs, require/module.exports) files in the repo to ES modules, and add a constitution requirement to default to modern module syntax (ESM) over CommonJS where possible." Scope of the constitution change was later broadened: the new principle should express a general "use modern code, tools, and formats by default" rule, with the ESM-over-CommonJS case serving as one concrete example/application of it, not the rule's own subject.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -25,18 +25,19 @@ A contributor working anywhere in the repo — application code or root-level to
 
 ---
 
-### User Story 2 - Future contributor is steered toward ESM without needing to be told (Priority: P2)
+### User Story 2 - Future contributor is steered toward modern choices without needing to be told (Priority: P2)
 
-A contributor (human or AI agent) adding a new root-level script or config file in the future consults the project constitution (or has it enforced during review) and defaults to ESM syntax rather than CommonJS, without needing a teammate to point this out in review.
+A contributor (human or AI agent) making a choice of code style, tool, or file format in the future — module syntax being one instance of this, alongside others such as picking a config format, a CLI tool, or a language feature — consults the project constitution (or has it enforced during review) and defaults to the modern, currently-recommended option rather than a legacy one, without needing a teammate to point this out in review.
 
-**Why this priority**: Migrating existing files fixes the current inconsistency; without a durable, documented rule the repo will drift back toward mixed syntax the next time someone adds a root-level script, since root tooling scripts today default to CommonJS out of habit/precedent, not necessity.
+**Why this priority**: Migrating the existing CommonJS files fixes today's concrete inconsistency; without a durable, general-purpose rule the repo will keep accumulating legacy-by-default choices every time someone reaches for a new tool or format, since precedent and habit — not necessity — currently drive those choices. A rule scoped narrowly to ESM/CommonJS would fix this one recurrence but leave the same drift free to happen with the next legacy-vs-modern choice.
 
-**Independent Test**: Can be fully tested by reading `.specify/memory/constitution.md` and confirming it states a clear, unambiguous preference for ESM over CommonJS, with any legitimate exceptions named explicitly — independent of whether any code has been migrated yet.
+**Independent Test**: Can be fully tested by reading `.specify/memory/constitution.md` and confirming it states a clear, general "use modern code, tools, and formats by default" principle — independent of whether any code has been migrated yet — and that the ESM-over-CommonJS case is present as a concrete example of the principle, not as the principle's own scope.
 
 **Acceptance Scenarios**:
 
-1. **Given** the amended constitution, **When** a contributor or reviewer checks it while adding a new script or config file, **Then** they find an explicit rule that new files must use ESM syntax unless a named exception applies.
-2. **Given** a tool or dependency that only supports CommonJS configuration (a legitimate exception), **When** a contributor consults the constitution, **Then** the rule tells them how to handle that case (e.g., name the exception, note it must stay CommonJS) rather than leaving them to guess.
+1. **Given** the amended constitution, **When** a contributor or reviewer faces a choice between a modern and a legacy option for code, a tool, or a file format, **Then** they find a general principle stating modern defaults are required unless a named exception applies.
+2. **Given** the ESM-vs-CommonJS choice specifically, **When** a contributor reads the constitution, **Then** they find it referenced as a concrete example of the general principle (not a standalone module-syntax rule), so the same reasoning obviously extends to analogous future choices.
+3. **Given** a tool or dependency that only supports a legacy format or approach (a legitimate exception, e.g. CommonJS-only tooling), **When** a contributor consults the constitution, **Then** the rule tells them how to handle that case (name the exception explicitly, note why the legacy choice was unavoidable) rather than leaving them to guess.
 
 ---
 
@@ -53,15 +54,16 @@ A contributor (human or AI agent) adding a new root-level script or config file 
 
 - **FR-001**: All CommonJS files currently in the repository (`.cz-config.cjs`, `commitlint.config.cjs`, `commit-conventions.cjs`, `commit-conventions.test.cjs`, `format-staged.cjs`, `format-staged.test.cjs`) MUST be rewritten to use ES module syntax (`import`/`export`), with no remaining `require()` calls or `module.exports`/`exports.*` assignments in project-authored code.
 - **FR-002**: Every tool or process that currently consumes one of these files (the Husky pre-commit hook, `commitlint`, `commitizen`, and each file's own test suite) MUST continue to function correctly after migration, with no observable change in behavior.
-- **FR-003**: The project constitution (`.specify/memory/constitution.md`) MUST be amended to state that new code defaults to ES module syntax over CommonJS, following the constitution's existing amendment process (versioned, with a Sync Impact Report).
-- **FR-004**: The constitution amendment MUST name any legitimate, unavoidable exceptions (a tool or dependency that only accepts CommonJS configuration) and state that such exceptions must be called out explicitly (e.g., a comment noting why the file cannot be ESM) rather than left ambiguous.
-- **FR-005**: The migration MUST NOT change the observable behavior of any migrated script (its exit codes, output, or side effects), other than the module syntax itself.
-- **FR-006**: Where a `.cjs` file is renamed as part of migration (e.g. to `.js` or `.mjs`), all references to its old filename (Husky hook scripts, `package.json` fields such as `commitlint.config` or `config.commitizen.path`, import paths in other files) MUST be updated to match.
+- **FR-003**: The project constitution (`.specify/memory/constitution.md`) MUST be amended with a general principle stating that code, tools, and file formats default to the modern, currently-recommended choice over a legacy one, following the constitution's existing amendment process (versioned, with a Sync Impact Report).
+- **FR-004**: The constitution amendment MUST include the ESM-over-CommonJS module syntax rule as a concrete, explicitly-named example illustrating the general principle from FR-003 — the amendment's scope MUST NOT be limited to module syntax alone.
+- **FR-005**: The constitution amendment MUST state that legitimate, unavoidable exceptions (a tool or dependency that only accepts a legacy format or approach — e.g., CommonJS-only configuration) must be called out explicitly (e.g., a comment noting why the legacy choice was unavoidable) rather than left ambiguous, and this exception-handling rule MUST apply to the general principle, not only to the module-syntax example.
+- **FR-006**: The migration of the six identified `.cjs` files MUST NOT change the observable behavior of any migrated script (its exit codes, output, or side effects), other than the module syntax itself.
+- **FR-007**: Where a `.cjs` file is renamed as part of migration (e.g. to `.js` or `.mjs`), all references to its old filename (Husky hook scripts, `package.json` fields such as `commitlint.config` or `config.commitizen.path`, import paths in other files) MUST be updated to match.
 
 ### Key Entities
 
 - **Root-level tooling script**: A repo-authored `.cjs` file living outside `apps/`/`packages/` that supports the development workflow (git hooks, commit linting, commit message prompts, code formatting-on-commit) rather than shipping as part of an application or package.
-- **Constitution principle**: A versioned rule in `.specify/memory/constitution.md` governing module syntax, subject to the constitution's own amendment/versioning process.
+- **Constitution principle**: A versioned rule in `.specify/memory/constitution.md` stating a general preference for modern code, tools, and formats over legacy ones, subject to the constitution's own amendment/versioning process. The ESM-over-CommonJS rule is one named example under this principle, not the principle itself.
 
 ## Success Criteria _(mandatory)_
 
@@ -69,12 +71,12 @@ A contributor (human or AI agent) adding a new root-level script or config file 
 
 - **SC-001**: Zero `require()` calls or `module.exports`/`exports.*` assignments remain in project-authored files in the repository (excluding third-party/vendored/generated files).
 - **SC-002**: 100% of the identified tooling workflows (pre-commit formatting, commit message linting, commitizen prompt, and each script's own test suite) pass after migration, with the same results as before migration.
-- **SC-003**: The constitution contains an explicit, unambiguous ESM-over-CommonJS rule that a contributor can locate and apply without asking a teammate, verified by a reviewer being able to answer "what module syntax should this new file use, and why" using only the constitution text.
-- **SC-004**: Any future addition of a CommonJS file to the repo (outside a named exception) is identifiable as a constitution violation by inspection, without requiring new tooling to be built as part of this feature.
+- **SC-003**: The constitution contains an explicit, unambiguous "modern by default" principle — with the ESM-over-CommonJS case named as one example — that a contributor can locate and apply without asking a teammate, verified by a reviewer being able to answer both "what module syntax should this new file use, and why" and "how should I decide between a modern and legacy option for an unrelated tool/format choice" using only the constitution text.
+- **SC-004**: Any future addition of a CommonJS file to the repo, or any other legacy-over-modern choice the constitution's principle covers (outside a named exception), is identifiable as a constitution violation by inspection, without requiring new tooling to be built as part of this feature.
 
 ## Assumptions
 
 - Scope is limited to files the project authors and currently controls — the six `.cjs` files identified at spec time (`.cz-config.cjs`, `commitlint.config.cjs`, `commit-conventions.cjs`, `commit-conventions.test.cjs`, `format-staged.cjs`, `format-staged.test.cjs`) — plus the constitution amendment. No `require()` usage was found elsewhere in the repo's `.js`/`.ts` files at spec time.
-- "Where possible" (from the feature description) means: ESM is the default and required for all project-authored code; CommonJS remains acceptable only where a specific, named third-party tool or Node/runtime constraint leaves no ESM-compatible alternative.
-- Root `package.json` currently has no `"type"` field (Node's implicit default: `.js` files are CommonJS, `.mjs` is ESM, `.cjs` is always CommonJS). This spec does not itself decide whether the root `package.json` gains `"type": "module"` or whether migrated files are renamed to `.mjs` while remaining `.js` — that mechanism is a planning-time decision, not a specification-time one, as long as the end state satisfies FR-001–FR-006.
+- "Where possible" (from the feature description) means: ESM is the default and required for all project-authored code; CommonJS remains acceptable only where a specific, named third-party tool or Node/runtime constraint leaves no ESM-compatible alternative. This is the concrete instance of the broader constitution principle (FR-003): the general rule is "default to modern code, tools, and formats," and ESM-over-CommonJS is the worked example that motivated it, not the rule's boundary. The constitution amendment itself is written at the general level; enumerating every other legacy-vs-modern choice the principle could apply to is out of scope for this feature.
+- Root `package.json` currently has no `"type"` field (Node's implicit default: `.js` files are CommonJS, `.mjs` is ESM, `.cjs` is always CommonJS). This spec does not itself decide whether the root `package.json` gains `"type": "module"` or whether migrated files are renamed to `.mjs` while remaining `.js` — that mechanism is a planning-time decision, not a specification-time one, as long as the end state satisfies FR-001–FR-002 and FR-006–FR-007.
 - This migration only concerns root-level tooling scripts; application and package source under `apps/` and `packages/` is not known to contain CommonJS today and is out of scope unless a future audit finds otherwise.
