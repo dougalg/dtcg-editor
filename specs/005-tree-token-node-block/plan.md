@@ -1,8 +1,8 @@
 # Implementation Plan: TreeTokenNode Block Extraction & Label Redesign
 
-**Branch**: `004-tree-token-node-block` | **Date**: 2026-08-20 | **Spec**: [spec.md](./spec.md)
+**Branch**: `005-tree-token-node-block` | **Date**: 2026-08-20 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Feature specification from `/specs/004-tree-token-node-block/spec.md`
+**Input**: Feature specification from `/specs/005-tree-token-node-block/spec.md`
 
 ## Summary
 
@@ -45,7 +45,7 @@ No violations requiring the Complexity Tracking table.
 ### Documentation (this feature)
 
 ```text
-specs/004-tree-token-node-block/
+specs/005-tree-token-node-block/
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output (/speckit-plan command)
 ├── data-model.md         # Phase 1 output (/speckit-plan command)
