@@ -23,12 +23,17 @@ Repo-authored file outside `apps/`/`packages/` supporting the dev workflow.
 | `format-staged.test.cjs` → `format-staged.test.mjs` | esm | `package.json` `test:format-staged` | — |
 | `commitlint.config.cjs` → `commitlint.config.mjs` | esm | `commitlint` (cosmiconfig auto-discovery) | — |
 | `commit-conventions.test.cjs` → `commit-conventions.test.mjs` | esm | `package.json` `test:commits` | — |
-| `.cz-config.cjs` | commonjs | `cz-customizable` (via `package.json` `config["cz-customizable"].config`) | `cz-customizable` loads its config via synchronous `require()` with no ESM support |
-| `commit-conventions.cjs` | commonjs | `.cz-config.cjs` (`require()`), `commitlint.config.mjs` (`import`, CJS interop) | Required directly, by filename, from `.cz-config.cjs`, which itself must stay CommonJS |
+| `commit-conventions.cjs` → `commit-conventions.json` | json (n/a — pure data) | `commitlint.config.mjs` (`import`, JSON import attribute) | — |
+| `.cz-config.cjs` | *(deleted)* | was `cz-customizable`; adapter replaced by `@commitlint/cz-commitlint`, which needs no separate config file | — |
+
+No CommonJS exception remains in this feature: replacing `cz-customizable` with
+`@commitlint/cz-commitlint` (research.md) removed the one tool constraint that
+previously forced `.cz-config.cjs`/`commit-conventions.cjs` to stay CommonJS.
 
 **Validation rule**: A `root-level tooling script` MUST have `module_syntax = esm`
-unless `exception_reason` is set and non-empty (constitution amendment's exception
-clause, FR-005).
+(or be plain JSON, for pure-data files) unless `exception_reason` is set and
+non-empty (constitution amendment's exception clause, FR-005) — currently no
+instance in this feature needs that clause.
 
 ## Constitution principle
 

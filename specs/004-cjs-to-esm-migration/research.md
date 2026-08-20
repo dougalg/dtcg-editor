@@ -7,51 +7,86 @@ renaming/rewriting that ESM is actually supported for each of the six files, sin
 forcing an unsupported format breaks the tool." Each consuming tool was checked
 against its actual config-loading mechanism (not just tool marketing docs).
 
-### Decision: `.cz-config.cjs` and `commit-conventions.cjs` stay CommonJS (named exception)
+### Superseded: `.cz-config.cjs` and `commit-conventions.cjs` staying CommonJS
 
-**Rationale**: `cz-customizable` (the `commitizen` adapter behind `pnpm commit`,
-resolved via `package.json`'s `config.commitizen.path` / `config["cz-customizable"].config`)
-loads its config file with a synchronous `require()` call in its own source
-(`lib/read-config-file.js`), with no `import()`/ESM-aware loading path at all. This
-is a genuine third-party constraint, not a preference — forcing `.cz-config` to be
-ESM-only would break `pnpm commit` outright. `commit-conventions.cjs` is `require()`d
-*directly by* `.cz-config.cjs` (`const { types, scopes } = require("./commit-conventions.cjs")`),
-so it inherits the same constraint transitively: as long as anything in the
-`require()` chain from `cz-customizable` must resolve synchronously via `require()`,
-every file in that chain has to stay loadable that way. Node's `require(esm)`
-interop for synchronous CJS→ESM loading has real caveats (e.g. it can't cross
-files using top-level `await`) and isn't something `cz-customizable` itself
-opts into, so relying on it here would be fragile and outside this feature's
-control. This satisfies the spec's FR-005 exception clause: the exception is named
-explicitly, both here and with an inline comment in the two files themselves.
+An earlier pass of this research concluded `.cz-config.cjs` and `commit-conventions.cjs`
+had to stay CommonJS, because `cz-customizable` (the `commitizen` adapter behind
+`pnpm commit`) loads its config file with a synchronous `require()` call in its own
+source (`lib/read-config-file.js`), with no ESM-aware loading path at all — a
+genuine tool constraint, not a preference.
+
+That finding is still technically correct, but a follow-up question — "why
+`cz-customizable` at all?" — surfaced a better fix than accepting the exception.
+Tracing it back to `docs/specs-archive/202607251245-enforce-conventional-commits/plan.md`:
+`cz-customizable` was chosen over the more common `cz-conventional-changelog`
+adapter specifically because `cz-conventional-changelog` can't drive its scope list
+from an external file — `cz-customizable`'s only job here was letting commitizen and
+commitlint share one type/scope list via a `require()`-able JS config, so the two
+could never drift apart. See the decision below: `@commitlint/cz-commitlint`
+achieves that same goal more directly, which removes the constraint instead of
+accepting it.
+
+### Decision: replace `cz-customizable` with `@commitlint/cz-commitlint`; delete `.cz-config.cjs`
+
+**Rationale**: `@commitlint/cz-commitlint` is a commitizen adapter maintained by the
+commitlint project itself. Instead of reading a separate config file, it derives its
+interactive prompts (types, scopes, breaking-change handling) directly from the
+project's own `commitlint.config` at runtime. This satisfies the original "shared
+source of truth" goal *more* directly than `cz-customizable` did — there is no
+longer a second config file to keep in sync at all, so there's nothing left that
+forces a CommonJS exception. `.cz-config.cjs` is deleted (FR-008), not migrated.
+Wiring: `package.json`'s `config.commitizen.path` changes from `"cz-customizable"`
+to `"@commitlint/cz-commitlint"`; the `config["cz-customizable"].config` override
+entry is removed entirely; `cz-customizable` is removed from `devDependencies` and
+`@commitlint/cz-commitlint` (plus its `inquirer` peer dependency) is added, each via
+`pnpm remove`/`pnpm add` per this repo's CLAUDE.md convention.
 
 **Alternatives considered**:
 
-- *Convert anyway and hope Node's `require(esm)` interop covers it*: rejected —
-  undocumented/unsupported by the tool itself, and would silently break `pnpm commit`
-  the moment either file's shape triggers an unsupported case.
-- *Replace `cz-customizable` with an ESM-native commitizen adapter*: rejected as
-  out of scope — the spec's scope is module-syntax migration of the six existing
-  files, not a tooling swap; swapping adapters risks changing the interactive
-  commit prompt's behavior, which FR-002/FR-006 explicitly rule out.
-- *Vendor/copy `commit-conventions` types+scopes inline into `.cz-config.cjs` only,
-  migrate the "real" `commit-conventions.cjs` used by commitlint to ESM*: rejected —
-  reintroduces the exact drift risk `commit-conventions.cjs`'s own file comment
-  says it exists to prevent (single source of truth for types/scopes).
+- *Keep `cz-customizable`, accept `.cz-config.cjs`/`commit-conventions.cjs` as a
+  named CommonJS exception* (the original decision): superseded — technically valid
+  per FR-005, but leaves a tool in place whose only reason for being there
+  (shared source of truth) is better solved by removing it.
+- *Keep `cz-customizable`, point it at a generated/duplicated JSON config*:
+  rejected — `cz-customizable`'s config needs computed display fields (a padded
+  `name` string per type) that plain JSON can't express without either duplicating
+  data (drift risk) or adding a build/generate step neither commitlint nor any
+  other tool in this repo needs; `@commitlint/cz-commitlint` sidesteps the whole
+  problem instead of working around it.
+- *Vendor/copy `commit-conventions` types+scopes inline into `.cz-config.cjs` only*:
+  rejected — same drift risk as above, and moot once `.cz-config.cjs` is deleted.
+
+### Decision: `commit-conventions.cjs` becomes `commit-conventions.json` (plain data, no module syntax)
+
+**Rationale**: With `.cz-config.cjs` gone, the only remaining consumer of
+`commit-conventions`'s types/scopes is `commitlint.config.mjs`. The file has always
+held pure data (arrays of `{ value, description }` objects, no functions) — the
+`require()`/`module.exports` wrapper around it was only ever there because
+`cz-customizable` needed something `require()`-able. Since JSON is natively
+importable by both `require()` (already, today) and ESM `import` (with an import
+attribute, e.g. `import commitConventions from "./commit-conventions.json" with { type: "json" }`),
+converting it to plain `.json` is the correct "modern format by default" outcome
+this feature's constitution principle asks for — it isn't CommonJS *or* ESM, it's
+data, so the question of module syntax doesn't apply to it at all. `commitlint.config.mjs`
+imports it directly and computes the `type-enum`/`scope-enum` rule arrays with
+`.map()` in its own ESM code, exactly matching what the user asked for ("commitlint
+should be able to import the types and scopes from the json file directly").
+
+**Alternatives considered**: Leaving it as `commit-conventions.cjs` — rejected, no
+longer has any consumer requiring CommonJS once `.cz-config.cjs` is gone, so keeping
+the CJS wrapper around pure data would be an unjustified legacy holdover.
 
 ### Decision: `commitlint.config.cjs` migrates to ESM (`commitlint.config.mjs`)
 
 **Rationale**: `commitlint` resolves its config via `cosmiconfig`, which explicitly
 supports `commitlint.config.mjs` (and `.js` under `"type": "module"`) alongside the
-CJS variants. Confirmed against commitlint's own configuration reference. Since
-`commit-conventions.cjs` remains CommonJS (see above), the ESM `commitlint.config.mjs`
-imports it as a CJS interop import (`import commitConventions from "./commit-conventions.cjs"`),
-which Node's ESM loader supports natively — no `require()` needed on this side.
+CJS variants. Confirmed against commitlint's own configuration reference.
+`commitlint.config.mjs` imports `commit-conventions.json` directly (see above) —
+plain JSON, no CJS/ESM interop concerns either way.
 
 **Alternatives considered**: Leaving it as `.cjs` since it also touches
-`commit-conventions.cjs` — rejected; unlike `cz-customizable`, `commitlint` has no
-constraint forcing this, and User Story 1's value (one consistent syntax) is lost
-for no reason if this file stays CJS just because a neighbor must.
+`commit-conventions.json` — rejected; `commitlint` has no constraint forcing this,
+and User Story 1's value (one consistent syntax) is lost for no reason.
 
 ### Decision: `format-staged.cjs` / `format-staged.test.cjs` migrate to ESM (`.mjs`)
 
@@ -65,12 +100,11 @@ and the `test:format-staged` package.json script updated to reference the new
 
 ### Decision: `commit-conventions.test.cjs` migrates to ESM (`commit-conventions.test.mjs`)
 
-**Rationale**: This test exercises `commit-conventions.cjs`'s exported values. The
-*test* itself has no third-party loader constraint (run via `node --test`, which
-supports ESM natively) — only the file being tested (`commit-conventions.cjs`) must
-stay CJS, per the `cz-customizable` constraint above. An ESM test file can import a
-CommonJS module directly (`import { types, scopes } from "./commit-conventions.cjs"`),
-so the test migrates while its subject does not.
+**Rationale**: This test exercises `commit-conventions.json`'s data. `node --test`
+supports `.mjs` test files natively, and an ESM file can import JSON directly (same
+import-attribute mechanism as `commitlint.config.mjs` uses), so both the test and
+its subject are now free of CommonJS — no exception needed anywhere in this chain
+once `.cz-config.cjs` is gone.
 
 ## Mechanism: file renames, not a root `"type": "module"` field
 
@@ -81,12 +115,9 @@ under a new root `package.json` `"type": "module"` field).
 existing or future root-level `.js` file defaults to CommonJS interpretation.
 Adding `"type": "module"` would silently flip that default for every other
 root-level `.js` file (present or future), which is a repo-wide blast radius far
-outside this feature's six-file scope. `.mjs` is always ESM regardless of the
-`package.json` `"type"` field, so renaming to `.mjs` scopes the change precisely to
-the files actually being migrated, with no effect on anything else. The two files
-staying CommonJS keep the `.cjs` extension, which is unambiguous regardless of
-`"type"` and matches Node's own recommended way to keep an explicit CommonJS file
-in an otherwise-ESM-leaning codebase.
+outside this feature's scope. `.mjs` is always ESM regardless of the `package.json`
+`"type"` field, so renaming to `.mjs` scopes the change precisely to the files
+actually being migrated, with no effect on anything else.
 
 **Alternatives considered**: Root `"type": "module"` + rename migrated files to
 `.js`: rejected per above (repo-wide blast radius). Leaving migrated files as `.js`
@@ -99,15 +130,19 @@ default, defeating the migration entirely.
 | --- | --- | --- |
 | `format-staged.cjs` | `format-staged.mjs` | `.husky/prepare-commit-msg` (`node format-staged.cjs` → `node format-staged.mjs`); `package.json` `lint:root` script file list |
 | `format-staged.test.cjs` | `format-staged.test.mjs` | `package.json` `test:format-staged` script |
+| `commit-conventions.cjs` | `commit-conventions.json` | `commitlint.config.mjs` import path (and its own JSON-import-attribute syntax); `package.json` `lint:root` script file list |
 | `commit-conventions.test.cjs` | `commit-conventions.test.mjs` | `package.json` `test:commits` script |
 | `commitlint.config.cjs` | `commitlint.config.mjs` | None explicit — `commitlint` auto-discovers via cosmiconfig; only `package.json` `lint:root` script file list needs updating |
-| `.cz-config.cjs` | *(unchanged, stays `.cz-config.cjs`)* | None — already referenced by exact filename in `package.json`'s `config["cz-customizable"].config` |
-| `commit-conventions.cjs` | *(unchanged, stays `commit-conventions.cjs`)* | None — required by filename from `.cz-config.cjs` and imported by filename from `commitlint.config.mjs` |
+| `.cz-config.cjs` | *(deleted)* | `package.json` `config.commitizen.path` (`"cz-customizable"` → `"@commitlint/cz-commitlint"`); `config["cz-customizable"].config` entry removed; `lint:root` script file list drops it; `cz-customizable` devDependency removed, `@commitlint/cz-commitlint` + `inquirer` added |
 
 `package.json`'s `lint:root` script (`biome lint commit-conventions.cjs
 commitlint.config.cjs .cz-config.cjs commit-conventions.test.cjs format-staged.cjs
-format-staged.test.cjs`) lists all six files by name and must be updated to the new
-filenames for the four that rename.
+format-staged.test.cjs`) lists all six original files by name. Its updated file
+list drops `.cz-config.cjs` (deleted) and renames the rest:
+`biome lint commitlint.config.mjs commit-conventions.test.mjs format-staged.mjs
+format-staged.test.mjs`. Whether `commit-conventions.json` also belongs in that
+list depends on Biome's JSON-linting support/config in this repo — confirmed
+during implementation, not a research blocker.
 
 ## Constitution amendment shape
 
