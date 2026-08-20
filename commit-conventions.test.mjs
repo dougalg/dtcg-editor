@@ -1,10 +1,10 @@
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const { execFileSync } = require("node:child_process");
-const path = require("node:path");
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+import { test } from "node:test";
 
 const commitlintBin = path.join(
-	__dirname,
+	import.meta.dirname,
 	"node_modules",
 	".bin",
 	"commitlint",

@@ -4,11 +4,12 @@
  *
  * Git/Biome calls go through an injected `exec` function so this
  * module's logic can be unit-tested without a real git repo or a real
- * Biome invocation (see format-staged.test.cjs).
+ * Biome invocation (see format-staged.test.mjs).
  */
-const { execFileSync } = require("node:child_process");
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
-function getStagedFiles(exec) {
+export function getStagedFiles(exec) {
 	const output = exec(
 		"git",
 		["diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z"],
@@ -28,7 +29,7 @@ function getStagedFiles(exec) {
  * ("no files were processed") rather than a silent no-op, so a commit
  * touching only `.md` files would otherwise always fail the hook.
  */
-function filterFormattableFiles(files, exec) {
+export function filterFormattableFiles(files, exec) {
 	if (files.length === 0) {
 		return files;
 	}
@@ -46,7 +47,7 @@ function filterFormattableFiles(files, exec) {
 	return files.filter((file) => !symlinks.has(file) && !file.endsWith(".md"));
 }
 
-function formatStagedFiles(files, exec) {
+export function formatStagedFiles(files, exec) {
 	if (files.length === 0) {
 		return;
 	}
@@ -66,14 +67,14 @@ function formatStagedFiles(files, exec) {
 	);
 }
 
-function restageStagedFiles(files, exec) {
+export function restageStagedFiles(files, exec) {
 	if (files.length === 0) {
 		return;
 	}
 	exec("git", ["add", "--", ...files], { stdio: "inherit" });
 }
 
-function main(exec) {
+export function main(exec) {
 	const files = getStagedFiles(exec);
 	if (files.length === 0) {
 		return;
@@ -83,7 +84,7 @@ function main(exec) {
 	restageStagedFiles(formattable, exec);
 }
 
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	try {
 		main(execFileSync);
 	} catch (error) {
@@ -91,11 +92,3 @@ if (require.main === module) {
 		process.exit(1);
 	}
 }
-
-module.exports = {
-	getStagedFiles,
-	filterFormattableFiles,
-	formatStagedFiles,
-	restageStagedFiles,
-	main,
-};

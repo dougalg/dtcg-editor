@@ -1,12 +1,12 @@
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const {
-	getStagedFiles,
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import {
 	filterFormattableFiles,
 	formatStagedFiles,
-	restageStagedFiles,
+	getStagedFiles,
 	main,
-} = require("./format-staged.cjs");
+	restageStagedFiles,
+} from "./format-staged.mjs";
 
 /**
  * Records every call instead of touching a real git repo or Prettier
