@@ -22,8 +22,8 @@ description: "Task list for CommonJS to ES Module Migration & Modern-Defaults Co
 
 **Purpose**: Swap the commitizen adapter dependency before any file that references it can be finished.
 
-- [ ] T001 Remove the `cz-customizable` devDependency: `pnpm remove cz-customizable` (repo root)
-- [ ] T002 Add the replacement commitizen adapter and its peer dependency: `pnpm add -D -w @commitlint/cz-commitlint inquirer` (repo root) — depends on T001 (sequential: both edit `package.json`/`pnpm-lock.yaml`)
+- [X] T001 Remove the `cz-customizable` devDependency: `pnpm remove cz-customizable` (repo root)
+- [X] T002 Add the replacement commitizen adapter and its peer dependency: `pnpm add -D -w @commitlint/cz-commitlint inquirer` (repo root) — depends on T001 (sequential: both edit `package.json`/`pnpm-lock.yaml`)
 
 **Checkpoint**: `package.json`'s `devDependencies` list `@commitlint/cz-commitlint` and `inquirer`, no longer `cz-customizable`.
 
@@ -43,17 +43,17 @@ description: "Task list for CommonJS to ES Module Migration & Modern-Defaults Co
 
 ### Implementation for User Story 1
 
-- [ ] T003 [US1] Convert `commit-conventions.cjs` to `commit-conventions.json` in repo root: same `types`/`scopes` data (`{value, description}` arrays), pure JSON with no `require()`/`module.exports` wrapper; delete the old `.cjs` file
-- [ ] T004 [US1] Delete `.cz-config.cjs` from repo root — no longer needed once `@commitlint/cz-commitlint` replaces `cz-customizable` (research.md)
-- [ ] T005 [US1] Rewrite `commitlint.config.cjs` as `commitlint.config.mjs` in repo root: `import` `commit-conventions.json` via a JSON import attribute (`with { type: "json" }`), build `type-enum`/`scope-enum` rules with `.map()` in ESM, `export default`; delete the old `.cjs` file — depends on T003
-- [ ] T006 [US1] Rewrite `format-staged.cjs` as `format-staged.mjs` in repo root: convert `require()`/`module.exports` to `import`/`export`, preserving the injected-`exec` structure documented in the file's own header exactly as-is; delete the old `.cjs` file
-- [ ] T007 [US1] Rewrite `format-staged.test.cjs` as `format-staged.test.mjs` in repo root: convert to `import`/`export`, updating its import of the module under test to `./format-staged.mjs`; delete the old `.cjs` file — depends on T006
-- [ ] T008 [US1] Rewrite `commit-conventions.test.cjs` as `commit-conventions.test.mjs` in repo root: convert to `import`/`export`, updating its import to `./commit-conventions.json` (JSON import attribute); delete the old `.cjs` file — depends on T003
-- [ ] T009 [US1] Update `package.json` in repo root: `config.commitizen.path` → `"@commitlint/cz-commitlint"`; remove the `config["cz-customizable"]` block entirely; `test:commits` script → `node --test commit-conventions.test.mjs`; `test:format-staged` script → `node --test format-staged.test.mjs`; `lint:root` script's file list → `commitlint.config.mjs commit-conventions.test.mjs format-staged.mjs format-staged.test.mjs` (drop `.cz-config.cjs`; confirm whether Biome should also lint `commit-conventions.json` and include it if so) — depends on T002–T008
-- [ ] T010 [US1] Update `.husky/prepare-commit-msg` in repo root: `node format-staged.cjs` → `node format-staged.mjs` — depends on T006
-- [ ] T011 [US1] Run `pnpm test:commits` and `pnpm test:format-staged` (repo root) and fix any failures until both pass — depends on T009
-- [ ] T012 [US1] Run `pnpm lint:root` (repo root) and fix any Biome findings on the rewritten files until it passes — depends on T009
-- [ ] T013 [US1] Manually validate the live commit workflow per `quickstart.md` §3: an empty throwaway commit exercises `.husky/prepare-commit-msg` and `.husky/commit-msg` without error, then `pnpm commit` launches the `@commitlint/cz-commitlint` prompt with the same types/scopes as before migration (Ctrl+C out, no real commit needed) — depends on T010, T011, T012
+- [X] T003 [US1] Convert `commit-conventions.cjs` to `commit-conventions.json` in repo root: same `types`/`scopes` data (`{value, description}` arrays), pure JSON with no `require()`/`module.exports` wrapper; delete the old `.cjs` file
+- [X] T004 [US1] Delete `.cz-config.cjs` from repo root — no longer needed once `@commitlint/cz-commitlint` replaces `cz-customizable` (research.md)
+- [X] T005 [US1] Rewrite `commitlint.config.cjs` as `commitlint.config.mjs` in repo root: `import` `commit-conventions.json` via a JSON import attribute (`with { type: "json" }`), build `type-enum`/`scope-enum` rules with `.map()` in ESM, `export default`; delete the old `.cjs` file — depends on T003
+- [X] T006 [US1] Rewrite `format-staged.cjs` as `format-staged.mjs` in repo root: convert `require()`/`module.exports` to `import`/`export`, preserving the injected-`exec` structure documented in the file's own header exactly as-is; delete the old `.cjs` file
+- [X] T007 [US1] Rewrite `format-staged.test.cjs` as `format-staged.test.mjs` in repo root: convert to `import`/`export`, updating its import of the module under test to `./format-staged.mjs`; delete the old `.cjs` file — depends on T006
+- [X] T008 [US1] Rewrite `commit-conventions.test.cjs` as `commit-conventions.test.mjs` in repo root: convert to `import`/`export`, updating its import to `./commit-conventions.json` (JSON import attribute); delete the old `.cjs` file — depends on T003
+- [X] T009 [US1] Update `package.json` in repo root: `config.commitizen.path` → `"@commitlint/cz-commitlint"`; remove the `config["cz-customizable"]` block entirely; `test:commits` script → `node --test commit-conventions.test.mjs`; `test:format-staged` script → `node --test format-staged.test.mjs`; `lint:root` script's file list → `commitlint.config.mjs commit-conventions.test.mjs format-staged.mjs format-staged.test.mjs` (drop `.cz-config.cjs`; confirm whether Biome should also lint `commit-conventions.json` and include it if so) — depends on T002–T008
+- [X] T010 [US1] Update `.husky/prepare-commit-msg` in repo root: `node format-staged.cjs` → `node format-staged.mjs` — depends on T006
+- [X] T011 [US1] Run `pnpm test:commits` and `pnpm test:format-staged` (repo root) and fix any failures until both pass — depends on T009
+- [X] T012 [US1] Run `pnpm lint:root` (repo root) and fix any Biome findings on the rewritten files until it passes — depends on T009
+- [X] T013 [US1] Manually validate the live commit workflow per `quickstart.md` §3: an empty throwaway commit exercises `.husky/prepare-commit-msg` and `.husky/commit-msg` without error, then `pnpm commit` launches the `@commitlint/cz-commitlint` prompt with the same types/scopes as before migration (Ctrl+C out, no real commit needed) — depends on T010, T011, T012
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — no CommonJS remains in this feature's file set, and the commit workflow works end-to-end under the new adapter.
 
@@ -67,8 +67,8 @@ description: "Task list for CommonJS to ES Module Migration & Modern-Defaults Co
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Add a new Core Principle to `.specify/memory/constitution.md` (after the existing Principle X, so XI): title along the lines of "Modern Defaults", stating that code, tools, and file formats default to the modern, currently-recommended choice over a legacy one; name ESM-over-CommonJS as the concrete example; state that legitimate exceptions (a tool/dependency that only supports a legacy format) must be named explicitly in place (e.g., a comment) rather than left ambiguous — per `research.md`'s "Constitution amendment shape" and `spec.md` FR-003–FR-005
-- [ ] T015 [US2] Update `.specify/memory/constitution.md`'s Sync Impact Report (prepended comment block, matching the existing entries' format) and the `**Version**: ... | **Ratified**: ... | **Last Amended**: ...` footer line: MINOR version bump (new principle added, nothing removed/redefined), `Last Amended` set to today's date — depends on T014 (same file)
+- [X] T014 [US2] Add a new Core Principle to `.specify/memory/constitution.md` (after the existing Principle X, so XI): title along the lines of "Modern Defaults", stating that code, tools, and file formats default to the modern, currently-recommended choice over a legacy one; name ESM-over-CommonJS as the concrete example; state that legitimate exceptions (a tool/dependency that only supports a legacy format) must be named explicitly in place (e.g., a comment) rather than left ambiguous — per `research.md`'s "Constitution amendment shape" and `spec.md` FR-003–FR-005
+- [X] T015 [US2] Update `.specify/memory/constitution.md`'s Sync Impact Report (prepended comment block, matching the existing entries' format) and the `**Version**: ... | **Ratified**: ... | **Last Amended**: ...` footer line: MINOR version bump (new principle added, nothing removed/redefined), `Last Amended` set to today's date — depends on T014 (same file)
 
 **Checkpoint**: User Story 2 is fully functional and independently testable — the constitution documents the principle regardless of migration progress.
 
@@ -78,9 +78,9 @@ description: "Task list for CommonJS to ES Module Migration & Modern-Defaults Co
 
 **Purpose**: Cleanup that spans both stories.
 
-- [ ] T016 [P] Update `CONTRIBUTING.md`'s reference to `commit-conventions.cjs` (line ~57, "see `commit-conventions.cjs`, the single source of truth...") to `commit-conventions.json`, and adjust the surrounding sentence if it implies `pnpm commit` reads the file directly (it now reads it indirectly, via `commitlint.config.mjs` and `@commitlint/cz-commitlint`) (repo root `CONTRIBUTING.md`)
-- [ ] T017 [P] Search the repo for any other stale reference to `cz-customizable`, `.cz-config.cjs`, `commit-conventions.cjs`, `commitlint.config.cjs`, `format-staged.cjs`, or `format-staged.test.cjs` (`grep -rn` across root docs/config, excluding `node_modules`/`.git`) and update or remove each hit
-- [ ] T018 Run the full `quickstart.md` validation sequence (§1–§4) end-to-end as a final sanity check covering both user stories together
+- [X] T016 [P] Update `CONTRIBUTING.md`'s reference to `commit-conventions.cjs` (line ~57, "see `commit-conventions.cjs`, the single source of truth...") to `commit-conventions.json`, and adjust the surrounding sentence if it implies `pnpm commit` reads the file directly (it now reads it indirectly, via `commitlint.config.mjs` and `@commitlint/cz-commitlint`) (repo root `CONTRIBUTING.md`)
+- [X] T017 [P] Search the repo for any other stale reference to `cz-customizable`, `.cz-config.cjs`, `commit-conventions.cjs`, `commitlint.config.cjs`, `format-staged.cjs`, or `format-staged.test.cjs` (`grep -rn` across root docs/config, excluding `node_modules`/`.git`) and update or remove each hit
+- [X] T018 Run the full `quickstart.md` validation sequence (§1–§4) end-to-end as a final sanity check covering both user stories together
 
 ---
 

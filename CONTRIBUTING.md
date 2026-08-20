@@ -54,7 +54,7 @@ Just run `git commit` (no `-m`) and you'll be prompted step by step for type, sc
 | `web-app`    | `apps/web-app`                                        |
 | `root`       | Repo-root tooling/config not tied to a single package |
 
-This list grows as new packages are added — see `commit-conventions.cjs`, the single source of truth both the git hook and `pnpm commit` read from.
+This list grows as new packages are added — see `commit-conventions.json`, the single source of truth `commitlint.config.mjs` reads from; `pnpm commit`'s prompt reads the same list indirectly, via `commitlint.config.mjs`.
 
 ### Breaking Changes
 

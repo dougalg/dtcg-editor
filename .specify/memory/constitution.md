@@ -1,6 +1,35 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.3.0 → 2.4.0
+Rationale: MINOR — adds a new Core Principle (XI. Modern Defaults): code,
+tools, and file formats default to the modern, currently-recommended choice
+over a legacy one, with ESM-over-CommonJS as the named worked example and an
+explicit exception-handling clause for unavoidable legacy-tool constraints.
+No existing principle is redefined or removed, so this is not MAJOR; a new
+principle is materially more than a wording clarification, so this is not
+PATCH.
+
+Added sections: XI. Modern Defaults (new Core Principle)
+
+Modified principles: none (new principle only)
+
+Removed sections: none
+
+Technology Stack & Approved Dependencies: `commitizen` + `cz-customizable`
+replaced with `commitizen` + `@commitlint/cz-commitlint` (the interactive
+`pnpm commit` CLI now reads its prompts directly from `commitlint.config`,
+removing the separate `.cz-config` file `cz-customizable` required).
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: specs/004-cjs-to-esm-migration
+(FR-003–FR-005, FR-008), implemented via `/speckit-implement`.
+-->
+
+<!--
+Sync Impact Report (v2.3.0, superseded above)
+==================
 Version change: 2.2.0 → 2.3.0
 Rationale: MINOR — materially expands Principle X (Component Granularity &
 Testing) with an automatically-enforced file/folder naming convention:
@@ -476,6 +505,31 @@ without needing to know the codebase's history, and enforcing it
 automatically — rather than relying on review — keeps it from drifting
 the way an unenforced convention inevitably does.
 
+### XI. Modern Defaults
+
+Code, tools, and file formats default to the modern, currently-recommended
+choice over a legacy one — this is a general rule, not one scoped to any
+single technology. The concrete, worked example: this project's own root
+tooling scripts default to ES module syntax (`import`/`export`) over
+CommonJS (`require`/`module.exports`), and plain data belongs in a data
+format (e.g. `.json`) rather than wrapped in a CommonJS module just to make
+it `require()`-able. A legacy choice is permitted only where a specific,
+named tool or runtime constraint leaves no modern-compatible alternative —
+that exception MUST be called out explicitly in place (e.g. a comment
+stating which constraint forces it), never left ambiguous or silently
+inconsistent with the rest of the codebase.
+
+Rationale: precedent and habit, not necessity, are what let legacy choices
+accumulate in a codebase — each individually-reasonable "just match what's
+already here" decision compounds into a codebase where the modern option is
+no longer even considered. Stating the rule generally (rather than only for
+module syntax) means a contributor facing an unrelated legacy-vs-modern
+choice — a config format, a CLI tool, a language feature — has a principle
+to reason from, not just a single fixed rule that happens not to cover their
+case. Naming exceptions explicitly, rather than allowing silent
+inconsistency, keeps a deliberate tooling constraint from being
+indistinguishable from an unexamined default.
+
 ## Technology Stack & Approved Dependencies
 
 - **Language**: TypeScript. **Framework**: React (UI/token-editor packages,
@@ -495,7 +549,7 @@ the way an unenforced convention inevitably does.
   before adding, per Principle VIII): TypeScript, React, Next.js
   (`apps/web-app`), ESLint + `typescript-eslint` (+ `eslint-config-next`),
   Zod, neverthrow, pnpm, Turborepo, `@commitlint/cli` +
-  `@commitlint/config-conventional`, `commitizen` + `cz-customizable`,
+  `@commitlint/config-conventional`, `commitizen` + `@commitlint/cz-commitlint`,
   `husky`, `prettier` (`useTabs: true`), `vitest` (`apps/web-app` only),
   `@vitejs/plugin-react`, `jsdom`, `@testing-library/react`, `colorjs.io`
   (`packages/token-core` only, imported via the tree-shakable
@@ -566,4 +620,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 2.3.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-19
+**Version**: 2.4.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-20
