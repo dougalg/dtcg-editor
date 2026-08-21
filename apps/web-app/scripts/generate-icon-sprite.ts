@@ -1,5 +1,5 @@
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
 	nodeReadFileSync,
 	nodeWriteFileSync,
@@ -94,7 +94,7 @@ function assertValidCommentText(text: string): string {
 	return text;
 }
 
-function generate(): string {
+export function generate(): string {
 	const symbols = ICON_FILES.map(({ file, source }) => {
 		const raw = nodeReadFileSync(join(ICONS_DIR, file));
 		const id = `dtcg-ed-icon-${file.replace(/\.svg$/, "")}`;
@@ -112,5 +112,11 @@ ${symbols.join("\n")}
 `;
 }
 
-nodeWriteFileSync(OUTPUT_FILE, generate());
-console.log(`Wrote ${OUTPUT_FILE}`);
+const invokedPath = process.argv[1];
+if (
+	invokedPath !== undefined &&
+	import.meta.url === pathToFileURL(invokedPath).href
+) {
+	nodeWriteFileSync(OUTPUT_FILE, generate());
+	console.log(`Wrote ${OUTPUT_FILE}`);
+}
