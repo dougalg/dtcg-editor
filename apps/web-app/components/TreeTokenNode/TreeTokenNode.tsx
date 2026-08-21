@@ -17,7 +17,8 @@ import {
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import { DefaultValidationErrorHandler } from "../DefaultValidationErrorHandler/DefaultValidationErrorHandler.tsx";
 import { FallbackValueEditor } from "../FallbackValueEditor/FallbackValueEditor.tsx";
-import styles from "../TokenTree/TokenTree.module.css";
+import styles from "../TokenBlock/TokenBlock.module.css";
+import { TokenBlock } from "../TokenBlock/TokenBlock.tsx";
 import type { TreeNodeProps } from "../TreeNode/TreeNode.tsx";
 
 function formatValue(value: unknown): string {
@@ -96,28 +97,21 @@ export function TreeTokenNode({
 					});
 
 		return (
-			<li className={styles.token}>
+			<TokenBlock
+				name={node.name}
+				type={effectiveType}
+				isNonStandardType={effectiveType !== undefined && !isUsableType}
+			>
 				<span className={styles.field}>
-					<span className={styles.fieldLabel}>{node.name} name</span>
-					<span className={styles.name}>{node.name}</span>
+					<span className={styles.fieldLabel}>Name</span>
+					<span>{node.name}</span>
 				</span>
-				{effectiveType !== undefined && (
-					<span className={styles.field}>
-						<span className={styles.fieldLabel}>{node.name} type</span>
-						<span className={styles.type}>
-							{effectiveType}
-							{!isUsableType && (
-								<span className={styles.nonStandard}> (non-standard)</span>
-							)}
-						</span>
-					</span>
-				)}
 				<span className={styles.field}>
-					<span className={styles.fieldLabel}>{node.name} value</span>
+					<span className={styles.fieldLabel}>Value</span>
 					<span className={styles.value}>{formatValue(node.value)}</span>
 				</span>
 				{extraContent}
-			</li>
+			</TokenBlock>
 		);
 	}
 
@@ -192,21 +186,11 @@ export function TreeTokenNode({
 		| undefined;
 
 	return (
-		<li className={styles.token}>
+		<TokenBlock name={node.name} type={effectiveType} isNonStandardType={false}>
 			<label className={styles.field}>
-				<span className={styles.fieldLabel}>{node.name} name</span>
-				<input
-					className={styles.name}
-					value={currentName}
-					onChange={handleNameChange}
-				/>
+				<span className={styles.fieldLabel}>Name</span>
+				<input value={currentName} onChange={handleNameChange} />
 			</label>
-			{effectiveType !== undefined && (
-				<span className={styles.field}>
-					<span className={styles.fieldLabel}>{node.name} type</span>
-					<span className={styles.type}>{effectiveType}</span>
-				</span>
-			)}
 			{ResolvedEditor !== undefined ? (
 				<ResolvedEditor
 					value={currentRawValue}
@@ -220,7 +204,7 @@ export function TreeTokenNode({
 				/>
 			)}
 			<label className={styles.field}>
-				<span className={styles.fieldLabel}>{node.name} description</span>
+				<span className={styles.fieldLabel}>Description</span>
 				<input
 					className={styles.value}
 					value={currentDescription}
@@ -229,6 +213,6 @@ export function TreeTokenNode({
 			</label>
 			{errors?.name !== undefined && <span role="alert">{errors.name}</span>}
 			{errors?.value !== undefined && <span role="alert">{errors.value}</span>}
-		</li>
+		</TokenBlock>
 	);
 }
