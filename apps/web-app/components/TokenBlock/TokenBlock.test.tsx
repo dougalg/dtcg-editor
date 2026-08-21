@@ -58,15 +58,22 @@ test("renders children unmodified", () => {
 });
 
 function iconHref(container: HTMLElement): string | null {
-	return container.querySelector("use")?.getAttribute("href") ?? null;
+	const use = container.querySelector("use");
+	return (
+		use?.getAttribute("xlink:href") ??
+		use?.getAttributeNS("http://www.w3.org/1999/xlink", "href") ??
+		null
+	);
 }
 
-test("references a type-specific icon symbol for a recognized type, distinct from the fallback", () => {
+test("references a type-specific icon symbol in the external sprite, distinct from the fallback", () => {
 	const { container: colorContainer } = renderBlock({ type: "color" });
 	const { container: fallbackContainer } = renderBlock({ type: undefined });
 
-	expect(iconHref(colorContainer)).toBe("#dtcg-ed-icon-color");
-	expect(iconHref(fallbackContainer)).toBe("#dtcg-ed-icon-fallback");
+	expect(iconHref(colorContainer)).toBe("/icon-sprite.svg#dtcg-ed-icon-color");
+	expect(iconHref(fallbackContainer)).toBe(
+		"/icon-sprite.svg#dtcg-ed-icon-fallback",
+	);
 	expect(iconHref(colorContainer)).not.toBe(iconHref(fallbackContainer));
 });
 
@@ -76,7 +83,9 @@ test("references the fallback icon symbol for an unrecognized (non-standard) typ
 		isNonStandardType: true,
 	});
 
-	expect(iconHref(nonStandardContainer)).toBe("#dtcg-ed-icon-fallback");
+	expect(iconHref(nonStandardContainer)).toBe(
+		"/icon-sprite.svg#dtcg-ed-icon-fallback",
+	);
 });
 
 test("the row wrapper element (pin-line owner) is present and contains the icon and heading", () => {
