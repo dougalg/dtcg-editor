@@ -57,6 +57,42 @@ test("renders children unmodified", () => {
 	);
 });
 
+test("renders a type-specific icon for a recognized type, distinct from the fallback icon", () => {
+	const { container: colorContainer } = renderBlock({ type: "color" });
+	const colorIconMarkup = colorContainer.querySelector("svg")?.innerHTML;
+
+	const { container: fallbackContainer } = renderBlock({ type: undefined });
+	const fallbackIconMarkup = fallbackContainer.querySelector("svg")?.innerHTML;
+
+	expect(colorIconMarkup).toBeTruthy();
+	expect(fallbackIconMarkup).toBeTruthy();
+	expect(colorIconMarkup).not.toBe(fallbackIconMarkup);
+});
+
+test("renders the fallback icon for an unrecognized (non-standard) type", () => {
+	const { container: fallbackContainer } = renderBlock({ type: undefined });
+	const fallbackIconMarkup = fallbackContainer.querySelector("svg")?.innerHTML;
+
+	const { container: nonStandardContainer } = renderBlock({
+		type: "not-a-real-type",
+		isNonStandardType: true,
+	});
+	const nonStandardIconMarkup =
+		nonStandardContainer.querySelector("svg")?.innerHTML;
+
+	expect(nonStandardIconMarkup).toBe(fallbackIconMarkup);
+});
+
+test("the row wrapper element (pin-line owner) is present and contains the icon and heading", () => {
+	renderBlock({ name: "brand-blue" });
+	const heading = screen.getByRole("heading", { name: "brand-blue" });
+	const row = heading.closest("li");
+	expect(row).not.toBeNull();
+	if (row !== null) {
+		expect(row.querySelector("svg")).not.toBeNull();
+	}
+});
+
 test("scopes the row to a single <li> containing the heading and children", () => {
 	renderBlock({ name: "brand-blue" });
 	const heading = screen.getByRole("heading", { name: "brand-blue" });
