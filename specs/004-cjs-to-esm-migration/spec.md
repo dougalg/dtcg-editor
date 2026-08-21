@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-19
 
-**Status**: Draft
+**Status**: Implemented (2026-08-21)
 
 **Input**: User description: "Refactor all CommonJS (.cjs, require/module.exports) files in the repo to ES modules, and add a constitution requirement to default to modern module syntax (ESM) over CommonJS where possible." Scope of the constitution change was later broadened: the new principle should express a general "use modern code, tools, and formats by default" rule, with the ESM-over-CommonJS case serving as one concrete example/application of it, not the rule's own subject. Scope of the migration itself was later narrowed by a tooling swap: `.cz-config.cjs` existed only to configure the `cz-customizable` commitizen adapter, which requires a separate config file kept manually in sync with commitlint's config. Replacing it with `@commitlint/cz-commitlint` (which reads commitizen prompts directly from commitlint's own config, no separate file) removes the need for `.cz-config.cjs` to exist at all, rather than migrating it — see Assumptions.
 
