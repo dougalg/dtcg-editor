@@ -1,7 +1,7 @@
 import { Badge } from "@dtcg-editor/design-system/components/Badge/Badge.tsx";
 import type { DtcgTokenType } from "@dtcg-editor/token-core";
 import type { ReactNode } from "react";
-import { resolveTokenTypeIcon } from "../../lib/tokens/token-type-icons.tsx";
+import { resolveTokenTypeIconId } from "../../lib/tokens/token-type-icon-sprite.ts";
 import styles from "./TokenBlock.module.css";
 
 export interface TokenBlockProps {
@@ -31,12 +31,14 @@ export function TokenBlock({
 	children,
 	className,
 }: TokenBlockProps) {
-	const Icon = resolveTokenTypeIcon(type);
+	const iconId = resolveTokenTypeIconId(type);
 
 	return (
 		<li className={[styles.token, className].filter(Boolean).join(" ")}>
 			<div className={styles.identity}>
-				<Icon className={styles.icon} />
+				<svg className={styles.icon} aria-hidden="true" focusable="false">
+					<use href={`#${iconId}`} />
+				</svg>
 				<h2 className={styles.heading}>{name}</h2>
 			</div>
 			{type !== undefined && (

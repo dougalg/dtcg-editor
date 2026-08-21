@@ -7,6 +7,7 @@ import { applyEditsToPlainNode } from "../../lib/tokens/edit-state.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import type { SaveError } from "../../lib/tokens/save-error.ts";
 import { SaveButton } from "../SaveButton/SaveButton.tsx";
+import { TokenTypeIconSprite } from "../TokenTypeIconSprite/TokenTypeIconSprite.tsx";
 import {
 	type EditablePatch,
 	type FieldErrors,
@@ -82,6 +83,7 @@ export function TokenTree({
 
 	return (
 		<div>
+			<TokenTypeIconSprite />
 			<TreeNode
 				node={treeState}
 				root={treeState}
