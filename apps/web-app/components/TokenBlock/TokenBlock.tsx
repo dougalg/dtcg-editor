@@ -1,7 +1,7 @@
 import { Badge } from "@dtcg-editor/design-system/components/Badge/Badge.tsx";
 import type { DtcgTokenType } from "@dtcg-editor/token-core";
 import type { ReactNode } from "react";
-import { resolveTokenTypeIconId } from "../../lib/tokens/token-type-icon-sprite.ts";
+import { resolveTokenTypeIconId } from "../../assets/icon-sprite.ts";
 import styles from "./TokenBlock.module.css";
 
 export interface TokenBlockProps {

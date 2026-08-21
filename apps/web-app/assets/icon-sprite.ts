@@ -134,17 +134,28 @@ const RAW_ICONS: Record<IconKey, string> = {
 };
 
 /**
- * Turns one standalone `<svg viewBox="...">...</svg>` file's raw markup into
- * a `<symbol>` with a stable id. Regex-based, not full XML parsing — safe
- * here because every input is a file this repo owns and controls (see
- * `./icons/`), not third-party or user-supplied SVG.
+ * Turns one standalone `<svg ...>...</svg>` file's raw markup into a
+ * `<symbol>` with a stable id, carrying over every presentation attribute
+ * from the source `<svg>` tag (`fill`, `stroke`, `stroke-width`,
+ * `stroke-linecap`, `stroke-linejoin`, ...) except `xmlns` — `<symbol>`
+ * doesn't take one, and dropping it is harmless since the sprite's own outer
+ * `<svg>` already declares the namespace once. Losing those attributes was
+ * the earlier bug here: with only `id`/`viewBox` kept, every inner
+ * `<path>`/`<circle>` fell back to SVG's own defaults (`fill: black`,
+ * `stroke: none`) instead of inheriting `stroke="currentColor"` — and
+ * since most of these icons are stroke-only line art with zero fill-area,
+ * that made them render as literally nothing, not merely the wrong color.
+ * Regex-based, not full XML parsing — safe here because every input is a
+ * file this repo owns and controls (see `./icons/`), not third-party or
+ * user-supplied SVG.
  */
 function toSymbol(id: string, raw: string): string {
-	const viewBoxMatch = raw.match(/viewBox="([^"]*)"/);
-	const viewBox = viewBoxMatch?.[1] ?? "0 0 24 24";
+	const openTagMatch = raw.match(/<svg([^>]*)>/);
+	const attrsSource = openTagMatch?.[1] ?? "";
+	const attrs = attrsSource.replace(/\s*xmlns="[^"]*"/, "").trim();
 	const innerMatch = raw.match(/<svg[^>]*>([\s\S]*)<\/svg>/);
 	const inner = innerMatch?.[1] ?? "";
-	return `<symbol id="${id}" viewBox="${viewBox}">${inner}</symbol>`;
+	return `<symbol id="${id}"${attrs.length > 0 ? ` ${attrs}` : ""}>${inner}</symbol>`;
 }
 
 /**

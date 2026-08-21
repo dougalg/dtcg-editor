@@ -6,9 +6,12 @@ import {
 } from "../lib/platform/node-fs.ts";
 
 /**
- * Regenerates `lib/tokens/token-type-icon-sprite.ts` from the standalone
- * `.svg` files in `lib/tokens/icons/` (the actual, hand-edited source of
- * truth — see that folder's `NOTICE.md` for attribution).
+ * Regenerates `assets/icon-sprite.ts` from the standalone `.svg` files in
+ * `assets/icons/` (the actual, hand-edited source of truth — see that
+ * folder's `NOTICE.md` for attribution). Lives under `scripts/`, and its
+ * output lives under `assets/`, rather than `lib/tokens/` — these are
+ * frontend presentation assets, not part of this app's token-parsing/
+ * editing core.
  *
  * Why this exists: `.svg?raw` imports type-check and bundle successfully
  * under both Vite (this app's test runner) and Turbopack (`next build`),
@@ -20,17 +23,17 @@ import {
  *
  * Run via `pnpm --filter web-app generate:icons`, and automatically before
  * `dev`/`build` (see package.json) so the generated file can never silently
- * go stale relative to `lib/tokens/icons/`.
+ * go stale relative to `assets/icons/`.
  */
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
-const ICONS_DIR = join(SCRIPT_DIR, "../lib/tokens/icons");
-const OUTPUT_FILE = join(SCRIPT_DIR, "../lib/tokens/token-type-icon-sprite.ts");
+const ICONS_DIR = join(SCRIPT_DIR, "../assets/icons");
+const OUTPUT_FILE = join(SCRIPT_DIR, "../assets/icon-sprite.ts");
 
 /** Keys match `DtcgTokenType` plus `"fallback"` — kept as plain strings here
  * (rather than importing the type) so this script has no dependency on the
- * app's TypeScript project graph; `token-type-icon-sprite.ts` itself is
- * still fully typed against `DtcgTokenType`. */
+ * app's TypeScript project graph; `icon-sprite.ts` itself is still fully
+ * typed against `DtcgTokenType`. */
 const ICON_FILES: Record<string, string> = {
 	color: "color.svg",
 	dimension: "dimension.svg",
@@ -85,17 +88,30 @@ ${entries.join("\n")}
 };
 
 /**
- * Turns one standalone \`<svg viewBox="...">...</svg>\` file's raw markup into
- * a \`<symbol>\` with a stable id. Regex-based, not full XML parsing — safe
- * here because every input is a file this repo owns and controls (see
- * \`./icons/\`), not third-party or user-supplied SVG.
+ * Turns one standalone \`<svg ...>...</svg>\` file's raw markup into a
+ * \`<symbol>\` with a stable id, carrying over every presentation attribute
+ * from the source \`<svg>\` tag (\`fill\`, \`stroke\`, \`stroke-width\`,
+ * \`stroke-linecap\`, \`stroke-linejoin\`, ...) except \`xmlns\` — \`<symbol>\`
+ * doesn't take one, and dropping it is harmless since the sprite's own outer
+ * \`<svg>\` already declares the namespace once. Losing those attributes was
+ * the earlier bug here: with only \`id\`/\`viewBox\` kept, every inner
+ * \`<path>\`/\`<circle>\` fell back to SVG's own defaults (\`fill: black\`,
+ * \`stroke: none\`) instead of inheriting \`stroke="currentColor"\` — and
+ * since most of these icons are stroke-only line art with zero fill-area,
+ * that made them render as literally nothing, not merely the wrong color.
+ * Regex-based, not full XML parsing — safe here because every input is a
+ * file this repo owns and controls (see \`./icons/\`), not third-party or
+ * user-supplied SVG.
  */
 function toSymbol(id: string, raw: string): string {
-	const viewBoxMatch = raw.match(/viewBox="([^"]*)"/);
-	const viewBox = viewBoxMatch?.[1] ?? "0 0 24 24";
+	const openTagMatch = raw.match(/<svg([^>]*)>/);
+	const attrsSource = openTagMatch?.[1] ?? "";
+	const attrs = attrsSource
+		.replace(/\\s*xmlns="[^"]*"/, "")
+		.trim();
 	const innerMatch = raw.match(/<svg[^>]*>([\\s\\S]*)<\\/svg>/);
 	const inner = innerMatch?.[1] ?? "";
-	return \`<symbol id="\${id}" viewBox="\${viewBox}">\${inner}</symbol>\`;
+	return \`<symbol id="\${id}"\${attrs.length > 0 ? \` \${attrs}\` : ""}>\${inner}</symbol>\`;
 }
 
 /**
