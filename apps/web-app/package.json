@@ -4,15 +4,16 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "next dev",
-		"build": "next build",
+		"dev": "pnpm generate:icons && next dev",
+		"build": "pnpm generate:icons && next build",
 		"start": "next start",
 		"lint": "biome lint .",
 		"lint:write": "biome lint --write .",
-		"test": "pnpm test:unit && pnpm test:a11y",
+		"test": "pnpm generate:icons && pnpm test:unit && pnpm test:a11y",
 		"test:unit": "vitest run",
 		"test:a11y": "playwright test",
-		"init-config": "node scripts/init-config.ts"
+		"init-config": "node scripts/init-config.ts",
+		"generate:icons": "node scripts/generate-icon-sprite.ts"
 	},
 	"dependencies": {
 		"@dtcg-editor/design-system": "workspace:*",

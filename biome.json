@@ -141,7 +141,8 @@
 			"includes": [
 				"**/apps/web-app/**",
 				"!**/apps/web-app/lib/fatal-startup-error.ts",
-				"!**/apps/web-app/scripts/init-config.ts"
+				"!**/apps/web-app/scripts/init-config.ts",
+				"!**/apps/web-app/scripts/generate-icon-sprite.ts"
 			]
 		},
 		{
