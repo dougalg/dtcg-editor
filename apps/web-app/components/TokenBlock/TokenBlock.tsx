@@ -66,7 +66,7 @@ export function TokenBlock({
 		>
 			<div className={styles.identity}>
 				<svg className={styles.icon} aria-hidden="true" focusable="false">
-					<use xlinkHref={`/icon-sprite.svg#${iconId}`} />
+					<use xlinkHref={`/token-types-sprite.svg#${iconId}`} />
 				</svg>
 				<h2 className={styles.heading}>
 					<input

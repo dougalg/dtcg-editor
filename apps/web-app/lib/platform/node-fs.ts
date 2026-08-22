@@ -1,6 +1,7 @@
 import {
 	existsSync as fsExistsSync,
 	mkdirSync as fsMkdirSync,
+	readdirSync as fsReaddirSync,
 	readFileSync as fsReadFileSync,
 	writeFileSync as fsWriteFileSync,
 } from "node:fs";
@@ -23,6 +24,7 @@ export interface DirEntry {
 export type ReadTextFile = (path: string) => Promise<string>;
 export type WriteTextFile = (path: string, data: string) => Promise<void>;
 export type ReadDirEntries = (path: string) => Promise<DirEntry[]>;
+export type ReadDirEntriesSync = (path: string) => DirEntry[];
 export type ReadTextFileSync = (path: string) => string;
 export type ExistsSync = (path: string) => boolean;
 export type WriteTextFileSync = (path: string, data: string) => void;
@@ -42,6 +44,12 @@ export const nodeReadDir: ReadDirEntries = (path) =>
 /** Real `fs.readFileSync`, bound to utf-8 — `config.ts`'s injected default. */
 export const nodeReadFileSync: ReadTextFileSync = (path) =>
 	fsReadFileSync(path, "utf-8");
+
+/** Real `fs.readdirSync` with `withFileTypes: true` —
+ * `generate-icon-sprite.ts`'s injected default, for synchronously scanning
+ * `assets/icons/` and each sprite's subfolder. */
+export const nodeReaddirSync: ReadDirEntriesSync = (path) =>
+	fsReaddirSync(path, { withFileTypes: true });
 
 /** Real `fs.existsSync` — `init-config.ts`'s injected default. */
 export const nodeExistsSync: ExistsSync = (path) => fsExistsSync(path);

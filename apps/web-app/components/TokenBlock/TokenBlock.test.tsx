@@ -70,9 +70,11 @@ test("references a type-specific icon symbol in the external sprite, distinct fr
 	const { container: colorContainer } = renderBlock({ type: "color" });
 	const { container: fallbackContainer } = renderBlock({ type: undefined });
 
-	expect(iconHref(colorContainer)).toBe("/icon-sprite.svg#dtcg-ed-icon-color");
+	expect(iconHref(colorContainer)).toBe(
+		"/token-types-sprite.svg#dtcg-ed-icon-color",
+	);
 	expect(iconHref(fallbackContainer)).toBe(
-		"/icon-sprite.svg#dtcg-ed-icon-fallback",
+		"/token-types-sprite.svg#dtcg-ed-icon-fallback",
 	);
 	expect(iconHref(colorContainer)).not.toBe(iconHref(fallbackContainer));
 });
@@ -84,7 +86,7 @@ test("references the fallback icon symbol for an unrecognized (non-standard) typ
 	});
 
 	expect(iconHref(nonStandardContainer)).toBe(
-		"/icon-sprite.svg#dtcg-ed-icon-fallback",
+		"/token-types-sprite.svg#dtcg-ed-icon-fallback",
 	);
 });
 

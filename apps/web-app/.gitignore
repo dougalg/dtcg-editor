@@ -46,5 +46,6 @@ next-env.d.ts
 
 # generated (see scripts/generate-icon-sprite.ts — regenerated automatically
 # before dev/build/test, deterministic from assets/icons/, so not committed)
-/public/icon-sprite.svg
+/public/*-sprite.svg
+/assets/generated/
 

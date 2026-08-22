@@ -53,7 +53,9 @@
 }
 
 .switch-thumb {
-	display: block;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	pointer-events: none;
 	height: var(--thumb-size);
 	width: var(--thumb-size);

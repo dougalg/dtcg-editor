@@ -1,27 +1,31 @@
 import type { DtcgTokenType } from "@dtcg-editor/token-core";
+import { TOKEN_TYPES_SPRITE_ICON_IDS } from "./generated/token-types-sprite.ids.ts";
 
 /**
  * Maps each `DtcgTokenType` to its icon's `<symbol>` id in
- * `public/icon-sprite.svg` (see `scripts/generate-icon-sprite.ts`, which
- * derives each id from its source file's name under `assets/icons/`).
+ * `public/token-types-sprite.svg`. Values are sourced from the generated
+ * `TOKEN_TYPES_SPRITE_ICON_IDS` (see `scripts/generate-icon-sprite.ts`) so
+ * they can never drift from what the sprite actually contains — only the
+ * type-to-basename mapping itself is hand-written here, since that's an
+ * app-domain decision the generic generator has no way to know.
  */
 const ICON_ID_BY_TYPE: Record<DtcgTokenType, string> = {
-	color: "dtcg-ed-icon-color",
-	dimension: "dtcg-ed-icon-dimension",
-	fontFamily: "dtcg-ed-icon-font-family",
-	fontWeight: "dtcg-ed-icon-font-weight",
-	duration: "dtcg-ed-icon-duration",
-	cubicBezier: "dtcg-ed-icon-cubic-bezier",
-	number: "dtcg-ed-icon-number",
-	strokeStyle: "dtcg-ed-icon-stroke-style",
-	border: "dtcg-ed-icon-border",
-	transition: "dtcg-ed-icon-transition",
-	shadow: "dtcg-ed-icon-shadow",
-	gradient: "dtcg-ed-icon-gradient",
-	typography: "dtcg-ed-icon-typography",
+	color: TOKEN_TYPES_SPRITE_ICON_IDS.color,
+	dimension: TOKEN_TYPES_SPRITE_ICON_IDS.dimension,
+	fontFamily: TOKEN_TYPES_SPRITE_ICON_IDS["font-family"],
+	fontWeight: TOKEN_TYPES_SPRITE_ICON_IDS["font-weight"],
+	duration: TOKEN_TYPES_SPRITE_ICON_IDS.duration,
+	cubicBezier: TOKEN_TYPES_SPRITE_ICON_IDS["cubic-bezier"],
+	number: TOKEN_TYPES_SPRITE_ICON_IDS.number,
+	strokeStyle: TOKEN_TYPES_SPRITE_ICON_IDS["stroke-style"],
+	border: TOKEN_TYPES_SPRITE_ICON_IDS.border,
+	transition: TOKEN_TYPES_SPRITE_ICON_IDS.transition,
+	shadow: TOKEN_TYPES_SPRITE_ICON_IDS.shadow,
+	gradient: TOKEN_TYPES_SPRITE_ICON_IDS.gradient,
+	typography: TOKEN_TYPES_SPRITE_ICON_IDS.typography,
 };
 
-const FALLBACK_ICON_ID = "dtcg-ed-icon-fallback";
+const FALLBACK_ICON_ID = TOKEN_TYPES_SPRITE_ICON_IDS.fallback;
 
 /**
  * Resolves the `public/icon-sprite.svg` symbol id for a token's type,

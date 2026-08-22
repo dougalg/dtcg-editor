@@ -2,33 +2,30 @@
 
 ## 1. How the manual override wins over `prefers-color-scheme`
 
-**Decision**: Extend `packages/design-system/sugarcube.config.ts`'s existing `variables.permutations` array with two unconditional, attribute-selector permutations:
+**Decision** (revised during implementation — see below): `packages/design-system/sugarcube.config.ts`'s `variables.permutations` array ends up with just two entries:
 
 ```ts
+propagateDependents: true,
 permutations: [
 	{ input: { mode: "light" }, selector: ":root" },
-	{
-		input: { mode: "dark" },
-		selector: ":root",
-		atRule: "@media (prefers-color-scheme: dark)",
-	},
 	{ input: { mode: "dark" }, selector: ':root[data-theme="dark"]' },
-	{ input: { mode: "light" }, selector: ':root[data-theme="light"]' },
 ]
 ```
 
-**Rationale**: `packages/design-system/src/design-tokens/dark.json` already fully defines every dark-mode color value (surface, text, accent, semantic colors), wired today only to the OS-level media query. Sugarcube's own `Permutation` type (`@sugarcube-sh/core`'s `client-*.d.ts`) documents this exact attribute-selector pattern as the canonical way to express a manual override:
+`data-theme="dark"` is set by JS (the FOUC-prevention script and `useTheme.ts`) for *every* dark case — an explicit dark override, and "no override but the OS prefers dark" alike; JS resolves system preference itself either way (it already has to, for FR-006's live-update requirement). CSS never needs to independently detect the OS preference.
 
-```
-* permutations: [
-*   { input: { theme: "light" }, selector: ":root" },
-*   { input: { theme: "dark" }, selector: "[data-theme=\"dark\"]" },
-*   { input: { theme: "dark" }, selector: ":root", atRule: "@media (prefers-color-scheme: dark)" },
-```
+**What was originally planned, and why it didn't work**: the original plan (kept here for the record) called for *four* permutations — the two above, plus `{ input: { dark }, selector: ":root", atRule: "@media (prefers-color-scheme: dark)" }` (a pure-CSS OS-preference fallback) and `{ input: { light }, selector: ':root[data-theme="light"]' }` (an explicit-light override, for when the OS prefers dark but the user chose light). Building it during implementation surfaced two real problems:
 
-An attribute-selector rule (`:root[data-theme="dark"]`, specificity 0-1-1-0) is more specific than the bare `:root` used by both the light default and the dark media-query block (0-0-1-0 each), so it wins regardless of cascade order and regardless of what the OS preference is — exactly FR-006/FR-007's requirement that an explicit override is not affected by live OS changes, while the absence of the attribute still lets the plain `:root` / media-query pair track the OS live. No new dependency, no new token values — `dark.json` is reused as-is.
+1. Sugarcube only emits CSS for a permutation's *literal differences* from the base resolved set. "Explicit light" resolves to exactly the same values as the unconditioned base `:root` (light is the default context), so that permutation compiled to an **empty rule** — verified directly: `pnpm --filter @dtcg-editor/design-system build` followed by `grep 'data-theme' dist/styles/tokens.css` showed only the `dark` block, even with `propagateDependents: true` (which does still matter — see below — but can't manufacture a diff that isn't there). An empty rule can't override anything.
+2. Even a non-empty `[data-theme="light"]` rule couldn't have solved this: a `@media (prefers-color-scheme: dark) :root` block and a `:root[data-theme="light"]` block are both applying to `:root`, but a `@media`-wrapped rule doesn't participate in specificity competition with an attribute selector on the same element the way two ordinary rules do — matching author-cascade order inside the same layer/origin governs, and the DTCG-resolver-driven output order puts the media-query block after the attribute block (sugarcube emits permutations in array order, and the dark-media entry came before the light-attribute entry in the original four-entry array) — so an explicit "switch to light while the OS is dark" click would have silently done nothing.
 
-**Alternatives considered**: A hand-written CSS override block duplicating `dark.json`'s values — rejected as a duplicate, driftable source of truth violating this codebase's existing single-source token pipeline. `prefers-color-scheme` alone with no attribute hook — rejected, cannot express a manual override at all (this is the exact gap the feature exists to close).
+Given the app already runs an inline FOUC-prevention script before first paint (research.md §2) that reads `matchMedia` in JS regardless, the CSS-only OS-detection fallback wasn't actually load-bearing for any requirement — FR-006 (live OS reactivity) is already necessarily a JS behavior (a media query alone can't change the DOM without either CSS `@media` cascade, which we just showed can't safely coexist with an attribute override, or a JS `change` listener, which `useTheme.ts` already needs anyway). Dropping it in favor of "JS is the single source of truth for `data-theme`" removes the conflict entirely, at the cost of appearance always defaulting to light in a hypothetical no-JS environment — an acceptable, explicitly-noted tradeoff (this app has no other functionality without JS either).
+
+`propagateDependents: true` was still kept: without it, the `[data-theme="dark"]` block only contained variables that literally differ token-by-token from light, which could leave a *dependent* (alias-referencing) variable pointing at a stale light value even though its referent differs — confirmed by diffing the generated block's line count with the flag on vs. off (88 lines involved vs. fewer). This isn't about the light/empty-permutation problem above (which has zero difference to propagate, flag or not) — it's a real correctness fix for the dark block itself.
+
+**Rationale for the final two-permutation shape**: `packages/design-system/src/design-tokens/dark.json` already fully defines every dark-mode color value (surface, text, accent, semantic colors) — reused as-is, no new token values. Sugarcube's own `Permutation` type (`@sugarcube-sh/core`'s `client-*.d.ts`) documents the `[data-theme="dark"]` attribute-selector pattern as the canonical way to express exactly this kind of override, and its own worked example likewise never pairs it with a `[data-theme="light"]` counterpart.
+
+**Alternatives considered**: A hand-written CSS override block duplicating `dark.json`'s values — rejected as a duplicate, driftable source of truth violating this codebase's existing single-source token pipeline. `prefers-color-scheme` alone with no attribute hook — rejected, cannot express a manual override at all (this is the exact gap the feature exists to close). The original four-permutation design — rejected per the two problems above, discovered while implementing T009/T010.
 
 ## 2. Avoiding a flash of incorrect theme on load
 

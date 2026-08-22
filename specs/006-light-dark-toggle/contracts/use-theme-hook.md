@@ -6,10 +6,13 @@
 
 ```ts
 interface UseThemeOptions {
-	getStoredTheme?: () => Result<"light" | "dark" | undefined, UnknownError>; // default: reads localStorage, Zod-validated
-	setStoredTheme?: (value: "light" | "dark" | undefined) => Result<void, UnknownError>; // default: writes/removes the localStorage key
-	matchMedia?: typeof window.matchMedia; // default: window.matchMedia
+	getStoredTheme?: () => "light" | "dark" | undefined; // default: reads localStorage, Zod-validated; may throw
+	setStoredTheme?: (value: "light" | "dark" | undefined) => void; // default: writes/removes the localStorage key; may throw
+	matchMedia?: (query: string) => MediaQueryList; // default: window.matchMedia
 }
+```
+
+Plain, possibly-throwing functions rather than `Result`-returning ones — the hook itself wraps every call to `getStoredTheme`/`setStoredTheme` (real default or injected) via a `safeCall` helper (`fromThrowable` internally), so a throwing implementation — including a test double that intentionally throws — can never crash the hook. This keeps the injection surface simple for callers/tests while still satisfying Principle V at the one place it actually matters (inside the hook, not pushed onto every implementation of the interface).
 
 interface UseThemeResult {
 	/** The theme currently rendered — always concretely "light" or "dark", never "system". */
