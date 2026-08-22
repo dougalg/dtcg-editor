@@ -40,16 +40,18 @@ export function TokenBlock({
 					<use xlinkHref={`/icon-sprite.svg#${iconId}`} />
 				</svg>
 				<h2 className={styles.heading}>{name}</h2>
+				{type !== undefined && (
+					<>
+						<span className={[styles.typeLabel, "visually-hidden"].join(" ")}>
+							Type:
+						</span>
+						<Badge>{type}</Badge>
+						{isNonStandardType && (
+							<span className={styles.nonStandard}>(non-standard)</span>
+						)}
+					</>
+				)}
 			</div>
-			{type !== undefined && (
-				<span className={styles.typeRow}>
-					<span className={styles.typeLabel}>Type:</span>
-					<Badge>{type}</Badge>
-					{isNonStandardType && (
-						<span className={styles.nonStandard}>(non-standard)</span>
-					)}
-				</span>
-			)}
 			{children}
 		</li>
 	);
