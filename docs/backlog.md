@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `pick-up-task` (or `speckit-specify`) to start it.
 Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not marked `[x]` here.
 
+- [ ] Add a light/dark mode switcher following the two-state toggle approach from Lea Verou's "Dark mode toggles: theory and practice" (https://lea.verou.me/blog/2026/dark-mode-toggles/) — a compact two-state (light/dark) button that internally tracks three states (system default / light override / dark override): first click sets an explicit override to the opposite of the currently visible theme, second click clears the override back to system default; store the override in `localStorage`, respect `prefers-color-scheme` when unset, and only evaluate/clear overrides on user interaction (never react proactively to OS theme changes). (in progress — worktree `.claude/worktrees/light-dark-switcher`, branch `worktree-light-dark-switcher`)
 - [ ] Ability to visualize linting errors (eg: a11y contrast checks for token pairs, naming convnetions, etc.)
 - [ ] Ability to add and remove files in the file list page
 - [ ] Refactor all CSS to use design tokens where possible (replace hardcoded colors/spacing/sizing in `*.module.css` files with `var(--dtcg-ed-*)` custom properties, adding new tokens where a suitable one doesn't yet exist). (in progress — worktree `.claude/worktrees/css-design-tokens`, branch `worktree-css-design-tokens`)
