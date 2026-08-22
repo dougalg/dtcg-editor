@@ -22,7 +22,7 @@ Open the app in a browser.
 
 ### Scenario 1 — follows system by default (US1, SC-001)
 
-1. With no prior visit to the app (clear `localStorage` for the dev origin, or use a private window), set the OS to dark mode, then load the app. Expect the whole UI in dark appearance immediately, no flash of light appearance first.
+1. With no prior visit to the app (clear cookies for the dev origin, or use a private window), set the OS to dark mode, then load the app. Expect the whole UI in dark appearance immediately, no flash of light appearance first. Check DevTools: `<html>` should carry **no** `data-theme` attribute at all — dark is coming from CSS. Disabling JavaScript entirely should not change the result.
 2. Repeat with the OS set to light. Expect light appearance.
 
 ### Scenario 2 — manual override (US2, SC-002, SC-003)

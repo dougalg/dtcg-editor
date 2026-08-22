@@ -8,9 +8,9 @@ The user's explicit, saved choice — or its absence.
 
 | Field | Type                     | Notes                                                                        |
 | ----- | ------------------------ | ----------------------------------------------------------------------------- |
-| value | `"light" \| "dark" \| undefined` | `undefined` means "no override — follow system." Validated via `z.enum(["light", "dark"]).optional()` on every read from `localStorage`; anything that fails validation is treated as `undefined`. |
+| value | `"light" \| "dark" \| undefined` | `undefined` means "no override — follow system." Validated via `z.enum(["light", "dark"]).optional()` on every read of the cookie, by the shared `parseTheme` in `hooks/themeConstants.ts` that both the server and the client call; anything that fails validation is treated as `undefined`. |
 
-**Storage**: `localStorage`, key `dtcg-ed-theme-preference`, value is the raw string `"light"` or `"dark"` (key absent when no override is set — clearing the override removes the key, it is never written as an empty/null value).
+**Storage**: a cookie named `dtcg-ed-theme-preference` (`Path=/`, `SameSite=Lax`, `Secure` over HTTPS, ~10-year `Max-Age`, not `HttpOnly` — the client writes it and the server reads it). Value is the raw string `"light"` or `"dark"`; the cookie is absent when no override is set, since clearing the override expires it rather than writing an empty value. It is a cookie rather than `localStorage` specifically so the server can render `data-theme` before first paint — see research.md §11.
 
 **Transitions** (see spec FR-004/FR-005, Lea Verou's two-state-button model):
 
@@ -40,7 +40,7 @@ The theme actually rendered at any moment — pure derivation, not separately st
 EffectiveTheme = ThemePreference.value ?? (SystemPreference.isDark ? "dark" : "light")
 ```
 
-Reflected on the DOM as the `data-theme` attribute on `<html>` (`"light"` or `"dark"`, always present after the FOUC-prevention script/hook run once) — see `research.md` §1–2 for how this attribute drives which of `packages/design-system`'s CSS permutations apply.
+Reflected on the DOM as the `data-theme` attribute on `<html>`, rendered server-side from the cookie — but **only when an override is set**. No override means no attribute, which is the state that hands appearance to `@media (prefers-color-scheme: dark)`; the attribute is therefore *not* always present, and a missing one must never be read as `"light"`. See research.md §1 and §11 for how the attribute and the media query divide the work between them.
 
 ## Sprite ID Mapping (build-time, generated)
 

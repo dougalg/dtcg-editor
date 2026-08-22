@@ -1,41 +1,21 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { THEME_STORAGE_KEY, useTheme } from "./useTheme.ts";
+import { useTheme } from "./useTheme.ts";
 
-/** A fake `MediaQueryList` whose `.matches` and `change` listeners are
- * controlled directly by the test, so `useTheme` never touches the real
- * `jsdom` `window.matchMedia` (which `jsdom` doesn't implement anyway). */
-function createFakeMediaQueryList(initialMatches: boolean) {
-	let matches = initialMatches;
-	const listeners = new Set<(event: MediaQueryListEvent) => void>();
-	const mql = {
-		get matches() {
-			return matches;
-		},
-		addEventListener: (
-			_type: "change",
-			listener: (event: MediaQueryListEvent) => void,
-		) => {
-			listeners.add(listener);
-		},
-		removeEventListener: (
-			_type: "change",
-			listener: (event: MediaQueryListEvent) => void,
-		) => {
-			listeners.delete(listener);
-		},
-	} as unknown as MediaQueryList;
-
-	function setMatches(next: boolean): void {
-		matches = next;
-		for (const listener of listeners) {
-			listener({ matches: next } as MediaQueryListEvent);
-		}
-	}
-
-	return { mql, setMatches };
+/** A fake `MediaQueryList` whose `.matches` is controlled directly by the
+ * test, so `useTheme` never touches the real `jsdom` `window.matchMedia`
+ * (which `jsdom` doesn't implement anyway).
+ *
+ * It carries no `change`-listener plumbing any more: live OS reactivity moved
+ * out of this hook and into the stylesheet's
+ * `@media (prefers-color-scheme: dark)` block, which no unit test in `jsdom`
+ * can meaningfully exercise — `e2e/theme-toggle.spec.ts` covers it instead,
+ * with a real browser and a real `colorScheme` setting. */
+function createFakeMediaQueryList(matches: boolean) {
+	return { matches } as unknown as MediaQueryList;
 }
 
+/** Stands in for the preference cookie. */
 function createFakeStorage() {
 	let value: string | undefined;
 	return {
@@ -45,6 +25,29 @@ function createFakeStorage() {
 			value = next;
 		},
 		read: () => value,
+	};
+}
+
+/** Stands in for a `BroadcastChannel`, which `jsdom` doesn't implement.
+ * `receive()` simulates a *different* tab's ping arriving. */
+function createFakeChannel() {
+	const posted: unknown[] = [];
+	let closed = false;
+	const channel = {
+		onmessage: null,
+		postMessage: (data: unknown) => {
+			posted.push(data);
+		},
+		close: () => {
+			closed = true;
+		},
+	} as unknown as BroadcastChannel;
+
+	return {
+		channel,
+		posted,
+		isClosed: () => closed,
+		receive: () => channel.onmessage?.(new MessageEvent("message")),
 	};
 }
 
@@ -60,183 +63,201 @@ afterEach(() => {
 	document.documentElement.removeAttribute("data-theme");
 });
 
-test("US1: with no stored preference, applies dark when the system prefers dark", () => {
-	const { mql } = createFakeMediaQueryList(true);
+test("FR-006: mounting with no override leaves data-theme absent, so CSS keeps following the OS", () => {
 	const storage = createFakeStorage();
 
 	renderHook(() =>
 		useTheme({
-			matchMedia: () => mql,
+			matchMedia: () => createFakeMediaQueryList(true), // OS prefers dark
 			getStoredTheme: storage.getStoredTheme,
 			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => createFakeChannel().channel,
 		}),
 	);
 
-	expect(currentDataTheme()).toBe("dark");
+	// The old hook resolved the OS preference here and wrote data-theme="dark".
+	// That would now be a bug: it pins the appearance and the media query can
+	// never apply again.
+	expect(currentDataTheme()).toBeNull();
 });
 
-test("US1: with no stored preference, applies light when the system prefers light", () => {
-	const { mql } = createFakeMediaQueryList(false);
+test("mounting does not disturb the data-theme the server already rendered", () => {
 	const storage = createFakeStorage();
+	storage.setStoredTheme("dark");
+	document.documentElement.setAttribute("data-theme", "dark");
 
 	renderHook(() =>
 		useTheme({
-			matchMedia: () => mql,
+			matchMedia: () => createFakeMediaQueryList(false),
 			getStoredTheme: storage.getStoredTheme,
 			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => createFakeChannel().channel,
 		}),
 	);
 
-	expect(currentDataTheme()).toBe("light");
-});
-
-test("US1: a live system preference change updates data-theme when no override is stored", () => {
-	const { mql, setMatches } = createFakeMediaQueryList(false);
-	const storage = createFakeStorage();
-
-	renderHook(() =>
-		useTheme({
-			matchMedia: () => mql,
-			getStoredTheme: storage.getStoredTheme,
-			setStoredTheme: storage.setStoredTheme,
-		}),
-	);
-
-	expect(currentDataTheme()).toBe("light");
-	act(() => setMatches(true));
-	expect(currentDataTheme()).toBe("dark");
-});
-
-test("US2: activateTheme('dark') sets an explicit override and persists it", () => {
-	const { mql } = createFakeMediaQueryList(false);
-	const storage = createFakeStorage();
-
-	const { result } = renderHook(() =>
-		useTheme({
-			matchMedia: () => mql,
-			getStoredTheme: storage.getStoredTheme,
-			setStoredTheme: storage.setStoredTheme,
-		}),
-	);
-
-	expect(currentDataTheme()).toBe("light");
-	act(() => result.current.activateTheme("dark"));
 	expect(currentDataTheme()).toBe("dark");
 	expect(storage.read()).toBe("dark");
 });
 
-test("US2: an overridden theme is re-applied on a fresh render (survives 'reload')", () => {
-	const { mql } = createFakeMediaQueryList(false);
+test("US2: activateTheme('dark') against a light OS sets an explicit override and persists it", () => {
 	const storage = createFakeStorage();
-	storage.setStoredTheme("dark");
 
-	renderHook(() =>
+	const { result } = renderHook(() =>
 		useTheme({
-			matchMedia: () => mql,
+			matchMedia: () => createFakeMediaQueryList(false),
 			getStoredTheme: storage.getStoredTheme,
 			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => createFakeChannel().channel,
 		}),
 	);
 
+	act(() => result.current.activateTheme("dark"));
+
 	expect(currentDataTheme()).toBe("dark");
+	expect(storage.read()).toBe("dark");
 });
 
-test("US2: an overridden theme does not react to a live system preference change", () => {
-	const { mql, setMatches } = createFakeMediaQueryList(false);
+test("US3: activating the theme the OS already prefers clears the override and removes the attribute", () => {
 	const storage = createFakeStorage();
-	storage.setStoredTheme("dark");
+	storage.setStoredTheme("light"); // explicit override, opposite of the OS
+	document.documentElement.setAttribute("data-theme", "light");
 
-	renderHook(() =>
+	const { result } = renderHook(() =>
 		useTheme({
-			matchMedia: () => mql,
+			matchMedia: () => createFakeMediaQueryList(true), // OS prefers dark
 			getStoredTheme: storage.getStoredTheme,
 			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => createFakeChannel().channel,
 		}),
 	);
 
-	expect(currentDataTheme()).toBe("dark");
-	act(() => setMatches(true));
-	expect(currentDataTheme()).toBe("dark");
+	act(() => result.current.activateTheme("dark")); // dark == OS preference
+
+	expect(storage.read()).toBeUndefined();
+	// Crucially the attribute is *removed*, not set to "dark": the page is
+	// handed back to the media query so later OS changes are followed again
+	// (FR-006). Setting it to "dark" would look identical right now and be
+	// wrong the moment the OS switches to light.
+	expect(currentDataTheme()).toBeNull();
 });
 
-test("FR-011: a throwing storage read/write is treated as absent, data-theme still resolves correctly", () => {
-	const { mql } = createFakeMediaQueryList(true);
+test("FR-011: a throwing storage read/write is treated as absent and never throws", () => {
 	const getStoredTheme = vi.fn(() => {
-		throw new Error("storage blocked");
+		throw new Error("cookie blocked");
 	});
 	const setStoredTheme = vi.fn(() => {
-		throw new Error("storage blocked");
+		throw new Error("cookie blocked");
 	});
 
 	const { result } = renderHook(() =>
-		useTheme({ matchMedia: () => mql, getStoredTheme, setStoredTheme }),
+		useTheme({
+			matchMedia: () => createFakeMediaQueryList(true),
+			getStoredTheme,
+			setStoredTheme,
+			createThemeChannel: () => createFakeChannel().channel,
+		}),
 	);
 
-	expect(currentDataTheme()).toBe("dark");
 	expect(() => act(() => result.current.activateTheme("light"))).not.toThrow();
 	expect(currentDataTheme()).toBe("light");
 });
 
-test("US3: activating the theme that matches system preference clears the override", () => {
-	const { mql } = createFakeMediaQueryList(true); // system prefers dark
+test("FR-011: an unavailable BroadcastChannel leaves the toggle fully working", () => {
 	const storage = createFakeStorage();
-	storage.setStoredTheme("light"); // explicit override, opposite of system
 
 	const { result } = renderHook(() =>
 		useTheme({
-			matchMedia: () => mql,
+			matchMedia: () => createFakeMediaQueryList(false),
 			getStoredTheme: storage.getStoredTheme,
 			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => undefined,
 		}),
 	);
 
-	expect(currentDataTheme()).toBe("light");
-	act(() => result.current.activateTheme("dark")); // dark == system preference
+	expect(() => act(() => result.current.activateTheme("dark"))).not.toThrow();
 	expect(currentDataTheme()).toBe("dark");
-	expect(storage.read()).toBeUndefined();
+	expect(storage.read()).toBe("dark");
 });
 
-test("US3: after clearing the override, live system changes are followed again", () => {
-	const { mql, setMatches } = createFakeMediaQueryList(true);
+test("cross-tab: activating a theme pings the other tabs", () => {
 	const storage = createFakeStorage();
-	storage.setStoredTheme("light");
+	const fake = createFakeChannel();
 
 	const { result } = renderHook(() =>
 		useTheme({
-			matchMedia: () => mql,
+			matchMedia: () => createFakeMediaQueryList(false),
 			getStoredTheme: storage.getStoredTheme,
 			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => fake.channel,
 		}),
 	);
 
-	act(() => result.current.activateTheme("dark")); // clears override, system is dark
-	expect(currentDataTheme()).toBe("dark");
+	act(() => result.current.activateTheme("dark"));
 
-	act(() => setMatches(false)); // system now prefers light
-	expect(currentDataTheme()).toBe("light");
+	expect(fake.posted).toHaveLength(1);
 });
 
-test("cross-tab: a storage event for the theme key updates data-theme to match", () => {
-	const { mql } = createFakeMediaQueryList(false);
+test("cross-tab: a ping from another tab re-reads the cookie and applies the override", () => {
 	const storage = createFakeStorage();
+	const fake = createFakeChannel();
 
 	renderHook(() =>
 		useTheme({
-			matchMedia: () => mql,
+			matchMedia: () => createFakeMediaQueryList(false),
 			getStoredTheme: storage.getStoredTheme,
 			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => fake.channel,
 		}),
 	);
 
-	expect(currentDataTheme()).toBe("light");
+	expect(currentDataTheme()).toBeNull();
 
-	// Simulate another tab writing "dark" and firing the storage event.
+	// Another tab wrote the shared cookie, then pinged.
 	storage.setStoredTheme("dark");
 	act(() => {
-		window.dispatchEvent(
-			new StorageEvent("storage", { key: THEME_STORAGE_KEY }),
-		);
+		fake.receive();
 	});
 
 	expect(currentDataTheme()).toBe("dark");
+});
+
+test("cross-tab: a ping after another tab cleared the override removes the attribute", () => {
+	const storage = createFakeStorage();
+	storage.setStoredTheme("dark");
+	document.documentElement.setAttribute("data-theme", "dark");
+	const fake = createFakeChannel();
+
+	renderHook(() =>
+		useTheme({
+			matchMedia: () => createFakeMediaQueryList(false),
+			getStoredTheme: storage.getStoredTheme,
+			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => fake.channel,
+		}),
+	);
+
+	storage.setStoredTheme(undefined);
+	act(() => {
+		fake.receive();
+	});
+
+	expect(currentDataTheme()).toBeNull();
+});
+
+test("the channel is closed on unmount", () => {
+	const storage = createFakeStorage();
+	const fake = createFakeChannel();
+
+	const { unmount } = renderHook(() =>
+		useTheme({
+			matchMedia: () => createFakeMediaQueryList(false),
+			getStoredTheme: storage.getStoredTheme,
+			setStoredTheme: storage.setStoredTheme,
+			createThemeChannel: () => fake.channel,
+		}),
+	);
+
+	expect(fake.isClosed()).toBe(false);
+	unmount();
+	expect(fake.isClosed()).toBe(true);
 });

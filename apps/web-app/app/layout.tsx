@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { ThemeToggle } from "../components/ThemeToggle/ThemeToggle.tsx";
-import {
-	DARK_MEDIA_QUERY,
-	THEME_STORAGE_KEY,
-} from "../hooks/themeConstants.ts";
+import { parseTheme, THEME_COOKIE_NAME } from "../hooks/themeConstants.ts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,43 +10,33 @@ export const metadata: Metadata = {
 };
 
 /**
- * Runs before first paint (a blocking inline script, not a module) so the
- * editor never flashes the wrong appearance: reads the stored preference,
- * falling back to the OS setting, and sets `data-theme` on `<html>` — the
- * same computation `useTheme.ts` performs once it mounts, kept in sync via
- * the shared `theme-constants.ts` values interpolated below rather than
- * hand-duplicated strings. Every step is wrapped so a blocked/unavailable
- * `localStorage` or `matchMedia` can never leave the page unrendered.
+ * Renders `data-theme` server-side from the preference cookie, so the correct
+ * appearance is in the very first byte of HTML and there is nothing to flash.
+ *
+ * Note what is *absent* when the user has expressed no preference: no
+ * attribute at all. That's the "follow the OS" state, and it's handled purely
+ * by the `@media (prefers-color-scheme: dark)` block the design system emits
+ * (see `packages/design-system/sugarcube.config.ts`) — which is also why this
+ * layout needs no inline script, no `dangerouslySetInnerHTML`, and no
+ * `suppressHydrationWarning`: the server's markup is already correct, so
+ * there is nothing for the client to fix up and nothing to disagree about.
+ *
+ * Setting the attribute unconditionally would be a bug, not a simplification:
+ * it would pin the appearance and stop the media query from ever applying,
+ * breaking FR-006 (appearance follows live OS changes while no override is
+ * set). See specs/006-light-dark-toggle/research.md §2.
  */
-const themeInitScript = `(function () {
-	try {
-		var stored = null;
-		try {
-			stored = window.localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});
-		} catch (e) {}
-		var theme = stored === "light" || stored === "dark" ? stored : null;
-		if (!theme) {
-			var prefersDark = false;
-			try {
-				prefersDark = window.matchMedia(${JSON.stringify(DARK_MEDIA_QUERY)}).matches;
-			} catch (e) {}
-			theme = prefersDark ? "dark" : "light";
-		}
-		document.documentElement.setAttribute("data-theme", theme);
-	} catch (e) {}
-})();`;
-
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const themeOverride = parseTheme(
+		(await cookies()).get(THEME_COOKIE_NAME)?.value,
+	);
+
 	return (
-		<html lang="en" suppressHydrationWarning>
-			<head>
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: static, build-time-generated script text (see themeInitScript above), no user input involved. */}
-				<script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-			</head>
+		<html lang="en" data-theme={themeOverride}>
 			<body>
 				<ThemeToggle />
 				{children}

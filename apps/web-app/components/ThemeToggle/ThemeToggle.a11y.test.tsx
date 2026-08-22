@@ -5,7 +5,11 @@ import { WCAG_22_AA_TAGS } from "../../lib/a11y/wcag-tags.ts";
 import { ThemeToggle } from "./ThemeToggle.tsx";
 
 vi.mock("../../hooks/useTheme.ts", () => ({
-	useTheme: () => ({ activateTheme: vi.fn() }),
+	useTheme: () => ({
+		activateTheme: vi.fn(),
+		resolveEffectiveTheme: () => "light" as const,
+		subscribeToEffectiveTheme: () => () => {},
+	}),
 }));
 
 async function expectNoViolations(container: Element) {
