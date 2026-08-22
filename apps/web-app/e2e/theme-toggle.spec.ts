@@ -128,3 +128,56 @@ test.describe("first load with no saved preference (US1)", () => {
 		});
 	});
 });
+
+/**
+ * The dark palette is applied by CSS alone — a
+ * `@media (prefers-color-scheme: dark)` permutation in
+ * `packages/design-system/sugarcube.config.ts` — so appearance no longer
+ * depends on the inline FOUC-prevention script having run. These run with
+ * JavaScript disabled, which is the only way to prove the CSS is doing the
+ * work rather than the script: with no JS, `data-theme` is never set at all.
+ */
+test.describe("dark appearance without JavaScript", () => {
+	test.use({ javaScriptEnabled: false });
+
+	async function bodyBackgroundChannelSum(
+		page: import("@playwright/test").Page,
+	) {
+		const background = await page
+			.locator("body")
+			.evaluate((el) => getComputedStyle(el).backgroundColor);
+		const channels = background.match(/\d+(\.\d+)?/g) ?? [];
+		return channels
+			.slice(0, 3)
+			.reduce((total, channel) => total + Number(channel), 0);
+	}
+
+	test.describe(() => {
+		test.use({ colorScheme: "dark" });
+
+		test("the OS dark preference is honoured with no data-theme attribute set", async ({
+			page,
+		}) => {
+			await page.goto("/");
+
+			await expect(page.locator("html")).not.toHaveAttribute("data-theme");
+			// A sanity floor rather than an exact token value, so retuning the
+			// dark palette doesn't break this: "dark" here just means the three
+			// channels average below mid-grey.
+			expect(await bodyBackgroundChannelSum(page)).toBeLessThan(384);
+		});
+	});
+
+	test.describe(() => {
+		test.use({ colorScheme: "light" });
+
+		test("the OS light preference leaves the base light palette in place", async ({
+			page,
+		}) => {
+			await page.goto("/");
+
+			await expect(page.locator("html")).not.toHaveAttribute("data-theme");
+			expect(await bodyBackgroundChannelSum(page)).toBeGreaterThan(384);
+		});
+	});
+});

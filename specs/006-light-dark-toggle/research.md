@@ -2,17 +2,22 @@
 
 ## 1. How the manual override wins over `prefers-color-scheme`
 
-**Decision** (revised during implementation — see below): `packages/design-system/sugarcube.config.ts`'s `variables.permutations` array ends up with just two entries:
+**Decision** (revised twice — see the two notes below): `packages/design-system/sugarcube.config.ts`'s `variables.permutations` array has three entries:
 
 ```ts
 propagateDependents: true,
 permutations: [
 	{ input: { mode: "light" }, selector: ":root" },
+	{
+		input: { mode: "dark" },
+		selector: ':root:not([data-theme="light"])',
+		atRule: "@media (prefers-color-scheme: dark)",
+	},
 	{ input: { mode: "dark" }, selector: ':root[data-theme="dark"]' },
 ]
 ```
 
-`data-theme="dark"` is set by JS (the FOUC-prevention script and `useTheme.ts`) for *every* dark case — an explicit dark override, and "no override but the OS prefers dark" alike; JS resolves system preference itself either way (it already has to, for FR-006's live-update requirement). CSS never needs to independently detect the OS preference.
+CSS resolves the OS preference on its own, so dark appearance no longer depends on JS having run. `data-theme` is still set by JS for an explicit override, and that attribute is still what the override mechanism turns on — but its *absence* now means "follow the OS" in CSS rather than "light".
 
 **What was originally planned, and why it didn't work**: the original plan (kept here for the record) called for *four* permutations — the two above, plus `{ input: { dark }, selector: ":root", atRule: "@media (prefers-color-scheme: dark)" }` (a pure-CSS OS-preference fallback) and `{ input: { light }, selector: ':root[data-theme="light"]' }` (an explicit-light override, for when the OS prefers dark but the user chose light). Building it during implementation surfaced two real problems:
 
@@ -20,6 +25,19 @@ permutations: [
 2. Even a non-empty `[data-theme="light"]` rule couldn't have solved this: a `@media (prefers-color-scheme: dark) :root` block and a `:root[data-theme="light"]` block are both applying to `:root`, but a `@media`-wrapped rule doesn't participate in specificity competition with an attribute selector on the same element the way two ordinary rules do — matching author-cascade order inside the same layer/origin governs, and the DTCG-resolver-driven output order puts the media-query block after the attribute block (sugarcube emits permutations in array order, and the dark-media entry came before the light-attribute entry in the original four-entry array) — so an explicit "switch to light while the OS is dark" click would have silently done nothing.
 
 Given the app already runs an inline FOUC-prevention script before first paint (research.md §2) that reads `matchMedia` in JS regardless, the CSS-only OS-detection fallback wasn't actually load-bearing for any requirement — FR-006 (live OS reactivity) is already necessarily a JS behavior (a media query alone can't change the DOM without either CSS `@media` cascade, which we just showed can't safely coexist with an attribute override, or a JS `change` listener, which `useTheme.ts` already needs anyway). Dropping it in favor of "JS is the single source of truth for `data-theme`" removes the conflict entirely, at the cost of appearance always defaulting to light in a hypothetical no-JS environment — an acceptable, explicitly-noted tradeoff (this app has no other functionality without JS either).
+
+**Later revision — the media-query permutation does work, with a different selector**: the post-mortem above is right that the *original four-permutation* shape fails, but both of its problems come from the `{ input: { light }, selector: ':root[data-theme="light"]' }` entry, not from the media query itself. Dropping that fourth entry and narrowing the media permutation's selector to `:root:not([data-theme="light"])` dissolves both at once:
+
+1. The empty-rule problem disappears because there is no longer an explicit-light permutation to compile. An explicit light override doesn't need a rule of its own — the `:not()` makes the media block *decline to match*, so the base `:root` light values apply by themselves.
+2. The cascade-order problem disappears with it: the two dark rules never compete. `:root:not([data-theme="light"])` and `:root[data-theme="dark"]` both have specificity (0,2,0), but they can only ever both match when both resolve to dark anyway, so their relative order is immaterial.
+
+All four cases land correctly: OS dark + no override → media block; OS dark + explicit light → base `:root`; OS light + explicit dark → attribute block; OS light + no override → base `:root`.
+
+Verified by building it: `pnpm --filter @dtcg-editor/design-system build` emits `:root` (line 3), `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) }` (496), and `:root[data-theme="dark"]` (587), with the two dark blocks carrying an identical set of 86 declarations. Cost is +399 bytes gzipped on `dist/styles/tokens.css` (5,669 → 6,068), the second copy compressing to roughly the same size as the first.
+
+The tradeoff this reverses is the no-JS one: dark appearance is now pure CSS, so it survives JS being disabled, blocked, or simply slow. `ThemeToggle.module.css` needs the same two-selector treatment for its five non-color rules (the thumb `transform` and four `display` swaps), since those can't be carried by a design token the way every color in that file now is.
+
+A single-emission alternative — `--token: light-dark(a, b)` with the override reduced to one `color-scheme` declaration — would be ~400 bytes smaller than this and ~3 bytes smaller than the two-permutation shape that preceded it. It was rejected because sugarcube can't express it: `VariablesConfig` (`@sugarcube-sh/core@0.2.17`) exposes only `path`, `prefix`, `variableName`, `layer`, `transforms.{fluid, colorFallbackStrategy}`, `permutations`, and `propagateDependents` — no value-level transform or output formatter — and its output model emits one selector block per resolved token set, which is structurally the opposite of interleaving two sets into one declaration. Getting it would need an upstream feature (a `colorScheme: "light-dark"` output mode would suit sugarcube's model well) or a bespoke post-build rewrite wedged between sugarcube and its own output file; ~400 bytes doesn't justify the latter.
 
 `propagateDependents: true` was still kept: without it, the `[data-theme="dark"]` block only contained variables that literally differ token-by-token from light, which could leave a *dependent* (alias-referencing) variable pointing at a stale light value even though its referent differs — confirmed by diffing the generated block's line count with the flag on vs. off (88 lines involved vs. fewer). This isn't about the light/empty-permutation problem above (which has zero difference to propagate, flag or not) — it's a real correctness fix for the dark block itself.
 

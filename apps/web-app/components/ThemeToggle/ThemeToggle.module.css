@@ -1,14 +1,18 @@
 /* The button *is* the whole pill-shaped track — not a wrapper around a
    nested inner button — with a decorative circle (`.thumb`) sliding between
    its two ends. Everything here (thumb position, which icon shows, which
-   hidden label wins the accessible name) is driven purely by CSS attribute
-   selectors on `:global(html[data-theme="dark"])`, never by React
-   state/props. That's deliberate: nothing here can disagree with whatever
-   the inline FOUC-prevention script already painted before first paint —
-   see the note atop `useTheme.ts`. The hover tooltip is the one exception:
-   it's a native `title` attribute, set imperatively in ThemeToggle.tsx
-   (CSS can't drive an HTML attribute's value), so there's no CSS for it
-   here. */
+   hidden label wins the accessible name) is driven purely by CSS, never by
+   React state/props. That's deliberate: nothing here can disagree with
+   whatever appearance the page already painted — see the note atop
+   `useTheme.ts`. The hover tooltip is the one exception: it's a native
+   `title` attribute, set imperatively in ThemeToggle.tsx (CSS can't drive an
+   HTML attribute's value), so there's no CSS for it here.
+
+   Colors need no dark-mode rules of their own: they come from design tokens,
+   which the token layer already redefines for both dark cases. The five
+   non-color rules at the bottom of this file are the exception — `transform`
+   and `display` can't be carried by a token, so they're written out once per
+   dark case. See the comment there. */
 
 .track {
 	all: unset;
@@ -29,11 +33,9 @@
 	cursor: pointer;
 	border-radius: var(--dtcg-ed-radius-full);
 	box-shadow: var(--dtcg-ed-shadow-xs);
-	background-color: var(--dtcg-ed-color-neutral-100);
-}
-
-:global(html[data-theme="dark"]) .track {
-	background-color: var(--dtcg-ed-color-neutral-900);
+	/* Resolves to neutral-100 in light and neutral-900 in dark — the exact
+	   pair this rule used to hard-code across two rules. */
+	background-color: var(--dtcg-ed-color-surface-lowered);
 }
 
 .track:focus-visible {
@@ -57,10 +59,6 @@
 		var(--dtcg-ed-ease-in-out);
 }
 
-:global(html[data-theme="dark"]) .thumb {
-	transform: translateX(var(--thumb-travel));
-}
-
 .sunIcon,
 .moonIcon {
 	position: absolute;
@@ -73,16 +71,62 @@
 	display: none;
 }
 
+.labelToLight {
+	display: none;
+}
+
+/* DARK APPEARANCE — the two cases, written out twice.
+ *
+ * `transform` and `display` can't be expressed as design tokens, so unlike
+ * every color above they don't flip for free; they need a selector per dark
+ * case, matching the two dark permutations in
+ * `packages/design-system/sugarcube.config.ts`:
+ *
+ *   1. the OS prefers dark and no explicit *light* override is set, and
+ *   2. an explicit dark override is set.
+ *
+ * `:not([data-theme="light"])` in the first is what lets an explicit light
+ * override win while the OS prefers dark, without needing a
+ * `[data-theme="light"]` rule to undo anything.
+ *
+ * Keep the two blocks identical — changing one means changing the other.
+ * The `display` swaps deliberately stay `display` rather than something
+ * value-computable like `opacity`: `.labelToDark`/`.labelToLight` control
+ * the button's accessible name, and only `display: none` actually removes
+ * the losing label from the accessibility tree. */
+
+@media (prefers-color-scheme: dark) {
+	:global(html:not([data-theme="light"])) .thumb {
+		transform: translateX(var(--thumb-travel));
+	}
+
+	:global(html:not([data-theme="light"])) .sunIcon {
+		display: none;
+	}
+
+	:global(html:not([data-theme="light"])) .moonIcon {
+		display: block;
+	}
+
+	:global(html:not([data-theme="light"])) .labelToDark {
+		display: none;
+	}
+
+	:global(html:not([data-theme="light"])) .labelToLight {
+		display: block;
+	}
+}
+
+:global(html[data-theme="dark"]) .thumb {
+	transform: translateX(var(--thumb-travel));
+}
+
 :global(html[data-theme="dark"]) .sunIcon {
 	display: none;
 }
 
 :global(html[data-theme="dark"]) .moonIcon {
 	display: block;
-}
-
-.labelToLight {
-	display: none;
 }
 
 :global(html[data-theme="dark"]) .labelToDark {
