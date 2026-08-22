@@ -30,8 +30,6 @@
 	border-radius: var(--dtcg-ed-radius-full);
 	box-shadow: var(--dtcg-ed-shadow-xs);
 	background-color: var(--dtcg-ed-color-neutral-100);
-	transition: background-color var(--dtcg-ed-transition-normal)
-		var(--dtcg-ed-ease-in-out);
 }
 
 :global(html[data-theme="dark"]) .track {
