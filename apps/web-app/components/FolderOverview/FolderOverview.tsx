@@ -22,7 +22,7 @@ export function FolderOverview({
 	return (
 		<ul className={styles.list}>
 			{files.map((file) => (
-				<li key={file.relativePath} className={styles.item}>
+				<li key={file.relativePath}>
 					{file.valid ? (
 						<Link href={hrefFor(file.relativePath)} className={styles.link}>
 							<span className={styles.badgeValid}>valid</span>

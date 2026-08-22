@@ -7,29 +7,21 @@
 	gap: var(--dtcg-ed-space-2xs);
 }
 
-.item {
+.link,
+.invalidItem {
+	display: flex;
+	align-items: center;
+	gap: var(--dtcg-ed-space-2xs);
+	text-decoration: none;
 	border: var(--dtcg-ed-border-width-thin) solid
 		var(--dtcg-ed-color-neutral-border-normal);
 	border-radius: var(--dtcg-ed-radius-lg);
 	padding: var(--dtcg-ed-space-xs) var(--dtcg-ed-space-sm);
 }
 
-.link {
-	display: flex;
-	align-items: center;
-	gap: var(--dtcg-ed-space-2xs);
-	text-decoration: none;
-}
-
 .link:hover {
-	text-decoration: underline;
-}
-
-.invalidItem {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--dtcg-ed-space-2xs);
+	background-color: var(--dtcg-ed-color-neutral-fill-quiet);
+	color: var(--dtcg-ed-color-neutral-on-quiet);
 }
 
 .badgeValid,

@@ -34,4 +34,7 @@ a {
 	--wrapper-max-width: var(--dtcg-ed-container-3xl);
 	padding-top: var(--dtcg-ed-space-lg);
 	padding-bottom: var(--dtcg-ed-space-lg);
+	display: flex;
+	flex-direction: column;
+	gap: var(--dtcg-ed-space-sm);
 }
