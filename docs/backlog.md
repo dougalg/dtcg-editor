@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `pick-up-task` (or `speckit-specify`) to start it.
 Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not marked `[x]` here.
 
+- [ ] Ability to visualize linting errors (eg: a11y contrast checks for token pairs, naming convnetions, etc.)
 - [ ] Ability to add and remove files in the file list page
 - [ ] Refactor all CSS to use design tokens where possible (replace hardcoded colors/spacing/sizing in `*.module.css` files with `var(--dtcg-ed-*)` custom properties, adding new tokens where a suitable one doesn't yet exist). (in progress — worktree `.claude/worktrees/css-design-tokens`, branch `worktree-css-design-tokens`)
 - [ ] Refactor `TreeTokenNode` to extract a reusable "dumb" CUBE-CSS Block subcomponent (deduplicating existing repetition) and move the relevant styles out of `TokenTree.module.css` into it; stop repeating the token name in every label (e.g. "Name" instead of "{TOKEN} name", "Type: <Badge>{TOKEN_TYPE}</Badge>" instead of "{TOKEN} type {TOKEN_TYPE}") with the token name promoted to a semantically-correct heading at the start of the node; refactor the existing `Badge` component into a "pill" style for use in these labels; give each token node an icon based on its type; and add a left pin line to each token in the tree view (matching the existing group pin lines) with a visible break between pin lines of two sequential tokens. (in progress — worktree `.claude/worktrees/tree-token-node-block`, branch `worktree-tree-token-node-block`)
