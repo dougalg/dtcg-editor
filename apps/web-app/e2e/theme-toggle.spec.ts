@@ -63,3 +63,33 @@ test("the toggle is present and the page has no WCAG 2.2 AA violations with it v
 	const results = await runAxe(page);
 	expect(results.violations).toEqual([]);
 });
+
+test.describe("first load with no saved preference (US1)", () => {
+	test.describe(() => {
+		test.use({ colorScheme: "dark" });
+
+		test("shows checked/dark when the OS prefers dark", async ({ page }) => {
+			await page.goto("/");
+			const toggle = page.getByRole("switch");
+
+			await expect(toggle).toHaveAttribute("aria-checked", "true");
+			await expect(toggle).toHaveAttribute("data-state", "checked");
+			await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+		});
+	});
+
+	test.describe(() => {
+		test.use({ colorScheme: "light" });
+
+		test("shows unchecked/light when the OS prefers light", async ({
+			page,
+		}) => {
+			await page.goto("/");
+			const toggle = page.getByRole("switch");
+
+			await expect(toggle).toHaveAttribute("aria-checked", "false");
+			await expect(toggle).toHaveAttribute("data-state", "unchecked");
+			await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+		});
+	});
+});

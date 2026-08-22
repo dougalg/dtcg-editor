@@ -2,7 +2,7 @@
 
 import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
 import { fromThrowable } from "neverthrow";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { DARK_MEDIA_QUERY, THEME_STORAGE_KEY } from "./themeConstants.ts";
 
@@ -94,31 +94,58 @@ export function useTheme(options: UseThemeOptions = {}): UseThemeResult {
 	const setStoredTheme = options.setStoredTheme ?? writeStoredThemeReal;
 	const matchMedia = options.matchMedia ?? realMatchMedia;
 
-	const [theme, setTheme] = useState<Theme>(() => {
-		// Computed the same way the inline FOUC-prevention script computes its
-		// pre-paint value (stored preference, else system) — during SSR
-		// `window` doesn't exist yet, so this only resolves for real on the
-		// client, matching what that script already set on the DOM by the
-		// time this component hydrates.
-		if (typeof window === "undefined") {
-			return "light";
-		}
-		const stored = safeCall(getStoredTheme, undefined, "useTheme.init");
-		return stored ?? (systemPrefersDark(matchMedia) ? "dark" : "light");
-	});
+	// Mirrors the latest injected functions into refs, read from inside the
+	// mount-only effect below instead of listing them as effect dependencies.
+	// A caller (real or test) that doesn't memoize its injected functions —
+	// e.g. passing `matchMedia: () => mql` as a fresh inline arrow every
+	// render — would otherwise make the effect's dependency array unstable,
+	// causing it to tear down and re-run on every render. Since that effect
+	// resolves the initial theme, an unwanted re-run re-resolves and
+	// silently overwrites whatever `toggleTheme` had just set — verified
+	// directly by reproducing exactly that with an unstable `matchMedia` in
+	// a test. Refs make "run once on mount" actually mean that, regardless
+	// of caller discipline.
+	const getStoredThemeRef = useRef(getStoredTheme);
+	getStoredThemeRef.current = getStoredTheme;
+	const setStoredThemeRef = useRef(setStoredTheme);
+	setStoredThemeRef.current = setStoredTheme;
+	const matchMediaRef = useRef(matchMedia);
+	matchMediaRef.current = matchMedia;
+
+	// Always starts as "light", deliberately matching what the server (which
+	// has no `window`) renders — *not* the real resolved value. React only
+	// reliably repaints a hydration-mismatched attribute like `aria-checked`
+	// on a genuine post-mount re-render, not merely because the very first
+	// client render already computed the "correct" value (verified directly:
+	// with the resolution done eagerly in this initializer instead, `theme`
+	// state was provably "dark" on first render — logged and confirmed — yet
+	// the DOM's `aria-checked` stayed stuck at the server's "false"
+	// indefinitely, since nothing ever triggered a second commit to force
+	// React to reconcile the mismatch). Resolving the real value in the
+	// mount effect below instead guarantees that second render.
+	const [theme, setTheme] = useState<Theme>("light");
 
 	useEffect(() => {
 		document.documentElement.setAttribute("data-theme", theme);
 	}, [theme]);
 
 	useEffect(() => {
-		const mediaQueryList = matchMedia(DARK_MEDIA_QUERY);
+		const stored = safeCall(
+			() => getStoredThemeRef.current(),
+			undefined,
+			"useTheme.init",
+		);
+		setTheme(
+			stored ?? (systemPrefersDark(matchMediaRef.current) ? "dark" : "light"),
+		);
+
+		const mediaQueryList = matchMediaRef.current(DARK_MEDIA_QUERY);
 
 		function handleSystemChange(event: MediaQueryListEvent): void {
 			// FR-007: an active override must not react to OS changes — only
 			// re-derive from the system when no override is stored.
 			const stored = safeCall(
-				getStoredTheme,
+				() => getStoredThemeRef.current(),
 				undefined,
 				"useTheme.handleSystemChange",
 			);
@@ -132,11 +159,13 @@ export function useTheme(options: UseThemeOptions = {}): UseThemeResult {
 				return;
 			}
 			const stored = safeCall(
-				getStoredTheme,
+				() => getStoredThemeRef.current(),
 				undefined,
 				"useTheme.handleStorage",
 			);
-			setTheme(stored ?? (systemPrefersDark(matchMedia) ? "dark" : "light"));
+			setTheme(
+				stored ?? (systemPrefersDark(matchMediaRef.current) ? "dark" : "light"),
+			);
 		}
 
 		mediaQueryList.addEventListener("change", handleSystemChange);
@@ -145,17 +174,17 @@ export function useTheme(options: UseThemeOptions = {}): UseThemeResult {
 			mediaQueryList.removeEventListener("change", handleSystemChange);
 			window.removeEventListener("storage", handleStorage);
 		};
-	}, [matchMedia, getStoredTheme]);
+	}, []);
 
 	function toggleTheme(): void {
 		setTheme((current) => {
 			const opposite: Theme = current === "dark" ? "light" : "dark";
-			const systemTheme: Theme = systemPrefersDark(matchMedia)
+			const systemTheme: Theme = systemPrefersDark(matchMediaRef.current)
 				? "dark"
 				: "light";
 			const nextStored = opposite === systemTheme ? undefined : opposite;
 			safeCall(
-				() => setStoredTheme(nextStored),
+				() => setStoredThemeRef.current(nextStored),
 				undefined,
 				"useTheme.toggleTheme",
 			);
