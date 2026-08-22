@@ -26,7 +26,7 @@ export default function GlobalError({
 	}, [error]);
 
 	return (
-		<main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem" }}>
+		<main className="wrapper page-wrapper">
 			<h1>Something went wrong</h1>
 			<p role="alert">An unexpected error occurred.</p>
 			<button type="button" onClick={reset}>

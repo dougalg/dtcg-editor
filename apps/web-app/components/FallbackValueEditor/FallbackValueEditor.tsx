@@ -26,6 +26,7 @@ export function FallbackValueEditor({
 			<span className={styles.labelText}>Value (JSON)</span>
 			<textarea
 				className={styles.textarea}
+				rows={1}
 				value={value}
 				onChange={handleChange}
 				spellCheck={false}

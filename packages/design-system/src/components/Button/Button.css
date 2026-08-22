@@ -13,27 +13,30 @@
 	cursor: pointer;
 	white-space: nowrap;
 	font: inherit;
-	font-size: var(--form-control-font-size, var(--text-base));
+	font-size: var(--dtcg-ed-form-control-font-size, var(--dtcg-ed-text-base));
 	padding-block: 0;
 	border-color: transparent;
-	background-color: var(--color-fill-loud, var(--color-neutral-fill-loud));
-	border-radius: var(--form-control-radius);
-	border-style: var(--border-style);
-	border-width: var(--form-control-border-width);
-	color: var(--color-on-loud, var(--color-neutral-on-normal));
-	font-weight: var(--font-weight-medium);
-	gap: var(--space-2xs);
+	background-color: var(
+		--dtcg-ed-color-fill-loud,
+		var(--dtcg-ed-color-neutral-fill-loud)
+	);
+	border-radius: var(--dtcg-ed-form-control-radius);
+	border-style: var(--dtcg-ed-border-style);
+	border-width: var(--dtcg-ed-form-control-border-width);
+	color: var(--dtcg-ed-color-on-loud, var(--dtcg-ed-color-neutral-on-normal));
+	font-weight: var(--dtcg-ed-font-weight-medium);
+	gap: var(--dtcg-ed-space-2xs);
 	min-height: var(--_form-control-height);
 	padding-inline: var(--_padding-inline);
 	transition-property: color, background-color, border-color, box-shadow;
-	transition-timing-function: var(--ease-out);
-	transition-duration: var(--transition-normal);
+	transition-timing-function: var(--dtcg-ed-ease-out);
+	transition-duration: var(--dtcg-ed-transition-normal);
 }
 
 .button:hover {
 	background-color: color-mix(
 		in oklab,
-		var(--color-fill-loud, var(--color-neutral-fill-loud)),
+		var(--dtcg-ed-color-fill-loud, var(--dtcg-ed-color-neutral-fill-loud)),
 		var(--color-mix-hover, black 5%)
 	);
 }
@@ -41,16 +44,16 @@
 .button:active {
 	background-color: color-mix(
 		in oklab,
-		var(--color-fill-loud, var(--color-neutral-fill-loud)),
+		var(--dtcg-ed-color-fill-loud, var(--dtcg-ed-color-neutral-fill-loud)),
 		var(--color-mix-active, black 10%)
 	);
 }
 
 .button:focus-visible {
 	box-shadow: 0 0 0 3px
-		color-mix(in oklab, var(--color-fill-loud) 25%, transparent);
+		color-mix(in oklab, var(--dtcg-ed-color-fill-loud) 25%, transparent);
 	outline: none;
-	border-color: var(--color-fill-loud);
+	border-color: var(--dtcg-ed-color-fill-loud);
 }
 
 .button:disabled {

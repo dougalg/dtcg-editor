@@ -1,45 +1,49 @@
 .radio-toggle {
 	--checked-icon-color: var(
 		--color-accent-fill-loud,
-		var(--color-neutral-fill-loud)
+		var(--dtcg-ed-color-neutral-fill-loud)
 	);
 	--checked-icon-scale: 0.6;
 
 	flex-shrink: 0;
-	font-size: var(--form-control-font-size, var(--text-base));
+	font-size: var(--dtcg-ed-form-control-font-size, var(--dtcg-ed-text-base));
 	background: transparent;
-	border: var(--form-control-border-width) var(--border-style)
-		var(--form-control-border-color);
+	border: var(--dtcg-ed-form-control-border-width) var(--dtcg-ed-border-style)
+		var(--dtcg-ed-form-control-border-color);
 
 	width: 1.1em;
 	height: 1.1em;
 	padding: 0.15em;
 
-	border-radius: var(--radius-full);
-	box-shadow: var(--shadow-xs);
+	border-radius: var(--dtcg-ed-radius-full);
+	box-shadow: var(--dtcg-ed-shadow-xs);
 	outline-style: none;
 	transition-property: border-color, box-shadow;
-	transition-timing-function: var(--ease-out);
-	transition-duration: var(--transition-normal);
+	transition-timing-function: var(--dtcg-ed-ease-out);
+	transition-duration: var(--dtcg-ed-transition-normal);
 }
 
 .radio-toggle[data-state="checked"] {
 	border-color: var(
 		--color-accent-border-normal,
-		var(--form-control-border-color)
+		var(--dtcg-ed-form-control-border-color)
 	);
 }
 
 .radio-toggle[data-state="checked"]:focus-visible {
 	box-shadow: 0 0 0 3px
-		color-mix(in oklab, var(--form-control-activated-color) 40%, transparent);
-	border-color: var(--form-control-activated-color);
+		color-mix(
+			in oklab,
+			var(--dtcg-ed-form-control-activated-color) 40%,
+			transparent
+		);
+	border-color: var(--dtcg-ed-form-control-activated-color);
 }
 
 .radio-toggle:focus-visible {
 	box-shadow: 0 0 0 3px
-		color-mix(in oklab, var(--color-neutral-400) 25%, transparent);
-	border-color: var(--color-neutral-400);
+		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
+	border-color: var(--dtcg-ed-color-neutral-400);
 }
 
 .radio-toggle[disabled] + .label,
@@ -53,7 +57,10 @@
 	align-items: center;
 	justify-content: center;
 	position: relative;
-	color: var(--color-accent-fill-loud, var(--color-neutral-fill-loud));
+	color: var(
+		--dtcg-ed-color-accent-fill-loud,
+		var(--dtcg-ed-color-neutral-fill-loud)
+	);
 	scale: var(--checked-icon-scale);
 }
 
@@ -62,6 +69,12 @@
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	fill: var(--color-accent-fill-loud, var(--color-neutral-fill-loud));
-	stroke: var(--color-accent-fill-loud, var(--color-neutral-fill-loud));
+	fill: var(
+		--dtcg-ed-color-accent-fill-loud,
+		var(--dtcg-ed-color-neutral-fill-loud)
+	);
+	stroke: var(
+		--dtcg-ed-color-accent-fill-loud,
+		var(--dtcg-ed-color-neutral-fill-loud)
+	);
 }

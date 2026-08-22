@@ -6,7 +6,7 @@
 	overflow: hidden;
 	height: var(--avatar-size);
 	width: var(--avatar-size);
-	border-radius: var(--radius-full);
+	border-radius: var(--dtcg-ed-radius-full);
 }
 
 .avatar-image {
@@ -22,6 +22,9 @@
 	justify-content: center;
 	height: 100%;
 	width: 100%;
-	background-color: var(--color-fill-normal, var(--color-neutral-fill-normal));
-	border-radius: var(--radius-full);
+	background-color: var(
+		--dtcg-ed-color-fill-normal,
+		var(--dtcg-ed-color-neutral-fill-normal)
+	);
+	border-radius: var(--dtcg-ed-radius-full);
 }

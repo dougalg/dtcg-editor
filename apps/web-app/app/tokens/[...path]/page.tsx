@@ -26,7 +26,7 @@ export default async function TokenFilePage({ params }: PageProps) {
 	}
 
 	return (
-		<main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem" }}>
+		<main className="wrapper page-wrapper">
 			<p>
 				<Link href="/">&larr; Back to folder overview</Link>
 			</p>

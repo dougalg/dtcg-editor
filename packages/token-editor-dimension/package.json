@@ -9,7 +9,7 @@
 		".": "./dist/src/index.js"
 	},
 	"scripts": {
-		"build": "tsc -p tsconfig.json",
+		"build": "tsc -p tsconfig.json && mkdir -p dist/src/components/DimensionEditor && cp src/components/DimensionEditor/DimensionEditor.module.css dist/src/components/DimensionEditor/DimensionEditor.module.css",
 		"test": "node --test src/*.test.ts",
 		"lint:write": "biome lint --write .",
 		"lint": "biome lint ."

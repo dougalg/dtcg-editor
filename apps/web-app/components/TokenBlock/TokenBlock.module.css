@@ -81,7 +81,10 @@
 
 .descriptionTextarea {
 	width: 100%;
-	min-height: 2.5rem;
+	/* Starts at a single line (see the `rows={1}` on the element itself) and
+	 * grows with its content instead of reserving multi-line height
+	 * up front. */
+	field-sizing: content;
 	resize: vertical;
 	font: inherit;
 }

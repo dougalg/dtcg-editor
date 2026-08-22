@@ -6,17 +6,20 @@
 	white-space: nowrap;
 	flex-shrink: 0;
 	overflow: hidden;
-	background-color: var(--color-fill-loud, var(--color-neutral-fill-loud));
-	color: var(--color-on-loud, var(--color-neutral-on-loud));
-	border-radius: var(--radius-full);
-	border-style: var(--border-style);
-	border-width: var(--border-width-thin);
+	background-color: var(
+		--dtcg-ed-color-fill-loud,
+		var(--dtcg-ed-color-neutral-fill-loud)
+	);
+	color: var(--dtcg-ed-color-on-loud, var(--dtcg-ed-color-neutral-on-loud));
+	border-radius: var(--dtcg-ed-radius-full);
+	border-style: var(--dtcg-ed-border-style);
+	border-width: var(--dtcg-ed-border-width-thin);
 	border-color: transparent;
 	padding: 0 0.75em;
-	font-size: max(var(--text-xs), 0.75em);
-	font-weight: var(--font-weight-medium);
-	gap: var(--space-2xs);
+	font-size: max(var(--dtcg-ed-text-xs), 0.75em);
+	font-weight: var(--dtcg-ed-font-weight-medium);
+	gap: var(--dtcg-ed-space-2xs);
 	transition:
-		color var(--transition-normal),
-		box-shadow var(--transition-normal);
+		color var(--dtcg-ed-transition-normal),
+		box-shadow var(--dtcg-ed-transition-normal);
 }

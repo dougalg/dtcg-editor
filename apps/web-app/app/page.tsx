@@ -13,7 +13,7 @@ export default async function Home() {
 	const result = await scanTokenDirectory(config.tokensDir);
 
 	return (
-		<main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem" }}>
+		<main className="wrapper page-wrapper">
 			<h1>Token Files</h1>
 			<p>
 				<strong>Token files loaded from:</strong>{" "}

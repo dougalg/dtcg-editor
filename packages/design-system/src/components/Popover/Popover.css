@@ -1,20 +1,20 @@
 [data-slot="popover-trigger"] svg {
 	pointer-events: none;
-	color: var(--color-text-quiet);
+	color: var(--dtcg-ed-color-text-quiet);
 }
 
 .popover-content {
 	outline: none;
 	min-width: fit-content;
-	background-color: var(--color-surface-raised);
+	background-color: var(--dtcg-ed-color-surface-raised);
 	transform-origin: var(--radix-popover-content-transform-origin);
-	border-width: var(--panel-border-width);
-	border-style: var(--panel-border-style);
-	border-color: var(--panel-border-color);
-	border-radius: var(--panel-radius);
-	padding-inline: var(--space-md);
-	padding-block: var(--space-md);
-	box-shadow: var(--shadow-xs);
+	border-width: var(--dtcg-ed-panel-border-width);
+	border-style: var(--dtcg-ed-panel-border-style);
+	border-color: var(--dtcg-ed-panel-border-color);
+	border-radius: var(--dtcg-ed-panel-radius);
+	padding-inline: var(--dtcg-ed-space-md);
+	padding-block: var(--dtcg-ed-space-md);
+	box-shadow: var(--dtcg-ed-shadow-xs);
 }
 
 .popover-content:has(.command) {
@@ -22,25 +22,28 @@
 }
 
 .popover-content[data-state="open"] {
-	animation: popover-slide-in-from-top var(--transition-normal) var(--ease-out);
+	animation: popover-slide-in-from-top var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .popover-content[data-side="bottom"] {
-	animation: popover-slide-in-from-top var(--transition-normal) var(--ease-out);
+	animation: popover-slide-in-from-top var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .popover-content[data-side="left"] {
-	animation: popover-slide-in-from-right var(--transition-normal)
-		var(--ease-out);
+	animation: popover-slide-in-from-right var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .popover-content[data-side="right"] {
-	animation: popover-slide-in-from-left var(--transition-normal) var(--ease-out);
+	animation: popover-slide-in-from-left var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .popover-content[data-side="top"] {
-	animation: popover-slide-in-from-bottom var(--transition-normal)
-		var(--ease-out);
+	animation: popover-slide-in-from-bottom var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 @keyframes popover-slide-in-from-top {

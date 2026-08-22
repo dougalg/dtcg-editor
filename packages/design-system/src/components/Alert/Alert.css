@@ -1,20 +1,26 @@
 .alert {
 	position: relative;
-	background-color: var(--color-fill-normal, var(--color-neutral-fill-normal));
-	color: var(--color-on-normal, var(--color-neutral-on-normal));
-	border: var(--border-width-thin) var(--border-style)
-		var(--color-border-normal, var(--color-neutral-border-normal));
-	padding-inline: var(--space-sm);
-	padding-block: var(--space-xs);
-	border-radius: var(--panel-radius);
-	box-shadow: var(--shadow-xs);
+	background-color: var(
+		--dtcg-ed-color-fill-normal,
+		var(--dtcg-ed-color-neutral-fill-normal)
+	);
+	color: var(--dtcg-ed-color-on-normal, var(--dtcg-ed-color-neutral-on-normal));
+	border: var(--dtcg-ed-border-width-thin) var(--dtcg-ed-border-style)
+		var(
+			--dtcg-ed-color-border-normal,
+			var(--dtcg-ed-color-neutral-border-normal)
+		);
+	padding-inline: var(--dtcg-ed-space-sm);
+	padding-block: var(--dtcg-ed-space-xs);
+	border-radius: var(--dtcg-ed-panel-radius);
+	box-shadow: var(--dtcg-ed-shadow-xs);
 }
 
 .alert:has(svg) {
 	display: grid;
 	grid-template-columns: 1rem 1fr;
-	row-gap: var(--space-3xs);
-	column-gap: var(--space-xs);
+	row-gap: var(--dtcg-ed-space-3xs);
+	column-gap: var(--dtcg-ed-space-xs);
 }
 
 .alert .button {
@@ -33,8 +39,8 @@
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 	grid-column-start: var(--alert-title-col-start, 2);
-	font-weight: var(--font-weight-medium);
-	letter-spacing: var(--tracking-tight);
+	font-weight: var(--dtcg-ed-font-weight-medium);
+	letter-spacing: var(--dtcg-ed-tracking-tight);
 }
 
 .alert .alert-description {

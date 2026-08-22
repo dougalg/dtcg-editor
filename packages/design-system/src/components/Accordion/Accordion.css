@@ -1,6 +1,6 @@
 .accordion-item {
-	border-block-end: var(--border-width-thin) var(--border-style)
-		var(--color-surface-border);
+	border-block-end: var(--dtcg-ed-border-width-thin) var(--dtcg-ed-border-style)
+		var(--dtcg-ed-color-surface-border);
 }
 
 .accordion-item:last-child {
@@ -19,27 +19,27 @@
 	align-items: flex-start;
 	justify-content: space-between;
 	text-align: left;
-	background: var(--color-surface-default);
-	color: var(--color-text-normal);
-	gap: var(--space-md);
-	padding-block: var(--space-md);
-	font-size: var(--text-base);
-	font-weight: var(--font-weight-medium);
-	line-height: var(--leading-tight);
+	background: var(--dtcg-ed-color-surface-default);
+	color: var(--dtcg-ed-color-text-normal);
+	gap: var(--dtcg-ed-space-md);
+	padding-block: var(--dtcg-ed-space-md);
+	font-size: var(--dtcg-ed-text-base);
+	font-weight: var(--dtcg-ed-font-weight-medium);
+	line-height: var(--dtcg-ed-leading-tight);
 	outline-style: none;
-	border-radius: var(--form-control-radius);
+	border-radius: var(--dtcg-ed-form-control-radius);
 }
 
 .accordion-trigger:focus-visible {
 	box-shadow: 0 0 0 3px
-		color-mix(in oklab, var(--color-neutral-400) 25%, transparent);
-	border-color: var(--color-neutral-400);
-	z-index: var(--z-raised);
+		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
+	border-color: var(--dtcg-ed-color-neutral-400);
+	z-index: var(--dtcg-ed-z-raised);
 }
 
 .accordion-trigger svg {
-	color: var(--color-text-quiet);
-	transition: transform var(--transition-normal);
+	color: var(--dtcg-ed-color-text-quiet);
+	transition: transform var(--dtcg-ed-transition-normal);
 }
 
 .accordion-trigger:hover {
@@ -56,19 +56,21 @@
 }
 
 .accordion-content[data-state="closed"] {
-	animation: accordion-up var(--transition-normal) var(--ease-out);
+	animation: accordion-up var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .accordion-content[data-state="open"] {
-	animation: accordion-down var(--transition-normal) var(--ease-out);
+	animation: accordion-down var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .accordion-content-inner {
-	padding-block-end: var(--space-md);
+	padding-block-end: var(--dtcg-ed-space-md);
 }
 
 .accordion-content-inner > * + * {
-	margin-block-start: var(--space-sm);
+	margin-block-start: var(--dtcg-ed-space-sm);
 }
 
 @keyframes accordion-down {

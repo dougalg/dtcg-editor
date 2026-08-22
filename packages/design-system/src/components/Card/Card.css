@@ -1,19 +1,22 @@
 .card {
-	--inner-border-radius: calc(var(--panel-radius) - var(--panel-border-width));
+	--inner-border-radius: calc(
+		var(--dtcg-ed-panel-radius) -
+		var(--dtcg-ed-panel-border-width)
+	);
 	position: relative;
-	background-color: var(--color-surface-raised);
-	border: var(--panel-border-width) var(--panel-border-style)
-		var(--panel-border-color);
-	border-radius: var(--panel-radius);
-	box-shadow: var(--shadow-xs);
+	background-color: var(--dtcg-ed-color-surface-raised);
+	border: var(--dtcg-ed-panel-border-width) var(--dtcg-ed-panel-border-style)
+		var(--dtcg-ed-panel-border-color);
+	border-radius: var(--dtcg-ed-panel-radius);
+	box-shadow: var(--dtcg-ed-shadow-xs);
 }
 
 .card-header {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-2xs);
-	padding-block-start: var(--space-md);
-	padding-inline: var(--space-md);
+	gap: var(--dtcg-ed-space-2xs);
+	padding-block-start: var(--dtcg-ed-space-md);
+	padding-inline: var(--dtcg-ed-space-md);
 }
 
 .card-media {
@@ -24,11 +27,11 @@
 }
 
 .card-content {
-	padding-block: var(--space-md);
-	padding-inline: var(--space-md);
+	padding-block: var(--dtcg-ed-space-md);
+	padding-inline: var(--dtcg-ed-space-md);
 }
 
 .card-footer {
-	padding-block-end: var(--space-md);
-	padding-inline: var(--space-md);
+	padding-block-end: var(--dtcg-ed-space-md);
+	padding-inline: var(--dtcg-ed-space-md);
 }

@@ -6,13 +6,15 @@
 .dialog-backdrop {
 	position: fixed;
 	inset: 0;
-	z-index: var(--z-modal);
-	background-color: var(--color-overlay);
-	animation: dialog-fade-out var(--transition-normal) var(--ease-out);
+	z-index: var(--dtcg-ed-z-modal);
+	background-color: var(--dtcg-ed-color-overlay);
+	animation: dialog-fade-out var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .dialog-backdrop[data-state="open"] {
-	animation: dialog-fade-in var(--transition-normal) var(--ease-out);
+	animation: dialog-fade-in var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .dialog {
@@ -20,18 +22,20 @@
 	left: 50%;
 	top: 50%;
 	transform: translate(-50%, -50%);
-	z-index: var(--z-modal);
+	z-index: var(--dtcg-ed-z-modal);
 	max-width: calc(100vw - 2rem);
 	width: 26rem;
-	background-color: var(--color-surface-raised);
-	padding: var(--space-md);
-	box-shadow: var(--shadow-md);
-	border-radius: var(--panel-radius);
-	animation: dialog-close var(--transition-normal) var(--ease-out);
+	background-color: var(--dtcg-ed-color-surface-raised);
+	padding: var(--dtcg-ed-space-md);
+	box-shadow: var(--dtcg-ed-shadow-md);
+	border-radius: var(--dtcg-ed-panel-radius);
+	animation: dialog-close var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 .dialog[data-state="open"] {
-	animation: dialog-open var(--transition-normal) var(--ease-out);
+	animation: dialog-open var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 @keyframes dialog-fade-in {

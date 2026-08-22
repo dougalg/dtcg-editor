@@ -2,6 +2,8 @@
 @import "@dtcg-editor/design-system/styles/global/global.css";
 @import "@dtcg-editor/design-system/styles/utilities/region.css";
 @import "@dtcg-editor/design-system/styles/utilities/visually-hidden.css";
+@import "@dtcg-editor/design-system/styles/compositions/wrapper.css";
+@import "@dtcg-editor/design-system/components/Badge/Badge.css";
 
 html,
 body {
@@ -19,4 +21,17 @@ body {
 
 a {
 	color: inherit;
+}
+
+/*
+ * PAGE-WRAPPER (Composition exception)
+ * Every top-level route (`page.tsx`, `error.tsx`) wraps its content in this,
+ * on top of the shared `.wrapper` composition — narrows the reading column
+ * and adds vertical breathing room, both sized from the design token scale
+ * rather than page-specific magic numbers.
+ */
+.page-wrapper {
+	--wrapper-max-width: var(--dtcg-ed-container-3xl);
+	padding-top: var(--dtcg-ed-space-lg);
+	padding-bottom: var(--dtcg-ed-space-lg);
 }

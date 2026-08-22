@@ -8,6 +8,9 @@
 	display: block;
 	font-size: var(--dtcg-ed-text-sm);
 	min-width: 16rem;
-	min-height: 3rem;
+	/* Starts at a single line (see the `rows={1}` on the element itself) and
+	 * grows with its content instead of reserving multi-line height
+	 * up front. */
+	field-sizing: content;
 	resize: vertical;
 }

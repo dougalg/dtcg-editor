@@ -1,26 +1,35 @@
 "use client";
 
-import { useState, type ChangeEvent } from "react";
-import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
 import {
 	COLOR_SPACES,
 	type ColorObjectValue,
 	type ColorSpace,
 	type ColorValue,
 } from "@dtcg-editor/token-core";
+import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
+import { type ChangeEvent, type CSSProperties, useState } from "react";
 import type { ColorEditorOptions } from "../../configuration.ts";
-import {
-	checkColorValueIssues,
-	COMPONENT_RANGES,
-} from "../../utils/range-validation.ts";
-import { colorValueToCssColor } from "../../utils/css-color.ts";
 import {
 	colorValueToSrgbHex,
 	srgbHexToColorSpaceComponents,
 } from "../../utils/conversion.ts";
+import { colorValueToCssColor } from "../../utils/css-color.ts";
+import {
+	COMPONENT_RANGES,
+	checkColorValueIssues,
+} from "../../utils/range-validation.ts";
 import styles from "./ColorEditor.module.css";
 
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
+/** The swatch's fill is inherently dynamic (whatever color the token/input
+ * currently resolves to), so it can't be a static CSS/design-token value —
+ * threaded through as a custom property instead of a `backgroundColor`
+ * inline style, so `.swatch`'s other properties (size, border, radius —
+ * all design tokens) stay in CSS. */
+function swatchStyle(color: string): CSSProperties {
+	return { "--swatch-color": color } as CSSProperties;
+}
 
 /** `COLOR_SPACES`, deduped with `active` unioned in, kept in canonical order regardless of allow-list order (FR-05/AC-05/AC-06). */
 function offeredColorSpaces(
@@ -154,7 +163,7 @@ function ObjectColorEditor({
 			</label>
 			<span
 				className={styles.swatch}
-				style={{ backgroundColor: cssColor }}
+				style={swatchStyle(cssColor)}
 				aria-hidden="true"
 			/>
 			<label>
@@ -273,7 +282,7 @@ function LegacyHexColorEditor({
 			</label>
 			<span
 				className={styles.swatch}
-				style={{ backgroundColor: colorValueToCssColor(value) }}
+				style={swatchStyle(colorValueToCssColor(value))}
 				aria-hidden="true"
 			/>
 			<label>

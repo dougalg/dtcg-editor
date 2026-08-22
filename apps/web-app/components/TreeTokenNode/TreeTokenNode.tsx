@@ -228,6 +228,7 @@ export function TreeTokenNode({
 				<textarea
 					aria-labelledby={`${headingId} ${descriptionLabelId}`}
 					className={styles.descriptionTextarea}
+					rows={1}
 					value={currentDescription}
 					onChange={handleDescriptionChange}
 				/>

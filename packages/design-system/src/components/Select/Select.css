@@ -16,30 +16,30 @@
 	font: inherit;
 	padding-block: 0;
 	outline-style: none;
-	font-size: var(--form-control-font-size, var(--text-base));
-	background-color: var(--form-control-bg);
-	border-radius: var(--form-control-radius);
-	border-color: var(--form-control-border-color, transparent);
-	border-style: var(--border-style);
-	border-width: var(--form-control-border-width);
-	box-shadow: var(--shadow-xs);
-	font-weight: var(--font-weight-medium);
-	gap: var(--space-2xs);
+	font-size: var(--dtcg-ed-form-control-font-size, var(--dtcg-ed-text-base));
+	background-color: var(--dtcg-ed-color-surface-lowest);
+	border-radius: var(--dtcg-ed-form-control-radius);
+	border-color: var(--dtcg-ed-form-control-border-color, transparent);
+	border-style: var(--dtcg-ed-border-style);
+	border-width: var(--dtcg-ed-form-control-border-width);
+	box-shadow: var(--dtcg-ed-shadow-xs);
+	font-weight: var(--dtcg-ed-font-weight-medium);
+	gap: var(--dtcg-ed-space-2xs);
 	min-height: var(--_form-control-height);
 	padding-inline: var(--_padding-inline);
 	transition-property: color, background-color, border-color, box-shadow;
-	transition-timing-function: var(--ease-out);
-	transition-duration: var(--transition-normal);
+	transition-timing-function: var(--dtcg-ed-ease-out);
+	transition-duration: var(--dtcg-ed-transition-normal);
 }
 
 .select-trigger[data-placeholder] {
-	color: var(--form-control-placeholder-color);
+	color: var(--dtcg-ed-form-control-placeholder-color);
 }
 
 .select-trigger:focus-visible {
 	box-shadow: 0 0 0 3px
-		color-mix(in oklab, var(--color-neutral-400) 25%, transparent);
-	border-color: var(--color-neutral-400);
+		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
+	border-color: var(--dtcg-ed-color-neutral-400);
 }
 
 .select-trigger:disabled {
@@ -48,7 +48,7 @@
 }
 
 .select-trigger > svg:not([data-slot="select-value"] svg) {
-	color: var(--color-text-quiet);
+	color: var(--dtcg-ed-color-text-quiet);
 }
 
 .select-trigger > span[data-slot="select-value"] {
@@ -63,24 +63,24 @@
 
 .select-content {
 	position: relative;
-	z-index: var(--z-dropdown);
+	z-index: var(--dtcg-ed-z-dropdown);
 	overflow-x: hidden;
 	overflow-y: auto;
 	min-width: 8rem;
 	max-height: var(--radix-select-content-available-height);
-	border-radius: var(--panel-radius);
-	border: var(--panel-border-width) var(--border-style)
-		var(--panel-border-color);
-	background: var(--color-surface-raised);
-	box-shadow: var(--shadow-md);
-	font-size: var(--form-control-font-size);
+	border-radius: var(--dtcg-ed-panel-radius);
+	border: var(--dtcg-ed-panel-border-width) var(--dtcg-ed-border-style)
+		var(--dtcg-ed-panel-border-color);
+	background: var(--dtcg-ed-color-surface-raised);
+	box-shadow: var(--dtcg-ed-shadow-md);
+	font-size: var(--dtcg-ed-form-control-font-size);
 }
 
 .select-label {
 	padding-block: 0.25rem;
 	padding-inline: 0.5rem;
-	font-size: var(--text-xs);
-	color: var(--color-text-quiet);
+	font-size: var(--dtcg-ed-text-xs);
+	color: var(--dtcg-ed-color-text-quiet);
 }
 
 .select-item {
@@ -96,7 +96,7 @@
 }
 
 .select-item svg {
-	color: var(--color-text-quiet);
+	color: var(--dtcg-ed-color-text-quiet);
 }
 
 .select-item > span:last-child {
@@ -107,13 +107,16 @@
 
 .select-item[data-highlighted] {
 	outline: none;
-	background-color: var(--color-fill-normal, var(--color-neutral-fill-normal));
-	border-radius: var(--radius-md);
+	background-color: var(
+		--dtcg-ed-color-fill-normal,
+		var(--dtcg-ed-color-neutral-fill-normal)
+	);
+	border-radius: var(--dtcg-ed-radius-md);
 }
 
 .select-item[data-disabled] {
 	pointer-events: none;
-	color: var(--select-item-disabled);
+	color: var(--dtcg-ed-color-text-quiet);
 }
 
 .select-item-indicator {
@@ -127,7 +130,7 @@
 }
 
 .select-item-indicator svg {
-	color: var(--color-text-quiet);
+	color: var(--dtcg-ed-color-text-quiet);
 }
 
 .select-viewport {
@@ -160,17 +163,20 @@
 }
 
 .select-content[data-state="open"][data-side="bottom"] {
-	animation: select-slide-in-from-top var(--transition-normal) var(--ease-out);
+	animation: select-slide-in-from-top var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 .select-content[data-state="open"][data-side="top"] {
-	animation: select-slide-in-from-bottom var(--transition-normal)
-		var(--ease-out);
+	animation: select-slide-in-from-bottom var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 .select-content[data-state="open"][data-side="left"] {
-	animation: select-slide-in-from-right var(--transition-normal) var(--ease-out);
+	animation: select-slide-in-from-right var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 .select-content[data-state="open"][data-side="right"] {
-	animation: select-slide-in-from-left var(--transition-normal) var(--ease-out);
+	animation: select-slide-in-from-left var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-out);
 }
 
 @keyframes select-slide-in-from-top {

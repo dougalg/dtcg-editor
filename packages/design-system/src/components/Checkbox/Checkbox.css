@@ -1,8 +1,8 @@
 .checkbox {
-	--checked-icon-color: var(--color-accent-on-loud);
+	--checked-icon-color: var(--dtcg-ed-color-accent-on-loud);
 
 	font: inherit;
-	font-size: var(--form-control-font-size, var(--text-base));
+	font-size: var(--dtcg-ed-form-control-font-size, var(--dtcg-ed-text-base));
 	appearance: none;
 	margin: 0;
 	background: none;
@@ -14,32 +14,37 @@
 	width: 1.1em;
 	height: 1.1em;
 
-	background-color: var(--input-bg);
-	border: var(--form-control-border-width) var(--form-control-border-style)
-		var(--form-control-border-color);
-	border-radius: min(0.4em, var(--radius-md));
-	box-shadow: var(--shadow-xs);
+	background-color: var(--dtcg-ed-color-surface-lowest);
+	border: var(--dtcg-ed-form-control-border-width)
+		var(--dtcg-ed-form-control-border-style)
+		var(--dtcg-ed-form-control-border-color);
+	border-radius: min(0.4em, var(--dtcg-ed-radius-md));
+	box-shadow: var(--dtcg-ed-shadow-xs);
 	outline-style: none;
 	transition-property: border-color, box-shadow;
-	transition-timing-function: var(--ease-out);
-	transition-duration: var(--transition-normal);
+	transition-timing-function: var(--dtcg-ed-ease-out);
+	transition-duration: var(--dtcg-ed-transition-normal);
 }
 
 .checkbox[data-state="checked"] {
-	background-color: var(--form-control-activated-color);
-	border-color: var(--form-control-activated-color);
+	background-color: var(--dtcg-ed-form-control-activated-color);
+	border-color: var(--dtcg-ed-form-control-activated-color);
 }
 
 .checkbox[data-state="checked"]:focus-visible {
 	box-shadow: 0 0 0 3px
-		color-mix(in oklab, var(--form-control-activated-color) 40%, transparent);
-	border-color: var(--form-control-activated-color);
+		color-mix(
+			in oklab,
+			var(--dtcg-ed-form-control-activated-color) 40%,
+			transparent
+		);
+	border-color: var(--dtcg-ed-form-control-activated-color);
 }
 
 .checkbox:focus-visible {
 	box-shadow: 0 0 0 3px
-		color-mix(in oklab, var(--color-neutral-400) 25%, transparent);
-	border-color: var(--color-neutral-400);
+		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
+	border-color: var(--dtcg-ed-color-neutral-400);
 }
 
 .checkbox:disabled,

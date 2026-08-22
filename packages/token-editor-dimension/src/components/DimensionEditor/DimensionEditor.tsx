@@ -3,25 +3,9 @@
 import type { DimensionValue } from "@dtcg-editor/token-core";
 import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
 import type { ChangeEvent } from "react";
+import styles from "./DimensionEditor.module.css";
 
 const UNITS = ["px", "rem"] as const;
-const containerStyle = {
-	display: "inline-flex",
-	alignItems: "baseline",
-	gap: "0.75rem",
-} as const;
-const fieldStyle = {
-	display: "inline-flex",
-	alignItems: "baseline",
-	gap: "0.35rem",
-	// Overrides the design system's default `label { width: 100% }` (for
-	// labels wrapping a text control), which would otherwise fight this
-	// row's flex layout and blow the gap between the two fields way out.
-	width: "fit-content",
-} as const;
-const labelTextStyle = { fontSize: "0.7rem", opacity: 0.6 } as const;
-const valueInputStyle = { width: "4.5rem" } as const;
-const unitSelectStyle = { width: "4rem" } as const;
 
 /** The editable UI for a Dimension token's `$value`: a numeric input plus a unit select. */
 export function DimensionEditor({
@@ -41,20 +25,20 @@ export function DimensionEditor({
 	}
 
 	return (
-		<span style={containerStyle}>
-			<label style={fieldStyle}>
-				<span style={labelTextStyle}>Value</span>
+		<span className={styles.container}>
+			<label className={styles.field}>
+				<span className={styles.labelText}>Value</span>
 				<input
 					type="number"
-					style={valueInputStyle}
+					className={styles.valueInput}
 					value={value.value}
 					onChange={handleValueChange}
 				/>
 			</label>
-			<label style={fieldStyle}>
-				<span style={labelTextStyle}>Unit</span>
+			<label className={styles.field}>
+				<span className={styles.labelText}>Unit</span>
 				<select
-					style={unitSelectStyle}
+					className={styles.unitSelect}
 					value={value.unit}
 					onChange={handleUnitChange}
 				>
