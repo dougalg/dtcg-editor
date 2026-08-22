@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-22
 
-**Status**: Draft
+**Status**: Implemented (2026-08-22)
 
 **Input**: User description: "Add a light/dark mode switcher following the two-state toggle approach from Lea Verou's 'Dark mode toggles: theory and practice' (https://lea.verou.me/blog/2026/dark-mode-toggles/) — a compact two-state (light/dark) button that internally tracks three states (system default / light override / dark override): first click sets an explicit override to the opposite of the currently visible theme, second click clears the override back to system default; store the override in localStorage, respect prefers-color-scheme when unset, and only evaluate/clear overrides on user interaction (never react proactively to OS theme changes)."
 
