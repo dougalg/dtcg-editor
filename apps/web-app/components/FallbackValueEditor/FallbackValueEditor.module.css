@@ -1,12 +1,12 @@
 .labelText {
-	font-size: 0.7rem;
+	font-size: var(--dtcg-ed-text-xs);
 	color: var(--dtcg-ed-color-neutral-text-quiet);
 	opacity: 0.6;
 }
 
 .textarea {
 	display: block;
-	font-size: 0.85rem;
+	font-size: var(--dtcg-ed-text-sm);
 	min-width: 16rem;
 	min-height: 3rem;
 	resize: vertical;

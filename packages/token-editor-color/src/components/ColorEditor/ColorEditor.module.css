@@ -2,8 +2,9 @@
 	display: inline-block;
 	width: 1.5rem;
 	height: 1.5rem;
-	border: 1px solid var(--dtcg-ed-color-neutral-border-normal);
-	border-radius: 0.25rem;
+	border: var(--dtcg-ed-border-width-thin) solid
+		var(--dtcg-ed-color-neutral-border-normal);
+	border-radius: var(--dtcg-ed-radius-md);
 	vertical-align: middle;
 }
 
@@ -11,28 +12,29 @@
 	display: inline-block;
 	width: 2rem;
 	height: 1.5rem;
-	border: 1px solid var(--dtcg-ed-color-neutral-border-normal);
-	border-radius: 0.25rem;
+	border: var(--dtcg-ed-border-width-thin) solid
+		var(--dtcg-ed-color-neutral-border-normal);
+	border-radius: var(--dtcg-ed-radius-md);
 	padding: 0;
 	vertical-align: middle;
-	margin-right: 0.5rem;
+	margin-right: var(--dtcg-ed-space-2xs);
 }
 
 .labelText {
-	font-size: 0.7rem;
+	font-size: var(--dtcg-ed-text-xs);
 	opacity: 0.6;
 }
 
 .componentRow {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.25rem;
+	gap: var(--dtcg-ed-space-3xs);
 }
 
 .colorIssues {
 	width: 100%;
 	color: var(--dtcg-ed-color-error-on-normal);
-	font-size: 0.7rem;
+	font-size: var(--dtcg-ed-text-xs);
 	margin: 0;
-	padding-left: 1rem;
+	padding-left: var(--dtcg-ed-space-sm);
 }

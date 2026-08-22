@@ -1,14 +1,14 @@
 .button {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.5rem;
-	padding: 0.65rem 1.4rem;
+	gap: var(--dtcg-ed-space-2xs);
+	padding: var(--dtcg-ed-space-2xs-xs) var(--dtcg-ed-space-md);
 	border: none;
-	border-radius: 0.5rem;
+	border-radius: var(--dtcg-ed-radius-lg);
 	background: var(--dtcg-ed-color-accent-fill-quiet);
 	color: var(--dtcg-ed-color-accent-on-quiet);
-	font-size: 1rem;
-	font-weight: 600;
+	font-size: var(--dtcg-ed-text-base);
+	font-weight: var(--dtcg-ed-font-weight-semibold);
 	font-family: inherit;
 	cursor: pointer;
 }
@@ -35,5 +35,5 @@
 }
 
 .label {
-	line-height: 1;
+	line-height: var(--dtcg-ed-leading-none);
 }

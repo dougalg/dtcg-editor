@@ -3,14 +3,15 @@
 	flex-direction: column;
 	gap: 0.35rem;
 	margin: 0.2rem 0;
-	padding: 0 0 0 0.75rem;
-	border-left: 1px solid var(--dtcg-ed-color-neutral-border-normal);
+	padding: 0 0 0 var(--dtcg-ed-space-xs);
+	border-left: var(--dtcg-ed-border-width-thin) solid
+		var(--dtcg-ed-color-neutral-border-normal);
 }
 
 .identity {
 	display: flex;
 	align-items: center;
-	gap: 0.35rem;
+	gap: var(--dtcg-ed-space-3xs-2xs);
 }
 
 .icon {
@@ -23,14 +24,14 @@
 .heading {
 	margin: 0;
 	font-size: inherit;
-	font-weight: 600;
+	font-weight: var(--dtcg-ed-font-weight-semibold);
 }
 
 .typeRow {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.4rem;
-	font-size: 0.75rem;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+	font-size: var(--dtcg-ed-text-xs);
 }
 
 .typeLabel {
@@ -44,11 +45,11 @@
 .field {
 	display: inline-flex;
 	align-items: baseline;
-	gap: 0.3rem;
+	gap: var(--dtcg-ed-space-3xs-2xs);
 }
 
 .fieldLabel {
-	font-size: 0.7rem;
+	font-size: var(--dtcg-ed-text-xs);
 	color: var(--dtcg-ed-color-neutral-text-quiet);
 	display: block;
 }
