@@ -7,6 +7,11 @@ import styles from "./TokenBlock.module.css";
 export interface TokenBlockProps {
 	/** The token's name, rendered once as this block's heading. */
 	readonly name: string;
+	/** Id placed on the heading so field labels elsewhere in this block can
+	 * reference it via `aria-labelledby`, disambiguating same-named fields
+	 * (e.g. "Name") across sibling tokens without repeating the token's name
+	 * as a string in multiple places. */
+	readonly headingId?: string;
 	/** The token's resolved type, if any. `undefined` renders no type pill. */
 	readonly type: DtcgTokenType | string | undefined;
 	/** Whether `type` is present but not a recognized standard DTCG type. */
@@ -26,6 +31,7 @@ export interface TokenBlockProps {
  */
 export function TokenBlock({
 	name,
+	headingId,
 	type,
 	isNonStandardType,
 	children,
@@ -39,7 +45,9 @@ export function TokenBlock({
 				<svg className={styles.icon} aria-hidden="true" focusable="false">
 					<use xlinkHref={`/icon-sprite.svg#${iconId}`} />
 				</svg>
-				<h2 className={styles.heading}>{name}</h2>
+				<h2 id={headingId} className={styles.heading}>
+					{name}
+				</h2>
 				{type !== undefined && (
 					<>
 						<span className={[styles.typeLabel, "visually-hidden"].join(" ")}>

@@ -50,6 +50,11 @@ export function TreeTokenNode({
 	onFieldError,
 }: TreeNodeProps<TokenNode>) {
 	const key = pathKey(node.path);
+	// Shared with the field labels below via `aria-labelledby` so each
+	// input's accessible name combines the token's heading (e.g. "0") with
+	// the field label (e.g. "Name"), disambiguating same-named fields across
+	// sibling tokens without repeating the token's name as a string.
+	const headingId = `token-${key}-heading`;
 	const pending = pendingEdits.get(key);
 	const errors = fieldErrors.get(key);
 	const effectiveType = node.effectiveType;
@@ -99,6 +104,7 @@ export function TreeTokenNode({
 		return (
 			<TokenBlock
 				name={node.name}
+				headingId={headingId}
 				type={effectiveType}
 				isNonStandardType={effectiveType !== undefined && !isUsableType}
 			>
@@ -185,11 +191,25 @@ export function TreeTokenNode({
 		| ((props: TokenTypeEditorProps<unknown>) => ReactElement)
 		| undefined;
 
+	const nameLabelId = `token-${key}-name-label`;
+	const descriptionLabelId = `token-${key}-description-label`;
+
 	return (
-		<TokenBlock name={node.name} type={effectiveType} isNonStandardType={false}>
+		<TokenBlock
+			name={node.name}
+			headingId={headingId}
+			type={effectiveType}
+			isNonStandardType={false}
+		>
 			<label className={styles.field}>
-				<span className={styles.fieldLabel}>Name</span>
-				<input value={currentName} onChange={handleNameChange} />
+				<span id={nameLabelId} className={styles.fieldLabel}>
+					Name
+				</span>
+				<input
+					aria-labelledby={`${headingId} ${nameLabelId}`}
+					value={currentName}
+					onChange={handleNameChange}
+				/>
 			</label>
 			{ResolvedEditor !== undefined ? (
 				<ResolvedEditor
@@ -204,8 +224,11 @@ export function TreeTokenNode({
 				/>
 			)}
 			<label className={styles.field}>
-				<span className={styles.fieldLabel}>Description</span>
+				<span id={descriptionLabelId} className={styles.fieldLabel}>
+					Description
+				</span>
 				<input
+					aria-labelledby={`${headingId} ${descriptionLabelId}`}
 					className={styles.value}
 					value={currentDescription}
 					onChange={handleDescriptionChange}

@@ -42,19 +42,24 @@
 	border-radius: var(--dtcg-ed-radius-md);
 }
 
+/* The "loud" fill/on pairs (e.g. emerald-600 bg / emerald-50 text) fall
+ * short of WCAG AA's 4.5:1 contrast ratio at this badge's font size, so
+ * these badges use the "quiet" pairs instead — same semantic hue, but a
+ * light fill with a dark, saturated on-color, which comfortably clears
+ * 4.5:1. */
 .badgeValid {
-	background: var(--dtcg-ed-color-success-fill-loud);
-	color: var(--dtcg-ed-color-success-on-loud);
+	background: var(--dtcg-ed-color-success-fill-quiet);
+	color: var(--dtcg-ed-color-success-on-quiet);
 }
 
 .badgeInvalid {
-	background: var(--dtcg-ed-color-error-fill-loud);
-	color: var(--dtcg-ed-color-error-on-loud);
+	background: var(--dtcg-ed-color-error-fill-quiet);
+	color: var(--dtcg-ed-color-error-on-quiet);
 }
 
 .badgeNonStandard {
-	background: var(--dtcg-ed-color-warning-fill-loud);
-	color: var(--dtcg-ed-color-warning-on-loud);
+	background: var(--dtcg-ed-color-warning-fill-quiet);
+	color: var(--dtcg-ed-color-warning-on-quiet);
 }
 
 .error {

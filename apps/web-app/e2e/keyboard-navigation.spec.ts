@@ -73,8 +73,7 @@ test("the browse -> open -> edit -> save flow is fully keyboard-operable with vi
 	await tabTo(page, groupNameInput);
 
 	const tokenNameInput = page.getByRole("textbox", {
-		name: "0 name",
-		exact: true,
+		name: /^0 name$/i,
 	});
 	await tabTo(page, tokenNameInput);
 
@@ -95,8 +94,7 @@ test("the browse -> open -> edit -> save flow is fully keyboard-operable with vi
 	await tabTo(page, dimensionUnitSelect);
 
 	const descriptionInput = page.getByRole("textbox", {
-		name: "0 description",
-		exact: true,
+		name: /^0 description$/i,
 	});
 	await tabTo(page, descriptionInput);
 
@@ -128,8 +126,7 @@ test("the color editor's native color picker is keyboard-reachable with an acces
 	await expect(page).toHaveURL(/\/tokens\/color_scale\.tokens\.json$/);
 
 	const tokenNameInput = page.getByRole("textbox", {
-		name: "blue-500 name",
-		exact: true,
+		name: /^blue-500 name$/i,
 	});
 	await tabUntilFocused(page, tokenNameInput);
 
