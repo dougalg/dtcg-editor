@@ -1,8 +1,8 @@
 .token {
 	display: flex;
 	flex-direction: column;
-	gap: 0.35rem;
-	margin: 0.2rem 0;
+	gap: var(--dtcg-ed-space-sm);
+	margin: var(--dtcg-ed-space-md) 0;
 	padding: 0 0 0 var(--dtcg-ed-space-xs);
 	border-left: var(--dtcg-ed-border-width-thin) solid
 		var(--dtcg-ed-color-neutral-border-normal);
@@ -15,25 +15,15 @@
 }
 
 .icon {
-	width: 0.9rem;
-	height: 0.9rem;
+	width: 1.2rem;
+	height: 1.2rem;
 	flex-shrink: 0;
 	color: var(--dtcg-ed-color-neutral-text-quiet);
 }
 
 .heading {
-	margin: 0;
-	font-size: inherit;
-}
-
-.headingInput {
-	font: inherit;
-	font-weight: var(--dtcg-ed-font-weight-semibold);
-	color: inherit;
-	background: transparent;
-	border: var(--dtcg-ed-border-width-thin) solid transparent;
-	border-radius: var(--dtcg-ed-radius-sm);
-	padding: 0.05rem var(--dtcg-ed-space-3xs-2xs);
+	display: flex;
+	align-items: center;
 }
 
 .headingInput:hover,
@@ -45,7 +35,6 @@
 	display: inline-flex;
 	align-items: center;
 	gap: var(--dtcg-ed-space-3xs-2xs);
-	font-size: var(--dtcg-ed-text-xs);
 }
 
 .typeLabel {

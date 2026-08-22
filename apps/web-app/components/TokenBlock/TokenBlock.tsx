@@ -71,7 +71,7 @@ export function TokenBlock({
 				<h2 className={styles.heading}>
 					<input
 						id={headingId}
-						className={styles.headingInput}
+						data-inline
 						value={name}
 						onChange={onNameChange}
 						aria-label={nameAriaLabel}
