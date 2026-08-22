@@ -32,7 +32,7 @@ Reference syntax and chain walking go into `token-core` (React-free, filesystem-
 
 **Performance Goals**: No perceptible delay opening a token file (SC-010). Measured floor for a full parse-and-index pass: 1.40 ms / 16 files / 565 tokens.
 
-**Constraints**: Client and server validation must change together — `docs/history.md` (2026-08-02) records a previous divergence in this exact pair causing both a client crash and a server-side unvalidated-write hole. `TreeTokenNode.tsx` is at 240 lines against Principle X's 300-line ceiling, so the new rendering must be extracted, not inlined.
+**Constraints**: Client and server validation must change together — `docs/history.md` (2026-08-02) records a previous divergence in this exact pair causing both a client crash and a server-side unvalidated-write hole. `TreeTokenNode.tsx` is at 240 lines against Principle X's 300-line ceiling, so the new rendering must be extracted, not inlined. This feature deliberately absorbs the standing backlog item _"TreeGroupNode should be refactored to either be a disclosure element, or make sure it has all necessary aria props like controls, and expanded"_, because native `<details>` is what supplies reveal-a-collapsed-group for free (research.md §5).
 
 **Scale/Scope**: This project's own token set — 16 files, 565 tokens, 490 distinct paths, 228 references (200 cross-file, 50 chained, longest chain 3 hops), 75 multiply-defined paths, busiest token 8 referrers.
 
@@ -51,7 +51,7 @@ _GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design._
 | VII. Token-Editor Package Contract | Pass | `token-core` gains reference syntax/resolution and stays React-free; dependency direction unchanged. **`TokenTypeContract` is not modified** — the reference check is hoisted above `validateTokenValue` instead, because a reference is valid for every `$type` and is therefore not any one type's business. |
 | VIII. Minimal Dependencies | Pass | Nothing new. `Popover`, `Badge`, `Dialog`, and `lucide-react` are already present. |
 | IX. Round-Trip Fidelity | Pass | No value is ever rewritten; `serialize.ts` already passes `$value` through verbatim, so a reference survives a save byte-identical. A regression test asserts this. |
-| X. Component Granularity & Testing | Pass, with care | New components each in their own PascalCase folder with unit **and** a11y tests. Actively enforced here: `TreeTokenNode.tsx` is already 240/300 lines, so the reference view is extracted rather than added inline (research.md §12). |
+| X. Component Granularity & Testing | Pass, with care | New components each in their own PascalCase folder with unit **and** a11y tests. Actively enforced here: `TreeTokenNode.tsx` is already 240/300 lines, so the reference view is extracted rather than added inline (research.md §12). `TreeGroupNode`'s move to native `<details>`/`<summary>` also removes an existing a11y gap — today's toggle `<button>` exposes neither `aria-expanded` nor `aria-controls` (research.md §5). |
 | XI. Modern Defaults | Pass | ESM throughout; no legacy pattern introduced. |
 
 **No violations — Complexity Tracking is intentionally empty.**
@@ -104,8 +104,8 @@ apps/web-app/
 │   ├── TokenReferenceValue/         # NEW — resolved value + navigation control
 │   ├── ReferencedByBadge/           # NEW — "referenced N times" + popover list
 │   ├── TreeTokenNode/               # EDITED — new reference path in the dispatch
-│   ├── TreeGroupNode/               # EDITED — expansion state lifted out
-│   └── TokenTree/                   # EDITED — owns expansion + navigation guard
+│   ├── TreeGroupNode/               # EDITED — native <details>/<summary> disclosure
+│   └── TokenTree/                   # EDITED — arrival focus + navigation guard
 └── e2e/
     ├── fixtures/tokens/             # NEW fixtures — cross-file, chain, broken,
     │                                #   group-target, circular, unparseable
@@ -122,7 +122,7 @@ Ordered so each stage is independently verifiable, and so the highest-value slic
 2. **Validation hoist (client + server together)** — smallest change that fixes the live false-error bug. Delivers visible value before any indexing exists, and must not be split across commits given the mirroring history.
 3. **Directory load + index** — extract `loadTokenDirectory` from `scanTokenDirectory`, add the resolver-file reader, build the index and per-file view. Pure and directly unit-testable once loading is injected.
 4. **User Story 1 — resolved value display** — wire the view through `plain-node`/`page.tsx` into the extracted `TokenReferenceValue`. Independently shippable.
-5. **Token addressing + arrival** — fragment scheme, lifted expansion state, scroll/focus/highlight.
+5. **Token addressing + arrival** — fragment scheme, `TreeGroupNode` → native `<details>`/`<summary>` disclosure (reveal and scroll come from the browser), then focus/highlight for the part it does not cover.
 6. **User Story 2 — navigation** — reference links, multi-definition picker, unsaved-edits guard.
 7. **User Story 3 — reverse index UI** — `ReferencedByBadge` and its popover list.
 8. **Fixtures + failure-path tests** — broken, group-target, circular, unparseable, cross-file. Can be written earlier; must be complete before done.
@@ -137,6 +137,8 @@ Stages 1–2 alone already fix a real bug; stages 1–4 deliver User Story 1 (th
 | Cycle detection regressing into a hang | Cycle detection is the *only* thing bounding recursion. Fixture-backed test that must fail fast rather than hang the suite. |
 | Per-request indexing slower than measured | 1.40 ms floor was measured without Zod. Re-measure once deps are installed; the decision holds across a wide range, and caching remains available (at the cost of invalidation-on-save). |
 | `TreeTokenNode` exceeding the 300-line ceiling | Extraction is planned up front (stage 4), not deferred. |
+| React re-asserting `open` and defeating native `<details>` expansion | The disclosure is uncontrolled — `open` is set in initial markup only, never as a changing prop. Regression test: collapse a group, edit a sibling token to force a `TokenTree` re-render, assert it stays collapsed (research.md §5). |
+| Group name becoming unrenameable, or nested-interactive-content a11y failure | The name `Input` stays outside `<details>`; `<summary>` carries only the disclosure control and its accessible name. Needs a deliberate layout pass, flagged in research.md §5 as the non-trivial part of the refactor. |
 | Multiply-defined paths surprising users | 75 of 490 paths affected; never silently resolved to one winner — the chooser shows file and mode. |
 
 ## Complexity Tracking

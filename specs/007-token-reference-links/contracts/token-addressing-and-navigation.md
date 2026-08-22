@@ -14,18 +14,27 @@ No way to address an individual token exists today — only two content routes (
 
 ## Arrival behavior
 
-Resolved in client code on mount and on `hashchange`, **not** via native `:target` (research.md §4 — native scrolling cannot open a collapsed ancestor group):
+Split between the browser and app code (research.md §4, §5):
 
-1. Decode the fragment into a path.
-2. Expand every ancestor group of that path (see expansion state below).
-3. Scroll the token into view.
-4. Move focus to it, and mark it as the arrival target so it is visually distinguishable (spec FR-014's "making clear which token was navigated to").
+| Step | Owner |
+| --- | --- |
+| 1. Open every collapsed ancestor group of the target | **Browser** — native `<details>` auto-expansion |
+| 2. Scroll the token into view | **Browser** — same mechanism |
+| 3. Decode the fragment into a path and match it to the rendered token | App, on mount and on `hashchange` |
+| 4. Move focus to it, and mark it as the arrival target so it is visually distinguishable (spec FR-014's "making clear which token was navigated to") | App |
+
+Steps 1–2 require no app code: auto-expanding `<details>` ships in Chrome, Firefox 139+, and Safari 26.2+, and was verified in all three through this app's own Next.js navigation. Steps 3–4 are what the browser does not cover — it reveals and scrolls, but neither moves focus nor indicates which token was the destination.
 
 A fragment naming a token that does not exist in the file is ignored — the page renders normally. This matters because a file can be edited or renamed between the link being created and followed.
 
 ## Expansion state
 
-`TreeGroupNode`'s `const [expanded, setExpanded] = useState(true)` moves into `TokenTree` as a map keyed by group path, defaulting to expanded so present behavior is preserved. Nothing outside the component can open a specific group today, which is why arrival cannot reveal a collapsed target without this change.
+There is none to manage. `TreeGroupNode` becomes a native `<details>`/`<summary>` disclosure and its `const [expanded, setExpanded] = useState(true)` is removed rather than lifted — the DOM owns open/closed state.
+
+Two constraints follow, both binding (research.md §5):
+
+- The `<details>` MUST remain **uncontrolled**. React never passes a changing `open` prop; the initial open state comes from the server-rendered attribute. A controlled `open` would re-assert itself over the browser's expansion and defeat arrival entirely.
+- The group-name `Input` MUST live **outside** `<details>`, with `<summary>` carrying only the disclosure control and its accessible name. Inside `<summary>` it would be nested interactive content (Space toggles the group; ACT/axe-flaggable); after `<summary>` it would fall inside the collapsible region and a collapsed group could not be renamed.
 
 ## Same-file vs cross-file
 

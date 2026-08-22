@@ -33,9 +33,10 @@ pnpm --filter web-app dev
 ### Scenario 2 — navigation (US2, SC-004)
 
 1. From `cube.json`, activate a `{space.*}` reference. Expect to land on `space.json` with that token in view, focused, and visibly marked as the arrival target.
-2. Collapse a group, then arrive at a token inside it via a reference. Confirm the group is opened — this is the case native fragment scrolling cannot handle.
-3. Activate a reference to a **multiply-defined** path such as `{color.text.normal}` (defined in both `colors.json` and `dark.json`). Expect a chooser listing both, labelled by file and mode, with no definition hidden.
-4. Stage an edit without saving, then activate a reference to another file. Expect save / discard / stay, and confirm each option behaves correctly. Then repeat with a *same-file* reference and confirm no prompt appears.
+2. Collapse a group, then arrive at a token inside it via a reference. Confirm the group is opened. This is the browser's native `<details>` auto-expansion doing the work, so **check it in Chrome, Firefox, and Safari** rather than only the default browser.
+3. Collapse a group, then edit a *sibling* token to force a re-render. Confirm the group stays collapsed — this catches React re-asserting `open` over the uncontrolled disclosure (research.md §5).
+4. Activate a reference to a **multiply-defined** path such as `{color.text.normal}` (defined in both `colors.json` and `dark.json`). Expect a chooser listing both, labelled by file and mode, with no definition hidden.
+5. Stage an edit without saving, then activate a reference to another file. Expect save / discard / stay, and confirm each option behaves correctly. Then repeat with a *same-file* reference and confirm no prompt appears.
 
 ### Scenario 3 — reverse index (US3, SC-006)
 

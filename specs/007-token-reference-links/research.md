@@ -47,27 +47,69 @@ resolveReference(reference, lookup: (path) => TokenNode | undefined) -> Resoluti
 
 **Decision**: `/tokens/<file>#<dot-separated-token-path>`, with each path segment percent-encoded and joined by `.`. The fragment is resolved in client code — read on mount and on `hashchange`, then expand ancestors, scroll into view, and move focus — rather than relying on native `:target` behavior.
 
-**Rationale**: The DTCG format spec forbids `.`, `{`, and `}` in token and group names, which makes a dot-joined path **unambiguous by specification** rather than by convention — the same guarantee the codebase already leans on with `pathKey = path.join(".")`. A fragment is the idiomatic "address a part of this document" mechanism, needs no server round-trip for same-file jumps, and is directly supported by `next/link`. Resolving it in JS rather than via `:target` is necessary anyway, because arriving at a token may require expanding collapsed ancestor groups before it can be scrolled to — and doing it in JS sidesteps any mismatch between the encoded fragment and the raw DOM `id`.
+**Rationale**: The DTCG format spec forbids `.`, `{`, and `}` in token and group names, which makes a dot-joined path **unambiguous by specification** rather than by convention — the same guarantee the codebase already leans on with `pathKey = path.join(".")`. A fragment is the idiomatic "address a part of this document" mechanism, needs no server round-trip for same-file jumps, and is directly supported by `next/link`.
 
-**Alternatives considered**: A query parameter (`?token=…`) — rejected, it triggers a server round-trip and full re-render for what is a purely in-page concern. Relying on native fragment scrolling alone — rejected, it cannot open a collapsed ancestor group.
+**Division of labour with the browser**: revealing and scrolling are the browser's job, not the app's — per §5, native `<details>` auto-expansion opens every collapsed ancestor group and scrolls the target into view. App code is needed only for what the browser does *not* do: moving focus to the arrived-at token and marking it as the one navigated to (FR-014), plus reconciling the percent-encoded fragment with the raw DOM `id`. That routine runs on mount and on `hashchange`.
+
+**Alternatives considered**: A query parameter (`?token=…`) — rejected, it triggers a server round-trip and full re-render for what is a purely in-page concern. Relying on `:target` styling alone to indicate arrival — rejected, it cannot survive the fragment-encoding mismatch and gives no focus management.
 
 ## 5. Revealing a token inside collapsed groups
 
-**Decision**: Lift `TreeGroupNode`'s `expanded` state into `TokenTree` as a map keyed by group path, defaulting to expanded (preserving today's behavior), so arriving at a token can force its ancestors open.
+**Decision**: Refactor `TreeGroupNode` to a native `<details>`/`<summary>` disclosure and let the browser's built-in auto-expansion reveal a token inside collapsed ancestor groups. **No expansion state is lifted into `TokenTree`.**
 
-**Rationale**: `expanded` is currently `useState(true)` local to each `TreeGroupNode`, with no prop, callback, or lifted state — nothing outside the component can open a specific group. `TokenTree` already owns the cross-cutting client state (`pendingEdits`, `fieldErrors`) and is the natural owner. Because groups default to expanded, this is behavior-preserving until a user collapses something.
+**Rationale**: Auto-expanding `<details>` is now implemented in every engine — Chrome, Firefox (139+, bug 1724299), and Safari (26.2, Feb 2026) — and was **verified empirically in all three through this app's own Next.js navigation** before adopting it. The browser walks the ancestor chain, opens every closed `<details>` containing the target, and scrolls it into view. That is the whole of FR-014's "opening any groups containing it, bringing it into view", obtained without app code.
 
-**Alternatives considered**: Converting `TreeGroupNode` to a native `<details>` element, which browsers auto-expand on fragment navigation — genuinely attractive, and there is already a separate backlog item proposing exactly that refactor ("TreeGroupNode should be refactored to either be a disclosure element…"). Rejected *here* to avoid absorbing an unrelated backlog item into this feature, and because relying on browser auto-expansion is harder to test deterministically. Worth revisiting when that backlog item is picked up. A `forceExpandPath` prop threaded down without lifting state — rejected as a workaround that leaves ownership ambiguous.
+This is strictly less machinery than the alternative: no path-keyed expansion map, no ownership question, no prop threading. It also closes a real accessibility gap on the way — today's toggle is a `<button>` with neither `aria-expanded` nor `aria-controls`, and `<summary>` supplies disclosure semantics and keyboard operability natively, which SC-009 pushes on regardless. It therefore absorbs the standing backlog item _"TreeGroupNode should be refactored to either be a disclosure element, or make sure it has all necessary aria props like controls, and expanded"_ — a deliberate scope decision, taken because this feature is what makes reveal-a-collapsed-group load-bearing, so deferring it would mean touching the same component twice.
+
+**Two constraints this imposes, both binding on implementation**:
+
+1. **`<details>` MUST stay uncontrolled.** React must not drive the `open` prop, or it will fight the browser's expansion — the browser sets `open` directly on the DOM node, and a controlled React render would immediately reassert its own value. Initial state comes from the `open` attribute in the server-rendered markup (preserving today's default-expanded behavior) and is never re-specified. This relies on React only writing an attribute when its _own_ prop value changes between renders, which is real but fragile enough to need an explicit regression test: collapse a group, edit a sibling token to force a `TokenTree` re-render, assert the group stays collapsed.
+
+2. **The group-name `<input>` MUST NOT go inside `<summary>`.** `<summary>` is the click/Enter/Space target, so a text input nested in it is interactive-content-inside-interactive-content: Space in the name field can toggle the group, and it is flaggable by ACT/axe. But moving it after `<summary>` puts it inside the collapsible region, making a collapsed group unrenameable. Resolution: `<summary>` carries only the disclosure control plus its accessible name (a near drop-in for today's `aria-label={`${expanded ? "Collapse" : "Expand"} ${node.name || "/"}`}`), and the name `Input` stays outside `<details>` entirely, positioned alongside it with CSS. This needs a layout pass and is the one genuinely non-trivial part of the refactor.
+
+**Still not free**: auto-expansion reveals and scrolls, but does not move focus or indicate _which_ token was navigated to. FR-014's "making clear which token was navigated to" and FR-017's keyboard/accessible-name requirements still need app code — see §4.
+
+**Alternatives considered**: Lifting `expanded` into `TokenTree` as a map keyed by group path — this was the prior decision here, now rejected: it is redundant once the browser does the work, and actively incompatible with it, since a controlled `open` prop would defeat the native expansion. A `forceExpandPath` prop threaded down without lifting state — rejected as a workaround that leaves ownership ambiguous.
 
 ## 6. Where reference-awareness enters the validation dispatch
 
 **Decision**: Check for a reference **above** `validateTokenValue`, in both `TreeTokenNode.tsx` (client) and `app/api/tokens/[...path]/route.ts` (server). `TokenTypeContract` is **not** changed, and no `valueSchema` gains a reference branch.
 
-**Rationale**: A reference is valid for *any* `$type` — per the DTCG spec an aliasing token's type is the resolved type of its target — so it is a property of the value's *form*, not of any one type's schema. Teaching all present and future `valueSchema`s about references would duplicate that rule per type and force every future token-editor package to reimplement it. Hoisting the check expresses "a reference is not this type's business" exactly once per side.
+**The bug this fixes, concretely**. `TreeTokenNode.tsx` currently dispatches like this:
 
-The client/server pairing is non-negotiable: `route.ts` documents that it "Mirrors `TokenTree.tsx`'s client-side `canEdit` guard", and `docs/history.md` (2026-08-02) records that a previous failure to generalize this same pattern on both sides caused both a real client crash *and* a server-side unvalidated-write hole. Both sides must change together.
+```ts
+const isUsableType = effectiveType !== undefined && isDtcgTokenType(effectiveType);
+const contract     = isUsableType ? resolveBuiltInContract(effectiveType) : undefined;
+const validation   = contract ? validateTokenValue(contract, node.value) : undefined;
+const isValid      = isUsableType && (contract === undefined || validation?.isOk());
+```
 
-**Alternatives considered**: A reference branch inside each `valueSchema` — rejected per above. A new optional `TokenTypeContract` hook — rejected as unnecessary indirection for a rule that is uniform across every type.
+Given `{ "$type": "color", "$value": "{color.neutral.900}" }`: the type is usable, the color contract resolves, and `validateTokenValue` runs `ColorValueSchema.safeParse()`. That schema is `z.union([ColorObjectValueSchema, LegacyHexColorValueSchema])`, whose legacy branch is `/^#[0-9a-fA-F]{6}$/`. A reference string matches neither branch, so the parse fails and `ColorValidationErrorHandler` renders **`must be a 6-digit hex string like "#rrggbb"`** — against every token in the app's own `dark.json`.
+
+**Rationale**: A reference is valid for *any* `$type` — per the DTCG spec an aliasing token's type is the resolved type of its target — so it is a property of the value's *form*, not of any one type's schema. Asking "is this a reference?" therefore has to come *before* "is this a valid color?", not inside it. Hoisting the check expresses "a reference is not this type's business" exactly once per side:
+
+```ts
+const reference  = parseReference(node.value);        // from token-core
+const validation = reference === undefined && contract
+    ? validateTokenValue(contract, node.value)
+    : undefined;
+```
+
+**The server side has two steps to skip, not one.** `route.ts` (~L201-211) runs:
+
+```ts
+const valueValidation = validateTokenValue(builtInContract, edit.value);
+if (valueValidation.isErr()) return errorResponse(400, message, { … });
+value = builtInContract.serializeValue(valueValidation.value);
+```
+
+Hoisting past only the validation would then hand the reference string to `color.serializeValue()`, which expects an already-parsed `ColorValue`. The hoist must land on `value = edit.value` — verbatim passthrough — which is also what Principle IX requires, since the reference has to be written back byte-identical.
+
+The client/server pairing is non-negotiable: `route.ts` documents that it "Mirrors `TokenTree.tsx`'s client-side `canEdit` guard", and `docs/history.md` (2026-08-02) records that a previous failure to generalize this same pattern on both sides caused both a real client crash *and* a server-side unvalidated-write hole. Splitting it produces a specific failure each way — hoist client-only and the UI stages a reference edit the server then rejects with a 400; hoist server-only and the false error stays on screen. One stage, one paired test asserting both sides agree on the same input.
+
+**Alternatives considered**: A reference branch inside each `valueSchema` (e.g. `z.union([…existing, ReferenceSchema])`) — rejected: beyond duplicating the rule per type and forcing every future third-party token-editor package to reimplement it, it corrupts the type. `TValue` for color would widen to include a string that is not a color, so `contract.Editor` would receive `"{color.neutral.900}"` as a `ColorValue`, as would `serializeValue`. A new optional `TokenTypeContract` hook — rejected as per-type indirection for a rule with zero per-type variation.
+
+**Where it deliberately does not go**: `token-core`'s `parseTokenFile`/`schema.ts`. Detecting references at parse time would change what a parsed document means for every consumer; this stays a display-and-edit-time concern.
 
 ## 7. Modes, and reading the DTCG resolver file
 
