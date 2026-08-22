@@ -76,6 +76,38 @@ test.describe("first load with no saved preference (US1)", () => {
 			await expect(toggle).toHaveAttribute("data-state", "checked");
 			await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 		});
+
+		test("never flashes light before settling on dark (no FOUC)", async ({
+			page,
+		}) => {
+			// Records every value `data-theme` takes on, from the earliest
+			// possible moment (before React hydrates) through settling — a
+			// regression check for a real bug where the toggle's own
+			// placeholder React state briefly overwrote the inline
+			// FOUC-prevention script's already-correct pre-paint value.
+			await page.addInitScript(() => {
+				(window as unknown as { __themeLog: string[] }).__themeLog = [];
+				const observer = new MutationObserver((mutations) => {
+					for (const mutation of mutations) {
+						if (mutation.attributeName === "data-theme") {
+							(window as unknown as { __themeLog: string[] }).__themeLog.push(
+								document.documentElement.getAttribute("data-theme") ?? "",
+							);
+						}
+					}
+				});
+				observer.observe(document.documentElement, { attributes: true });
+			});
+
+			await page.goto("/");
+			await page.waitForSelector('[role="switch"]');
+			await page.waitForTimeout(300);
+
+			const log = await page.evaluate(
+				() => (window as unknown as { __themeLog: string[] }).__themeLog,
+			);
+			expect(log).not.toContain("light");
+		});
 	});
 
 	test.describe(() => {

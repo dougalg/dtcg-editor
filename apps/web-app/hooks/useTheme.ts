@@ -125,7 +125,22 @@ export function useTheme(options: UseThemeOptions = {}): UseThemeResult {
 	// mount effect below instead guarantees that second render.
 	const [theme, setTheme] = useState<Theme>("light");
 
+	// Guards the DOM-sync effect below against writing the placeholder
+	// "light" state to `data-theme` on mount: the inline FOUC-prevention
+	// script has already set the *correct* value on `<html>` before this
+	// component's first paint, and blindly syncing `theme` (still "light"
+	// here) would overwrite it, producing a real, visible flash — confirmed
+	// directly: dark (FOUC script's correct pre-paint value) -> light (this
+	// effect stomping it with the placeholder) -> dark again (once the
+	// resolution effect below corrects `theme` and this effect re-runs). Set
+	// to `true` by the resolution effect once it has run, so every write
+	// after that first skipped one reflects a genuine change.
+	const hasResolvedRef = useRef(false);
+
 	useEffect(() => {
+		if (!hasResolvedRef.current) {
+			return;
+		}
 		document.documentElement.setAttribute("data-theme", theme);
 	}, [theme]);
 
@@ -135,6 +150,7 @@ export function useTheme(options: UseThemeOptions = {}): UseThemeResult {
 			undefined,
 			"useTheme.init",
 		);
+		hasResolvedRef.current = true;
 		setTheme(
 			stored ?? (systemPrefersDark(matchMediaRef.current) ? "dark" : "light"),
 		);
