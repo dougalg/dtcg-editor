@@ -24,7 +24,21 @@
 .heading {
 	margin: 0;
 	font-size: inherit;
+}
+
+.headingInput {
+	font: inherit;
 	font-weight: var(--dtcg-ed-font-weight-semibold);
+	color: inherit;
+	background: transparent;
+	border: var(--dtcg-ed-border-width-thin) solid transparent;
+	border-radius: var(--dtcg-ed-radius-sm);
+	padding: 0.05rem var(--dtcg-ed-space-3xs-2xs);
+}
+
+.headingInput:hover,
+.headingInput:focus {
+	border-color: var(--dtcg-ed-color-neutral-border-normal);
 }
 
 .typeRow {

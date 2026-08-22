@@ -6,18 +6,26 @@ import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import { TokenTree } from "./TokenTree.tsx";
 
 /**
- * Scopes a query to one token's row via its heading (`TokenBlock` renders
- * the token name as an `<h2>` once, rather than repeating it in every field
- * label) — lets tests target "small"'s Name field distinctly from
- * "large"'s, even though both fields are now just labeled "Name".
+ * Scopes a query to one token's row via a stable `data-testid` (keyed by the
+ * token's original, unedited name) rather than its heading's accessible
+ * name — the heading is now an editable input showing the *live* name, so
+ * once a test renames a token, its heading text no longer matches the name
+ * it started with.
  */
-function getTokenRow(name: string): HTMLElement {
-	const heading = screen.getByRole("heading", { name });
-	const row = heading.closest("li");
-	if (row === null) {
-		throw new Error(`expected a containing <li> for token "${name}"`);
-	}
-	return row;
+function getTokenRow(originalName: string): HTMLElement {
+	return screen.getByTestId(`token-${originalName}`);
+}
+
+/**
+ * The token's name is now edited inline in its heading rather than via a
+ * separate "Name" field, so every row's name input shares the same visible
+ * label ("Name" is gone entirely) — its accessible name is
+ * `"${originalName} name"` instead, keeping it findable per-token.
+ */
+function getNameInput(originalName: string): HTMLElement {
+	return within(getTokenRow(originalName)).getByLabelText(
+		`${originalName} name`,
+	);
 }
 
 /**
@@ -169,14 +177,17 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-test("shows editable controls for a dimension token but not for a non-standard type (AC-01, AC-05)", () => {
+test("shows an editable value control for a dimension token but not for a non-standard type (AC-01, AC-05)", () => {
 	render(<TokenTree node={tree()} relativePath="tokens.json" />);
 
-	expect(within(getTokenRow("small")).getByLabelText("Name")).toBeTruthy();
-	expect(screen.getAllByLabelText("Dimension value").length).toBe(2);
+	// Every token's name is editable via its heading, regardless of type —
+	// including "weird", a non-standard type — so this test only checks the
+	// *value* control, which is where valid/non-standard actually diverge.
+	expect(getNameInput("small")).toBeTruthy();
+	expect(screen.getAllByLabelText("Value").length).toBe(2);
 
 	expect(screen.getByText("#ff0000")).toBeTruthy();
-	expect(within(getTokenRow("weird")).queryByLabelText("Name")).toBeNull();
+	expect(getNameInput("weird")).toBeTruthy();
 	expect(screen.getByText(/non-standard/)).toBeTruthy();
 });
 
@@ -209,8 +220,9 @@ test("an invalid dimension token renders a generic alert via DefaultValidationEr
 	// of its own, so an invalid value now falls back to
 	// `DefaultValidationErrorHandler` — previously this showed no error
 	// indication at all in read-only mode; this is the intentionally-added
-	// path 4 behavior, not a regression.
-	expect(within(getTokenRow("broken")).queryByLabelText("Name")).toBeNull();
+	// path 4 behavior, not a regression. Renaming is independent of value
+	// validity, so "broken" is still name-editable via its heading.
+	expect(getNameInput("broken")).toBeTruthy();
 	expect(screen.getByRole("alert").textContent).toMatch(
 		/Invalid dimension value/,
 	);
@@ -219,10 +231,12 @@ test("an invalid dimension token renders a generic alert via DefaultValidationEr
 test("a non-standard-type token renders read-only with no extra alert (path 5)", () => {
 	render(<TokenTree node={tree()} relativePath="tokens.json" />);
 
-	// "weird" (declaredType/effectiveType "not-a-real-type") is not editable
-	// and, per path 5 of the model, `DefaultValidationErrorHandler` is called
-	// with no `error` — no `role="alert"` anywhere in the tree for it.
-	expect(within(getTokenRow("weird")).queryByLabelText("Name")).toBeNull();
+	// "weird" (declaredType/effectiveType "not-a-real-type") has no editable
+	// *value* control and, per path 5 of the model,
+	// `DefaultValidationErrorHandler` is called with no `error` — no
+	// `role="alert"` anywhere in the tree for it. It's still name-editable
+	// via its heading, same as every other token.
+	expect(getNameInput("weird")).toBeTruthy();
 	expect(screen.getByText(/non-standard/)).toBeTruthy();
 	expect(screen.queryByRole("alert")).toBeNull();
 });
@@ -259,7 +273,7 @@ test("an out-of-range color token still renders, editable (AC-05)", () => {
 	// `ColorEditor` unmocked); this file's `color` editor is a stub, so it
 	// only asserts that the token stays editable, not that any particular
 	// editor renders a range-issue alert.
-	expect(within(getTokenRow("bad-hue")).getByLabelText("Name")).toBeTruthy();
+	expect(getNameInput("bad-hue")).toBeTruthy();
 });
 
 test("threads a color extension's editorOptions through to its registered editor", () => {
@@ -297,7 +311,7 @@ test("threads a color extension's editorOptions through to its registered editor
 test("rejects a rename that collides with a sibling and does not stage it (AC-03)", () => {
 	render(<TokenTree node={tree()} relativePath="tokens.json" />);
 
-	const nameInput = within(getTokenRow("small")).getByLabelText("Name");
+	const nameInput = getNameInput("small");
 	fireEvent.change(nameInput, { target: { value: "large" } });
 
 	expect(screen.getByText(/already exists/)).toBeTruthy();
@@ -313,10 +327,10 @@ test("allows staging a rename into a name another pending edit just freed up", (
 	// Rename "large" away first, freeing up "large" for "small" to claim in the
 	// same (unsaved) session — this must not be blocked by a stale check that
 	// only looks at the last-saved tree.
-	fireEvent.change(within(getTokenRow("large")).getByLabelText("Name"), {
+	fireEvent.change(getNameInput("large"), {
 		target: { value: "big" },
 	});
-	fireEvent.change(within(getTokenRow("small")).getByLabelText("Name"), {
+	fireEvent.change(getNameInput("small"), {
 		target: { value: "large" },
 	});
 
@@ -344,7 +358,7 @@ test("keeps a pending edit visible and editable after a failed save (AC-06)", as
 
 	render(<TokenTree node={tree()} relativePath="tokens.json" />);
 
-	const nameInput = within(getTokenRow("small")).getByLabelText("Name");
+	const nameInput = getNameInput("small");
 	fireEvent.change(nameInput, { target: { value: "tiny" } });
 
 	const saveButton = screen.getByRole("button", {
@@ -357,10 +371,7 @@ test("keeps a pending edit visible and editable after a failed save (AC-06)", as
 		expect(screen.getByText("disk full")).toBeTruthy();
 	});
 
-	expect(within(getTokenRow("small")).getByLabelText("Name")).toHaveProperty(
-		"value",
-		"tiny",
-	);
+	expect(getNameInput("small")).toHaveProperty("value", "tiny");
 	expect(saveButton.disabled).toBe(false);
 });
 
@@ -472,14 +483,18 @@ test("every field has visible label text, not just an accessible name (AC-10, AC
 	render(<TokenTree node={treeWithGroup()} relativePath="tokens.json" />);
 
 	expect(screen.getAllByText("Group Name:")).toBeTruthy();
-	// The token's name is now a heading, shown once, rather than repeated in
-	// every field label — "Name"/"Description" below it are still real
-	// visible text (not aria-only), just no longer name-prefixed.
+	// The token's name is edited inline in its heading now — the heading's
+	// own (editable) text is the name, so there's no separate "Name" label to
+	// check here. "Description" below it is still real visible text (not
+	// aria-only).
 	expect(screen.getByRole("heading", { name: "small" })).toBeTruthy();
-	expect(within(getTokenRow("small")).getByText("Name")).toBeTruthy();
-	expect(within(getTokenRow("small")).getByText("Description")).toBeTruthy();
-	expect(screen.getAllByText("Dimension value").length).toBeGreaterThan(0);
-	expect(screen.getAllByText("Dimension unit").length).toBeGreaterThan(0);
+	// "small" is nested under the "spacing" group here, so its row id is
+	// keyed by its full path, not just its leaf name.
+	expect(
+		within(getTokenRow("spacing.small")).getByText("Description"),
+	).toBeTruthy();
+	expect(screen.getAllByText("Value").length).toBeGreaterThan(0);
+	expect(screen.getAllByText("Unit").length).toBeGreaterThan(0);
 });
 
 function fallbackTree(value: unknown): PlainDtcgNode {
@@ -515,7 +530,7 @@ test("a standard type with no built-in editor renders name/description/JSON valu
 		/>,
 	);
 
-	expect(within(getTokenRow("swatch")).getByLabelText("Name")).toBeTruthy();
+	expect(getNameInput("swatch")).toBeTruthy();
 	expect(
 		within(getTokenRow("swatch")).getByLabelText("Description"),
 	).toBeTruthy();

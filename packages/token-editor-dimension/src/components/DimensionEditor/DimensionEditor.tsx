@@ -1,10 +1,20 @@
 "use client";
 
-import type { ChangeEvent } from "react";
-import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
 import type { DimensionValue } from "@dtcg-editor/token-core";
+import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
+import type { ChangeEvent } from "react";
 
 const UNITS = ["px", "rem"] as const;
+const containerStyle = {
+	display: "inline-flex",
+	alignItems: "baseline",
+	gap: "0.75rem",
+} as const;
+const fieldStyle = {
+	display: "inline-flex",
+	alignItems: "baseline",
+	gap: "0.35rem",
+} as const;
 const labelTextStyle = { fontSize: "0.7rem", opacity: 0.6 } as const;
 
 /** The editable UI for a Dimension token's `$value`: a numeric input plus a unit select. */
@@ -25,13 +35,13 @@ export function DimensionEditor({
 	}
 
 	return (
-		<span>
-			<label>
-				<span style={labelTextStyle}>Dimension value</span>
+		<span style={containerStyle}>
+			<label style={fieldStyle}>
+				<span style={labelTextStyle}>Value</span>
 				<input type="number" value={value.value} onChange={handleValueChange} />
 			</label>
-			<label>
-				<span style={labelTextStyle}>Dimension unit</span>
+			<label style={fieldStyle}>
+				<span style={labelTextStyle}>Unit</span>
 				<select value={value.unit} onChange={handleUnitChange}>
 					{UNITS.map((unit) => (
 						<option key={unit} value={unit}>

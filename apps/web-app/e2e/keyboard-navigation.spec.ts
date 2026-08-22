@@ -78,7 +78,7 @@ test("the browse -> open -> edit -> save flow is fully keyboard-operable with vi
 	await tabTo(page, tokenNameInput);
 
 	const dimensionValueInput = page
-		.getByRole("spinbutton", { name: "Dimension value" })
+		.getByRole("spinbutton", { name: "Value" })
 		.first();
 	await tabTo(page, dimensionValueInput);
 	expect(await hasVisibleFocusIndicator(dimensionValueInput)).toBe(true);
@@ -89,7 +89,7 @@ test("the browse -> open -> edit -> save flow is fully keyboard-operable with vi
 	await page.keyboard.type("42");
 
 	const dimensionUnitSelect = page
-		.getByRole("combobox", { name: "Dimension unit" })
+		.getByRole("combobox", { name: "Unit" })
 		.first();
 	await tabTo(page, dimensionUnitSelect);
 

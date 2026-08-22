@@ -50,14 +50,42 @@ export function TreeTokenNode({
 	onFieldError,
 }: TreeNodeProps<TokenNode>) {
 	const key = pathKey(node.path);
-	// Shared with the field labels below via `aria-labelledby` so each
-	// input's accessible name combines the token's heading (e.g. "0") with
-	// the field label (e.g. "Name"), disambiguating same-named fields across
-	// sibling tokens without repeating the token's name as a string.
+	// Shared with the Description field below via `aria-labelledby` so its
+	// accessible name combines the token's (live-edited) name with the field
+	// label (e.g. "0 Description"), disambiguating same-named fields across
+	// sibling tokens. Also used as a stable `data-testid` on the row, since
+	// the heading text itself is no longer stable once it's editable.
 	const headingId = `token-${key}-heading`;
+	const rowTestId = `token-${key}`;
 	const pending = pendingEdits.get(key);
 	const errors = fieldErrors.get(key);
 	const effectiveType = node.effectiveType;
+
+	const currentName = pending?.name ?? node.name;
+
+	// Renaming is independent of the token's value/type validity, so this is
+	// shared by both the valid/editable and invalid/read-only paths below —
+	// a token with a broken value can still be renamed.
+	function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
+		const nextName = event.target.value;
+		// Reflects other tokens' staged-but-unsaved renames too, so freeing up
+		// a name via one pending edit lets another pending edit claim it in
+		// the same session, without waiting for a save round-trip.
+		const effectiveRoot = applyEditsToPlainNode(
+			root,
+			Array.from(pendingEdits.values()),
+		);
+		const siblings = findSiblings(effectiveRoot, node.path);
+		if (!checkRenameAvailable(siblings, nextName, node.name)) {
+			onFieldError(node.path, {
+				name: `"${nextName}" already exists here`,
+				value: errors?.value,
+			});
+			return;
+		}
+		onFieldError(node.path, { name: undefined, value: errors?.value });
+		onStageEdit(node.path, { name: nextName });
+	}
 
 	// A type is only "usable" for validation purposes when it's both present
 	// and a recognized standard DTCG type — a declared-but-unrecognized type
@@ -103,48 +131,26 @@ export function TreeTokenNode({
 
 		return (
 			<TokenBlock
-				name={node.name}
+				name={currentName}
+				onNameChange={handleNameChange}
+				nameAriaLabel={`${node.name} name`}
 				headingId={headingId}
+				rowTestId={rowTestId}
 				type={effectiveType}
 				isNonStandardType={effectiveType !== undefined && !isUsableType}
 			>
-				<span className={styles.field}>
-					<span className={styles.fieldLabel}>Name</span>
-					<span>{node.name}</span>
-				</span>
 				<span className={styles.field}>
 					<span className={styles.fieldLabel}>Value</span>
 					<span className={styles.value}>{formatValue(node.value)}</span>
 				</span>
 				{extraContent}
+				{errors?.name !== undefined && <span role="alert">{errors.name}</span>}
 			</TokenBlock>
 		);
 	}
 
-	const currentName = pending?.name ?? node.name;
 	const currentRawValue = pending?.value ?? node.value;
 	const currentDescription = pending?.description ?? node.description ?? "";
-
-	function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
-		const nextName = event.target.value;
-		// Reflects other tokens' staged-but-unsaved renames too, so freeing up
-		// a name via one pending edit lets another pending edit claim it in
-		// the same session, without waiting for a save round-trip.
-		const effectiveRoot = applyEditsToPlainNode(
-			root,
-			Array.from(pendingEdits.values()),
-		);
-		const siblings = findSiblings(effectiveRoot, node.path);
-		if (!checkRenameAvailable(siblings, nextName, node.name)) {
-			onFieldError(node.path, {
-				name: `"${nextName}" already exists here`,
-				value: errors?.value,
-			});
-			return;
-		}
-		onFieldError(node.path, { name: undefined, value: errors?.value });
-		onStageEdit(node.path, { name: nextName });
-	}
 
 	// Validates the next value against the resolved built-in contract (if
 	// any) before staging, blocking the stage and calling `onFieldError`
@@ -191,26 +197,18 @@ export function TreeTokenNode({
 		| ((props: TokenTypeEditorProps<unknown>) => ReactElement)
 		| undefined;
 
-	const nameLabelId = `token-${key}-name-label`;
 	const descriptionLabelId = `token-${key}-description-label`;
 
 	return (
 		<TokenBlock
-			name={node.name}
+			name={currentName}
+			onNameChange={handleNameChange}
+			nameAriaLabel={`${node.name} name`}
 			headingId={headingId}
+			rowTestId={rowTestId}
 			type={effectiveType}
 			isNonStandardType={false}
 		>
-			<label className={styles.field}>
-				<span id={nameLabelId} className={styles.fieldLabel}>
-					Name
-				</span>
-				<input
-					aria-labelledby={`${headingId} ${nameLabelId}`}
-					value={currentName}
-					onChange={handleNameChange}
-				/>
-			</label>
 			{ResolvedEditor !== undefined ? (
 				<ResolvedEditor
 					value={currentRawValue}
