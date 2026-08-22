@@ -1,6 +1,7 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
+	nodeMkdirSync,
 	nodeReadFileSync,
 	nodeWriteFileSync,
 } from "../lib/platform/node-fs.ts";
@@ -117,6 +118,7 @@ if (
 	invokedPath !== undefined &&
 	import.meta.url === pathToFileURL(invokedPath).href
 ) {
+	nodeMkdirSync(dirname(OUTPUT_FILE));
 	nodeWriteFileSync(OUTPUT_FILE, generate());
 	console.log(`Wrote ${OUTPUT_FILE}`);
 }

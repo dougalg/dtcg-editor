@@ -1,5 +1,6 @@
 import {
 	existsSync as fsExistsSync,
+	mkdirSync as fsMkdirSync,
 	readFileSync as fsReadFileSync,
 	writeFileSync as fsWriteFileSync,
 } from "node:fs";
@@ -25,6 +26,7 @@ export type ReadDirEntries = (path: string) => Promise<DirEntry[]>;
 export type ReadTextFileSync = (path: string) => string;
 export type ExistsSync = (path: string) => boolean;
 export type WriteTextFileSync = (path: string, data: string) => void;
+export type MkdirSync = (path: string) => void;
 
 /** Real `fs.readFile`, bound to utf-8 — `read.ts`'s injected default. */
 export const nodeReadFile: ReadTextFile = (path) => readFile(path, "utf-8");
@@ -47,3 +49,10 @@ export const nodeExistsSync: ExistsSync = (path) => fsExistsSync(path);
 /** Real `fs.writeFileSync`, bound to utf-8 — `init-config.ts`'s injected default. */
 export const nodeWriteFileSync: WriteTextFileSync = (path, data) =>
 	fsWriteFileSync(path, data, "utf-8");
+
+/** Real `fs.mkdirSync` with `recursive: true` — `generate-icon-sprite.ts`'s
+ * injected default, for ensuring `public/` exists before writing to it (it
+ * holds nothing else tracked in git, so it isn't guaranteed to exist on a
+ * fresh checkout). */
+export const nodeMkdirSync: MkdirSync = (path) =>
+	void fsMkdirSync(path, { recursive: true });
