@@ -48,6 +48,10 @@ function createFakeStorage() {
 	};
 }
 
+function currentDataTheme(): string | null {
+	return document.documentElement.getAttribute("data-theme");
+}
+
 beforeEach(() => {
 	document.documentElement.removeAttribute("data-theme");
 });
@@ -56,11 +60,11 @@ afterEach(() => {
 	document.documentElement.removeAttribute("data-theme");
 });
 
-test("US1: with no stored preference, resolves to dark when the system prefers dark", () => {
+test("US1: with no stored preference, applies dark when the system prefers dark", () => {
 	const { mql } = createFakeMediaQueryList(true);
 	const storage = createFakeStorage();
 
-	const { result } = renderHook(() =>
+	renderHook(() =>
 		useTheme({
 			matchMedia: () => mql,
 			getStoredTheme: storage.getStoredTheme,
@@ -68,15 +72,14 @@ test("US1: with no stored preference, resolves to dark when the system prefers d
 		}),
 	);
 
-	expect(result.current.theme).toBe("dark");
-	expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+	expect(currentDataTheme()).toBe("dark");
 });
 
-test("US1: with no stored preference, resolves to light when the system prefers light", () => {
+test("US1: with no stored preference, applies light when the system prefers light", () => {
 	const { mql } = createFakeMediaQueryList(false);
 	const storage = createFakeStorage();
 
-	const { result } = renderHook(() =>
+	renderHook(() =>
 		useTheme({
 			matchMedia: () => mql,
 			getStoredTheme: storage.getStoredTheme,
@@ -84,14 +87,14 @@ test("US1: with no stored preference, resolves to light when the system prefers 
 		}),
 	);
 
-	expect(result.current.theme).toBe("light");
+	expect(currentDataTheme()).toBe("light");
 });
 
-test("US1: a live system preference change updates theme when no override is stored", () => {
+test("US1: a live system preference change updates data-theme when no override is stored", () => {
 	const { mql, setMatches } = createFakeMediaQueryList(false);
 	const storage = createFakeStorage();
 
-	const { result } = renderHook(() =>
+	renderHook(() =>
 		useTheme({
 			matchMedia: () => mql,
 			getStoredTheme: storage.getStoredTheme,
@@ -99,12 +102,12 @@ test("US1: a live system preference change updates theme when no override is sto
 		}),
 	);
 
-	expect(result.current.theme).toBe("light");
+	expect(currentDataTheme()).toBe("light");
 	act(() => setMatches(true));
-	expect(result.current.theme).toBe("dark");
+	expect(currentDataTheme()).toBe("dark");
 });
 
-test("US2: toggling sets an explicit override opposite the current theme and persists it", () => {
+test("US2: activateTheme('dark') sets an explicit override and persists it", () => {
 	const { mql } = createFakeMediaQueryList(false);
 	const storage = createFakeStorage();
 
@@ -116,19 +119,18 @@ test("US2: toggling sets an explicit override opposite the current theme and per
 		}),
 	);
 
-	expect(result.current.theme).toBe("light");
-	act(() => result.current.toggleTheme());
-	expect(result.current.theme).toBe("dark");
+	expect(currentDataTheme()).toBe("light");
+	act(() => result.current.activateTheme("dark"));
+	expect(currentDataTheme()).toBe("dark");
 	expect(storage.read()).toBe("dark");
 });
 
-test("US2: an overridden theme persists across a fresh render (survives 'reload')", () => {
+test("US2: an overridden theme is re-applied on a fresh render (survives 'reload')", () => {
 	const { mql } = createFakeMediaQueryList(false);
 	const storage = createFakeStorage();
-	document.documentElement.setAttribute("data-theme", "dark");
 	storage.setStoredTheme("dark");
 
-	const { result } = renderHook(() =>
+	renderHook(() =>
 		useTheme({
 			matchMedia: () => mql,
 			getStoredTheme: storage.getStoredTheme,
@@ -136,16 +138,15 @@ test("US2: an overridden theme persists across a fresh render (survives 'reload'
 		}),
 	);
 
-	expect(result.current.theme).toBe("dark");
+	expect(currentDataTheme()).toBe("dark");
 });
 
 test("US2: an overridden theme does not react to a live system preference change", () => {
 	const { mql, setMatches } = createFakeMediaQueryList(false);
 	const storage = createFakeStorage();
 	storage.setStoredTheme("dark");
-	document.documentElement.setAttribute("data-theme", "dark");
 
-	const { result } = renderHook(() =>
+	renderHook(() =>
 		useTheme({
 			matchMedia: () => mql,
 			getStoredTheme: storage.getStoredTheme,
@@ -153,12 +154,12 @@ test("US2: an overridden theme does not react to a live system preference change
 		}),
 	);
 
-	expect(result.current.theme).toBe("dark");
+	expect(currentDataTheme()).toBe("dark");
 	act(() => setMatches(true));
-	expect(result.current.theme).toBe("dark");
+	expect(currentDataTheme()).toBe("dark");
 });
 
-test("FR-011: a throwing storage read/write is treated as absent, theme still resolves correctly", () => {
+test("FR-011: a throwing storage read/write is treated as absent, data-theme still resolves correctly", () => {
 	const { mql } = createFakeMediaQueryList(true);
 	const getStoredTheme = vi.fn(() => {
 		throw new Error("storage blocked");
@@ -171,16 +172,15 @@ test("FR-011: a throwing storage read/write is treated as absent, theme still re
 		useTheme({ matchMedia: () => mql, getStoredTheme, setStoredTheme }),
 	);
 
-	expect(result.current.theme).toBe("dark");
-	expect(() => act(() => result.current.toggleTheme())).not.toThrow();
-	expect(result.current.theme).toBe("light");
+	expect(currentDataTheme()).toBe("dark");
+	expect(() => act(() => result.current.activateTheme("light"))).not.toThrow();
+	expect(currentDataTheme()).toBe("light");
 });
 
-test("US3: toggling again when the opposite equals system preference clears the override", () => {
+test("US3: activating the theme that matches system preference clears the override", () => {
 	const { mql } = createFakeMediaQueryList(true); // system prefers dark
 	const storage = createFakeStorage();
 	storage.setStoredTheme("light"); // explicit override, opposite of system
-	document.documentElement.setAttribute("data-theme", "light");
 
 	const { result } = renderHook(() =>
 		useTheme({
@@ -190,9 +190,9 @@ test("US3: toggling again when the opposite equals system preference clears the 
 		}),
 	);
 
-	expect(result.current.theme).toBe("light");
-	act(() => result.current.toggleTheme());
-	expect(result.current.theme).toBe("dark");
+	expect(currentDataTheme()).toBe("light");
+	act(() => result.current.activateTheme("dark")); // dark == system preference
+	expect(currentDataTheme()).toBe("dark");
 	expect(storage.read()).toBeUndefined();
 });
 
@@ -200,7 +200,6 @@ test("US3: after clearing the override, live system changes are followed again",
 	const { mql, setMatches } = createFakeMediaQueryList(true);
 	const storage = createFakeStorage();
 	storage.setStoredTheme("light");
-	document.documentElement.setAttribute("data-theme", "light");
 
 	const { result } = renderHook(() =>
 		useTheme({
@@ -210,18 +209,18 @@ test("US3: after clearing the override, live system changes are followed again",
 		}),
 	);
 
-	act(() => result.current.toggleTheme()); // clears override, system is dark
-	expect(result.current.theme).toBe("dark");
+	act(() => result.current.activateTheme("dark")); // clears override, system is dark
+	expect(currentDataTheme()).toBe("dark");
 
 	act(() => setMatches(false)); // system now prefers light
-	expect(result.current.theme).toBe("light");
+	expect(currentDataTheme()).toBe("light");
 });
 
-test("cross-tab: a storage event for the theme key updates theme to match", () => {
+test("cross-tab: a storage event for the theme key updates data-theme to match", () => {
 	const { mql } = createFakeMediaQueryList(false);
 	const storage = createFakeStorage();
 
-	const { result } = renderHook(() =>
+	renderHook(() =>
 		useTheme({
 			matchMedia: () => mql,
 			getStoredTheme: storage.getStoredTheme,
@@ -229,7 +228,7 @@ test("cross-tab: a storage event for the theme key updates theme to match", () =
 		}),
 	);
 
-	expect(result.current.theme).toBe("light");
+	expect(currentDataTheme()).toBe("light");
 
 	// Simulate another tab writing "dark" and firing the storage event.
 	storage.setStoredTheme("dark");
@@ -239,5 +238,5 @@ test("cross-tab: a storage event for the theme key updates theme to match", () =
 		);
 	});
 
-	expect(result.current.theme).toBe("dark");
+	expect(currentDataTheme()).toBe("dark");
 });

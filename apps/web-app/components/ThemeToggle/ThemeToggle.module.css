@@ -1,9 +1,16 @@
-/* Unlike a generic on/off Switch, "checked" here always means "dark
-   appearance is currently showing" — so the pill itself is styled as a
-   neutral light/dark swatch (fixed, theme-scale values, not the semantic
-   "activated" accent color a generic Switch defaults to) rather than as an
-   on/off indicator. See the reference screenshots in
-   specs/006-light-dark-toggle/plan.md's Summary. */
+/* Two buttons, one pill. Only one button is ever visible at a time — CSS
+   attribute selectors on `:global(html[data-theme="dark"])` decide which,
+   never React state/props — so the correct one shows from the very first
+   paint, matching whatever the inline FOUC-prevention script already wrote
+   before hydration. `display: none` (not `visibility: hidden`) on the
+   inactive button is deliberate: it's what reliably removes a button from
+   the tab order and the accessibility tree in every browser, keeping this a
+   single tab stop exactly like the switch it replaces. The tradeoff is an
+   instant icon swap rather than a sliding-thumb animation (an animation
+   would need both buttons present and positioned, which reintroduces the
+   two-elements-fighting-over-focus problem `display: none` avoids) — the
+   pill's own background-color transition still gives it a toggle-like feel. */
+
 .themeToggle {
 	--switch-height: 1.5rem;
 	--switch-width: 2.75rem;
@@ -12,28 +19,61 @@
 	top: var(--dtcg-ed-space-sm);
 	right: var(--dtcg-ed-space-sm);
 	z-index: 100;
-}
 
-/* See the cascade-ordering note below: doubled class beats Switch.css's
-   equal-specificity, later-loaded base rule regardless of stylesheet order. */
-:global(.switch).themeToggle {
+	display: inline-flex;
+	align-items: center;
+	width: var(--switch-width);
+	height: var(--switch-height);
+	padding: 2px;
+	box-sizing: border-box;
+	border: var(--dtcg-ed-form-control-border-width) var(--dtcg-ed-border-style)
+		transparent;
+	border-radius: var(--dtcg-ed-radius-full);
+	box-shadow: var(--dtcg-ed-shadow-xs);
 	background-color: var(--dtcg-ed-color-neutral-100);
+	transition: background-color var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-in-out);
 }
 
-/* `:global(.switch)` composed in: Switch.css's own
-   `.switch[data-state="checked"]` rule has equal specificity to a plain
-   `.themeToggle[data-state="checked"]` and loads later in the merged
-   stylesheet, so it would otherwise win the cascade regardless of source
-   order in this file. Doubling up the class makes this rule strictly more
-   specific instead of depending on stylesheet ordering. */
-:global(.switch).themeToggle[data-state="checked"] {
+:global(html[data-theme="dark"]) .themeToggle {
 	background-color: var(--dtcg-ed-color-neutral-900);
-	border-color: var(--dtcg-ed-color-neutral-900);
 }
 
-.themeToggle[data-state="checked"]:focus-visible {
+.thumb {
+	all: unset;
+	box-sizing: border-box;
+	cursor: pointer;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: calc(var(--switch-height) - 4px);
+	height: calc(var(--switch-height) - 4px);
+	border-radius: var(--dtcg-ed-radius-full);
+	background-color: var(--dtcg-ed-color-surface-default);
+}
+
+.thumb:focus-visible {
 	box-shadow: 0 0 0 3px
 		color-mix(in oklab, var(--dtcg-ed-color-accent-fill-loud) 40%, transparent);
+}
+
+/* Light is the default appearance (matches the base, attribute-less CSS
+   permutation) — its button is the one shown when nothing says otherwise. */
+.thumb[data-role="light"] {
+	display: flex;
+}
+
+.thumb[data-role="dark"] {
+	display: none;
+	margin-inline-start: auto;
+}
+
+:global(html[data-theme="dark"]) .thumb[data-role="light"] {
+	display: none;
+}
+
+:global(html[data-theme="dark"]) .thumb[data-role="dark"] {
+	display: flex;
 }
 
 .icon {

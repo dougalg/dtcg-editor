@@ -2,49 +2,47 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import { ThemeToggle } from "./ThemeToggle.tsx";
 
-const toggleTheme = vi.fn();
-let mockTheme: "light" | "dark" = "light";
+const activateTheme = vi.fn();
 
 vi.mock("../../hooks/useTheme.ts", () => ({
-	useTheme: () => ({ theme: mockTheme, toggleTheme }),
+	useTheme: () => ({ activateTheme }),
 }));
 
 afterEach(() => {
 	cleanup();
-	toggleTheme.mockClear();
-	mockTheme = "light";
+	activateTheme.mockClear();
 });
 
-function iconHref(container: Element): string | null {
-	return container.querySelector("use")?.getAttribute("xlink:href") ?? null;
+function iconHref(el: Element): string | null {
+	return el.querySelector("use")?.getAttribute("xlink:href") ?? null;
 }
 
-test("renders the sun icon, unchecked, with a 'switch to dark' label when theme is light", () => {
-	mockTheme = "light";
+test("renders both buttons unconditionally, each with the correct icon and static label", () => {
 	render(<ThemeToggle />);
 
-	const control = screen.getByRole("switch", { name: "Switch to dark theme" });
-	expect(control.getAttribute("aria-checked")).toBe("false");
-	expect(iconHref(control.closest("body") as Element)).toBe(
-		"/theme-sprite.svg#dtcg-ed-icon-sun",
-	);
+	const toDark = screen.getByRole("button", { name: "Switch to dark theme" });
+	expect(iconHref(toDark)).toBe("/theme-sprite.svg#dtcg-ed-icon-sun");
+
+	const toLight = screen.getByRole("button", {
+		name: "Switch to light theme",
+	});
+	expect(iconHref(toLight)).toBe("/theme-sprite.svg#dtcg-ed-icon-moon");
 });
 
-test("renders the moon icon, checked, with a 'switch to light' label when theme is dark", () => {
-	mockTheme = "dark";
+test("clicking the 'switch to dark' button calls activateTheme('dark')", () => {
 	render(<ThemeToggle />);
 
-	const control = screen.getByRole("switch", { name: "Switch to light theme" });
-	expect(control.getAttribute("aria-checked")).toBe("true");
-	expect(iconHref(control.closest("body") as Element)).toBe(
-		"/theme-sprite.svg#dtcg-ed-icon-moon",
-	);
+	fireEvent.click(screen.getByRole("button", { name: "Switch to dark theme" }));
+	expect(activateTheme).toHaveBeenCalledOnce();
+	expect(activateTheme).toHaveBeenCalledWith("dark");
 });
 
-test("clicking calls toggleTheme", () => {
-	mockTheme = "light";
+test("clicking the 'switch to light' button calls activateTheme('light')", () => {
 	render(<ThemeToggle />);
 
-	fireEvent.click(screen.getByRole("switch"));
-	expect(toggleTheme).toHaveBeenCalledTimes(1);
+	fireEvent.click(
+		screen.getByRole("button", { name: "Switch to light theme" }),
+	);
+	expect(activateTheme).toHaveBeenCalledOnce();
+	expect(activateTheme).toHaveBeenCalledWith("light");
 });

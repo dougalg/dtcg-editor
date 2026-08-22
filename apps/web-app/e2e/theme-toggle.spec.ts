@@ -21,44 +21,54 @@ test("is keyboard-reachable, keyboard-operable, and shows a visible focus ring",
 }) => {
 	await page.goto("/");
 
-	const toggle = page.getByRole("switch");
+	const initiallyVisible = page.getByRole("button", { name: /^switch to/i });
 	await page.keyboard.press("Tab");
-	await expect(toggle).toBeFocused();
-	expect(await hasVisibleFocusIndicator(toggle)).toBe(true);
+	await expect(initiallyVisible).toBeFocused();
+	expect(await hasVisibleFocusIndicator(initiallyVisible)).toBe(true);
 
-	const initiallyChecked = await toggle.getAttribute("aria-checked");
+	const initialLabel = await initiallyVisible.getAttribute("aria-label");
 	await page.keyboard.press(" ");
-	await expect(toggle).toHaveAttribute(
-		"aria-checked",
-		initiallyChecked === "true" ? "false" : "true",
-	);
 
-	const html = page.locator("html");
-	await expect(html).toHaveAttribute(
+	const nowVisible = page.getByRole("button", { name: /^switch to/i });
+	await expect(nowVisible).toHaveAttribute(
+		"aria-label",
+		initialLabel === "Switch to dark theme"
+			? "Switch to light theme"
+			: "Switch to dark theme",
+	);
+	await expect(page.locator("html")).toHaveAttribute(
 		"data-theme",
-		initiallyChecked === "true" ? "light" : "dark",
+		initialLabel === "Switch to dark theme" ? "dark" : "light",
 	);
 });
 
-test("the accessible name always describes what activating it will do next", async ({
+test("only one button is ever visible/focusable, and clicking it swaps to the other", async ({
 	page,
 }) => {
 	await page.goto("/");
-	const toggle = page.getByRole("switch");
 
-	await expect(toggle).toHaveAttribute("data-state", "unchecked");
-	await expect(toggle).toHaveAccessibleName("Switch to dark theme");
+	const toDark = page.getByRole("button", { name: "Switch to dark theme" });
+	const toLight = page.getByRole("button", { name: "Switch to light theme" });
 
-	await toggle.click();
-	await expect(toggle).toHaveAttribute("data-state", "checked");
-	await expect(toggle).toHaveAccessibleName("Switch to light theme");
+	await expect(toDark).toBeVisible();
+	await expect(toLight).not.toBeVisible();
+
+	await toDark.click();
+	await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+	await expect(toLight).toBeVisible();
+	await expect(toDark).not.toBeVisible();
+
+	await toLight.click();
+	await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+	await expect(toDark).toBeVisible();
+	await expect(toLight).not.toBeVisible();
 });
 
 test("the toggle is present and the page has no WCAG 2.2 AA violations with it visible", async ({
 	page,
 }) => {
 	await page.goto("/");
-	await expect(page.getByRole("switch")).toBeVisible();
+	await expect(page.getByRole("button", { name: /^switch to/i })).toBeVisible();
 
 	const results = await runAxe(page);
 	expect(results.violations).toEqual([]);
@@ -68,12 +78,17 @@ test.describe("first load with no saved preference (US1)", () => {
 	test.describe(() => {
 		test.use({ colorScheme: "dark" });
 
-		test("shows checked/dark when the OS prefers dark", async ({ page }) => {
+		test("shows the 'switch to light' button (i.e. dark is active) when the OS prefers dark", async ({
+			page,
+		}) => {
 			await page.goto("/");
-			const toggle = page.getByRole("switch");
 
-			await expect(toggle).toHaveAttribute("aria-checked", "true");
-			await expect(toggle).toHaveAttribute("data-state", "checked");
+			await expect(
+				page.getByRole("button", { name: "Switch to light theme" }),
+			).toBeVisible();
+			await expect(
+				page.getByRole("button", { name: "Switch to dark theme" }),
+			).not.toBeVisible();
 			await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 		});
 
@@ -82,9 +97,11 @@ test.describe("first load with no saved preference (US1)", () => {
 		}) => {
 			// Records every value `data-theme` takes on, from the earliest
 			// possible moment (before React hydrates) through settling — a
-			// regression check for a real bug where the toggle's own
-			// placeholder React state briefly overwrote the inline
-			// FOUC-prevention script's already-correct pre-paint value.
+			// regression check for a real bug where a previous, state-driven
+			// version of this control briefly overwrote the inline
+			// FOUC-prevention script's already-correct pre-paint value. The
+			// current CSS-only design has no React state to disagree with the
+			// DOM in the first place, but this guards against a regression.
 			await page.addInitScript(() => {
 				(window as unknown as { __themeLog: string[] }).__themeLog = [];
 				const observer = new MutationObserver((mutations) => {
@@ -100,7 +117,9 @@ test.describe("first load with no saved preference (US1)", () => {
 			});
 
 			await page.goto("/");
-			await page.waitForSelector('[role="switch"]');
+			await page
+				.getByRole("button", { name: "Switch to light theme" })
+				.waitFor();
 			await page.waitForTimeout(300);
 
 			const log = await page.evaluate(
@@ -113,14 +132,17 @@ test.describe("first load with no saved preference (US1)", () => {
 	test.describe(() => {
 		test.use({ colorScheme: "light" });
 
-		test("shows unchecked/light when the OS prefers light", async ({
+		test("shows the 'switch to dark' button (i.e. light is active) when the OS prefers light", async ({
 			page,
 		}) => {
 			await page.goto("/");
-			const toggle = page.getByRole("switch");
 
-			await expect(toggle).toHaveAttribute("aria-checked", "false");
-			await expect(toggle).toHaveAttribute("data-state", "unchecked");
+			await expect(
+				page.getByRole("button", { name: "Switch to dark theme" }),
+			).toBeVisible();
+			await expect(
+				page.getByRole("button", { name: "Switch to light theme" }),
+			).not.toBeVisible();
 			await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 		});
 	});

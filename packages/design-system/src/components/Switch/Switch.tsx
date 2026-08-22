@@ -4,18 +4,13 @@ import * as SwitchPrimitive from "@radix-ui/react-switch";
 import cn from "clsx";
 import type * as React from "react";
 
-interface SwitchProps
-	extends React.ComponentProps<typeof SwitchPrimitive.Root> {
-	/** Optional content (e.g. an icon) rendered inside the sliding thumb. */
-	thumbIcon?: React.ReactNode;
-}
-
-function Switch({ className, thumbIcon, ...props }: SwitchProps) {
+function Switch({
+	className,
+	...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
 	return (
 		<SwitchPrimitive.Root className={cn("switch", className)} {...props}>
-			<SwitchPrimitive.Thumb className={cn("switch-thumb")}>
-				{thumbIcon}
-			</SwitchPrimitive.Thumb>
+			<SwitchPrimitive.Thumb className={cn("switch-thumb")} />
 		</SwitchPrimitive.Root>
 	);
 }
