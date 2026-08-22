@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `pick-up-task` (or `speckit-specify`) to start it.
 Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not marked `[x]` here.
 
+- [ ] Ability to add and remove files in the file list page
 - [ ] Refactor all CSS to use design tokens where possible (replace hardcoded colors/spacing/sizing in `*.module.css` files with `var(--dtcg-ed-*)` custom properties, adding new tokens where a suitable one doesn't yet exist). (in progress — worktree `.claude/worktrees/css-design-tokens`, branch `worktree-css-design-tokens`)
 - [ ] Fix WCAG 2.2 AA color-contrast failure on `TokenTree`'s `.type` label (`apps/web-app/components/TokenTree.module.css`): `color: var(--dtcg-ed-color-neutral-text-quiet)` combined with `opacity: 0.6` renders at ~2.92:1 against a white background (needs 4.5:1 for 12px text). Discovered while fixing `apps/web-app/e2e/tokens-page.spec.ts` to use stable e2e fixture tokens instead of stale `sample_data/` paths — the pages previously 404'd, masking this pre-existing, content-independent bug. Likely fix: drop/reduce the opacity or switch to a token with sufficient contrast at full opacity.
 - [ ] references should preview the referenced value
