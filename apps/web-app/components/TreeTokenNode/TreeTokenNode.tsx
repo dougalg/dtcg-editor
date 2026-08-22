@@ -189,7 +189,7 @@ export function TreeTokenNode({
 		onStageEdit(node.path, { value: parsed });
 	}
 
-	function handleDescriptionChange(event: ChangeEvent<HTMLInputElement>) {
+	function handleDescriptionChange(event: ChangeEvent<HTMLTextAreaElement>) {
 		onStageEdit(node.path, { description: event.target.value });
 	}
 
@@ -221,13 +221,13 @@ export function TreeTokenNode({
 					onChange={handleFallbackValueChange}
 				/>
 			)}
-			<label className={styles.field}>
+			<label className={styles.descriptionField}>
 				<span id={descriptionLabelId} className={styles.fieldLabel}>
 					Description
 				</span>
-				<input
+				<textarea
 					aria-labelledby={`${headingId} ${descriptionLabelId}`}
-					className={styles.value}
+					className={styles.descriptionTextarea}
 					value={currentDescription}
 					onChange={handleDescriptionChange}
 				/>

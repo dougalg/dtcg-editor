@@ -71,3 +71,17 @@
 .value {
 	opacity: 0.85;
 }
+
+.descriptionField {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}
+
+.descriptionTextarea {
+	width: 100%;
+	min-height: 2.5rem;
+	resize: vertical;
+	font: inherit;
+}
