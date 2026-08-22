@@ -20,30 +20,18 @@ test("has no WCAG 2.2 AA violations", async () => {
 	await expectNoViolations(container);
 });
 
-test("with no data-theme set (default/light), only the 'switch to dark' button is visible/focusable", async () => {
-	// Real CSS applies in this browser-mode test (unlike the jsdom unit
-	// tests), so `display: none` from ThemeToggle.module.css actually takes
-	// the inactive button out of the accessibility tree here.
+test("with no data-theme set (default/light), the accessible name is 'Switch to dark theme'", async () => {
 	document.documentElement.removeAttribute("data-theme");
-	const { getByRole, queryByRole } = render(<ThemeToggle />);
+	const { getByRole } = render(<ThemeToggle />);
 
-	const visible = getByRole("button", { name: "Switch to dark theme" });
-	expect(visible).toBeVisible();
-	expect(
-		queryByRole("button", { name: "Switch to light theme" }),
-	).not.toBeInTheDocument();
+	expect(getByRole("button")).toHaveAccessibleName("Switch to dark theme");
 });
 
-test("with data-theme=dark, only the 'switch to light' button is visible/focusable", async () => {
+test("with data-theme=dark, the accessible name is 'Switch to light theme'", async () => {
 	document.documentElement.setAttribute("data-theme", "dark");
-	const { getByRole, queryByRole } = render(<ThemeToggle />);
-
 	try {
-		const visible = getByRole("button", { name: "Switch to light theme" });
-		expect(visible).toBeVisible();
-		expect(
-			queryByRole("button", { name: "Switch to dark theme" }),
-		).not.toBeInTheDocument();
+		const { getByRole } = render(<ThemeToggle />);
+		expect(getByRole("button")).toHaveAccessibleName("Switch to light theme");
 	} finally {
 		document.documentElement.removeAttribute("data-theme");
 	}

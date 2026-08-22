@@ -1,33 +1,32 @@
-/* Two buttons, one pill. Only one button is ever visible at a time — CSS
-   attribute selectors on `:global(html[data-theme="dark"])` decide which,
-   never React state/props — so the correct one shows from the very first
-   paint, matching whatever the inline FOUC-prevention script already wrote
-   before hydration. `display: none` (not `visibility: hidden`) on the
-   inactive button is deliberate: it's what reliably removes a button from
-   the tab order and the accessibility tree in every browser, keeping this a
-   single tab stop exactly like the switch it replaces. The tradeoff is an
-   instant icon swap rather than a sliding-thumb animation (an animation
-   would need both buttons present and positioned, which reintroduces the
-   two-elements-fighting-over-focus problem `display: none` avoids) — the
-   pill's own background-color transition still gives it a toggle-like feel. */
+/* The button *is* the whole pill-shaped track — not a wrapper around a
+   nested inner button — with a decorative circle (`.thumb`) sliding between
+   its two ends. Everything here (thumb position, which icon shows, which
+   hidden label wins the accessible name) is driven purely by CSS attribute
+   selectors on `:global(html[data-theme="dark"])`, never by React
+   state/props. That's deliberate: nothing here can disagree with whatever
+   the inline FOUC-prevention script already painted before first paint —
+   see the note atop `useTheme.ts`. The hover tooltip is the one exception:
+   it's a native `title` attribute, set imperatively in ThemeToggle.tsx
+   (CSS can't drive an HTML attribute's value), so there's no CSS for it
+   here. */
 
-.themeToggle {
-	--switch-height: 1.5rem;
-	--switch-width: 2.75rem;
-
+.track {
+	all: unset;
 	position: fixed;
 	top: var(--dtcg-ed-space-sm);
 	right: var(--dtcg-ed-space-sm);
 	z-index: 100;
 
-	display: inline-flex;
-	align-items: center;
+	--switch-height: 1.5rem;
+	--switch-width: 2.75rem;
+	--thumb-size: calc(var(--switch-height) - 4px);
+	--thumb-travel: calc(var(--switch-width) - var(--switch-height));
+
+	display: block;
+	box-sizing: border-box;
 	width: var(--switch-width);
 	height: var(--switch-height);
-	padding: 2px;
-	box-sizing: border-box;
-	border: var(--dtcg-ed-form-control-border-width) var(--dtcg-ed-border-style)
-		transparent;
+	cursor: pointer;
 	border-radius: var(--dtcg-ed-radius-full);
 	box-shadow: var(--dtcg-ed-shadow-xs);
 	background-color: var(--dtcg-ed-color-neutral-100);
@@ -35,50 +34,63 @@
 		var(--dtcg-ed-ease-in-out);
 }
 
-:global(html[data-theme="dark"]) .themeToggle {
+:global(html[data-theme="dark"]) .track {
 	background-color: var(--dtcg-ed-color-neutral-900);
 }
 
-.thumb {
-	all: unset;
-	box-sizing: border-box;
-	cursor: pointer;
-	display: none;
-	align-items: center;
-	justify-content: center;
-	width: calc(var(--switch-height) - 4px);
-	height: calc(var(--switch-height) - 4px);
-	border-radius: var(--dtcg-ed-radius-full);
-	background-color: var(--dtcg-ed-color-surface-default);
-}
-
-.thumb:focus-visible {
+.track:focus-visible {
 	box-shadow: 0 0 0 3px
 		color-mix(in oklab, var(--dtcg-ed-color-accent-fill-loud) 40%, transparent);
 }
 
-/* Light is the default appearance (matches the base, attribute-less CSS
-   permutation) — its button is the one shown when nothing says otherwise. */
-.thumb[data-role="light"] {
+.thumb {
+	position: absolute;
+	top: 2px;
+	left: 2px;
 	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--thumb-size);
+	height: var(--thumb-size);
+	border-radius: var(--dtcg-ed-radius-full);
+	background-color: var(--dtcg-ed-color-surface-default);
+	transform: translateX(0);
+	transition: transform var(--dtcg-ed-transition-normal)
+		var(--dtcg-ed-ease-in-out);
 }
 
-.thumb[data-role="dark"] {
-	display: none;
-	margin-inline-start: auto;
+:global(html[data-theme="dark"]) .thumb {
+	transform: translateX(var(--thumb-travel));
 }
 
-:global(html[data-theme="dark"]) .thumb[data-role="light"] {
-	display: none;
-}
-
-:global(html[data-theme="dark"]) .thumb[data-role="dark"] {
-	display: flex;
-}
-
-.icon {
+.sunIcon,
+.moonIcon {
+	position: absolute;
 	width: 0.85rem;
 	height: 0.85rem;
-	flex-shrink: 0;
 	color: var(--dtcg-ed-color-text-normal);
+}
+
+.moonIcon {
+	display: none;
+}
+
+:global(html[data-theme="dark"]) .sunIcon {
+	display: none;
+}
+
+:global(html[data-theme="dark"]) .moonIcon {
+	display: block;
+}
+
+.labelToLight {
+	display: none;
+}
+
+:global(html[data-theme="dark"]) .labelToDark {
+	display: none;
+}
+
+:global(html[data-theme="dark"]) .labelToLight {
+	display: block;
 }

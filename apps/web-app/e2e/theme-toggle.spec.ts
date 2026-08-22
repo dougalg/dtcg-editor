@@ -21,54 +21,43 @@ test("is keyboard-reachable, keyboard-operable, and shows a visible focus ring",
 }) => {
 	await page.goto("/");
 
-	const initiallyVisible = page.getByRole("button", { name: /^switch to/i });
+	const toggle = page.getByRole("button");
 	await page.keyboard.press("Tab");
-	await expect(initiallyVisible).toBeFocused();
-	expect(await hasVisibleFocusIndicator(initiallyVisible)).toBe(true);
+	await expect(toggle).toBeFocused();
+	expect(await hasVisibleFocusIndicator(toggle)).toBe(true);
 
-	const initialLabel = await initiallyVisible.getAttribute("aria-label");
+	const initialTheme = await page.locator("html").getAttribute("data-theme");
 	await page.keyboard.press(" ");
 
-	const nowVisible = page.getByRole("button", { name: /^switch to/i });
-	await expect(nowVisible).toHaveAttribute(
-		"aria-label",
-		initialLabel === "Switch to dark theme"
-			? "Switch to light theme"
-			: "Switch to dark theme",
-	);
 	await expect(page.locator("html")).toHaveAttribute(
 		"data-theme",
-		initialLabel === "Switch to dark theme" ? "dark" : "light",
+		initialTheme === "dark" ? "light" : "dark",
 	);
 });
 
-test("only one button is ever visible/focusable, and clicking it swaps to the other", async ({
+test("clicking toggles the accessible name and data-theme, one button throughout", async ({
 	page,
 }) => {
 	await page.goto("/");
+	const toggle = page.getByRole("button");
 
-	const toDark = page.getByRole("button", { name: "Switch to dark theme" });
-	const toLight = page.getByRole("button", { name: "Switch to light theme" });
-
-	await expect(toDark).toBeVisible();
-	await expect(toLight).not.toBeVisible();
-
-	await toDark.click();
-	await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-	await expect(toLight).toBeVisible();
-	await expect(toDark).not.toBeVisible();
-
-	await toLight.click();
+	await expect(toggle).toHaveAccessibleName("Switch to dark theme");
 	await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-	await expect(toDark).toBeVisible();
-	await expect(toLight).not.toBeVisible();
+
+	await toggle.click();
+	await expect(toggle).toHaveAccessibleName("Switch to light theme");
+	await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+	await toggle.click();
+	await expect(toggle).toHaveAccessibleName("Switch to dark theme");
+	await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
 
 test("the toggle is present and the page has no WCAG 2.2 AA violations with it visible", async ({
 	page,
 }) => {
 	await page.goto("/");
-	await expect(page.getByRole("button", { name: /^switch to/i })).toBeVisible();
+	await expect(page.getByRole("button")).toBeVisible();
 
 	const results = await runAxe(page);
 	expect(results.violations).toEqual([]);
@@ -78,17 +67,14 @@ test.describe("first load with no saved preference (US1)", () => {
 	test.describe(() => {
 		test.use({ colorScheme: "dark" });
 
-		test("shows the 'switch to light' button (i.e. dark is active) when the OS prefers dark", async ({
+		test("accessible name is 'switch to light' (i.e. dark is active) when the OS prefers dark", async ({
 			page,
 		}) => {
 			await page.goto("/");
 
-			await expect(
-				page.getByRole("button", { name: "Switch to light theme" }),
-			).toBeVisible();
-			await expect(
-				page.getByRole("button", { name: "Switch to dark theme" }),
-			).not.toBeVisible();
+			await expect(page.getByRole("button")).toHaveAccessibleName(
+				"Switch to light theme",
+			);
 			await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 		});
 
@@ -97,7 +83,7 @@ test.describe("first load with no saved preference (US1)", () => {
 		}) => {
 			// Records every value `data-theme` takes on, from the earliest
 			// possible moment (before React hydrates) through settling — a
-			// regression check for a real bug where a previous, state-driven
+			// regression check for a real bug where an earlier, state-driven
 			// version of this control briefly overwrote the inline
 			// FOUC-prevention script's already-correct pre-paint value. The
 			// current CSS-only design has no React state to disagree with the
@@ -117,9 +103,7 @@ test.describe("first load with no saved preference (US1)", () => {
 			});
 
 			await page.goto("/");
-			await page
-				.getByRole("button", { name: "Switch to light theme" })
-				.waitFor();
+			await page.getByRole("button").waitFor();
 			await page.waitForTimeout(300);
 
 			const log = await page.evaluate(
@@ -132,17 +116,14 @@ test.describe("first load with no saved preference (US1)", () => {
 	test.describe(() => {
 		test.use({ colorScheme: "light" });
 
-		test("shows the 'switch to dark' button (i.e. light is active) when the OS prefers light", async ({
+		test("accessible name is 'switch to dark' (i.e. light is active) when the OS prefers light", async ({
 			page,
 		}) => {
 			await page.goto("/");
 
-			await expect(
-				page.getByRole("button", { name: "Switch to dark theme" }),
-			).toBeVisible();
-			await expect(
-				page.getByRole("button", { name: "Switch to light theme" }),
-			).not.toBeVisible();
+			await expect(page.getByRole("button")).toHaveAccessibleName(
+				"Switch to dark theme",
+			);
 			await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 		});
 	});
