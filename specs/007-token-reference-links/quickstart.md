@@ -1,0 +1,76 @@
+# Quickstart: Validating Token Reference Preview & Navigation
+
+## Prerequisites
+
+```sh
+pnpm install                      # this worktree starts without node_modules
+pnpm --filter @dtcg-editor/token-core build
+pnpm --filter @dtcg-editor/design-system build
+```
+
+Chromium is required for the Vitest Browser Mode and Playwright tiers (already a project dependency).
+
+## Two token sets, two purposes
+
+| Set | Path | Use |
+| --- | --- | --- |
+| Real design tokens | `packages/design-system/src/design-tokens` | The app's default dev target. **228 references, 200 cross-file, 50 chained, 75 multiply-defined paths, 0 broken, 0 circular.** Best for exercising the happy paths at realistic scale. |
+| E2E fixtures | `apps/web-app/e2e/fixtures/tokens` | Pointed at by `DTCG_EDITOR_TOKENS_DIR` in `playwright.config.ts`, deliberately isolated so test content cannot drift. **Currently contains no references at all** — the new failure-case fixtures go here. |
+
+## Run it against the real token set
+
+```sh
+pnpm --filter web-app dev
+```
+
+### Scenario 1 — resolved values, and the false-error fix (US1, SC-001/SC-003)
+
+1. Open `/tokens/cube.json`. Its tokens reference `{space.sm}`, `{space.md}`, `{space.xl}` — all defined in a *different* file. Confirm each shows the concrete dimension it resolves to.
+2. Open `/tokens/dark.json`. **This is the regression that matters**: every token here has `$type: color` inherited from its group and a reference value, so today each one renders the false error *"must be a 6-digit hex string like `#rrggbb`"*. Confirm that error is gone and a resolved color is shown instead.
+3. Open `/tokens/shadows.json`. `shadow.button` is a whole-value reference to `{shadow.xs}`; `shadow.xs` itself contains a **nested** reference at `color`. Confirm both resolve — the nested case is the one that whole-value-only detection would miss.
+4. Open `/tokens/form-controls.json` and find `form-control.background-color` — the longest chain in the set at **3 hops**. Confirm it shows the literal at the end, not an intermediate reference.
+
+### Scenario 2 — navigation (US2, SC-004)
+
+1. From `cube.json`, activate a `{space.*}` reference. Expect to land on `space.json` with that token in view, focused, and visibly marked as the arrival target.
+2. Collapse a group, then arrive at a token inside it via a reference. Confirm the group is opened — this is the case native fragment scrolling cannot handle.
+3. Activate a reference to a **multiply-defined** path such as `{color.text.normal}` (defined in both `colors.json` and `dark.json`). Expect a chooser listing both, labelled by file and mode, with no definition hidden.
+4. Stage an edit without saving, then activate a reference to another file. Expect save / discard / stay, and confirm each option behaves correctly. Then repeat with a *same-file* reference and confirm no prompt appears.
+
+### Scenario 3 — reverse index (US3, SC-006)
+
+1. Open `palette.json` and find `color.alpha.black.10` — the most-referenced token in the set at **8** referrers. Confirm it reads "referenced 8 times" and lists all eight, each identifying its file.
+2. Find a token referenced exactly once, then one referenced exactly twice; confirm the wording is "referenced once" and "referenced twice".
+3. Find a token nothing references; confirm **no indicator at all** is rendered.
+4. Activate an entry in the list and confirm it navigates back to that referencing token.
+
+## Failure cases — fixtures required
+
+These cannot be exercised against the real token set, which contains no broken, group-targeted, or circular references. Add fixtures under `apps/web-app/e2e/fixtures/tokens/`:
+
+| Fixture | Asserts |
+| --- | --- |
+| Reference to a non-existent path | Marked unresolvable; page still renders; not activatable (FR-007, FR-011, FR-016) |
+| Reference targeting a **group** | Same treatment — invalid per DTCG (FR-007) |
+| Two tokens referencing each other | Reported as unknown with a warning; **no hang, no stack overflow** (FR-006) |
+| Reference into a file that fails to parse | Unresolvable, while references between the *other* files still resolve (spec Edge Cases) |
+| A cross-file pair | Cross-file resolution and navigation without depending on the design-system tokens |
+
+The circular fixture is the important one: cycle detection is what makes unbounded chain-following safe, so its test is a real regression guard. It must fail fast rather than hang the suite if detection regresses.
+
+## Automated checks
+
+```sh
+pnpm --filter @dtcg-editor/token-core test   # node:test — reference syntax, chain walking, cycle detection
+pnpm --filter web-app test:unit              # Vitest — index building, per-file view, components
+pnpm --filter web-app test:a11y              # axe-core, component level
+pnpm --filter web-app test:e2e               # Playwright — navigation + keyboard flows
+pnpm --filter web-app build                  # sole type-checking gate for this repo
+pnpm lint                                    # Biome + ls-lint (naming/folder rules)
+```
+
+Keyboard flow to cover in Playwright, modelled on the existing `keyboard-navigation.spec.ts`: Tab to a reference control, activate it by keyboard, confirm focus lands on the target token in the destination file, and confirm the reference-count popover opens, is navigable, and closes by keyboard.
+
+## Performance check
+
+`research.md` §2 records **1.40 ms** to parse and index all 16 files — but measured with raw `JSON.parse`, because this worktree had no dependencies installed at planning time. Re-measure with `token-core`'s Zod-validating `parseTokenFile` once installed, and confirm no perceptible delay opening a file (SC-010). Only a surprising result (hundreds of ms) reopens the no-cache decision.
