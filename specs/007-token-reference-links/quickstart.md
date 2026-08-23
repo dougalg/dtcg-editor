@@ -14,7 +14,7 @@ Chromium is required for the Vitest Browser Mode and Playwright tiers (already a
 
 | Set | Path | Use |
 | --- | --- | --- |
-| Real design tokens | `packages/design-system/src/design-tokens` | The app's default dev target. **228 references, 200 cross-file, 50 chained, 75 multiply-defined paths, 0 broken, 0 circular.** Best for exercising the happy paths at realistic scale. |
+| Real design tokens | `packages/design-system/src/design-tokens` | The app's default dev target. **228 references, 191 cross-file, 47 chained, 75 multiply-defined paths, 0 broken, 0 circular.** Best for exercising the happy paths at realistic scale. |
 | E2E fixtures (existing) | `apps/web-app/e2e/fixtures/tokens` | Pointed at by the original `webServer` in `playwright.config.ts`. **Contains no references at all**, and stays that way — `home.spec.ts` and `tokens-page.spec.ts` assert on its file listing. |
 | E2E fixtures (this feature) | `apps/web-app/e2e/fixtures/token-references` | New directory with its **own** `webServer` on port 3101 (tasks.md T006). All reference fixtures — including the broken, circular, and unparseable ones — go here, so they cannot disturb the suites above. |
 
@@ -41,7 +41,7 @@ pnpm --filter web-app dev
 
 ### Scenario 3 — reverse index (US3, SC-006)
 
-1. Open `palette.json` and find `color.alpha.black.10` — the most-referenced token in the set at **8** referrers. Confirm it reads "referenced 8 times" and lists all eight, each identifying its file.
+1. Open `colors.json` and find `color.white` — the most-referenced token in the set at **6** referrers. Confirm it reads "referenced 6 times" and lists all six, each identifying its file.
 2. Find a token referenced exactly once, then one referenced exactly twice; confirm the wording is "referenced once" and "referenced twice".
 3. Find a token nothing references; confirm **no indicator at all** is rendered.
 4. Activate an entry in the list and confirm it navigates back to that referencing token.

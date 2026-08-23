@@ -11,7 +11,7 @@ Make DTCG token references first-class in the editor: show the value a reference
 References are currently **not a concept anywhere in the codebase** — nothing detects, parses, resolves, or renders a `{a.b.c}` value, so this feature introduces the capability from scratch. Three things follow from that, and they drive the whole design:
 
 1. **A live bug gets fixed on the way.** Because a reference string fails the per-type `valueSchema`, a `color` token holding a reference is currently told its value *"must be a 6-digit hex string like `#rrggbb`"*. That fires against the app's own default token directory (every token in `dark.json`). The fix is to check for a reference *above* per-type validation, mirrored on client and server.
-2. **Cross-file is mandatory, not optional.** 200 of the 228 references in this project's own token set point at a token in a different file, but the app loads exactly one file per page. A whole-directory index is required. Measured cost to build it (Zod-validated, real pipeline): **2-7 ms median**, producing exactly 490 definitions / 228 references / 130 `referencedBy` entries — cheap enough to rebuild per request and skip caching entirely, which also removes any chance of it going stale against a file the app just saved.
+2. **Cross-file is mandatory, not optional.** 191 of the 228 references in this project's own token set point at a token in a different file, but the app loads exactly one file per page. A whole-directory index is required. Measured cost to build it (Zod-validated, real pipeline): **2-7 ms median**, producing exactly 490 definitions / 228 references / 130 `referencedBy` entries — cheap enough to rebuild per request and skip caching entirely, which also removes any chance of it going stale against a file the app just saved.
 3. **Nothing can be linked to yet.** There is no per-token URL, anchor, or deep link anywhere — the finest addressable unit is a whole file. An addressing scheme has to be invented for User Stories 2 and 3.
 
 Reference syntax and chain walking go into `token-core` (React-free, filesystem-free, taking an injected lookup); cross-file lookup, modes, and the reverse index stay in the web app.
@@ -34,7 +34,7 @@ Reference syntax and chain walking go into `token-core` (React-free, filesystem-
 
 **Constraints**: Client and server validation must change together — `docs/history.md` (2026-08-02) records a previous divergence in this exact pair causing both a client crash and a server-side unvalidated-write hole. `TreeTokenNode.tsx` is at 240 lines against Principle X's 300-line ceiling, so the new rendering must be extracted, not inlined. This feature deliberately absorbs the standing backlog item _"TreeGroupNode should be refactored to either be a disclosure element, or make sure it has all necessary aria props like controls, and expanded"_, because native `<details>` is what supplies reveal-a-collapsed-group for free (research.md §5).
 
-**Scale/Scope**: This project's own token set — 16 files, 565 tokens, 490 distinct paths, 228 references (200 cross-file, 50 chained, longest chain 3 hops), 75 multiply-defined paths, busiest token 8 referrers.
+**Scale/Scope**: This project's own token set — 16 files, 565 tokens, 490 distinct paths, 228 references (191 cross-file, 47 chained, longest chain 3 hops), 75 multiply-defined paths, busiest token 6 referrers.
 
 ## Constitution Check
 

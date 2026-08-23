@@ -125,7 +125,7 @@ The client/server pairing is non-negotiable: `route.ts` documents that it "Mirro
 
 **Decision**: Use the existing `Popover` from `packages/design-system` for both the "referenced N times" list and the multiple-definition picker, containing a plain `<ul>` of links. Trigger styled with the existing `Badge`. A reference with exactly one definition renders as an ordinary link, not a popover.
 
-**Rationale**: No new dependency — `Popover`, `Badge`, and `lucide-react` are already present. A floating popover does not reflow the tree the way an inline disclosure would, which matters in a dense list. `Popover` is a generic container, so the content can be a real list of links; `DropdownMenu` would impose `role="menu"`/`menuitem` semantics that fit a command menu better than a set of navigation links. Realistic sizes are small — the most-referenced token in this project's set has **8** referrers — so no virtualization or search is warranted.
+**Rationale**: No new dependency — `Popover`, `Badge`, and `lucide-react` are already present. A floating popover does not reflow the tree the way an inline disclosure would, which matters in a dense list. `Popover` is a generic container, so the content can be a real list of links; `DropdownMenu` would impose `role="menu"`/`menuitem` semantics that fit a command menu better than a set of navigation links. Realistic sizes are small — the most-referenced token in this project's set has **6** referrers — so no virtualization or search is warranted.
 
 **Alternatives considered**: `DropdownMenu` — rejected on semantics. `Accordion` (inline disclosure) — rejected because expanding a row in place pushes the rest of the tree down, which is disorienting mid-scan. `Command`/`Combobox` — rejected as overkill at these sizes.
 

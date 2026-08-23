@@ -28,7 +28,7 @@ The full path walked from a reference to its end. **Every step is retained, not 
 | Field      | Type                 | Notes |
 | ---------- | -------------------- | ----- |
 | `path`     | `readonly string[]`  | The token arrived at in this step. |
-| `file`     | `string`             | Repo-relative file the token was found in. Needed because a chain may cross files — 200 of this project's 228 references do. |
+| `file`     | `string`             | Repo-relative file the token was found in. Needed because a chain may cross files — 191 of this project's 228 references do. |
 | `mode`     | `string \| undefined` | Mode this definition belongs to, when the token set defines modes. |
 
 ### ChainOutcome
