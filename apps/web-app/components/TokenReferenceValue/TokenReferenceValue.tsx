@@ -1,10 +1,13 @@
 import { ColorValueSchema } from "@dtcg-editor/token-core";
 import { colorValueToCssColor } from "@dtcg-editor/token-editor-color";
+import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import type {
 	ResolvedOutcome,
 	ResolvedReference,
 } from "../../lib/tokens/reference-index.ts";
+import { tokenHref } from "../../lib/tokens/token-fragment.ts";
+import { ReferenceDefinitionPicker } from "../ReferenceDefinitionPicker/ReferenceDefinitionPicker.tsx";
 import { ReferenceWarning } from "../ReferenceWarning/ReferenceWarning.tsx";
 import styles from "./TokenReferenceValue.module.css";
 
@@ -71,12 +74,54 @@ function OutcomeDisplay({ outcome }: { readonly outcome: ResolvedOutcome }) {
 	);
 }
 
+function pathText(path: readonly string[]): string {
+	return path.join(".");
+}
+
 /**
- * Renders a reference exactly as the file says it, plus what it resolves
- * to — one `OutcomeDisplay` per mode when the target is multiply defined
- * (spec FR-005), otherwise exactly one. A failing outcome delegates to
- * `ReferenceWarning` rather than duplicating its distinct-per-case wording
- * here.
+ * The reference text itself, as the navigation control (spec FR-012/
+ * FR-013/FR-016): a `Link` when there's exactly one, resolved definition
+ * to go to; `ReferenceDefinitionPicker` when the target has more than one
+ * definition (never silently picking a winner); plain, non-activatable
+ * text for every unresolvable/group-target/circular case, which
+ * `ReferenceWarning` (rendered separately, per outcome) already explains.
+ */
+function ReferenceControl({
+	resolved,
+}: {
+	readonly resolved: ResolvedReference;
+}) {
+	if (resolved.outcomes.length > 1) {
+		return <ReferenceDefinitionPicker resolved={resolved} />;
+	}
+
+	const [outcome] = resolved.outcomes;
+	if (
+		outcome !== undefined &&
+		outcome.chain.outcome.kind === "resolved" &&
+		outcome.targetFile !== undefined
+	) {
+		return (
+			<Link
+				href={tokenHref(outcome.targetFile, resolved.reference.targetPath)}
+				className={styles.raw}
+				aria-label={`Go to ${pathText(resolved.reference.targetPath)} in ${outcome.targetFile}`}
+			>
+				{resolved.reference.raw}
+			</Link>
+		);
+	}
+
+	return <span className={styles.raw}>{resolved.reference.raw}</span>;
+}
+
+/**
+ * Renders a reference exactly as the file says it (as a navigation
+ * control when it resolves — see `ReferenceControl`), plus what it
+ * resolves to — one `OutcomeDisplay` per mode when the target is
+ * multiply defined (spec FR-005), otherwise exactly one. A failing
+ * outcome delegates to `ReferenceWarning` rather than duplicating its
+ * distinct-per-case wording here.
  */
 export function TokenReferenceValue({
 	resolved,
@@ -85,7 +130,7 @@ export function TokenReferenceValue({
 }) {
 	return (
 		<span className={styles.reference}>
-			<span className={styles.raw}>{resolved.reference.raw}</span>
+			<ReferenceControl resolved={resolved} />
 			{resolved.outcomes.map((outcome, index) => (
 				<OutcomeDisplay key={outcome.mode ?? index} outcome={outcome} />
 			))}
