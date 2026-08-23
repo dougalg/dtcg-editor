@@ -64,13 +64,16 @@ test("the browse -> open -> edit -> save flow is fully keyboard-operable with vi
 	const backLink = page.getByRole("link", { name: /back to folder overview/i });
 	await tabTo(page, backLink);
 
-	const groupToggle = page.getByRole("button", {
-		name: /collapse spacing-scale/i,
-	});
-	await tabTo(page, groupToggle);
-
 	const groupNameInput = page.getByRole("textbox", { name: "Group Name:" });
 	await tabTo(page, groupNameInput);
+
+	// The group-name field lives outside <details>, ahead of <summary> in
+	// document order (TreeGroupNode.tsx) — not a role="button", since a
+	// native <summary> disclosure has no role mapping in this Chromium
+	// build's accessibility tree (see token-references.spec.ts for the
+	// same finding), so it's found by its label.
+	const groupToggle = page.getByLabel("Toggle spacing-scale");
+	await tabTo(page, groupToggle);
 
 	const tokenNameInput = page.getByRole("textbox", {
 		name: /^0 name$/i,
