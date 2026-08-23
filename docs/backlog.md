@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `pick-up-task` (or `speckit-specify`) to start it.
 Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not marked `[x]` here.
 
+- [ ] Ability to repair, circular, group-reference, or unresolved token references in app
 - [ ] Ability to visualize linting errors (eg: a11y contrast checks for token pairs, naming convnetions, etc.)
 - [ ] Ability to add and remove files in the file list page
 - [ ] Refactor all CSS to use design tokens where possible (replace hardcoded colors/spacing/sizing in `*.module.css` files with `var(--dtcg-ed-*)` custom properties, adding new tokens where a suitable one doesn't yet exist). (in progress — worktree `.claude/worktrees/css-design-tokens`, branch `worktree-css-design-tokens`)
