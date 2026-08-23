@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-22
 
-**Status**: Draft
+**Status**: Implemented (2026-08-23)
 
 **Input**: User description: "references to other tokens should (1) show the value that is referenced; (2) the reference name should be a link that takes the user to the referenced token to edit it if desired; (3) a token with references should have a 'referenced {once,twice,N times}' item which contains a dropdown list that shows a list of all tokens referencing this token, and they should be links back to them"
 
