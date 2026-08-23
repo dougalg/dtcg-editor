@@ -34,7 +34,12 @@ export default defineConfig({
 		},
 		{
 			name: "token-references",
-			testMatch: "token-references.spec.ts",
+			// keyboard-navigation.spec.ts also matches "default" above — it
+			// holds both fixture sets' tests in one file, each gated by
+			// `testInfo.project.name` (see that file's own comment), since
+			// Playwright routes a whole *file* to a project, not individual
+			// tests within it.
+			testMatch: ["token-references.spec.ts", "keyboard-navigation.spec.ts"],
 			use: { baseURL: `http://localhost:${TOKEN_REFERENCES_PORT}` },
 		},
 	],
