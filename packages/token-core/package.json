@@ -15,7 +15,6 @@
 		"lint": "biome lint ."
 	},
 	"dependencies": {
-		"@styleframe/dtcg": "catalog:",
 		"neverthrow": "catalog:",
 		"zod": "catalog:"
 	},

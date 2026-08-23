@@ -25,7 +25,6 @@ catalog:
   '@vitest/browser-playwright': ^4.1.11
   axe-core: ^4.13.0
   '@types/react-dom': ^19.2.4
-  '@styleframe/dtcg': ^1.1.0
 
 allowBuilds:
   sharp: true
