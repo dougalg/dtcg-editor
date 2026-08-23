@@ -1,0 +1,14 @@
+{
+	"color": {
+		"into-broken-file": {
+			"$type": "color",
+			"$description": "References a path that would live in unparseable.tokens.json — that file fails to parse entirely, so this reference is unresolved rather than found, and the rest of this file (and every other file) must still resolve normally",
+			"$value": "{color.broken-syntax.would-have-been-here}"
+		},
+		"unaffected-sibling": {
+			"$type": "color",
+			"$description": "A normal, resolvable reference in the same file as the one above — proves one bad file doesn't stop this file's other references from resolving",
+			"$value": "{color.brand.blue}"
+		}
+	}
+}

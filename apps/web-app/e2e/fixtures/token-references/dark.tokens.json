@@ -1,0 +1,14 @@
+{
+	"color": {
+		"text": {
+			"primary": {
+				"$type": "color",
+				"$description": "Dark-mode override of color.text.primary — a literal, unlike the light-mode reference chain this path resolves to via semantic.tokens.json",
+				"$value": {
+					"colorSpace": "srgb",
+					"components": [0.95, 0.95, 0.95]
+				}
+			}
+		}
+	}
+}

@@ -38,12 +38,12 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 
 **⚠️ Isolation constraint**: `playwright.config.ts` runs one `webServer` with a single `DTCG_EDITOR_TOKENS_DIR: "./e2e/fixtures/tokens"`. Adding broken/unparseable fixtures to that directory would break `home.spec.ts` and `tokens-page.spec.ts`, which assert on the file listing. The reference fixtures therefore get their own directory and their own server.
 
-- [ ] T001 [P] Create cross-file + chained reference fixtures in `apps/web-app/e2e/fixtures/token-references/base.tokens.json` and `apps/web-app/e2e/fixtures/token-references/semantic.tokens.json` — literal targets in one file, references and a 3-hop chain in the other
-- [ ] T002 [P] Create failure-path fixture in `apps/web-app/e2e/fixtures/token-references/broken.tokens.json` covering a reference to a non-existent path and a reference whose target is a group, not a token
-- [ ] T003 [P] Create cycle fixture in `apps/web-app/e2e/fixtures/token-references/circular.tokens.json` — a chain returning to a token already in it
-- [ ] T004 [P] Create unparseable-file fixture in `apps/web-app/e2e/fixtures/token-references/unparseable.tokens.json` plus a file referencing into it, proving one bad file does not stop other references resolving (spec FR-007 edge case)
-- [ ] T005 [P] Create multiply-defined/mode fixtures in `apps/web-app/e2e/fixtures/token-references/dark.tokens.json` and `apps/web-app/e2e/fixtures/token-references/tokens.resolver.json` — one path defined in two files under distinct modes (spec FR-005)
-- [ ] T006 Add a second `webServer` (port 3101, `DTCG_EDITOR_TOKENS_DIR: "./e2e/fixtures/token-references"`) and a matching Playwright project scoped to the reference spec in `apps/web-app/playwright.config.ts`, leaving the existing server and suites untouched
+- [X] T001 [P] Create cross-file + chained reference fixtures in `apps/web-app/e2e/fixtures/token-references/base.tokens.json` and `apps/web-app/e2e/fixtures/token-references/semantic.tokens.json` — literal targets in one file, references and a 3-hop chain in the other
+- [X] T002 [P] Create failure-path fixture in `apps/web-app/e2e/fixtures/token-references/broken.tokens.json` covering a reference to a non-existent path and a reference whose target is a group, not a token
+- [X] T003 [P] Create cycle fixture in `apps/web-app/e2e/fixtures/token-references/circular.tokens.json` — a chain returning to a token already in it
+- [X] T004 [P] Create unparseable-file fixture in `apps/web-app/e2e/fixtures/token-references/unparseable.tokens.json` plus a file referencing into it, proving one bad file does not stop other references resolving (spec FR-007 edge case)
+- [X] T005 [P] Create multiply-defined/mode fixtures in `apps/web-app/e2e/fixtures/token-references/dark.tokens.json` and `apps/web-app/e2e/fixtures/token-references/tokens.resolver.json` — one path defined in two files under distinct modes (spec FR-005)
+- [X] T006 Add a second `webServer` (port 3101, `DTCG_EDITOR_TOKENS_DIR: "./e2e/fixtures/token-references"`) and a matching Playwright project scoped to the reference spec in `apps/web-app/playwright.config.ts`, leaving the existing server and suites untouched
 
 ---
 

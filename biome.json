@@ -17,7 +17,8 @@
 			"!**/out",
 			"!**/build",
 			"!**/next-env.d.ts",
-			"!**/pnpm-lock.yaml"
+			"!**/pnpm-lock.yaml",
+			"!**/apps/web-app/e2e/fixtures/token-references/unparseable.tokens.json"
 		]
 	},
 	"formatter": {
@@ -151,7 +152,8 @@
 				"**/apps/web-app/**",
 				"!**/apps/web-app/instrumentation.ts",
 				"!**/apps/web-app/playwright.config.ts",
-				"!**/apps/web-app/dtcg-editor.config.mts"
+				"!**/apps/web-app/dtcg-editor.config.mts",
+				"!**/apps/web-app/e2e/support/global-setup.ts"
 			]
 		}
 	]

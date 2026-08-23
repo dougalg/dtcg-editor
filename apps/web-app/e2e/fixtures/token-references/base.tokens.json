@@ -1,0 +1,32 @@
+{
+	"color": {
+		"brand": {
+			"blue": {
+				"$type": "color",
+				"$description": "Literal brand blue — the end of every reference chain in this fixture set",
+				"$value": {
+					"colorSpace": "srgb",
+					"components": [0.2, 0.4, 0.9]
+				}
+			}
+		},
+		"neutral": {
+			"900": {
+				"$type": "color",
+				"$value": {
+					"colorSpace": "srgb",
+					"components": [0.1, 0.1, 0.1]
+				}
+			}
+		}
+	},
+	"space": {
+		"4": {
+			"$type": "dimension",
+			"$value": {
+				"value": 1,
+				"unit": "rem"
+			}
+		}
+	}
+}

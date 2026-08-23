@@ -1,0 +1,25 @@
+{
+	"color": {
+		"broken": {
+			"missing-target": {
+				"$type": "color",
+				"$description": "References a path that does not exist anywhere in this directory",
+				"$value": "{color.nope.not.real}"
+			},
+			"group-target": {
+				"$type": "color",
+				"$description": "References color.group-container, which is a group (has children), not a token — invalid per the DTCG format spec",
+				"$value": "{color.group-container}"
+			}
+		},
+		"group-container": {
+			"child": {
+				"$type": "color",
+				"$value": {
+					"colorSpace": "srgb",
+					"components": [0, 0, 0]
+				}
+			}
+		}
+	}
+}

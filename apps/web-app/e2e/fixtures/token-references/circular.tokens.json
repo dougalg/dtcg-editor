@@ -1,0 +1,16 @@
+{
+	"color": {
+		"circular": {
+			"a": {
+				"$type": "color",
+				"$description": "Circular reference: a -> b -> a",
+				"$value": "{color.circular.b}"
+			},
+			"b": {
+				"$type": "color",
+				"$description": "Circular reference: b -> a -> b",
+				"$value": "{color.circular.a}"
+			}
+		}
+	}
+}

@@ -1,0 +1,30 @@
+{
+	"color": {
+		"text": {
+			"primary": {
+				"$type": "color",
+				"$description": "Cross-file reference: resolves into base.tokens.json's color.brand.blue",
+				"$value": "{color.brand.blue}"
+			}
+		},
+		"action": {
+			"default": {
+				"$type": "color",
+				"$description": "Chain hop 2 of 3: references color.text.primary, which itself references color.brand.blue",
+				"$value": "{color.text.primary}"
+			},
+			"hover": {
+				"$type": "color",
+				"$description": "Chain hop 3 of 3 — the longest chain in this fixture set, ending at base.tokens.json's literal value",
+				"$value": "{color.action.default}"
+			}
+		}
+	},
+	"spacing": {
+		"gap": {
+			"$type": "dimension",
+			"$description": "Cross-file dimension reference into base.tokens.json's space.4",
+			"$value": "{space.4}"
+		}
+	}
+}

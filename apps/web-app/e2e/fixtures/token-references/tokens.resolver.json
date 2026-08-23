@@ -1,0 +1,26 @@
+{
+	"$schema": "https://www.designtokens.org/schemas/2025.10/resolver.json",
+	"version": "2025.10",
+	"resolutionOrder": [
+		{
+			"type": "set",
+			"name": "base",
+			"sources": [
+				{ "$ref": "./base.tokens.json" },
+				{ "$ref": "./semantic.tokens.json" },
+				{ "$ref": "./broken.tokens.json" },
+				{ "$ref": "./circular.tokens.json" },
+				{ "$ref": "./references-unparseable.tokens.json" }
+			]
+		},
+		{
+			"type": "modifier",
+			"name": "mode",
+			"default": "light",
+			"contexts": {
+				"light": [],
+				"dark": [{ "$ref": "./dark.tokens.json" }]
+			}
+		}
+	]
+}
