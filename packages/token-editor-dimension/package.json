@@ -21,8 +21,17 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@testing-library/react": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
-		"typescript": "catalog:"
+		"@types/react-dom": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
+		"@vitest/browser": "catalog:",
+		"@vitest/browser-playwright": "catalog:",
+		"axe-core": "catalog:",
+		"jsdom": "catalog:",
+		"react-dom": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

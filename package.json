@@ -15,6 +15,7 @@
 		"test": "turbo run test",
 		"test:commits": "node --test commit-conventions.test.mjs",
 		"test:format-staged": "node --test format-staged.test.mjs",
+		"test:vitest": "pnpm --filter @dtcg-editor/web-app generate:icons && vitest run",
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"commit": "cz",
@@ -32,10 +33,13 @@
 		"@commitlint/cz-commitlint": "catalog:",
 		"@ls-lint/ls-lint": "catalog:",
 		"@types/node": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
+		"@vitest/browser-playwright": "catalog:",
 		"commitizen": "^4.3.2",
 		"husky": "^9.1.7",
 		"inquirer": "catalog:",
 		"turbo": "^2.10.11",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

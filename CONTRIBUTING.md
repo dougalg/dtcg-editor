@@ -81,6 +81,24 @@ git rebase origin/main
 
 CI's commit-message check (see above) tolerates/skips merge-commit-shaped messages defensively, so an accidental merge commit won't spuriously fail the build — but that tolerance is a backstop, not an invitation to merge freely. Rebase is the required workflow.
 
+This is enforced at two points, not just documented:
+
+- **`pre-push` (local, `.husky/pre-push`)**: before any push, checks every
+  commit about to be pushed for a merge commit and refuses the push if it
+  finds one, pointing you at `git rebase` instead.
+- **CI (`linear-history` job in `.github/workflows/ci.yml`)**: on every PR
+  and push to `main`, checks the commit range for merge commits and fails
+  the build if any are found — a backstop for a push that bypassed the
+  local hook (`--no-verify`, a different clone, a direct API push).
+
+Neither of these can reject a merge commit that's *already on* `main` — the
+only fully authoritative enforcement is a repository **branch protection**
+rule on `main` ("Require linear history" in GitHub's branch protection
+settings), which rejects a non-fast-forward merge server-side regardless of
+what CI or local hooks do. That setting lives in the repo's GitHub settings,
+not in this repo's files, and should be enabled by a repo admin alongside
+the checks above.
+
 ### Examples
 
 ```

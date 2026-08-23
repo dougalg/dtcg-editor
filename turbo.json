@@ -16,7 +16,12 @@
 			"dependsOn": ["^build"]
 		},
 		"test": {
-			"dependsOn": ["^build", "//#test:commits", "//#test:format-staged"]
+			"dependsOn": [
+				"^build",
+				"//#test:commits",
+				"//#test:format-staged",
+				"//#test:vitest"
+			]
 		},
 		"//#lint:root": {
 			"outputs": []
@@ -28,6 +33,10 @@
 			"outputs": []
 		},
 		"//#test:format-staged": {
+			"outputs": []
+		},
+		"//#test:vitest": {
+			"dependsOn": ["^build"],
 			"outputs": []
 		}
 	}

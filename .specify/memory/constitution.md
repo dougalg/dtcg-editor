@@ -1,6 +1,50 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.6.0 → 2.7.0
+Rationale: MINOR — materially expands two existing sections without adding
+or redefining a Core Principle: (1) Technology Stack & Approved Dependencies
+is corrected to match reality (root tooling runs Biome, not ESLint/Prettier,
+which were never actually present in the repo; `inquirer` was in use but
+undocumented) and expanded to state that Vitest now spans every JSX-
+rendering package (`apps/web-app`, `packages/design-system`, and any
+`token-editor-*` package with an `Editor` component), unified into one root
+`vitest.config.ts` via Vitest's `test.projects` so the suite runs in a
+single process instead of one spawned per package; (2) Development
+Workflow's existing "feature branches are rebased, not merged" rule gains
+actual enforcement — a `pre-push` husky hook and a `linear-history` CI job,
+both added in this amendment — plus a note that the fully authoritative
+layer is a GitHub branch-protection "Require linear history" rule on `main`,
+which is a repo setting outside this repo's files. No existing principle is
+redefined or removed, so this is not MAJOR; correcting a stale list and
+wiring real enforcement into an existing workflow rule is materially more
+than a wording clarification, so this is not PATCH.
+
+Added sections: none (extends Technology Stack & Approved Dependencies and
+Development Workflow)
+
+Modified principles: none (no Core Principle changed — see Technology Stack
+and Development Workflow changes above)
+
+Removed sections: none
+
+Deferred / TODO items: the GitHub branch-protection "Require linear
+history" rule itself is not (and cannot be) applied by this amendment — it
+requires a repo admin action in GitHub's settings UI/API, outside what a
+commit to this repository can do.
+
+Source of truth for this amendment: a constitution/CLAUDE.md compliance
+audit flagged the stale Approved Dependencies list; a follow-up request
+("deal with 1, 2 and 4... how can we actually forbid merge commits?") asked
+for the merge-commit workflow gap to be closed with real enforcement, not
+just documentation, and for the new component-test infrastructure (item 2)
+to use Vitest's `test.projects` for a single-process run per
+https://vitest.dev/guide/projects.html.
+-->
+
+<!--
+Sync Impact Report (v2.6.0, superseded above)
+==================
 Version change: 2.5.0 → 2.6.0
 Rationale: MINOR — materially expands Principle XII (Design System Usage)
 with a second MUST: where `packages/design-system` already exports a
@@ -652,21 +696,28 @@ requiring a constitution amendment each time.
   app. **Package management**: pnpm workspaces. **Build orchestration**:
   Turborepo. No database, ORM, migrations, or messaging layer.
 - **Testing**: Node's built-in test runner (`node:test` + `node:assert/strict`)
-  for `packages/*` (none of which render JSX). `apps/web-app` uses Vitest +
-  `@testing-library/react` (`jsdom`) since `node:test` cannot execute
-  `.tsx`/JSX. Accessibility testing is two-tier: a Vitest Browser Mode
-  project (`@vitest/browser` + `@vitest/browser-playwright`, real Chromium)
-  asserting zero `axe-core` WCAG 2.2 AA violations on components, plus a
-  `@playwright/test` suite checking whole-page results and keyboard-only
-  navigation on the real running app. Both are enforced (non-warn-only)
+  for any `packages/*` package that renders no JSX. Every package that does
+  render JSX — `apps/web-app`, `packages/design-system`, and any
+  `token-editor-*` package with an `Editor` component (`node:test` cannot
+  execute `.tsx`/JSX) — uses Vitest + `@testing-library/react` (`jsdom`)
+  instead, all defined as named projects in one root `vitest.config.ts`
+  (Vitest's `test.projects`) so the whole suite runs in a single process
+  rather than one spawned per package. Accessibility testing is two-tier:
+  a Vitest Browser Mode project per JSX package (`@vitest/browser` +
+  `@vitest/browser-playwright`, real Chromium) asserting zero `axe-core`
+  WCAG 2.2 AA violations on components, plus a `@playwright/test` suite
+  (`apps/web-app` only) checking whole-page results and keyboard-only
+  navigation on the real running app. Both tiers are enforced (non-warn-only)
   under `pnpm test`/`turbo run test`.
 - **Approved dependencies** (anything outside this list requires a flag
   before adding, per Principle VIII): TypeScript, React, Next.js
-  (`apps/web-app`), ESLint + `typescript-eslint` (+ `eslint-config-next`),
-  Zod, neverthrow, pnpm, Turborepo, `@commitlint/cli` +
+  (`apps/web-app`), `@biomejs/biome` (root devDependency, lint + format for
+  every package, `useTabs: true`, configured in `biome.json`), Zod,
+  neverthrow, pnpm, Turborepo, `@commitlint/cli` +
   `@commitlint/config-conventional`, `commitizen` + `@commitlint/cz-commitlint`,
-  `husky`, `prettier` (`useTabs: true`), `vitest` (`apps/web-app` only),
-  `@vitejs/plugin-react`, `jsdom`, `@testing-library/react`, `colorjs.io`
+  `husky`, `inquirer` (root devDependency, backs the `pnpm commit` prompt
+  flow alongside `commitizen`), `vitest`, `@vitejs/plugin-react`, `jsdom`,
+  `@testing-library/react`, `colorjs.io`
   (`packages/token-core` only, imported via the tree-shakable
   `colorjs.io/fn` entry point), `@ls-lint/ls-lint` (root devDependency,
   filename/directory-structure linting per Principle X, configured in
@@ -705,7 +756,12 @@ requiring a constitution amendment each time.
   `commit-msg` husky hook (commitlint) and in CI via a parallel `commitlint`
   job reading the same config — both enforcement points share one config so
   they cannot drift. Feature branches are rebased onto `main`, not merged,
-  per `CONTRIBUTING.md`.
+  per `CONTRIBUTING.md`, enforced by a `pre-push` husky hook and a
+  `linear-history` CI job that both reject any merge commit in the pushed/PR
+  commit range — the fully authoritative layer is a GitHub branch-protection
+  rule ("Require linear history") on `main`, a repo setting outside this
+  repo's files, which a repo admin enables to make the local/CI checks
+  unbypassable.
 - CI (GitHub Actions) runs `pnpm build`/`lint`/`test`/`format:check` via
   Turborepo on PRs into `main` and pushes to `main`. `pnpm build` is the sole
   type-checking gate; no separate `tsc --noEmit` step exists because every
@@ -741,4 +797,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 2.6.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-23
+**Version**: 2.7.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-23

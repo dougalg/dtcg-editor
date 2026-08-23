@@ -9,8 +9,7 @@
 		"start": "next start",
 		"lint": "biome lint .",
 		"lint:write": "biome lint --write .",
-		"test": "pnpm generate:icons && pnpm test:unit && pnpm test:a11y",
-		"test:unit": "vitest run",
+		"test": "pnpm test:a11y",
 		"test:a11y": "playwright test",
 		"init-config": "node scripts/init-config.ts",
 		"generate:icons": "node scripts/generate-icon-sprite.ts"
@@ -30,17 +29,17 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.62.1",
-		"@testing-library/react": "^16.3.2",
+		"@testing-library/react": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
-		"@types/react-dom": "^19.2.4",
-		"@vitejs/plugin-react": "^6.1.0",
-		"@vitest/browser": "^4.1.11",
-		"@vitest/browser-playwright": "^4.1.11",
-		"axe-core": "^4.13.0",
-		"jsdom": "^30.0.1",
+		"@types/react-dom": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
+		"@vitest/browser": "catalog:",
+		"@vitest/browser-playwright": "catalog:",
+		"axe-core": "catalog:",
+		"jsdom": "catalog:",
 		"playwright": "^1.62.1",
 		"typescript": "catalog:",
-		"vitest": "^4.1.11"
+		"vitest": "catalog:"
 	}
 }

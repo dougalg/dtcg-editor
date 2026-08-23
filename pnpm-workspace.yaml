@@ -17,6 +17,14 @@ catalog:
   '@commitlint/cz-commitlint': ^21.2.2
   inquirer: ^14.1.0
   '@biomejs/biome': 2.5.9
+  vitest: ^4.1.11
+  '@vitejs/plugin-react': ^6.1.0
+  jsdom: ^30.0.1
+  '@testing-library/react': ^16.3.2
+  '@vitest/browser': ^4.1.11
+  '@vitest/browser-playwright': ^4.1.11
+  axe-core: ^4.13.0
+  '@types/react-dom': ^19.2.4
 
 allowBuilds:
   sharp: true

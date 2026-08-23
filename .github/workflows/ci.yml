@@ -86,3 +86,38 @@ jobs:
             BEFORE=$(git rev-list --max-parents=0 "$AFTER" | tail -n1)
           fi
           pnpm exec commitlint --from "$BEFORE" --to "$AFTER"
+
+  linear-history:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject merge commits (pull_request)
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          MERGES=$(git rev-list --merges "$BASE..$HEAD")
+          if [ -n "$MERGES" ]; then
+            echo "Merge commit(s) found in this PR's history — CONTRIBUTING.md requires a linear (rebased) history:" >&2
+            git log --no-walk --format='  %h %s' $MERGES >&2
+            exit 1
+          fi
+
+      - name: Reject merge commits (push)
+        if: github.event_name == 'push'
+        run: |
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.event.after }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE=$(git rev-list --max-parents=0 "$AFTER" | tail -n1)
+          fi
+          MERGES=$(git rev-list --merges "$BEFORE..$AFTER")
+          if [ -n "$MERGES" ]; then
+            echo "Merge commit(s) found in this push's history — CONTRIBUTING.md requires a linear (rebased) history:" >&2
+            git log --no-walk --format='  %h %s' $MERGES >&2
+            exit 1
+          fi

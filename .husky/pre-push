@@ -1,0 +1,28 @@
+zero="0000000000000000000000000000000000000000"
+default_branch="main"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+	[ "$local_sha" = "$zero" ] && continue # deleting a ref, nothing to check
+
+	if [ "$remote_sha" = "$zero" ]; then
+		# New ref on the remote: check everything since it diverged from main.
+		base=$(git merge-base "$default_branch" "$local_sha" 2>/dev/null) || base=$(git rev-list --max-parents=0 "$local_sha" | tail -n1)
+		range="$base..$local_sha"
+	else
+		range="$remote_sha..$local_sha"
+	fi
+
+	merges=$(git rev-list --merges "$range")
+	if [ -n "$merges" ]; then
+		echo "" >&2
+		echo "error: refusing to push merge commit(s) to $remote_ref:" >&2
+		for sha in $merges; do
+			git log -1 --format='  %h %s' "$sha" >&2
+		done
+		echo "" >&2
+		echo "This repo requires a linear history — rebase onto $default_branch instead of merging it in. See CONTRIBUTING.md#merge-commits--rebasing." >&2
+		exit 1
+	fi
+done
+
+exit 0
