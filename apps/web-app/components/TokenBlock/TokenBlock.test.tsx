@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { render, screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { TokenBlock } from "./TokenBlock.tsx";
@@ -108,4 +110,31 @@ test("scopes the row to a single <li> containing the heading and children", () =
 	if (row !== null) {
 		expect(within(row).getByText("value content")).toBeTruthy();
 	}
+});
+
+/**
+ * `useTokenArrival.ts` applies `.arrivalTarget` imperatively (outside
+ * React), so this component's own render never shows the highlight — the
+ * requirement under test lives entirely in the CSS module. jsdom's "unit"
+ * project never applies real CSS, so this can't be checked via computed
+ * style; instead it inspects the rule's actual source text for a
+ * non-color property change alongside the color one, which is the
+ * property that makes T043's a11y requirement true regardless of how
+ * jsdom or a real browser renders it.
+ */
+test("the arrival highlight changes a non-color property, not color alone (T043)", () => {
+	const tokenBlockCss = readFileSync(
+		join(import.meta.dirname, "TokenBlock.module.css"),
+		"utf-8",
+	);
+	const ruleMatch = tokenBlockCss.match(/\.token\.arrivalTarget\s*\{([^}]*)\}/);
+	expect(ruleMatch).not.toBeNull();
+	const declarations = ruleMatch?.[1] ?? "";
+
+	const hasColorChange = /\bcolor\b/i.test(declarations);
+	const hasNonColorChange =
+		/\b(width|style|weight|outline|text-decoration)\b/i.test(declarations);
+
+	expect(hasColorChange).toBe(true);
+	expect(hasNonColorChange).toBe(true);
 });

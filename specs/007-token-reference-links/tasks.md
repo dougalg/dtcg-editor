@@ -133,12 +133,12 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 
 ### Addressing and arrival
 
-- [ ] T039 [P] [US2] Implement the fragment scheme in `apps/web-app/lib/tokens/token-fragment.ts` — `/tokens/<file>#<segment>.<segment>`, each segment percent-encoded and joined with `.`, reusing `FolderOverview.tsx`'s existing `hrefFor` encoding for the file half so both stay consistent; plus the inverse decode
-- [ ] T040 [P] [US2] Write tests in `apps/web-app/lib/tokens/token-fragment.test.ts` — round-trip encode/decode, segments needing percent-encoding, and a fragment naming a non-existent token decoding without error (depends on T039)
-- [ ] T041 [US2] Implement arrival in `apps/web-app/hooks/useTokenArrival.ts` (camelCase per Principle X) — on mount and on `hashchange`, decode the fragment, match it to the rendered token, **move focus to it**, and mark it as the arrival target. Revealing collapsed ancestors and scrolling are the **browser's** job via native `<details>` auto-expansion; this hook covers only what the browser does not do. A fragment naming a token not in the file is ignored and the page renders normally (depends on T033, T039)
-- [ ] T042 [US2] Write tests in `apps/web-app/hooks/useTokenArrival.test.ts` — focus moves to the target, arrival marking applied, unknown fragment ignored, `hashchange` re-runs it (depends on T041)
-- [ ] T043 [US2] Ensure the arrival highlight does not rely on color alone (spec a11y requirement) in `apps/web-app/components/TokenBlock/TokenBlock.module.css` (depends on T041)
-- [ ] T043a [US2] Assert the arrival highlight carries a non-color distinguishing signal in `apps/web-app/components/TokenBlock/TokenBlock.test.tsx` — every other accessibility requirement in this feature has a verifying test, and T043 alone is unenforced (depends on T043)
+- [X] T039 [P] [US2] Implement the fragment scheme in `apps/web-app/lib/tokens/token-fragment.ts` — `/tokens/<file>#<segment>.<segment>`, each segment percent-encoded and joined with `.`, reusing `FolderOverview.tsx`'s existing `hrefFor` encoding for the file half so both stay consistent; plus the inverse decode
+- [X] T040 [P] [US2] Write tests in `apps/web-app/lib/tokens/token-fragment.test.ts` — round-trip encode/decode, segments needing percent-encoding, and a fragment naming a non-existent token decoding without error (depends on T039)
+- [X] T041 [US2] Implement arrival in `apps/web-app/hooks/useTokenArrival.ts` (camelCase per Principle X) — on mount and on `hashchange`, decode the fragment, match it to the rendered token, **move focus to it**, and mark it as the arrival target. Revealing collapsed ancestors and scrolling are the **browser's** job via native `<details>` auto-expansion; this hook covers only what the browser does not do. A fragment naming a token not in the file is ignored and the page renders normally (depends on T033, T039)
+- [X] T042 [US2] Write tests in `apps/web-app/hooks/useTokenArrival.test.ts` — focus moves to the target, arrival marking applied, unknown fragment ignored, `hashchange` re-runs it (depends on T041)
+- [X] T043 [US2] Ensure the arrival highlight does not rely on color alone (spec a11y requirement) in `apps/web-app/components/TokenBlock/TokenBlock.module.css` (depends on T041)
+- [X] T043a [US2] Assert the arrival highlight carries a non-color distinguishing signal in `apps/web-app/components/TokenBlock/TokenBlock.test.tsx` — every other accessibility requirement in this feature has a verifying test, and T043 alone is unenforced (depends on T043)
 
 ### Navigation controls
 

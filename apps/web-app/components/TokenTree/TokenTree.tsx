@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSaveTokenEdits } from "../../hooks/useSaveTokenEdits.ts";
+import { useTokenArrival } from "../../hooks/useTokenArrival.ts";
 import type { ClientEdit } from "../../lib/tokens/edit-state.ts";
 import { applyEditsToPlainNode } from "../../lib/tokens/edit-state.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
@@ -45,6 +46,7 @@ export function TokenTree({
 		new Map(),
 	);
 	const { saveState, saveError, save } = useSaveTokenEdits(relativePath);
+	useTokenArrival();
 
 	function stageEdit(path: readonly string[], patch: EditablePatch) {
 		const key = pathKey(path);

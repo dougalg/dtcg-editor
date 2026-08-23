@@ -8,6 +8,20 @@
 		var(--dtcg-ed-color-neutral-border-normal);
 }
 
+/*
+ * Marks the token `useTokenArrival.ts` navigated to (spec FR-014). The
+ * distinguishing signal is the border's *width*, not only its color — a
+ * thicker line is perceivable without color vision at all, so this
+ * doesn't rely on color alone (spec a11y requirement); the accent color
+ * is reinforcement, not the sole signal. `.token.arrivalTarget` (rather
+ * than a lone `.arrivalTarget`) guarantees this wins over `.token`'s own
+ * border-left regardless of the two rules' declaration order.
+ */
+.token.arrivalTarget {
+	border-left-width: var(--dtcg-ed-border-width-thick);
+	border-left-color: var(--dtcg-ed-color-accent-fill-loud);
+}
+
 .identity {
 	display: flex;
 	align-items: center;

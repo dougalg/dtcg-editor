@@ -1,10 +1,7 @@
 import Link from "next/link";
 import type { TokenFileSummary } from "../../lib/tokens/scan.ts";
+import { fileHref } from "../../lib/tokens/token-fragment.ts";
 import styles from "./FolderOverview.module.css";
-
-function hrefFor(relativePath: string): string {
-	return `/tokens/${relativePath.split("/").map(encodeURIComponent).join("/")}`;
-}
 
 export function FolderOverview({
 	files,
@@ -24,7 +21,7 @@ export function FolderOverview({
 			{files.map((file) => (
 				<li key={file.relativePath}>
 					{file.valid ? (
-						<Link href={hrefFor(file.relativePath)} className={styles.link}>
+						<Link href={fileHref(file.relativePath)} className={styles.link}>
 							<span className={styles.badgeValid}>valid</span>
 							{!file.standard && (
 								<span className={styles.badgeNonStandard}>non-standard</span>
