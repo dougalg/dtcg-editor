@@ -60,7 +60,9 @@ Applies **only** to navigation that leaves the current file.
 | --- | --- | --- |
 | Reference with exactly one definition | Link | Direct navigation. |
 | Reference with several definitions | `Popover` trigger listing each definition by file and mode | Spec FR-013; never silently picks a winner. Affects 75 of 490 paths in this project's own token set. |
-| Unresolvable / group-target / circular reference | Plain text, not activatable | Spec FR-016. |
+| Reference whose target does not exist | Warning naming the **missing path**, not activatable | Spec FR-011a/FR-016. |
+| Reference whose target is a group | Warning naming the **group path**, not activatable | Spec FR-011a/FR-016. Distinct from the missing-target warning — the remedy is to point at a token inside the group, not to create one. |
+| Reference whose chain is circular | Warning naming the **tokens forming the cycle**, not activatable | Spec FR-006/FR-011a/FR-016. |
 | "referenced N times" | `Badge`-styled `Popover` trigger containing a `<ul>` of links | Absent entirely at zero referrers. |
 
 Every control is keyboard-operable with an accessible name describing its destination (spec FR-017). `Popover`, `Badge`, and `Dialog` all already exist in `packages/design-system` — no new dependency.

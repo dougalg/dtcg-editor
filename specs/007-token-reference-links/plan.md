@@ -46,7 +46,7 @@ _GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design._
 | II. Feature-Based Code Organization | Pass | Reference syntax + resolution live together in `token-core`, not split across parser/validator layers; the app-side index lives in `lib/tokens/` beside the existing token code; each new component gets its own folder with co-located tests and styles. |
 | III. TypeScript Strictness | Pass | No `any`; failure states are a discriminated union narrowed at use, not `unknown` casts. |
 | IV. Validation at the Edges | Pass | `tokens.resolver.json` is a new externally-authored file read and gets a Zod schema. Reference *syntax* parsing operates on data already validated by `parseTokenFile`, so it is pure structural inspection, not a new trust boundary. |
-| V. Result-Pattern Error Handling | Pass | Genuinely fallible operations (directory load, resolver-file read) return `ResultAsync`. Unresolvable/group-target/circular are **outcomes, not errors** — they are normal displayable states (FR-011), so modelling them as `Err` would push a rendering concern through error plumbing. Documented in research.md §10. |
+| V. Result-Pattern Error Handling | Pass | Genuinely fallible operations (directory load, resolver-file read) return `ResultAsync`. Unresolvable/group-target/circular are **outcomes, not errors** — they are normal displayable states, each with its own user-facing warning (FR-011/FR-011a), so modelling them as `Err` would push a rendering concern through error plumbing. Documented in research.md §10. |
 | VI. Dependency Injection for I/O | Pass | `loadTokenDirectory`/`loadResolverModes` take injected fs functions with real defaults, matching `scanTokenDirectory`'s existing signature. `token-core`'s resolver takes an injected `lookup` rather than reaching for a filesystem. |
 | VII. Token-Editor Package Contract | Pass | `token-core` gains reference syntax/resolution and stays React-free; dependency direction unchanged. **`TokenTypeContract` is not modified** — the reference check is hoisted above `validateTokenValue` instead, because a reference is valid for every `$type` and is therefore not any one type's business. |
 | VIII. Minimal Dependencies | Pass | Nothing new. `Popover`, `Badge`, `Dialog`, and `lucide-react` are already present. |
@@ -102,6 +102,7 @@ apps/web-app/
 │   └── api/tokens/[...path]/route.ts # EDITED — hoist reference check above validation
 ├── components/
 │   ├── TokenReferenceValue/         # NEW — resolved value + navigation control
+│   ├── ReferenceWarning/            # NEW — one distinct warning per failure case
 │   ├── ReferencedByBadge/           # NEW — "referenced N times" + popover list
 │   ├── TreeTokenNode/               # EDITED — new reference path in the dispatch
 │   ├── TreeGroupNode/               # EDITED — native <details>/<summary> disclosure

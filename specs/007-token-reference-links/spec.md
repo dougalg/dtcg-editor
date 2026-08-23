@@ -24,8 +24,9 @@ A user browsing a token file sees a token whose value points at another token (e
 2. **Given** a token currently reported as having an invalid value solely because that value is a reference, **When** the user views it after this feature, **Then** no validation error is reported for it and its resolved value is shown instead.
 3. **Given** a token whose value is a reference to another reference (a chain), **When** the user views that token, **Then** the concrete literal value at the end of the chain is shown.
 4. **Given** a composite token (e.g. a shadow) with a reference nested inside one of its sub-values, **When** the user views that token, **Then** that nested reference also shows the value it resolves to.
-5. **Given** a reference whose target does not exist, **When** the user views that token, **Then** it is clearly marked as unresolvable, and the rest of the file still renders normally.
-6. **Given** a reference whose chain is circular, **When** the user views that token, **Then** the value is reported as unknown with a warning, and the page remains usable.
+5. **Given** a reference whose target does not exist, **When** the user views that token, **Then** a warning naming the missing path is shown, and the rest of the file still renders normally.
+6. **Given** a reference whose chain is circular, **When** the user views that token, **Then** a warning naming the tokens forming the cycle is shown, and the page remains usable.
+7. **Given** a reference whose target is a group rather than a token, **When** the user views that token, **Then** a warning naming the group path is shown, distinct from the missing-target warning.
 
 ---
 
@@ -91,7 +92,7 @@ A user about to edit a token wants to know what else will be affected — which 
 - **FR-003**: The system MUST retain the complete ordered chain of tokens traversed during resolution — every intermediate token, not only the final literal value — so the full resolution path is available for display and for future visualization of reference relationships.
 - **FR-004**: The system MUST resolve references against every token file in the user's configured token directory, not only the file currently being viewed.
 - **FR-005**: When a referenced token path is defined in more than one file, the system MUST resolve it once per mode defined by the token set, and MUST label each resolved outcome with the mode and file it came from. Where the token set defines no modes, each definition is identified by its file alone. The system MUST NOT silently pick one definition and discard the others.
-- **FR-006**: The system MUST detect a circular reference chain, report the affected tokens' values as unknown, and surface a warning, without hanging, overflowing, or crashing.
+- **FR-006**: The system MUST detect a circular reference chain, report the affected tokens' values as unknown, and surface a warning **to the end user** naming the tokens that form the cycle, without hanging, overflowing, or crashing.
 - **FR-007**: The system MUST treat a reference whose target does not exist, or whose target is a group rather than a token, as unresolvable.
 
 #### Showing the referenced value (User Story 1)
@@ -99,7 +100,9 @@ A user about to edit a token wants to know what else will be affected — which 
 - **FR-008**: For every resolvable reference, the system MUST display the concrete value it resolves to, in addition to the reference itself.
 - **FR-009**: A token whose value is a valid reference MUST NOT be reported as having an invalid value. This corrects existing behavior in which such tokens are flagged as errors — for example a color token holding a reference is currently told its value "must be a 6-digit hex string".
 - **FR-010**: A resolved value MUST be presented the same way an equivalent literal value of that type is presented, so a referenced color is as recognizable as a directly-specified one.
-- **FR-011**: For an unresolvable or circular reference, the system MUST show a clear indication that the value cannot be resolved, in place of a resolved value.
+- **FR-011**: For a reference that does not resolve, the system MUST show a warning to the end user in place of a resolved value.
+- **FR-011a**: That warning MUST be **distinct for each of the three failure cases** — target does not exist, target is a group, and circular chain — rather than one shared "cannot be resolved" message. Each case is a different authoring mistake with a different remedy, so a single message would tell the user their reference is broken without telling them how.
+- **FR-011b**: Each warning MUST identify the offending path from that case's own diagnostic detail: the missing path, the group path, or the tokens forming the cycle.
 
 #### Navigating to the referenced token (User Story 2)
 
@@ -107,7 +110,7 @@ A user about to edit a token wants to know what else will be affected — which 
 - **FR-013**: When the referenced path has more than one definition, activating the reference MUST offer the user a list of those definitions — each identified by its file and the mode it applies to — and let them choose which one to open.
 - **FR-014**: Reaching a referenced token MUST leave it visible and ready to edit — including opening any groups containing it, bringing it into view, and making clear which token was navigated to.
 - **FR-015**: Navigation MUST work when the referenced token is in a different file from the referencing token.
-- **FR-016**: An unresolvable reference MUST NOT be offered as an activatable navigation control.
+- **FR-016**: A reference that does not resolve — for any of the three failure cases — MUST NOT be offered as an activatable navigation control. Its warning is displayed instead, and the warning itself is not a link.
 - **FR-017**: Every navigation control this feature introduces MUST be operable by keyboard and expose an accessible name describing where it leads.
 - **FR-018**: If the user has unsaved edits and activates a control that would leave the current file, the system MUST warn them and let them save the edits, discard them, or remain where they are. Edits MUST NOT be discarded or written to disk without the user choosing.
 
@@ -138,6 +141,7 @@ A user about to edit a token wants to know what else will be affected — which 
 - **SC-005**: For a path defined in several files, the user can see every definition and choose between them, with no definition silently hidden — verified against the 75 such paths in this project's own token set.
 - **SC-006**: A user can determine how many tokens depend on a given token, and reach any one of them, without searching or reading files by hand.
 - **SC-007**: Unresolvable, group-targeted, and circular references never prevent a file from being viewed and never produce an unhandled failure.
+- **SC-011**: A user encountering any of the three failure cases can tell from the warning alone which of the three it is and which path is at fault, without opening another file or reading the raw JSON.
 - **SC-008**: Unsaved edits are never lost or silently written when following a reference out of the current file.
 - **SC-009**: All controls this feature adds are fully keyboard-operable and pass automated accessibility checking with zero critical violations.
 - **SC-010**: Opening a token file stays responsive with reference resolution and counting active — no perceptible delay against a token set of this project's size.
@@ -154,3 +158,5 @@ A user about to edit a token wants to know what else will be affected — which 
 - **New test fixtures will be required.** No existing fixture in this project contains a reference of any kind, and its own token set contains no broken, group-targeted, or circular reference — so those failure cases can only be covered by purpose-built fixtures, including at least one cross-file pair.
 - **A way to address an individual token is a prerequisite.** No means of pointing at a single token — within a file or across files — exists today; the finest addressable unit is a whole file. Establishing one is part of delivering User Stories 2 and 3.
 - **Retaining the full resolution chain is groundwork, not a visible feature in itself.** FR-003 requires the intermediate steps be kept so relationships can be visualized later; designing that visualization is not part of this feature.
+- **Broken references are reported, not repairable in-app.** FR-011a gives each of the three failure cases its own warning so the user can see precisely what is wrong and fix it in the file. Offering an in-app remedy — a suggested correction, a picker to re-point the reference, a "create the missing token" action — is deliberately deferred. This follows from the feature already being read-only with respect to reference authoring: a token holding a reference has no value editor either way, which is not a regression, since such a token is read-only today via the invalid-value path.
+- **The three warning cases are distinguished by cause, not by root cause.** A reference into a file that fails to parse surfaces as "target does not exist", because from the index's point of view the file contributed no tokens. The user is therefore told the target is missing when the real cause is a broken file elsewhere. Accepted for now as a known rough edge; distinguishing it would require the index to track which files failed to load and is out of scope here.

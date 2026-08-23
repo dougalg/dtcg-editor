@@ -47,15 +47,17 @@ pnpm --filter web-app dev
 
 ## Failure cases — fixtures required
 
-These cannot be exercised against the real token set, which contains no broken, group-targeted, or circular references. Add fixtures under `apps/web-app/e2e/fixtures/tokens/`:
+These cannot be exercised against the real token set, which contains no broken, group-targeted, or circular references. Add fixtures under `apps/web-app/e2e/fixtures/token-references/` (its own directory and server — see tasks.md T006):
 
 | Fixture | Asserts |
 | --- | --- |
-| Reference to a non-existent path | Marked unresolvable; page still renders; not activatable (FR-007, FR-011, FR-016) |
-| Reference targeting a **group** | Same treatment — invalid per DTCG (FR-007) |
-| Two tokens referencing each other | Reported as unknown with a warning; **no hang, no stack overflow** (FR-006) |
-| Reference into a file that fails to parse | Unresolvable, while references between the *other* files still resolve (spec Edge Cases) |
+| Reference to a non-existent path | Warning naming the **missing path**; page still renders; not activatable (FR-007, FR-011a, FR-016) |
+| Reference targeting a **group** | Warning naming the **group path**, with text **distinct** from the missing-target case (FR-007, FR-011a) |
+| Two tokens referencing each other | Warning naming the **tokens in the cycle**; **no hang, no stack overflow** (FR-006) |
+| Reference into a file that fails to parse | Surfaces as the missing-target warning, while references between the *other* files still resolve (spec Edge Cases + Assumptions — known rough edge, the real cause is not distinguished) |
 | A cross-file pair | Cross-file resolution and navigation without depending on the design-system tokens |
+
+**Check all three warnings side by side.** SC-011 requires a user to tell which of the three failure cases they are looking at, and which path is at fault, from the warning alone. Reading them in isolation will not catch two variants that happen to say nearly the same thing.
 
 The circular fixture is the important one: cycle detection is what makes unbounded chain-following safe, so its test is a real regression guard. It must fail fast rather than hang the suite if detection regresses.
 

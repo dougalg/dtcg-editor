@@ -111,3 +111,12 @@ Not stored — computed at render time from the entities above.
 - **Reference count label**: `referencedBy` length → `"referenced once"` (1), `"referenced twice"` (2), `"referenced N times"` (≥3). Absent entirely at 0.
 - **Resolved value display**: `ChainOutcome.resolved.value`, presented the same way an equivalent literal of that type would be (spec FR-010), so a referenced color renders as a swatch.
 - **Navigation target**: `/tokens/<targetFile>#<percent-encoded dot path>` (research.md §4).
+- **Failure warnings**: one per `ChainOutcome` failure variant, each consuming that variant's own payload (spec FR-011a/FR-011b). This is what those payloads exist for — a single shared "cannot be resolved" message would leave `missingPath`, `groupPath`, and `cyclePath` unused.
+
+| Outcome | Payload consumed | Warning conveys |
+| --- | --- | --- |
+| `unresolved` | `missingPath` | No token exists at this path. |
+| `group-target` | `groupPath` | This path is a group, not a token; references may only target complete tokens. |
+| `circular` | `cyclePath` | The chain returns to a token already in it, naming the tokens involved. |
+
+None of the three is activatable (FR-016), and none offers an in-app repair — that is deliberately deferred (spec Assumptions).
