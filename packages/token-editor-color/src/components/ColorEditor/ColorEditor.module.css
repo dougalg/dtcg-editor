@@ -1,7 +1,7 @@
 .swatch {
 	display: inline-block;
-	width: 1.5rem;
-	height: 1.5rem;
+	width: var(--dtcg-ed-size-step-3);
+	height: var(--dtcg-ed-size-step-3);
 	background-color: var(--swatch-color);
 	border: var(--dtcg-ed-border-width-thin) solid
 		var(--dtcg-ed-color-neutral-border-normal);
@@ -12,7 +12,7 @@
 .picker {
 	display: inline-block;
 	width: 2rem;
-	height: 1.5rem;
+	height: var(--dtcg-ed-size-step-3);
 	border: var(--dtcg-ed-border-width-thin) solid
 		var(--dtcg-ed-color-neutral-border-normal);
 	border-radius: var(--dtcg-ed-radius-md);

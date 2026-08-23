@@ -1,6 +1,42 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.7.0 → 2.7.1
+Rationale: PATCH — corrects a self-contradictory error in Principle XII's
+own text (and the matching passage in `DESIGN.md`): the rule previously
+said a hardcoded design value "MUST NOT appear anywhere outside
+`packages/design-system` itself, which is where these values are defined,"
+which read as exempting `packages/design-system`'s own component CSS —
+directly contradicting the very next sentence's reference to the token-flow
+detail in `DESIGN.md`, which already required `packages/design-system/src/
+components/*` CSS to use `var(--dtcg-ed-*)` exclusively (and which
+`Button.css`, the reference example, already does). The only real exemption
+is the token *source* (`design-tokens/*.json` and the generated
+`tokens.css` output), not the component library built from them. No rule
+is being newly introduced or an existing permitted case narrowed — this
+restores internal consistency with what Principle XII already required
+elsewhere in its own text, so this is PATCH, not MINOR/MAJOR.
+
+Added sections: none
+
+Modified principles:
+  - XII. Design System Usage — corrected wording only: the "outside
+    packages/design-system" exemption is replaced with the correct
+    exemption (token source files and generated tokens.css output).
+
+Removed sections: none
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: user-flagged directly — "This is not
+correct. components in the design system MUST use the dtcg-ed-* tokens as
+well" — while a background audit fork was independently checking the
+codebase against this exact rule.
+-->
+
+<!--
+Sync Impact Report (v2.7.0, superseded above)
+==================
 Version change: 2.6.0 → 2.7.0
 Rationale: MINOR — materially expands two existing sections without adding
 or redefining a Core Principle: (1) Technology Stack & Approved Dependencies
@@ -658,9 +694,13 @@ All component/UI work — every component in `apps/web-app` and every
 elevation/z-index) from `packages/design-system`'s generated `--dtcg-ed-*`
 CSS custom properties. A hardcoded/literal design value (a hex color, a raw
 `px`/`rem` spacing number, an ad hoc `border-radius` or `box-shadow`, a
-one-off transition duration) MUST NOT appear anywhere outside
-`packages/design-system` itself, which is where these values are defined.
-Equally, where `packages/design-system` already exports a component for the
+one-off transition duration) MUST NOT appear anywhere, including inside
+`packages/design-system`'s own component CSS — the only exemption is the
+token *source* (`packages/design-system/src/design-tokens/*.json` and the
+generated `tokens.css` output), where literal values necessarily live
+because that's what's being defined, not the design-system component
+library built from them. Equally, where `packages/design-system` already
+exports a component for the
 UI element being built, that component MUST be imported and used rather
 than reimplemented — a hand-rolled button/input/dialog/etc. that only
 references tokens correctly is still non-compliant, since it duplicates
@@ -797,4 +837,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 2.7.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-23
+**Version**: 2.7.1 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-23

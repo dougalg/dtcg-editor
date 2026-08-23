@@ -39,7 +39,7 @@
 }
 
 .track:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(in oklab, var(--dtcg-ed-color-accent-fill-loud) 40%, transparent);
 }
 
@@ -62,8 +62,8 @@
 .sunIcon,
 .moonIcon {
 	position: absolute;
-	width: 0.85rem;
-	height: 0.85rem;
+	width: var(--dtcg-ed-size-step--2);
+	height: var(--dtcg-ed-size-step--2);
 	color: var(--dtcg-ed-color-text-normal);
 }
 

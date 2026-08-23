@@ -11,8 +11,8 @@
 	justify-content: center;
 	cursor: pointer;
 
-	width: 1.1em;
-	height: 1.1em;
+	width: var(--dtcg-ed-form-control-toggle-size);
+	height: var(--dtcg-ed-form-control-toggle-size);
 
 	background-color: var(--dtcg-ed-color-surface-lowest);
 	border: var(--dtcg-ed-form-control-border-width)
@@ -32,7 +32,7 @@
 }
 
 .checkbox[data-state="checked"]:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(
 			in oklab,
 			var(--dtcg-ed-form-control-activated-color) 40%,
@@ -42,7 +42,7 @@
 }
 
 .checkbox:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
 	border-color: var(--dtcg-ed-color-neutral-400);
 }

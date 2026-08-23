@@ -3,7 +3,7 @@
 	height: 100%;
 	flex-direction: column;
 	overflow: hidden;
-	max-width: calc(100vw - 2rem);
+	max-width: calc(100vw - var(--dtcg-ed-space-lg));
 	background-color: var(--dtcg-ed-color-surface-raised);
 	box-shadow: var(--dtcg-ed-shadow-md);
 	border-radius: var(--dtcg-ed-panel-radius);
@@ -17,7 +17,7 @@
 }
 
 .command-separator {
-	height: 1px;
+	height: var(--dtcg-ed-border-width-thin);
 	background-color: var(--dtcg-ed-color-surface-border);
 }
 
@@ -25,14 +25,14 @@
 	display: flex;
 	align-items: center;
 	gap: var(--dtcg-ed-space-2xs);
-	padding-inline: 0.75rem;
+	padding-inline: var(--dtcg-ed-space-xs);
 	border-bottom: var(--dtcg-ed-border-width-thin) var(--dtcg-ed-border-style)
 		var(--dtcg-ed-color-surface-border);
 }
 
 .command-input {
 	padding-inline: 0;
-	padding-block: 0.75rem;
+	padding-block: var(--dtcg-ed-space-xs);
 	flex: 1;
 	border: none;
 	box-shadow: none;
@@ -40,14 +40,14 @@
 }
 
 .command-group {
-	padding: 0.25rem;
+	padding: var(--dtcg-ed-space-3xs);
 	overflow: hidden;
 }
 
 .command-group [cmdk-group-heading] {
 	font-size: round(calc(var(--dtcg-ed-form-control-font-size) * 0.875), 1px);
-	padding-block: 0.25rem;
-	padding-inline: 0.5rem;
+	padding-block: var(--dtcg-ed-space-3xs);
+	padding-inline: var(--dtcg-ed-space-2xs);
 }
 
 .command-item {
@@ -55,8 +55,8 @@
 	align-items: center;
 	user-select: none;
 	gap: var(--dtcg-ed-space-2xs);
-	padding-block: 0.375rem;
-	padding-inline: 0.5rem;
+	padding-block: var(--dtcg-ed-space-2xs);
+	padding-inline: var(--dtcg-ed-space-2xs);
 	border-radius: var(--dtcg-ed-radius-md);
 }
 

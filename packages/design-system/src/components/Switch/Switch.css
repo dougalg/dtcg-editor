@@ -1,6 +1,6 @@
 .switch {
-	--switch-height: 1em;
-	--switch-width: 1.75em;
+	--switch-height: var(--dtcg-ed-form-control-toggle-size);
+	--switch-width: calc(var(--switch-height) * 1.75);
 	--switch-border-color: transparent;
 
 	--thumb-travel: calc(var(--switch-width) - var(--switch-height));
@@ -28,7 +28,7 @@
 }
 
 .switch:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
 	border-color: var(--dtcg-ed-color-neutral-400);
 }
@@ -39,7 +39,7 @@
 }
 
 .switch[data-state="checked"]:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(
 			in oklab,
 			var(--dtcg-ed-form-control-activated-color) 25%,

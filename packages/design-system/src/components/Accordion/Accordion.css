@@ -31,7 +31,7 @@
 }
 
 .accordion-trigger:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
 	border-color: var(--dtcg-ed-color-neutral-400);
 	z-index: var(--dtcg-ed-z-raised);

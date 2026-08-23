@@ -18,7 +18,7 @@
 
 .alert:has(svg) {
 	display: grid;
-	grid-template-columns: 1rem 1fr;
+	grid-template-columns: var(--dtcg-ed-size-step-0) 1fr;
 	row-gap: var(--dtcg-ed-space-3xs);
 	column-gap: var(--dtcg-ed-space-xs);
 }

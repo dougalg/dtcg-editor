@@ -1,11 +1,11 @@
 .tabs-list {
-	--_padding-block: 0.65em;
-	--_padding-inline: 0.75em;
+	--_padding-block: var(--dtcg-ed-space-2xs);
+	--_padding-inline: var(--dtcg-ed-space-xs);
 	--_form-control-height: round(
 		calc(2 * var(--_padding-block) + 1em * 1.25),
 		1px
 	);
-	--_tabs-list-padding: 3px;
+	--_tabs-list-padding: var(--dtcg-ed-space-3xs);
 
 	display: inline-flex;
 	background-color: var(--dtcg-ed-color-surface-lowered);
@@ -44,7 +44,7 @@
 }
 
 .tabs-trigger:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
 	border-color: var(--dtcg-ed-color-neutral-400);
 	z-index: var(--dtcg-ed-z-raised);

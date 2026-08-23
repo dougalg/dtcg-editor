@@ -15,7 +15,7 @@
 }
 
 .textarea:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(in oklab, var(--dtcg-ed-color-fill-loud) 25%, transparent);
 	outline: none;
 	border-color: var(--dtcg-ed-color-fill-loud);

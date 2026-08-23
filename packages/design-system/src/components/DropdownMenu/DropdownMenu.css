@@ -1,7 +1,7 @@
 .dropdown-menu-content {
 	overflow-x: hidden;
 	overflow-y: auto;
-	min-width: 8rem;
+	min-width: var(--dtcg-ed-size-step-10);
 	width: 14rem;
 	z-index: var(--dtcg-ed-z-dropdown);
 	background-color: var(--dtcg-ed-color-surface-raised);
@@ -24,8 +24,8 @@
 	outline: none;
 	gap: var(--dtcg-ed-space-2xs);
 	border-radius: var(--dtcg-ed-radius-md);
-	padding-block: 0.375rem;
-	padding-inline: 0.5rem;
+	padding-block: var(--dtcg-ed-space-2xs);
+	padding-inline: var(--dtcg-ed-space-2xs);
 	transition: background-color var(--dtcg-ed-transition-normal)
 		var(--dtcg-ed-ease-out);
 }
@@ -55,13 +55,13 @@
 }
 
 .dropdown-menu-label {
-	padding-block: 0.375rem;
-	padding-inline: 0.5rem;
+	padding-block: var(--dtcg-ed-space-2xs);
+	padding-inline: var(--dtcg-ed-space-2xs);
 	font-weight: var(--dtcg-ed-font-weight-medium);
 }
 
 .dropdown-menu-separator {
-	height: 1px;
+	height: var(--dtcg-ed-border-width-thin);
 	background-color: var(--dtcg-ed-color-surface-border);
 	margin-block: var(--dtcg-ed-space-3xs);
 	margin-inline: calc(-1 * var(--dtcg-ed-space-3xs));
@@ -78,7 +78,7 @@
 .dropdown-menu-checkbox-item-indicator,
 .dropdown-menu-radio-item-indicator {
 	position: absolute;
-	left: 8px;
+	left: var(--dtcg-ed-space-2xs);
 	pointer-events: none;
 	display: flex;
 	align-items: center;

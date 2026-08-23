@@ -24,7 +24,7 @@
 	cursor: pointer;
 	font: inherit;
 	color: inherit;
-	padding: 0.1rem 0;
+	padding: var(--dtcg-ed-space-3xs) 0;
 }
 
 /*
@@ -38,8 +38,8 @@
  */
 .swatch {
 	display: inline-block;
-	width: 0.9rem;
-	height: 0.9rem;
+	width: var(--dtcg-ed-size-step--1);
+	height: var(--dtcg-ed-size-step--1);
 	border: var(--dtcg-ed-border-width-thin) solid
 		var(--dtcg-ed-color-neutral-border-normal);
 	border-radius: var(--dtcg-ed-radius-md);

@@ -26,9 +26,20 @@ Two MUSTs, both in force at once:
    still non-compliant: it duplicates behavior (focus management, ARIA
    wiring, keyboard interaction) that the shared component already owns.
 
-This applies to `apps/web-app` and every `token-editor-*` package's `Editor`
-UI equally. It does not apply to `packages/design-system` itself, which is
-where these values and components are *defined*.
+Rule 1 (no hardcoded values) applies to `packages/design-system`'s own
+component CSS too, with no exemption — `Button.css` and its siblings
+already follow this correctly (see the reference pattern in "Where values
+live and how they flow" below), and any new or edited design-system
+component CSS must keep doing so. The only real exemption is the token
+*source*: `packages/design-system/src/design-tokens/*.json` (the DTCG
+token definitions) and the generated `dist/styles/tokens.css` output, where
+literal values necessarily live because that's what's being defined — a hex
+value inside `palette.json` is the design system, not a violation of it.
+
+Rule 2 (reuse the component library) doesn't meaningfully apply to
+`packages/design-system` itself, which can't "reuse" its own components —
+it applies to every *consumer*: `apps/web-app` and every `token-editor-*`
+package's `Editor` UI.
 
 ## Where values live and how they flow
 
@@ -110,7 +121,9 @@ when it can't compose an existing component.
 
 ## What "no hardcoded values" catches
 
-Not allowed, anywhere in `apps/web-app` or a `token-editor-*` package's UI:
+Not allowed, anywhere in `apps/web-app`, a `token-editor-*` package's UI, or
+`packages/design-system`'s own component CSS (everywhere except the token
+source files and generated `tokens.css` output described above):
 
 - A hex/rgb/hsl/oklch color literal (`color: #3b82f6`, `background:
   rgba(0,0,0,0.1)`) instead of `var(--dtcg-ed-color-*)`.
@@ -156,8 +169,9 @@ review check) flagging raw `<button>`/`<input>`/`<dialog>` elements where a
 design-system equivalent exists would close the components gap — neither
 built yet, tracked as a gap the same way Principle X notes the still-
 unenforced one-component-per-file rule. Until that tooling exists, this is
-a review-time requirement: a PR introducing a hardcoded design value, or
-reimplementing a UI element `packages/design-system` already exports, in
-`apps/web-app` or a `token-editor-*` package's UI is non-compliant with
-constitution Principle XII and MUST be corrected before merge, the same as
-any other blocking constitution finding.
+a review-time requirement: a PR introducing a hardcoded design value
+anywhere it's disallowed (including inside `packages/design-system`'s own
+component CSS), or reimplementing a UI element `packages/design-system`
+already exports (in `apps/web-app` or a `token-editor-*` package's UI), is
+non-compliant with constitution Principle XII and MUST be corrected before
+merge, the same as any other blocking constitution finding.

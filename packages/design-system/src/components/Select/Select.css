@@ -1,6 +1,6 @@
 .select-trigger {
-	--_padding-block: 0.65em;
-	--_padding-inline: 0.75em;
+	--_padding-block: var(--dtcg-ed-space-2xs);
+	--_padding-inline: var(--dtcg-ed-space-xs);
 
 	--_form-control-height: round(
 		calc(2 * var(--_padding-block) + 1em * 1.25),
@@ -37,7 +37,7 @@
 }
 
 .select-trigger:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
 	border-color: var(--dtcg-ed-color-neutral-400);
 }
@@ -58,7 +58,7 @@
 	line-clamp: 1;
 	display: flex;
 	align-items: center;
-	gap: 0.5rem;
+	gap: var(--dtcg-ed-space-2xs);
 }
 
 .select-content {
@@ -66,7 +66,7 @@
 	z-index: var(--dtcg-ed-z-dropdown);
 	overflow-x: hidden;
 	overflow-y: auto;
-	min-width: 8rem;
+	min-width: var(--dtcg-ed-size-step-10);
 	max-height: var(--radix-select-content-available-height);
 	border-radius: var(--dtcg-ed-panel-radius);
 	border: var(--dtcg-ed-panel-border-width) var(--dtcg-ed-border-style)
@@ -77,8 +77,8 @@
 }
 
 .select-label {
-	padding-block: 0.25rem;
-	padding-inline: 0.5rem;
+	padding-block: var(--dtcg-ed-space-3xs);
+	padding-inline: var(--dtcg-ed-space-2xs);
 	font-size: var(--dtcg-ed-text-xs);
 	color: var(--dtcg-ed-color-text-quiet);
 }
@@ -91,8 +91,8 @@
 	user-select: none;
 	align-items: center;
 	outline: none;
-	padding-inline: 0.5rem 2rem;
-	padding-block: 0.375rem;
+	padding-inline: var(--dtcg-ed-space-2xs) var(--dtcg-ed-space-lg);
+	padding-block: var(--dtcg-ed-space-2xs);
 }
 
 .select-item svg {
@@ -102,7 +102,7 @@
 .select-item > span:last-child {
 	display: flex;
 	align-items: center;
-	gap: 0.5rem;
+	gap: var(--dtcg-ed-space-2xs);
 }
 
 .select-item[data-highlighted] {
@@ -121,7 +121,7 @@
 
 .select-item-indicator {
 	position: absolute;
-	right: 0.5rem;
+	right: var(--dtcg-ed-space-2xs);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -134,11 +134,11 @@
 }
 
 .select-viewport {
-	padding: 0.25rem 0.25rem;
+	padding: var(--dtcg-ed-space-3xs) var(--dtcg-ed-space-3xs);
 	width: 100%;
 	height: var(--radix-select-trigger-height);
 	min-width: var(--radix-select-trigger-width);
-	scroll-margin: 0.25rem;
+	scroll-margin: var(--dtcg-ed-space-3xs);
 }
 
 .select-scroll-up-button,
@@ -146,7 +146,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding-block: 0.5rem;
+	padding-block: var(--dtcg-ed-space-2xs);
 }
 
 .select-content[data-side="bottom"] {

@@ -11,8 +11,8 @@
 	border: var(--dtcg-ed-form-control-border-width) var(--dtcg-ed-border-style)
 		var(--dtcg-ed-form-control-border-color);
 
-	width: 1.1em;
-	height: 1.1em;
+	width: var(--dtcg-ed-form-control-toggle-size);
+	height: var(--dtcg-ed-form-control-toggle-size);
 	padding: 0.15em;
 
 	border-radius: var(--dtcg-ed-radius-full);
@@ -31,7 +31,7 @@
 }
 
 .radio-toggle[data-state="checked"]:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(
 			in oklab,
 			var(--dtcg-ed-form-control-activated-color) 40%,
@@ -41,7 +41,7 @@
 }
 
 .radio-toggle:focus-visible {
-	box-shadow: 0 0 0 3px
+	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
 		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
 	border-color: var(--dtcg-ed-color-neutral-400);
 }
