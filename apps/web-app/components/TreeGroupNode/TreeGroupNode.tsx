@@ -3,7 +3,6 @@
 import { Input } from "@dtcg-editor/design-system/components/Input/Input.tsx";
 import { Label } from "@dtcg-editor/design-system/components/Label/Label.tsx";
 import type { ChangeEvent } from "react";
-import { useState } from "react";
 import {
 	applyEditsToPlainNode,
 	checkRenameAvailable,
@@ -19,7 +18,31 @@ function pathKey(path: readonly string[]): string {
 
 type GroupNode = Extract<PlainDtcgNode, { kind: "group" }>;
 
-/** Group rename, expand/collapse, and recursion into `node.children`. */
+/**
+ * Group rename and recursion into `node.children`, via a native
+ * `<details>`/`<summary>` disclosure rather than React-managed
+ * expand/collapse state (research.md §5). This is what gives User Story
+ * 2's arrival a collapsed group opened for free: browsers auto-expand a
+ * closed `<details>` when navigating to a fragment inside it (Chrome,
+ * Firefox 139+, Safari 26.2+ — verified through this app's own Next.js
+ * navigation). It also closes a real a11y gap: the previous `<button>`
+ * toggle exposed neither `aria-expanded` nor `aria-controls`; `<summary>`
+ * supplies disclosure semantics and keyboard operability natively.
+ *
+ * Two constraints this relies on, both load-bearing, not stylistic:
+ *
+ * 1. `<details>` MUST stay uncontrolled — no `open` prop is ever passed a
+ *    changing value. `open` is written once, in the initial markup, and
+ *    never re-specified; the DOM (and the browser's own auto-expansion)
+ *    owns it from then on. Passing a changing `open` prop would make React
+ *    re-assert it on every render and silently defeat arrival.
+ * 2. The group-name `Input` lives **outside** `<details>`, and `<summary>`
+ *    carries only the disclosure control. Putting the `Input` inside
+ *    `<summary>` would be nested interactive content (Space toggles the
+ *    group instead of typing a space into the name); putting it inside
+ *    `<details>` but after `<summary>` would make it unreachable while
+ *    collapsed.
+ */
 export function TreeGroupNode({
 	node,
 	root,
@@ -28,8 +51,6 @@ export function TreeGroupNode({
 	onStageEdit,
 	onFieldError,
 }: TreeNodeProps<GroupNode>) {
-	const [expanded, setExpanded] = useState(true);
-
 	const isRoot = node.path.length === 0;
 	const groupKey = pathKey(node.path);
 	const groupPending = pendingEdits.get(groupKey);
@@ -65,9 +86,9 @@ export function TreeGroupNode({
 		onStageEdit(node.path, { name: nextName });
 	}
 
-	if (isRoot) {
+	function renderChildren(listClassName: string | undefined) {
 		return (
-			<ul className={styles.root}>
+			<ul className={listClassName}>
 				{node.children.map((child) => (
 					<TreeNode
 						key={child.path.join(".")}
@@ -83,17 +104,13 @@ export function TreeGroupNode({
 		);
 	}
 
+	if (isRoot) {
+		return renderChildren(styles.root);
+	}
+
 	return (
 		<li className={styles.group}>
-			<button
-				type="button"
-				className={styles.toggle}
-				onClick={() => setExpanded((value) => !value)}
-				aria-label={`${expanded ? "Collapse" : "Expand"} ${node.name || "/"}`}
-			>
-				{expanded ? "▾" : "▸"}
-			</button>
-			<Label>
+			<Label className={styles.groupNameField}>
 				Group Name:
 				<Input
 					type="text"
@@ -105,21 +122,15 @@ export function TreeGroupNode({
 			{groupErrors?.name !== undefined && (
 				<span role="alert">{groupErrors.name}</span>
 			)}
-			{expanded && (
-				<ul className={styles.children}>
-					{node.children.map((child) => (
-						<TreeNode
-							key={child.path.join(".")}
-							node={child}
-							root={root}
-							pendingEdits={pendingEdits}
-							fieldErrors={fieldErrors}
-							onStageEdit={onStageEdit}
-							onFieldError={onFieldError}
-						/>
-					))}
-				</ul>
-			)}
+			<details open>
+				<summary
+					className={styles.summary}
+					aria-label={`Toggle ${node.name || "/"}`}
+				>
+					<span aria-hidden="true" className={styles.marker} />
+				</summary>
+				{renderChildren(styles.children)}
+			</details>
 		</li>
 	);
 }

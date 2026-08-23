@@ -45,9 +45,10 @@ function describe(
  * One of the three distinct, user-facing warnings a reference that doesn't
  * resolve can show (spec FR-011/FR-011a/FR-011b) — never activatable
  * (FR-016), and deliberately offers no in-app repair (spec Assumptions).
- * Distinguished from the other two by wording, not color alone, since this
- * project's own token set defines no danger/error semantic color to lean
- * on and existing validation alerts in this app are unstyled text already.
+ * Distinguished from the other two by wording, not color alone — the
+ * error color below is a visual reinforcement, not the sole signal, since
+ * the three cases would still read as distinct with the color stripped
+ * entirely.
  */
 export function ReferenceWarning({
 	chain,

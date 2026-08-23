@@ -1,11 +1,12 @@
 .warning {
 	display: inline-flex;
 	align-items: baseline;
-	gap: 0.375rem;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+	color: var(--dtcg-ed-color-error-on-normal);
 }
 
 .label {
-	font-weight: 600;
+	font-weight: var(--dtcg-ed-font-weight-semibold);
 }
 
 .path {

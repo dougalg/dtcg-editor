@@ -18,13 +18,38 @@
 	margin: var(--dtcg-ed-space-sm) 0;
 }
 
-.toggle {
-	background: none;
-	border: none;
+.groupNameField {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}
+
+/* Native <details>/<summary> disclosure — see TreeGroupNode.tsx's
+   top-level comment for why this replaced a React-managed toggle button.
+   list-style/::-webkit-details-marker together remove each engine's own
+   default marker so the ▸/▾ glyph below is the only one shown, consistent
+   across browsers. */
+.summary {
 	cursor: pointer;
-	font: inherit;
-	color: inherit;
+	list-style: none;
+	display: inline-block;
 	padding: var(--dtcg-ed-space-3xs) 0;
+}
+
+.summary::-webkit-details-marker {
+	display: none;
+}
+
+.marker {
+	display: inline-block;
+}
+
+.marker::before {
+	content: "▸";
+}
+
+details[open] > .summary .marker::before {
+	content: "▾";
 }
 
 /*
