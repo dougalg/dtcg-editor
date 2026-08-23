@@ -5,6 +5,7 @@ import {
 	applyTokenEdits,
 	findNode,
 	isDtcgTokenType,
+	parseReference,
 	resolveEffectiveType,
 	TokenParseError,
 } from "@dtcg-editor/token-core";
@@ -192,30 +193,44 @@ export async function patchTokenFile(
 
 		let value: unknown;
 		if (edit.value !== undefined) {
-			// Mirrors `TokenTree.tsx`'s client-side `canEdit` guard: any built-in
-			// standard type's value is validated against its own contract schema
-			// before being accepted, not just dimension's — closes a gap where a
-			// direct PATCH request (bypassing the UI) could previously write an
-			// unvalidated `color` (or any other schema-having) `$value` straight
-			// to disk.
-			const builtInContract = resolveBuiltInContract(effectiveType);
-			if (builtInContract !== undefined) {
-				const valueValidation = validateTokenValue(builtInContract, edit.value);
-				if (valueValidation.isErr()) {
-					const message = valueValidation.error.message;
-					return errorResponse(400, message, {
-						kind: "validation",
-						issues: [message],
-					});
-				}
-				value = builtInContract.serializeValue(valueValidation.value);
-			} else {
-				// No built-in contract exists for this standard type (e.g. a
-				// user-registered extension for a type with no schema of its own)
-				// — `edit.value` is already a plain JS value (`EditRequestSchema`'s
-				// `z.unknown()`), validated as JSON-parseable client-side, so it's
-				// passed through as-is.
+			if (parseReference(edit.value) !== undefined) {
+				// A reference is valid for any $type per the DTCG spec (an
+				// aliasing token's type is its target's resolved type), so it is
+				// never subject to the target type's valueSchema, and never
+				// passed through serializeValue, which is typed for that
+				// contract's own value shape and would be wrong for a reference
+				// string. Written through unchanged so it survives a save
+				// byte-identical (round-trip fidelity, Principle IX).
 				value = edit.value;
+			} else {
+				// Mirrors `TokenTree.tsx`'s client-side `canEdit` guard: any built-in
+				// standard type's value is validated against its own contract schema
+				// before being accepted, not just dimension's — closes a gap where a
+				// direct PATCH request (bypassing the UI) could previously write an
+				// unvalidated `color` (or any other schema-having) `$value` straight
+				// to disk.
+				const builtInContract = resolveBuiltInContract(effectiveType);
+				if (builtInContract !== undefined) {
+					const valueValidation = validateTokenValue(
+						builtInContract,
+						edit.value,
+					);
+					if (valueValidation.isErr()) {
+						const message = valueValidation.error.message;
+						return errorResponse(400, message, {
+							kind: "validation",
+							issues: [message],
+						});
+					}
+					value = builtInContract.serializeValue(valueValidation.value);
+				} else {
+					// No built-in contract exists for this standard type (e.g. a
+					// user-registered extension for a type with no schema of its own)
+					// — `edit.value` is already a plain JS value (`EditRequestSchema`'s
+					// `z.unknown()`), validated as JSON-parseable client-side, so it's
+					// passed through as-is.
+					value = edit.value;
+				}
 			}
 		}
 

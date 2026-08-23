@@ -460,6 +460,77 @@ test("PATCH saves a group rename together with a descendant token edit in one re
 	assert.deepEqual(onDisk.gaps?.small.$value, { value: 8, unit: "px" });
 });
 
+test("PATCH accepts a name-only edit to a token whose value is a reference (FR-009)", async () => {
+	await writeFixture("patch-reference-name-only.json", {
+		color: {
+			text: {
+				$type: "color",
+				$value: "{color.brand.blue}",
+				$description: "aliases another token",
+			},
+		},
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([{ path: ["color", "text"], name: "primary" }]),
+		"patch-reference-name-only.json",
+	);
+	assert.equal(response.status, 200);
+
+	const onDisk = (await readFixture("patch-reference-name-only.json")) as {
+		color: { primary?: { $value: unknown } };
+	};
+	assert.equal(onDisk.color.primary?.$value, "{color.brand.blue}");
+});
+
+test("PATCH accepts a reference value without running it through the target type's valueSchema", async () => {
+	await writeFixture("patch-reference-value.json", {
+		color: {
+			text: {
+				$type: "color",
+				$value: { colorSpace: "srgb", components: [0, 0, 0] },
+			},
+		},
+	});
+
+	// A bare reference string would fail ColorValueSchema outright if it were
+	// validated as a color value — this is exactly FR-009's regression.
+	const response = await readRoute.patchTokenFile(
+		patchRequest([{ path: ["color", "text"], value: "{color.brand.blue}" }]),
+		"patch-reference-value.json",
+	);
+	assert.equal(response.status, 200);
+
+	const onDisk = (await readFixture("patch-reference-value.json")) as {
+		color: { text: { $value: unknown } };
+	};
+	assert.equal(onDisk.color.text.$value, "{color.brand.blue}");
+});
+
+test("PATCH leaves a reference-valued sibling byte-identical when saving unrelated edits", async () => {
+	await writeFixture("patch-reference-sibling.json", {
+		spacing: {
+			small: { $type: "dimension", $value: { value: 4, unit: "px" } },
+		},
+		color: {
+			text: { $type: "color", $value: "{color.brand.blue}" },
+		},
+	});
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([
+			{ path: ["spacing", "small"], value: { value: 8, unit: "px" } },
+		]),
+		"patch-reference-sibling.json",
+	);
+	assert.equal(response.status, 200);
+
+	const onDisk = (await readFixture("patch-reference-sibling.json")) as {
+		color: { text: { $value: unknown } };
+	};
+	assert.equal(onDisk.color.text.$value, "{color.brand.blue}");
+});
+
 test("exports only GET and PATCH as HTTP method handlers", () => {
 	const otherHttpMethods = ["POST", "PUT", "DELETE", "HEAD", "OPTIONS"];
 	assert.ok("GET" in readRoute);

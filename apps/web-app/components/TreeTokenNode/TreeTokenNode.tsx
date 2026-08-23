@@ -1,6 +1,6 @@
 "use client";
 
-import { isDtcgTokenType } from "@dtcg-editor/token-core";
+import { isDtcgTokenType, parseReference } from "@dtcg-editor/token-core";
 import {
 	type TokenTypeEditorProps,
 	validateTokenValue,
@@ -32,14 +32,19 @@ function pathKey(path: readonly string[]): string {
 type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
 
 /**
- * The editable/read-only dispatch for a single token — the entire "5-path
- * model" from plan.md's "TreeNode.tsx dispatch design":
+ * The editable/read-only dispatch for a single token — plan.md's
+ * "TreeNode.tsx dispatch design", now six paths rather than five:
  *
- * 1. Valid value, registered editor -> render the editor.
- * 2. Valid value, no registered editor -> render `FallbackValueEditor`.
- * 3. Recognized type, invalid value, package `ValidationErrorHandler` -> render it.
- * 4. Recognized type, invalid value, no package handler -> `DefaultValidationErrorHandler` (with `error`).
- * 5. No usable type -> `DefaultValidationErrorHandler` (without `error`).
+ * 1. Value is a reference -> render the reference view, never
+ *    `validateTokenValue` (a reference is valid for any `$type` per the
+ *    DTCG spec, so it is never that type's business to validate — see
+ *    contracts/reference-validation.md). Checked first, ahead of every
+ *    other path.
+ * 2. Valid value, registered editor -> render the editor.
+ * 3. Valid value, no registered editor -> render `FallbackValueEditor`.
+ * 4. Recognized type, invalid value, package `ValidationErrorHandler` -> render it.
+ * 5. Recognized type, invalid value, no package handler -> `DefaultValidationErrorHandler` (with `error`).
+ * 6. No usable type -> `DefaultValidationErrorHandler` (without `error`).
  */
 export function TreeTokenNode({
 	node,
@@ -87,9 +92,39 @@ export function TreeTokenNode({
 		onStageEdit(node.path, { name: nextName });
 	}
 
+	// Path 1: the value is a reference. Checked before any per-type
+	// validation runs — a reference is valid for every `$type` (per the
+	// DTCG spec, an aliasing token's type is its target's resolved type),
+	// so `validateTokenValue` is never called for it at all, not merely
+	// ignored. This fixes a live bug: a color token holding a reference was
+	// previously told its value "must be a 6-digit hex string" (FR-009).
+	// The reference itself is rendered here only as its raw text for now —
+	// the resolved-value display and navigation control replace this once
+	// `TokenReferenceValue` exists (plan.md stage 4).
+	const reference = parseReference(node.value);
+	if (reference !== undefined) {
+		return (
+			<TokenBlock
+				name={currentName}
+				onNameChange={handleNameChange}
+				nameAriaLabel={`${node.name} name`}
+				headingId={headingId}
+				rowTestId={rowTestId}
+				type={effectiveType}
+				isNonStandardType={false}
+			>
+				<span className={styles.field}>
+					<span className={styles.fieldLabel}>Value</span>
+					<span className={styles.value}>{reference.raw}</span>
+				</span>
+				{errors?.name !== undefined && <span role="alert">{errors.name}</span>}
+			</TokenBlock>
+		);
+	}
+
 	// A type is only "usable" for validation purposes when it's both present
 	// and a recognized standard DTCG type — a declared-but-unrecognized type
-	// and an entirely absent effectiveType are treated identically (path 5).
+	// and an entirely absent effectiveType are treated identically (path 6).
 	const isUsableType =
 		effectiveType !== undefined && isDtcgTokenType(effectiveType);
 	const contract = isUsableType
