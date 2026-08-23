@@ -148,8 +148,8 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 - [X] T047 [P] [US2] Write `apps/web-app/components/ReferenceDefinitionPicker/ReferenceDefinitionPicker.a11y.test.tsx` asserting zero critical violations and keyboard operability (depends on T045)
 - [X] T048 [US2] Implement the unsaved-edits guard in `apps/web-app/components/TokenTree/TokenTree.tsx` using the existing `Dialog` — triggered only when `pendingEdits.size > 0` **and** the navigation leaves the current file; offers save / discard / stay and never discards or writes without an explicit choice (FR-018). Same-file jumps are never intercepted. `beforeunload` is **not** used: it does not fire for client-side route changes and cannot offer a save option (depends on T044)
 - [X] T049 [US2] Write guard tests in `apps/web-app/components/TokenTree/TokenTree.test.tsx` — each of save / discard / stay behaves correctly, and a same-file jump raises no prompt (depends on T048)
-- [ ] T050 [US2] Write cross-file navigation e2e in `apps/web-app/e2e/token-references.spec.ts` — same-file jump, cross-file jump, arrival into a **collapsed** group, multi-definition picker, and the unsaved-edits guard (depends on T006, T041, T045, T048)
-- [ ] T050a [US2] Add failure-case e2e to `apps/web-app/e2e/token-references.spec.ts` against the Phase 1 fixtures — each of the three warnings renders with its own distinct text, none is activatable, and the page stays usable in every case including the circular fixture (SC-007, SC-011) (depends on T006, T026a, T050)
+- [X] T050 [US2] Write cross-file navigation e2e in `apps/web-app/e2e/token-references.spec.ts` — same-file jump, cross-file jump, arrival into a **collapsed** group, multi-definition picker, and the unsaved-edits guard (depends on T006, T041, T045, T048)
+- [X] T050a [US2] Add failure-case e2e to `apps/web-app/e2e/token-references.spec.ts` against the Phase 1 fixtures — each of the three warnings renders with its own distinct text, none is activatable, and the page stays usable in every case including the circular fixture (SC-007, SC-011) (depends on T006, T026a, T050)
 
 **Checkpoint**: US1 and US2 both work independently.
 

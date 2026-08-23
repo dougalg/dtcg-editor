@@ -85,6 +85,7 @@
 				"apps/web-app/lib/tokens/reference-agreement.test.tsx",
 				"apps/web-app/components/TokenBlock/TokenBlock.test.tsx",
 				"apps/web-app/e2e/keyboard-navigation.spec.ts",
+				"apps/web-app/e2e/token-references.spec.ts",
 				"apps/web-app/e2e/support/axe.ts"
 			],
 			"linter": {
