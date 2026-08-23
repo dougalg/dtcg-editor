@@ -55,11 +55,11 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 
 ### `token-core` reference API (contracts/token-core-reference-api.md)
 
-- [ ] T007 [P] Implement `parseReference` and `collectReferences` in `packages/token-core/src/reference.ts` — whole-string `{body}` form only, non-empty body with no `{`/`}`; `collectReferences` descends objects/arrays recording `at`; both pure, total, never throwing and never returning a `Result`
-- [ ] T008 [P] Write syntax tests in `packages/token-core/src/reference.test.ts` — whole-value reference, reference nested in a composite (shadow `color`, and inside a layer array), `"a {b} c"` rejected, empty body rejected, non-string values rejected
-- [ ] T009 Implement `resolveReference` plus `ChainOutcome`/`ChainStep`/`ResolutionChain`/`LookupHit`/`ReferenceLookup` in `packages/token-core/src/resolve-reference.ts` — walks via the injected `lookup` until a non-reference value, retains **every** step (FR-003), **no depth limit** (termination comes from cycle detection alone), group target yields `group-target`, lookup miss yields `unresolved` (depends on T007)
-- [ ] T010 Write resolution tests in `packages/token-core/src/resolve-reference.test.ts` — single hop, 3-hop chain, all steps retained in order, `unresolved`, `group-target`, and a `circular` case that must **fail fast rather than hang the suite**; assert `resolved.type` is the final token's effective type (depends on T009)
-- [ ] T011 Export the new surface (`parseReference`, `collectReferences`, `resolveReference`, and the reference/chain types) from `packages/token-core/src/index.ts` (depends on T007, T009)
+- [X] T007 [P] Implement `parseReference` and `collectReferences` in `packages/token-core/src/reference.ts` — whole-string `{body}` form only, non-empty body with no `{`/`}`; `collectReferences` descends objects/arrays recording `at`; both pure, total, never throwing and never returning a `Result`
+- [X] T008 [P] Write syntax tests in `packages/token-core/src/reference.test.ts` — whole-value reference, reference nested in a composite (shadow `color`, and inside a layer array), `"a {b} c"` rejected, empty body rejected, non-string values rejected
+- [X] T009 Implement `resolveReference` plus `ChainOutcome`/`ChainStep`/`ResolutionChain`/`LookupHit`/`ReferenceLookup` in `packages/token-core/src/resolve-reference.ts` — walks via the injected `lookup` until a non-reference value, retains **every** step (FR-003), **no depth limit** (termination comes from cycle detection alone), group target yields `group-target`, lookup miss yields `unresolved` (depends on T007)
+- [X] T010 Write resolution tests in `packages/token-core/src/resolve-reference.test.ts` — single hop, 3-hop chain, all steps retained in order, `unresolved`, `group-target`, and a `circular` case that must **fail fast rather than hang the suite**; assert `resolved.type` is the final token's effective type (depends on T009)
+- [X] T011 Export the new surface (`parseReference`, `collectReferences`, `resolveReference`, and the reference/chain types) from `packages/token-core/src/index.ts` (depends on T007, T009)
 
 ### Whole-directory load and index (contracts/reference-index.md)
 
