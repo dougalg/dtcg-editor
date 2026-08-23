@@ -174,7 +174,7 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T057 [P] Add a round-trip regression test in `packages/token-core/src/serialize.test.ts` asserting a reference `$value` survives parse → serialize byte-identical (Principle IX; `serialize.ts` already passes `$value` through verbatim, so this locks in existing behavior)
+- [X] T057 [P] Add a round-trip regression test in `packages/token-core/src/serialize.test.ts` asserting a reference `$value` survives parse → serialize byte-identical (Principle IX; `serialize.ts` already passes `$value` through verbatim, so this locks in existing behavior)
 - [ ] T058 [P] Add whole-page keyboard-only flow coverage for every control this feature introduces to `apps/web-app/e2e/keyboard-navigation.spec.ts` (spec SC-009, FR-017)
 - [ ] T059 Run `specs/007-token-reference-links/quickstart.md` Scenarios 1-3 against the project's own token set, verifying the SC-001/002/003/005/006 counts (228 references, 50 chained, 75 multiply-defined paths, busiest token 8 referrers)
 - [ ] T060 Verify native `<details>` auto-expansion arrival in **Chrome, Firefox, and Safari** per `specs/007-token-reference-links/quickstart.md` Scenario 2 step 2 — this is browser behavior being relied on rather than app code, so single-browser verification is insufficient
