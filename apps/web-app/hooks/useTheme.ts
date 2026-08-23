@@ -37,16 +37,50 @@ function readStoredThemeReal(): Theme | undefined {
  * (clearing the override back to "follow the OS"), otherwise writes it. Not
  * `HttpOnly`, because this is the half of the pair that writes it from the
  * browser; `Secure` only over HTTPS, so it still works on a plain-HTTP dev
- * server. May throw; see `readStoredThemeReal`'s note on `safeCall`. */
-function writeStoredThemeReal(value: Theme | undefined): void {
+ * server. May throw; see `readStoredThemeReal`'s note on `safeCall`.
+ *
+ * Prefers the async Cookie Store API (Chromium) since a plain `document.cookie`
+ * assignment is flagged by `noDocumentCookie`; Safari and Firefox don't expose
+ * `window.cookieStore` yet, so `document.cookie` stays as the fallback there.
+ * `CookieInit` has no `secure` field — the Cookie Store spec always writes
+ * `Secure` (except on trustworthy origins like `localhost`), so `secure` below
+ * is only needed for the `document.cookie` fallback's own attribute string.
+ *
+ * `now` is injected per Principle VI (Dependency Injection for I/O and
+ * Platform Externalities) — declared inline since this is its only call
+ * site — rather than calling `Date.now()` directly. */
+function writeStoredThemeReal(
+	value: Theme | undefined,
+	now: () => number = Date.now,
+): void {
+	const path = "/";
+	const sameSite = "lax" as const;
+	const secure = window.location.protocol === "https:";
+
+	if ("cookieStore" in window) {
+		if (value === undefined) {
+			void window.cookieStore.delete({ name: THEME_COOKIE_NAME, path });
+		} else {
+			void window.cookieStore.set({
+				name: THEME_COOKIE_NAME,
+				value,
+				path,
+				sameSite,
+				expires: now() + THEME_COOKIE_MAX_AGE_SECONDS * 1000,
+			});
+		}
+		return;
+	}
+
 	const attributes = ["Path=/", "SameSite=Lax"];
-	if (window.location.protocol === "https:") {
+	if (secure) {
 		attributes.push("Secure");
 	}
 	const lifetime =
 		value === undefined
 			? "Max-Age=0"
 			: `Max-Age=${THEME_COOKIE_MAX_AGE_SECONDS}`;
+	// biome-ignore lint/suspicious/noDocumentCookie: fallback for Safari/Firefox, which don't implement the Cookie Store API.
 	document.cookie = `${THEME_COOKIE_NAME}=${value ?? ""}; ${lifetime}; ${attributes.join("; ")}`;
 }
 
