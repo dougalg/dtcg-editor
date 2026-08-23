@@ -22,8 +22,25 @@ function unitProject(pkgRoot: string) {
 			// `vitest.setup.ts` so `@testing-library/react` resolves from
 			// that package's own node_modules, not the repo root's.
 			setupFiles: ["./vitest.setup.ts"],
-			include: ["**/*.test.tsx"],
-			exclude: ["**/*.a11y.test.tsx", "**/node_modules/**", "**/dist/**"],
+			// `.test.tsx` is components; `.test.ts` is everything else that
+			// still imports from "vitest" (hooks, lib) — both belong here.
+			// `token-editor-color`'s handful of `node:test`-based `.test.ts`
+			// files are excluded by name since they run via that package's
+			// own `test` script instead, matching this file's node:test
+			// exception at the top.
+			include: ["**/*.test.ts", "**/*.test.tsx"],
+			exclude: [
+				"**/*.a11y.test.tsx",
+				"**/node_modules/**",
+				"**/dist/**",
+				// Relative to this project's own `root`, so these only ever
+				// match inside `packages/token-editor-color` — harmless
+				// (unmatched) globs for the other three projects.
+				"src/configuration.test.ts",
+				"src/utils/range-validation.test.ts",
+				"src/utils/css-color.test.ts",
+				"src/utils/conversion.test.ts",
+			],
 		},
 	};
 }
