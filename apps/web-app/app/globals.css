@@ -4,6 +4,8 @@
 @import "@dtcg-editor/design-system/styles/utilities/visually-hidden.css";
 @import "@dtcg-editor/design-system/styles/compositions/wrapper.css";
 @import "@dtcg-editor/design-system/components/Badge/Badge.css";
+@import "@dtcg-editor/design-system/components/Dialog/Dialog.css";
+@import "@dtcg-editor/design-system/components/Popover/Popover.css";
 
 html,
 body {
