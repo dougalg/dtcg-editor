@@ -78,3 +78,9 @@ details[open] > .summary .marker::before {
 	margin: 0;
 	padding-left: var(--dtcg-ed-space-sm);
 }
+
+.dialogActions {
+	display: flex;
+	gap: var(--dtcg-ed-space-xs);
+	margin-top: var(--dtcg-ed-space-sm);
+}

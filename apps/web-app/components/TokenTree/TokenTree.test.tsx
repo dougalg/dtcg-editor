@@ -576,3 +576,225 @@ test("invalid JSON in the fallback editor shows a field error and does not stage
 	}) as HTMLButtonElement;
 	expect(saveButton.disabled).toBe(true);
 });
+
+// Unsaved-edits guard (spec FR-018, T048/T049): a tree with a pending edit
+// and a token whose reference resolves into a *different* file, so
+// clicking it is a genuine cross-file navigation the guard must intercept.
+function treeWithCrossFileReference(): PlainDtcgNode {
+	return {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			{
+				kind: "token",
+				name: "small",
+				path: ["small"],
+				value: { value: 4, unit: "px" },
+				declaredType: "dimension",
+				effectiveType: "dimension",
+				description: undefined,
+				deprecated: undefined,
+			},
+			{
+				kind: "token",
+				name: "text",
+				path: ["text"],
+				value: "{color.brand.blue}",
+				declaredType: "color",
+				effectiveType: "color",
+				description: undefined,
+				deprecated: undefined,
+				references: [
+					{
+						reference: {
+							targetPath: ["color", "brand", "blue"],
+							at: [],
+							raw: "{color.brand.blue}",
+						},
+						outcomes: [
+							{
+								mode: undefined,
+								chain: {
+									steps: [
+										{
+											path: ["color", "brand", "blue"],
+											file: "base.json",
+											mode: undefined,
+										},
+									],
+									outcome: {
+										kind: "resolved",
+										value: { colorSpace: "srgb", components: [0.2, 0.4, 0.9] },
+										type: "color",
+									},
+								},
+								targetFile: "base.json",
+							},
+						],
+					},
+				],
+			},
+			{
+				kind: "token",
+				name: "alias",
+				path: ["alias"],
+				value: "{small}",
+				declaredType: "dimension",
+				effectiveType: "dimension",
+				description: undefined,
+				deprecated: undefined,
+				references: [
+					{
+						reference: { targetPath: ["small"], at: [], raw: "{small}" },
+						outcomes: [
+							{
+								mode: undefined,
+								chain: {
+									steps: [
+										{
+											path: ["small"],
+											file: "semantic.json",
+											mode: undefined,
+										},
+									],
+									outcome: {
+										kind: "resolved",
+										value: { value: 4, unit: "px" },
+										type: "dimension",
+									},
+								},
+								targetFile: "semantic.json",
+							},
+						],
+					},
+				],
+			},
+		],
+	};
+}
+
+function crossFileReferenceLink(): HTMLAnchorElement {
+	const link = screen.getByRole("link", { name: /base\.json/ });
+	return link as HTMLAnchorElement;
+}
+
+function sameFileReferenceLink(): HTMLAnchorElement {
+	const link = screen.getByRole("link", { name: /semantic\.json/ });
+	return link as HTMLAnchorElement;
+}
+
+function stageAnEdit() {
+	fireEvent.change(getNameInput("small"), { target: { value: "tiny" } });
+}
+
+test("a cross-file reference click with no pending edits navigates without any prompt", () => {
+	// No pending edits, so the guard's own capture-phase listener never
+	// intercepts — the click reaches Link's real handler, which this test
+	// doesn't need to observe, only that no dialog opens.
+	render(
+		<TokenTree
+			node={treeWithCrossFileReference()}
+			relativePath="semantic.json"
+			navigate={() => {}}
+		/>,
+	);
+
+	fireEvent.click(crossFileReferenceLink());
+
+	expect(screen.queryByText("Unsaved changes")).toBeNull();
+});
+
+test("a same-file jump is never intercepted, even with pending edits", () => {
+	render(
+		<TokenTree
+			node={treeWithCrossFileReference()}
+			relativePath="semantic.json"
+		/>,
+	);
+	stageAnEdit();
+
+	// "alias" references "small", which lives in this same file
+	// (semantic.json) — a fragment-only jump the guard must never
+	// intercept, regardless of pending edits.
+	fireEvent.click(sameFileReferenceLink());
+
+	expect(screen.queryByText("Unsaved changes")).toBeNull();
+});
+
+test("a cross-file reference click with pending edits opens the unsaved-changes dialog", () => {
+	render(
+		<TokenTree
+			node={treeWithCrossFileReference()}
+			relativePath="semantic.json"
+		/>,
+	);
+	stageAnEdit();
+
+	fireEvent.click(crossFileReferenceLink());
+
+	expect(screen.getByText("Unsaved changes")).toBeTruthy();
+});
+
+test("'Stay' closes the dialog without discarding the pending edit or navigating", () => {
+	const navigate = vi.fn();
+	render(
+		<TokenTree
+			node={treeWithCrossFileReference()}
+			relativePath="semantic.json"
+			navigate={navigate}
+		/>,
+	);
+	stageAnEdit();
+	fireEvent.click(crossFileReferenceLink());
+
+	fireEvent.click(screen.getByRole("button", { name: "Stay" }));
+
+	expect(screen.queryByText("Unsaved changes")).toBeNull();
+	// The row is still keyed by its original name ("small") per
+	// getNameInput's own convention — this checks the pending rename's
+	// *value* survived, not that the row's key changed.
+	expect((getNameInput("small") as HTMLInputElement).value).toBe("tiny");
+	expect(navigate).not.toHaveBeenCalled();
+});
+
+test("'Discard and leave' clears the pending edit and navigates", () => {
+	const navigate = vi.fn();
+	render(
+		<TokenTree
+			node={treeWithCrossFileReference()}
+			relativePath="semantic.json"
+			navigate={navigate}
+		/>,
+	);
+	stageAnEdit();
+	fireEvent.click(crossFileReferenceLink());
+
+	fireEvent.click(screen.getByRole("button", { name: "Discard and leave" }));
+
+	expect(navigate).toHaveBeenCalledWith("/tokens/base.json#color.brand.blue");
+});
+
+test("'Save and leave' saves the pending edit, then navigates", async () => {
+	stubSuccessfulFetch();
+	const navigate = vi.fn();
+	render(
+		<TokenTree
+			node={treeWithCrossFileReference()}
+			relativePath="semantic.json"
+			navigate={navigate}
+		/>,
+	);
+	stageAnEdit();
+	fireEvent.click(crossFileReferenceLink());
+
+	fireEvent.click(screen.getByRole("button", { name: "Save and leave" }));
+
+	await vi.waitFor(() => {
+		expect(navigate).toHaveBeenCalledWith("/tokens/base.json#color.brand.blue");
+	});
+});

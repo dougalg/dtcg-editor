@@ -54,3 +54,19 @@ export function decodeTokenFragment(fragment: string): readonly string[] {
 	}
 	return body.split(".").map(decodeSegment);
 }
+
+/**
+ * Whether `href` (as found on a rendered `<a>`, e.g. from `tokenHref`)
+ * addresses the same file as `currentRelativePath` — a same-file fragment
+ * jump, not a cross-file navigation. Used by the unsaved-edits guard
+ * (contracts/token-addressing-and-navigation.md) to decide whether a click
+ * needs intercepting at all: comparing against `fileHref` of the known
+ * current file avoids re-parsing `href` back into a path.
+ */
+export function isSameFileHref(
+	href: string,
+	currentRelativePath: string,
+): boolean {
+	const currentFileHref = fileHref(currentRelativePath);
+	return href === currentFileHref || href.startsWith(`${currentFileHref}#`);
+}

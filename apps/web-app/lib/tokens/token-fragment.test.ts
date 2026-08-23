@@ -3,6 +3,7 @@ import { test } from "vitest";
 import {
 	decodeTokenFragment,
 	fileHref,
+	isSameFileHref,
 	tokenFragment,
 	tokenHref,
 } from "./token-fragment.ts";
@@ -61,4 +62,32 @@ test("decodeTokenFragment returns an empty array for an empty fragment", () => {
 
 test("decodeTokenFragment does not throw for a malformed percent-encoding", () => {
 	assert.doesNotThrow(() => decodeTokenFragment("%zz"));
+});
+
+test("isSameFileHref is true for a fragment-only jump within the current file", () => {
+	assert.equal(
+		isSameFileHref("/tokens/colors.json#color.brand.blue", "colors.json"),
+		true,
+	);
+});
+
+test("isSameFileHref is true for the bare file href with no fragment", () => {
+	assert.equal(isSameFileHref("/tokens/colors.json", "colors.json"), true);
+});
+
+test("isSameFileHref is false for a different file", () => {
+	assert.equal(
+		isSameFileHref("/tokens/dark.json#color.brand.blue", "colors.json"),
+		false,
+	);
+});
+
+test("isSameFileHref is false for a file whose name is a prefix of the current one", () => {
+	// Guards the naive `href.startsWith(currentFileHref)` version of this
+	// check, which would wrongly treat "colors-dark.json" as the same file
+	// as "colors.json".
+	assert.equal(
+		isSameFileHref("/tokens/colors-dark.json#x", "colors.json"),
+		false,
+	);
 });
