@@ -49,6 +49,17 @@ function describe(
  * error color below is a visual reinforcement, not the sole signal, since
  * the three cases would still read as distinct with the color stripped
  * entirely.
+ *
+ * Not `design-system`'s `Alert`: this renders inline inside a token's
+ * value row (`TokenReferenceValue`'s per-outcome `<span>`), and `Alert`'s
+ * CSS is a boxed panel (background, border, shadow, block padding) meant
+ * for a standalone notification, not a dense inline warning — using it
+ * here would mean overriding most of its own styling rather than reusing
+ * it. `Alert`'s only real behavior is `role="alert"`, which this element
+ * already carries directly; there's no ARIA wiring, focus management, or
+ * keyboard interaction being duplicated (DESIGN.md/constitution Principle
+ * XII's actual concern), just a `role` attribute this component sets
+ * itself either way.
  */
 export function ReferenceWarning({
 	chain,

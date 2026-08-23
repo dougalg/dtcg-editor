@@ -42,6 +42,15 @@ type GroupNode = Extract<PlainDtcgNode, { kind: "group" }>;
  *    group instead of typing a space into the name); putting it inside
  *    `<details>` but after `<summary>` would make it unreachable while
  *    collapsed.
+ *
+ * Not `design-system`'s `Accordion`: that component is Radix's
+ * state-driven accordion primitive, not a wrapper over native
+ * `<details>`/`<summary>` — swapping to it would give up exactly the
+ * native-navigation behavior point 1 above depends on (a real browser
+ * fragment navigation auto-expanding a closed panel), which no amount of
+ * Radix state management reproduces on its own. This is a case where the
+ * DTCG spec-driven navigation requirement (research.md §5) overrides
+ * DESIGN.md/constitution Principle XII's general component-reuse rule.
  */
 export function TreeGroupNode({
 	node,
