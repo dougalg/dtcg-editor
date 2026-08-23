@@ -1,7 +1,7 @@
-import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import type { ClientEdit } from "../../lib/tokens/edit-state.ts";
-import { TreeTokenNode } from "../TreeTokenNode/TreeTokenNode.tsx";
+import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import { TreeGroupNode } from "../TreeGroupNode/TreeGroupNode.tsx";
+import { TreeTokenNode } from "../TreeTokenNode/TreeTokenNode.tsx";
 
 export interface FieldErrors {
 	readonly name: string | undefined;
@@ -15,6 +15,9 @@ export type EditablePatch = Partial<
 export interface TreeNodeProps<TNode extends PlainDtcgNode = PlainDtcgNode> {
 	readonly node: TNode;
 	readonly root: PlainDtcgNode;
+	/** The file being viewed, for `ReferencedByBadge` to tell a same-file
+	 * referrer from a cross-file one. */
+	readonly relativePath: string;
 	readonly pendingEdits: ReadonlyMap<string, ClientEdit>;
 	readonly fieldErrors: ReadonlyMap<string, FieldErrors>;
 	readonly onStageEdit: (path: readonly string[], patch: EditablePatch) => void;

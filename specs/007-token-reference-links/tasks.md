@@ -161,12 +161,12 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 
 **Independent Test**: Open a token other tokens reference and confirm it reports how many reference it and can list them, each reachable.
 
-- [ ] T051 [P] [US3] Create `apps/web-app/components/ReferencedByBadge/ReferencedByBadge.tsx` and its `.module.css` — a `Badge`-styled `Popover` trigger reading "referenced once" (1), "referenced twice" (2), "referenced N times" (≥3), expanding to a `<ul>` of links and collapsing again; renders **nothing at all** at zero referrers (FR-021). Uses existing `design-system` `Badge`/`Popover` (depends on T020, T039)
-- [ ] T052 [P] [US3] Write unit tests in `apps/web-app/components/ReferencedByBadge/ReferencedByBadge.test.tsx` — the once/twice/N wording at 1, 2 and 3+, nothing rendered at 0, every referrer listed, each entry identifying its file when it differs from the file being viewed, expand and collapse (depends on T051)
-- [ ] T053 [P] [US3] Write `apps/web-app/components/ReferencedByBadge/ReferencedByBadge.a11y.test.tsx` — zero critical violations, and the trigger exposes both the count and its expanded state (depends on T051)
-- [ ] T054 [US3] Render `ReferencedByBadge` for every token with at least one referrer in `apps/web-app/components/TreeTokenNode/TreeTokenNode.tsx`, including tokens that both hold a reference and are themselves referenced (both indicators appear) (depends on T030, T051)
-- [ ] T055 [US3] Add coverage to `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx` for the both-holds-and-is-referenced case (depends on T054)
-- [ ] T056 [US3] Extend `apps/web-app/e2e/token-references.spec.ts` — expand a referrer list, confirm cross-file referrers are included and labelled, and activate an entry to navigate back to that referencing token (depends on T050, T054)
+- [X] T051 [P] [US3] Create `apps/web-app/components/ReferencedByBadge/ReferencedByBadge.tsx` and its `.module.css` — a `Badge`-styled `Popover` trigger reading "referenced once" (1), "referenced twice" (2), "referenced N times" (≥3), expanding to a `<ul>` of links and collapsing again; renders **nothing at all** at zero referrers (FR-021). Uses existing `design-system` `Badge`/`Popover` (depends on T020, T039)
+- [X] T052 [P] [US3] Write unit tests in `apps/web-app/components/ReferencedByBadge/ReferencedByBadge.test.tsx` — the once/twice/N wording at 1, 2 and 3+, nothing rendered at 0, every referrer listed, each entry identifying its file when it differs from the file being viewed, expand and collapse (depends on T051)
+- [X] T053 [P] [US3] Write `apps/web-app/components/ReferencedByBadge/ReferencedByBadge.a11y.test.tsx` — zero critical violations, and the trigger exposes both the count and its expanded state (depends on T051)
+- [X] T054 [US3] Render `ReferencedByBadge` for every token with at least one referrer in `apps/web-app/components/TreeTokenNode/TreeTokenNode.tsx`, including tokens that both hold a reference and are themselves referenced (both indicators appear) (depends on T030, T051)
+- [X] T055 [US3] Add coverage to `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx` for the both-holds-and-is-referenced case (depends on T054)
+- [X] T056 [US3] Extend `apps/web-app/e2e/token-references.spec.ts` — expand a referrer list, confirm cross-file referrers are included and labelled, and activate an entry to navigate back to that referencing token (depends on T050, T054)
 
 **Checkpoint**: All three user stories independently functional.
 

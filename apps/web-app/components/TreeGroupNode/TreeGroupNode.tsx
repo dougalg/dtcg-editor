@@ -46,6 +46,7 @@ type GroupNode = Extract<PlainDtcgNode, { kind: "group" }>;
 export function TreeGroupNode({
 	node,
 	root,
+	relativePath,
 	pendingEdits,
 	fieldErrors,
 	onStageEdit,
@@ -94,6 +95,7 @@ export function TreeGroupNode({
 						key={child.path.join(".")}
 						node={child}
 						root={root}
+						relativePath={relativePath}
 						pendingEdits={pendingEdits}
 						fieldErrors={fieldErrors}
 						onStageEdit={onStageEdit}

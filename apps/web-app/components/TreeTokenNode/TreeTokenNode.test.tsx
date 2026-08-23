@@ -130,6 +130,38 @@ test("a dimension token holding a reference shows its resolved value", () => {
 	expect(screen.getByText(/rem/)).toBeTruthy();
 });
 
+test("a token that both holds a reference and is itself referenced shows both indicators", () => {
+	const tree: PlainDtcgNode = {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			{
+				kind: "token",
+				name: "text",
+				path: ["text"],
+				value: "{color.brand.blue}",
+				declaredType: "color",
+				effectiveType: "color",
+				description: undefined,
+				deprecated: undefined,
+				references: [resolvedColor()],
+				referencedBy: [{ path: ["action", "default"], file: "a.json" }],
+			},
+		],
+	};
+	render(<TokenTree node={tree} relativePath="a.json" />);
+
+	// Holds a reference (a navigable link to its own target)...
+	expect(screen.getByText("{color.brand.blue}")).toBeTruthy();
+	// ...and is itself referenced (the reverse-index badge).
+	expect(screen.getByText("referenced once")).toBeTruthy();
+});
+
 test("a non-reference invalid color value is still reported as invalid (no regression on the non-reference path)", () => {
 	render(
 		<TokenTree

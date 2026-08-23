@@ -36,6 +36,9 @@ export interface TokenBlockProps {
 	/** The token's editor/value/description content — this block doesn't
 	 * know or care what's inside. */
 	readonly children: ReactNode;
+	/** Rendered in the heading row, after the type badge — e.g.
+	 * `ReferencedByBadge`. This block doesn't know or care what's inside. */
+	readonly headerExtra?: ReactNode;
 	readonly className?: string;
 }
 
@@ -55,6 +58,7 @@ export function TokenBlock({
 	type,
 	isNonStandardType,
 	children,
+	headerExtra,
 	className,
 }: TokenBlockProps) {
 	const iconId = resolveTokenTypeIconId(type);
@@ -88,6 +92,7 @@ export function TokenBlock({
 						)}
 					</>
 				)}
+				{headerExtra}
 			</div>
 			{children}
 		</li>

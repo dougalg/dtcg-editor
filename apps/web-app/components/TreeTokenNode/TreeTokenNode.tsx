@@ -17,6 +17,7 @@ import {
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import { DefaultValidationErrorHandler } from "../DefaultValidationErrorHandler/DefaultValidationErrorHandler.tsx";
 import { FallbackValueEditor } from "../FallbackValueEditor/FallbackValueEditor.tsx";
+import { ReferencedByBadge } from "../ReferencedByBadge/ReferencedByBadge.tsx";
 import styles from "../TokenBlock/TokenBlock.module.css";
 import { TokenBlock } from "../TokenBlock/TokenBlock.tsx";
 import { TokenReferenceValue } from "../TokenReferenceValue/TokenReferenceValue.tsx";
@@ -50,12 +51,22 @@ type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
 export function TreeTokenNode({
 	node,
 	root,
+	relativePath,
 	pendingEdits,
 	fieldErrors,
 	onStageEdit,
 	onFieldError,
 }: TreeNodeProps<TokenNode>) {
 	const key = pathKey(node.path);
+	// Rendered in every dispatch path below via `TokenBlock`'s `headerExtra`
+	// — `ReferencedByBadge` itself renders nothing at zero referrers, so no
+	// conditional is needed here (spec FR-021).
+	const referencedByBadge = (
+		<ReferencedByBadge
+			referencedBy={node.referencedBy ?? []}
+			currentFile={relativePath}
+		/>
+	);
 	// Shared with the Description field below via `aria-labelledby` so its
 	// accessible name combines the token's (live-edited) name with the field
 	// label (e.g. "0 Description"), disambiguating same-named fields across
@@ -117,6 +128,7 @@ export function TreeTokenNode({
 				rowTestId={rowTestId}
 				type={effectiveType}
 				isNonStandardType={false}
+				headerExtra={referencedByBadge}
 			>
 				<span className={styles.field}>
 					<span className={styles.fieldLabel}>Value</span>
@@ -182,6 +194,7 @@ export function TreeTokenNode({
 				rowTestId={rowTestId}
 				type={effectiveType}
 				isNonStandardType={effectiveType !== undefined && !isUsableType}
+				headerExtra={referencedByBadge}
 			>
 				<span className={styles.field}>
 					<span className={styles.fieldLabel}>Value</span>
@@ -252,6 +265,7 @@ export function TreeTokenNode({
 			rowTestId={rowTestId}
 			type={effectiveType}
 			isNonStandardType={false}
+			headerExtra={referencedByBadge}
 		>
 			{ResolvedEditor !== undefined ? (
 				<ResolvedEditor

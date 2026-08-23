@@ -184,6 +184,7 @@ export function TokenTree({
 			<TreeNode
 				node={treeState}
 				root={treeState}
+				relativePath={relativePath}
 				pendingEdits={pendingEdits}
 				fieldErrors={fieldErrors}
 				onStageEdit={stageEdit}

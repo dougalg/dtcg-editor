@@ -247,3 +247,50 @@ test("a reference into a file that failed to parse is unresolved, and other refe
 		.filter({ hasText: /would-have-been-here/ });
 	await expect(brokenAlert).toBeVisible();
 });
+
+// T056 — the reverse index (US3): color.brand.blue is referenced by two
+// tokens, each in a different file from base.tokens.json and from each
+// other (semantic.tokens.json's color.text.primary, and
+// references-unparseable.tokens.json's color.unaffected-sibling).
+test("a referrer list expands to show every referrer, each labelled by its file (US3)", async ({
+	page,
+}) => {
+	await page.goto("/tokens/base.tokens.json");
+
+	const row = page.getByTestId("token-color.brand.blue");
+	const badge = row.getByRole("button", { name: "referenced twice" });
+	await badge.click();
+
+	// Accessible name is "Go to <path> in <file>" (ReferencedByBadge's
+	// aria-label), not the visible "<file>: <path>" text order.
+	await expect(
+		page.getByRole("link", {
+			name: /color\.text\.primary.*semantic\.tokens\.json/,
+		}),
+	).toBeVisible();
+	await expect(
+		page.getByRole("link", {
+			name: /color\.unaffected-sibling.*references-unparseable\.tokens\.json/,
+		}),
+	).toBeVisible();
+});
+
+test("activating a referrer navigates back to that referencing token (US3)", async ({
+	page,
+}) => {
+	await page.goto("/tokens/base.tokens.json");
+
+	const row = page.getByTestId("token-color.brand.blue");
+	await row.getByRole("button", { name: "referenced twice" }).click();
+	await page
+		.getByRole("link", {
+			name: /color\.text\.primary.*semantic\.tokens\.json/,
+		})
+		.click();
+
+	await expect(page).toHaveURL(
+		/\/tokens\/semantic\.tokens\.json#color\.text\.primary$/,
+	);
+	const heading = page.locator("#token-color\\.text\\.primary-heading");
+	await expect(heading).toBeFocused();
+});

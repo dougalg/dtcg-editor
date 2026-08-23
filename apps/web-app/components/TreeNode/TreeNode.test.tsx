@@ -23,6 +23,7 @@ function renderNode(node: PlainDtcgNode) {
 			<TreeNode
 				node={node}
 				root={node}
+				relativePath="a.json"
 				pendingEdits={noopEdits}
 				fieldErrors={noopErrors}
 				onStageEdit={noopStage}
