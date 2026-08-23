@@ -8,15 +8,27 @@ constitution/spec split described in the constitution's Governance section.
 
 ## The rule
 
-**No hardcoded design values in component or app code.** Every value that
-expresses a design decision — color, spacing, sizing, radius, border width,
-shadow, typography, motion/timing/easing, z-index/elevation — MUST come from
-`packages/design-system`, never written as a literal in TSX, CSS, or inline
-styles.
+Two MUSTs, both in force at once:
+
+1. **No hardcoded design values in component or app code.** Every value that
+   expresses a design decision — color, spacing, sizing, radius, border
+   width, shadow, typography, motion/timing/easing, z-index/elevation —
+   MUST come from `packages/design-system`, never written as a literal in
+   TSX, CSS, or inline styles.
+2. **No reimplementing what `packages/design-system` already provides as a
+   component.** If `packages/design-system` exports a component for the
+   UI element being built (a button, a text/select/checkbox/radio/switch/
+   textarea form control, a dialog, popover, dropdown menu, tabs, accordion,
+   card, badge, alert, avatar, combobox, or command palette), that component
+   MUST be imported and used — not recreated with raw `<button>`, `<input>`,
+   `<dialog>`, or a hand-rolled equivalent, even one that itself only uses
+   `var(--dtcg-ed-*)` tokens correctly. Token-correct-but-reimplemented is
+   still non-compliant: it duplicates behavior (focus management, ARIA
+   wiring, keyboard interaction) that the shared component already owns.
 
 This applies to `apps/web-app` and every `token-editor-*` package's `Editor`
 UI equally. It does not apply to `packages/design-system` itself, which is
-where these values are *defined*.
+where these values and components are *defined*.
 
 ## Where values live and how they flow
 
@@ -66,6 +78,36 @@ where these values are *defined*.
      `getBoundingClientRect`) are exempt for the same reason: they are not
      design tokens, they are runtime-computed layout math.
 
+## Using design-system components
+
+`packages/design-system/src/components` currently exports: `Accordion`,
+`Alert`, `Avatar`, `Badge`, `Button`, `Card`, `Checkbox`, `Combobox`,
+`Command`, `Dialog`, `DropdownMenu`, `Input`, `Label`, `Popover`,
+`RadioGroup`, `Select`, `Switch`, `Tabs`, `Textarea`. Each is imported by
+its concrete file path through the package's `exports` map, matching the
+pattern already used in `apps/web-app`:
+
+```tsx
+import { Badge } from "@dtcg-editor/design-system/components/Badge/Badge.tsx";
+import { Input } from "@dtcg-editor/design-system/components/Input/Input.tsx";
+import { Label } from "@dtcg-editor/design-system/components/Label/Label.tsx";
+```
+
+Before writing a new interactive element by hand, check this list first. A
+raw `<button>` where `Button` covers the case, a raw `<input>` where `Input`
+or `Textarea` covers it, a custom overlay where `Dialog`/`Popover`/
+`DropdownMenu` covers it — all non-compliant, regardless of whether the
+hand-rolled version references tokens correctly for color/spacing.
+
+If no existing component covers the UI element being built, building a new
+one is not itself a violation — but per constitution Principle X, once 3+
+structurally/stylistically/functionally similar one-off components exist
+across the codebase, that MUST be flagged as a candidate for extraction
+into `packages/design-system`, the same reuse threshold Principle X already
+states. A one-off component built this way still MUST NOT hardcode design
+values (Rule 1 above still applies) — it composes existing tokens even
+when it can't compose an existing component.
+
 ## What "no hardcoded values" catches
 
 Not allowed, anywhere in `apps/web-app` or a `token-editor-*` package's UI:
@@ -107,11 +149,15 @@ usage as opt-in per component.
 
 ## Enforcement
 
-There is no automated lint rule for this yet (a future `stylelint` rule
-disallowing raw color/length literals outside `design-tokens`-generated
-files would close this gap — not yet built, tracked as a gap the same way
-Principle X notes the still-unenforced one-component-per-file rule). Until
-that tooling exists, this is a review-time requirement: a PR introducing a
-hardcoded design value in `apps/web-app` or a `token-editor-*` package's UI
-is non-compliant with constitution Principle XII and MUST be corrected
-before merge, the same as any other blocking constitution finding.
+There is no automated lint rule for either MUST yet: a future `stylelint`
+rule disallowing raw color/length literals outside `design-tokens`-generated
+files would close the values gap, and a future rule (or codemod-assisted
+review check) flagging raw `<button>`/`<input>`/`<dialog>` elements where a
+design-system equivalent exists would close the components gap — neither
+built yet, tracked as a gap the same way Principle X notes the still-
+unenforced one-component-per-file rule. Until that tooling exists, this is
+a review-time requirement: a PR introducing a hardcoded design value, or
+reimplementing a UI element `packages/design-system` already exports, in
+`apps/web-app` or a `token-editor-*` package's UI is non-compliant with
+constitution Principle XII and MUST be corrected before merge, the same as
+any other blocking constitution finding.

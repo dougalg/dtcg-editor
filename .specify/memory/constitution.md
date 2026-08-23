@@ -1,6 +1,41 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.5.0 → 2.6.0
+Rationale: MINOR — materially expands Principle XII (Design System Usage)
+with a second MUST: where `packages/design-system` already exports a
+component for the UI element being built, it MUST be used rather than
+reimplemented, even by a hand-rolled version that references
+`--dtcg-ed-*` tokens correctly. The pre-existing "no hardcoded design
+value" rule is not redefined or weakened, so this is not MAJOR; a new
+enforceable rule within the principle is materially more than a wording
+clarification, so this is not PATCH.
+
+Added sections: none (extends Principle XII's existing rule paragraph +
+rationale reference to Principle X's reuse threshold)
+
+Modified principles:
+  - XII. Design System Usage — rule paragraph gains the "use the existing
+    design-system component, don't reimplement it" MUST; DESIGN.md is
+    correspondingly expanded with a "Using design-system components"
+    section listing the current component catalog and import pattern.
+
+Removed sections: none
+
+Deferred / TODO items: no automated lint/codemod check for "raw
+<button>/<input>/<dialog> where a design-system equivalent exists" yet —
+same tooling-unenforced-gap category as the values half of this principle
+and Principle X's one-component-per-file rule.
+
+Source of truth for this amendment: requested directly via
+`speckit-constitution` as a follow-up extension to the v2.5.0 amendment,
+immediately after DESIGN.md was authored — "specify using design system
+components as well," not just tokens.
+-->
+
+<!--
+Sync Impact Report (v2.5.0, superseded above)
+==================
 Version change: 2.4.0 → 2.5.0
 Rationale: MINOR — adds a new Core Principle (XII. Design System Usage):
 all component/UI work in `apps/web-app` and every `token-editor-*` package's
@@ -581,9 +616,15 @@ CSS custom properties. A hardcoded/literal design value (a hex color, a raw
 `px`/`rem` spacing number, an ad hoc `border-radius` or `box-shadow`, a
 one-off transition duration) MUST NOT appear anywhere outside
 `packages/design-system` itself, which is where these values are defined.
-The full rule — token flow from `packages/design-system/src/design-tokens`
-through the `sugarcube generate` build to `--dtcg-ed-*` custom properties,
-the naming convention, narrow permitted exceptions (component-private
+Equally, where `packages/design-system` already exports a component for the
+UI element being built, that component MUST be imported and used rather
+than reimplemented — a hand-rolled button/input/dialog/etc. that only
+references tokens correctly is still non-compliant, since it duplicates
+behavior (focus management, ARIA wiring, keyboard interaction) the shared
+component already owns. The full rule — token flow from
+`packages/design-system/src/design-tokens` through the `sugarcube generate`
+build to `--dtcg-ed-*` custom properties, the naming convention, the current
+component catalog, narrow permitted exceptions (component-private
 `--_`-prefixed layout math, value-free CSS keywords, runtime-computed
 layout), and current enforcement status — is specified in full in the
 root-level `DESIGN.md`, which this principle incorporates by reference the
@@ -700,4 +741,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 2.5.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-23
+**Version**: 2.6.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-23
