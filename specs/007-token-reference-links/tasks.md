@@ -8,7 +8,9 @@ description: "Task list for Token Reference Preview & Navigation"
 
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
 
-**Tests**: Test tasks are **mandatory** here, not optional. Constitution Principle X requires every React component to have unit **and** accessibility test coverage, `contracts/reference-validation.md` carries a "Required tests" section, and spec SC-009 requires zero critical a11y violations. Three of the components this feature touches (`TreeGroupNode`, `TreeTokenNode`, `TreeNode`) have **no tests at all** today, so coverage is added as they are edited.
+**Tests**: Test tasks are **mandatory** here, not optional. Constitution Principle X requires every React component to have unit **and** accessibility test coverage, `contracts/reference-validation.md` carries a "Required tests" section, and spec SC-009 requires zero critical a11y violations. Three of the components this feature touches — `TreeGroupNode`, `TreeTokenNode`, and `TreeNode` — have **no tests at all** today, so coverage is added as each is edited: T036/T038, T031/T032, and T032a/T032b respectively.
+
+**Task IDs**: tasks inserted after the initial numbering use letter suffixes (`T021a`, `T026a`, `T032a`, …) rather than renumbering, so the ~50 existing `depends on` references stay valid. All IDs are unique and every dependency resolves.
 
 **Organization**: Grouped by user story so each is independently implementable and testable.
 
@@ -70,7 +72,9 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 - [ ] T018 Implement `buildReferenceIndex` and `buildReferenceView` in `apps/web-app/lib/tokens/reference-index.ts` — one pass recording `definitions`, `referencesFrom`, `referencedBy` and `modes`; `referencedBy` de-duplicated per referencing token (FR-019); the view resolves once **per mode** for multiply-defined paths and never picks a winner (FR-005); empty referrer lists omitted (FR-021); pure and synchronous (depends on T009, T012, T016)
 - [ ] T019 Write tests in `apps/web-app/lib/tokens/reference-index.test.ts` using hand-built documents and no filesystem — cross-file resolution, a token referencing one target twice counted once, multiply-defined path yielding one outcome per mode, zero-referrer token omitted from `referencedBy`, references into an unparseable (absent) file marked unresolved (depends on T018)
 - [ ] T020 Extend `apps/web-app/lib/tokens/plain-node.ts` to carry the per-file `TokenReferenceView` alongside the existing precomputed `effectiveType`, following that same precedent (depends on T018)
-- [ ] T021 Re-measure index build cost against the project's own token set using `token-core`'s Zod-validating `parseTokenFile`, and record the figure in `specs/007-token-reference-links/research.md` §2 — the 1.40 ms baseline was a floor measured with raw `JSON.parse`; only a surprising result (hundreds of ms) reopens the no-cache decision (depends on T018)
+- [ ] T021 [P] Generate a synthetic benchmark fixture of **5,000 tokens whose reference chains reach depth 5** in `apps/web-app/lib/tokens/reference-index.bench-fixture.ts` — built programmatically, not committed as JSON, so it stays cheap to regenerate and cannot drift
+- [ ] T021a Add the SC-010 budget assertion to `apps/web-app/lib/tokens/reference-index.test.ts` — `buildReferenceIndex` over the T021 fixture, parsed with `token-core`'s Zod-validating `parseTokenFile`, MUST complete in **under 50 ms**. This is a hard gate, not a recorded observation. Depth 5 is a property of the fixture only and MUST NOT introduce a depth cap in the resolver, which is unbounded by design (depends on T018, T021)
+- [ ] T021b Record the measured figure against the project's own token set in `specs/007-token-reference-links/research.md` §2, replacing the 1.40 ms raw-`JSON.parse` floor with a real Zod-validated number; a result near the 50 ms budget at only 565 tokens would reopen the no-cache decision (depends on T021a)
 
 **Checkpoint**: Reference resolution and the whole-directory index exist and are unit-tested. User story work can begin.
 
@@ -103,6 +107,8 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 - [ ] T030 [US1] Wire the reference path in `apps/web-app/components/TreeNode/TreeNode.tsx` and `apps/web-app/components/TreeTokenNode/TreeTokenNode.tsx` to render `TokenReferenceValue`, keeping `TreeTokenNode.tsx` under Principle X's 300-line ceiling (it is at 240 today) (depends on T023, T026)
 - [ ] T031 [US1] Add the FR-009 regression tests in `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx` (new file — this component has no tests today) — a `color` token holding a reference renders **no** validation error and shows its resolved value, and the same for a `dimension` token (depends on T030)
 - [ ] T032 [US1] Add `apps/web-app/components/TreeTokenNode/TreeTokenNode.a11y.test.tsx` (new file) asserting zero critical violations for both the reference and non-reference paths (depends on T030)
+- [ ] T032a [P] [US1] Add `apps/web-app/components/TreeNode/TreeNode.test.tsx` (new file — this component has no tests today) covering the dispatch: a `token` node renders `TreeTokenNode`, a `group` node renders `TreeGroupNode`, and the reference path reaches `TokenReferenceValue`. Required by Principle X, which this feature triggers by editing the component in T030 (depends on T030)
+- [ ] T032b [P] [US1] Add `apps/web-app/components/TreeNode/TreeNode.a11y.test.tsx` (new file) — `TreeNode` is a pure dispatch component with no accessibility semantics of its own, so this is the **explicit test asserting that**, which Principle X requires rather than allowing a silent exemption (depends on T030)
 
 **Checkpoint**: US1 complete and independently shippable. The live false-error bug against the app's own default token directory is fixed and resolved values are visible.
 
@@ -132,6 +138,7 @@ Existing monorepo layout, unchanged (plan.md "Structure Decision"):
 - [ ] T041 [US2] Implement arrival in `apps/web-app/hooks/useTokenArrival.ts` (camelCase per Principle X) — on mount and on `hashchange`, decode the fragment, match it to the rendered token, **move focus to it**, and mark it as the arrival target. Revealing collapsed ancestors and scrolling are the **browser's** job via native `<details>` auto-expansion; this hook covers only what the browser does not do. A fragment naming a token not in the file is ignored and the page renders normally (depends on T033, T039)
 - [ ] T042 [US2] Write tests in `apps/web-app/hooks/useTokenArrival.test.ts` — focus moves to the target, arrival marking applied, unknown fragment ignored, `hashchange` re-runs it (depends on T041)
 - [ ] T043 [US2] Ensure the arrival highlight does not rely on color alone (spec a11y requirement) in `apps/web-app/components/TokenBlock/TokenBlock.module.css` (depends on T041)
+- [ ] T043a [US2] Assert the arrival highlight carries a non-color distinguishing signal in `apps/web-app/components/TokenBlock/TokenBlock.test.tsx` — every other accessibility requirement in this feature has a verifying test, and T043 alone is unenforced (depends on T043)
 
 ### Navigation controls
 

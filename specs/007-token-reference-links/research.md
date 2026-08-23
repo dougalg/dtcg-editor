@@ -145,7 +145,9 @@ The client/server pairing is non-negotiable: `route.ts` documents that it "Mirro
 
 ## 11. Test fixtures
 
-**Decision**: Add new fixtures under `apps/web-app/e2e/fixtures/tokens/`, including at minimum a cross-file reference pair, a chain, a broken reference, a group-targeted reference, and a circular pair. Unit-level fixtures for `token-core` live alongside its source per Principle II.
+**Decision**: Add new fixtures under `apps/web-app/e2e/fixtures/token-references/` — **a new directory with its own `webServer`**, not the existing `e2e/fixtures/tokens/`. At minimum: a cross-file reference pair, a chain, a broken reference, a group-targeted reference, a circular pair, an unparseable file, and a multi-mode pair. Unit-level fixtures for `token-core` live alongside its source per Principle II.
+
+**Why a separate directory**: `playwright.config.ts` runs a single `webServer` pointed at one `DTCG_EDITOR_TOKENS_DIR`. Dropping broken, circular, and unparseable fixtures into `e2e/fixtures/tokens/` would change what `home.spec.ts` and `tokens-page.spec.ts` see, and both assert on the file listing. A second server on its own port keeps the failure fixtures from breaking suites that have nothing to do with references (tasks.md T006).
 
 **Rationale**: Verified that **no fixture anywhere in this project contains a reference of any kind** — `e2e/fixtures/tokens/` and `sample_data/` are entirely literal values, and no `token-core` test uses a reference-shaped value. Separately, this project's own token set contains **zero** broken, group-targeted, or circular references, so every failure path in the spec is unreachable with real data and can only be covered by purpose-built fixtures. E2E must use the fixtures directory rather than the design-system tokens, since `playwright.config.ts` deliberately points the app at fixtures via `DTCG_EDITOR_TOKENS_DIR` precisely so test content cannot drift.
 

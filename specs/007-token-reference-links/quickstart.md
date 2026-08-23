@@ -15,7 +15,8 @@ Chromium is required for the Vitest Browser Mode and Playwright tiers (already a
 | Set | Path | Use |
 | --- | --- | --- |
 | Real design tokens | `packages/design-system/src/design-tokens` | The app's default dev target. **228 references, 200 cross-file, 50 chained, 75 multiply-defined paths, 0 broken, 0 circular.** Best for exercising the happy paths at realistic scale. |
-| E2E fixtures | `apps/web-app/e2e/fixtures/tokens` | Pointed at by `DTCG_EDITOR_TOKENS_DIR` in `playwright.config.ts`, deliberately isolated so test content cannot drift. **Currently contains no references at all** — the new failure-case fixtures go here. |
+| E2E fixtures (existing) | `apps/web-app/e2e/fixtures/tokens` | Pointed at by the original `webServer` in `playwright.config.ts`. **Contains no references at all**, and stays that way — `home.spec.ts` and `tokens-page.spec.ts` assert on its file listing. |
+| E2E fixtures (this feature) | `apps/web-app/e2e/fixtures/token-references` | New directory with its **own** `webServer` on port 3101 (tasks.md T006). All reference fixtures — including the broken, circular, and unparseable ones — go here, so they cannot disturb the suites above. |
 
 ## Run it against the real token set
 
@@ -76,4 +77,10 @@ Keyboard flow to cover in Playwright, modelled on the existing `keyboard-navigat
 
 ## Performance check
 
-`research.md` §2 records **1.40 ms** to parse and index all 16 files — but measured with raw `JSON.parse`, because this worktree had no dependencies installed at planning time. Re-measure with `token-core`'s Zod-validating `parseTokenFile` once installed, and confirm no perceptible delay opening a file (SC-010). Only a surprising result (hundreds of ms) reopens the no-cache decision.
+SC-010's budget is **under 50 ms to build the reference index for 5,000 tokens at chain depth 5**, asserted by T021a as a hard test gate rather than eyeballed. Depth 5 describes the benchmark fixture only — the resolver follows chains without a depth cap, terminating on cycle detection.
+
+`research.md` §2 records **1.40 ms** to parse and index this project's own 16 files, but measured with raw `JSON.parse` because the worktree had no dependencies installed at planning time. T021b replaces that with a real Zod-validated figure. The project's own set is ~565 tokens, roughly an order of magnitude inside the budget; a result anywhere near 50 ms at that size would reopen the no-cache decision.
+
+```bash
+pnpm --filter web-app test reference-index   # includes the SC-010 budget assertion
+```

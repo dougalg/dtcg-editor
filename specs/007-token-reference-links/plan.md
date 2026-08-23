@@ -30,7 +30,7 @@ Reference syntax and chain walking go into `token-core` (React-free, filesystem-
 
 **Project Type**: Web application in an existing monorepo (`apps/web-app` + `packages/*`)
 
-**Performance Goals**: No perceptible delay opening a token file (SC-010). Measured floor for a full parse-and-index pass: 1.40 ms / 16 files / 565 tokens.
+**Performance Goals**: Reference index build **under 50 ms for 5,000 tokens at chain depth 5** (SC-010), asserted by a benchmark rather than observed. Measured floor today: 1.40 ms / 16 files / 565 tokens — so the budget constrains growth, not current scale. Depth 5 describes the benchmark fixture only; the resolver itself follows chains without a depth cap.
 
 **Constraints**: Client and server validation must change together — `docs/history.md` (2026-08-02) records a previous divergence in this exact pair causing both a client crash and a server-side unvalidated-write hole. `TreeTokenNode.tsx` is at 240 lines against Principle X's 300-line ceiling, so the new rendering must be extracted, not inlined. This feature deliberately absorbs the standing backlog item _"TreeGroupNode should be refactored to either be a disclosure element, or make sure it has all necessary aria props like controls, and expanded"_, because native `<details>` is what supplies reveal-a-collapsed-group for free (research.md §5).
 
@@ -108,8 +108,10 @@ apps/web-app/
 │   ├── TreeGroupNode/               # EDITED — native <details>/<summary> disclosure
 │   └── TokenTree/                   # EDITED — arrival focus + navigation guard
 └── e2e/
-    ├── fixtures/tokens/             # NEW fixtures — cross-file, chain, broken,
-    │                                #   group-target, circular, unparseable
+    ├── fixtures/token-references/    # NEW — own dir + own webServer (port 3101), so the
+    │                                 #   broken/circular fixtures cannot break the existing
+    │                                 #   suites: cross-file, chain, broken, group-target,
+    │                                 #   circular, unparseable, multi-mode
     └── token-references.spec.ts     # NEW
 ```
 

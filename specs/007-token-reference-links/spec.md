@@ -108,7 +108,7 @@ A user about to edit a token wants to know what else will be affected — which 
 
 - **FR-012**: The system MUST let the user activate a resolvable reference to reach the token it points at.
 - **FR-013**: When the referenced path has more than one definition, activating the reference MUST offer the user a list of those definitions — each identified by its file and the mode it applies to — and let them choose which one to open.
-- **FR-014**: Reaching a referenced token MUST leave it visible and ready to edit — including opening any groups containing it, bringing it into view, and making clear which token was navigated to.
+- **FR-014**: Reaching a referenced token MUST bring it into view and give it focus — opening any groups containing it, scrolling it into view, and making clear which token was navigated to. This requirement covers **visibility and focus only**. It does not promise the destination's value is editable: a destination that itself holds a reference has no value editor, per this feature's read-only-with-respect-to-reference-authoring scope. That is a routine case rather than a corner one — this project's own token set contains 50 chained references, so any hop to a chain intermediate lands on such a token. The destination's name and description remain editable as for any token.
 - **FR-015**: Navigation MUST work when the referenced token is in a different file from the referencing token.
 - **FR-016**: A reference that does not resolve — for any of the three failure cases — MUST NOT be offered as an activatable navigation control. Its warning is displayed instead, and the warning itself is not a link.
 - **FR-017**: Every navigation control this feature introduces MUST be operable by keyboard and expose an accessible name describing where it leads.
@@ -141,10 +141,10 @@ A user about to edit a token wants to know what else will be affected — which 
 - **SC-005**: For a path defined in several files, the user can see every definition and choose between them, with no definition silently hidden — verified against the 75 such paths in this project's own token set.
 - **SC-006**: A user can determine how many tokens depend on a given token, and reach any one of them, without searching or reading files by hand.
 - **SC-007**: Unresolvable, group-targeted, and circular references never prevent a file from being viewed and never produce an unhandled failure.
-- **SC-011**: A user encountering any of the three failure cases can tell from the warning alone which of the three it is and which path is at fault, without opening another file or reading the raw JSON.
 - **SC-008**: Unsaved edits are never lost or silently written when following a reference out of the current file.
 - **SC-009**: All controls this feature adds are fully keyboard-operable and pass automated accessibility checking with zero critical violations.
-- **SC-010**: Opening a token file stays responsive with reference resolution and counting active — no perceptible delay against a token set of this project's size.
+- **SC-010**: Building the reference index takes **under 50 ms for 5,000 tokens whose reference chains reach a depth of 5**, measured with the same parser the app uses in production. This is the enforceable gate behind "opening a token file stays responsive". The budget is deliberately set against a synthetic set roughly an order of magnitude larger than this project's own 565 tokens, so it constrains growth rather than merely restating today's measurement. Depth 5 is a property of the benchmark fixture only — it is **not** a cap on how deep the resolver will follow a chain, which is unbounded by design and terminated by cycle detection (FR-002, FR-006).
+- **SC-011**: A user encountering any of the three failure cases can tell from the warning alone which of the three it is and which path is at fault, without opening another file or reading the raw JSON.
 
 ## Assumptions
 
