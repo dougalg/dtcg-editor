@@ -1,9 +1,11 @@
 # Spike: replacing token-core with @styleframe/dtcg
 
-Exploratory only — not a decision record, no code from this spike is meant to merge as-is. Two passes:
+Exploratory only — not a decision record, no code from this spike is meant to merge as-is. Four passes:
 
 1. Swap `token-core`'s per-value structural schemas (color, dimension) to delegate to the library.
 2. Swap `token-core`/`web-app`'s reference/alias validation to the library's whole-document `validate()`/`resolveAliases()`, to see how much of the hand-rolled reference-checking machinery (`reference-index.ts`, `resolve-reference.ts`, `reference.ts`, `ReferenceWarning`, `ReferenceDefinitionPicker`) it could replace.
+3. Swap `resolver-file.ts` + the mode-handling half of `reference-index.ts` for the library's `mergeDocuments`/`parseResolver`/`resolveResolver`.
+4. Step back from code adoption entirely and compare the library's documented pipeline *shape* against `token-core`'s own, to see what design gaps it surfaces regardless of dependency decisions.
 
 `@styleframe/dtcg@1.1.0` (MIT, styleframe-dev) implements the DTCG 2025.10 Format/Color/Resolver modules: `parse`, `validate`, `applyInheritance`, `resolveAliases`, `mergeDocuments`, `parseResolver`/`resolve`, plus per-type guards and color-space conversion via `culori`.
 
@@ -65,9 +67,20 @@ Worth addressing directly, since it's the natural next idea given the abort-on-f
 
 So: skip forking. Use `mergeDocuments` directly for set/context composition (once the inline-modifier bug is either worked around by restructuring our resolver files to the `$ref` form, or reported upstream), and keep our own resolve-reference.ts-style chain walker — built on the library's exported guards/lookups instead of hand-rolled ones — for the part that has to survive a broken token without aborting everything else.
 
+## Pass 4 — design shape, independent of taking the library as a dependency
+
+Not a code swap: comparing this app's own `token-core` flow against the library's staged `parse → validate → applyInheritance → resolveAliases` pipeline surfaces two gaps in our own design, neither of which requires adopting the library at all.
+
+**No type-classification fallback for untyped tokens.** `resolve-type.ts`'s `resolveEffectiveType` walks a node's own `$type`, then its ancestors', and returns `undefined` if none is declared anywhere in the chain — full stop. `route.ts:187` then hard-rejects any edit to that token: `"Only standard DTCG token types can be edited, \"untyped\" cannot"`. The library has an explicit answer to exactly this case: `classifyValue(raw, { path })` infers a type from the *value's shape* when `$type` is absent, with `path` as a documented tiebreaker for genuine ambiguity (their own example: a bare `200` could be `number`, `duration`, or `fontWeight`). This app has nothing equivalent — an untyped token is simply dead weight in the editor today, not a shape problem the library's code needs to be adopted to fix; a `classifyValue`-style fallback could be built directly in `token-core`.
+
+**Inheritance is re-derived ad hoc instead of resolved once.** `resolveEffectiveType` is called independently from 4 separate places (`route.ts`, `reference-index.ts` ×2, `plain-node.ts`), each re-walking the ancestor chain it's handed. The library's `applyInheritance(doc)` is a single upfront pass, run once right after parse, that returns a document with every node's effective `$type`/`$deprecated` already materialized — nothing downstream re-walks ancestors again. Restructuring `token-core` around a `parse → applyInheritance → (everything else reads a flat field)` shape — again, without depending on the library's code — would remove the repeated ancestor-walking pattern and the need to thread `ancestors` through every call site.
+
+Both are legitimate findings from studying the library's documented flow as a reference design, separate from every earlier pass's question of whether to actually depend on its code.
+
 ## Bottom line
 
 - Value-schema swap: structurally sound, loses field-level error diagnostics, needs a translator to be worth it.
 - Reference-validation swap: `validate()` covers most "is this reference even valid" checks in one call but misses cycles; the "assemble everything" lint step the app needs is new code we write regardless of what it's layered on.
 - Resolver/modes swap: merge semantics genuinely match ours (no compatibility surprise), but the convenience `resolve()` entry point has a real bug against inline modifiers and aborts the whole document on any single cycle — not usable as-is for computing live app values. `mergeDocuments` alone (exported, non-throwing) is still a solid candidate; the throwing `resolve()`/`resolveAliases` wrapper is not, and isn't worth forking to fix — that traversal is better owned by us on top of the library's exported primitives, same conclusion as Pass 2.
 - Net: this library is a legitimate source for spec-conformant *parsing, guards, and set/modifier composition* across all 14 token types (real leverage for the 11 backlog types this app doesn't support yet), but the app's own diagnostics-collecting and graceful-degradation behavior (survive one broken token, report everything, never abort-all) has to stay hand-written regardless of adoption — that's this app's actual differentiator, not something to source from the library.
+- Design-shape takeaway (independent of dependency adoption): `token-core` is missing a `classifyValue`-style fallback for untyped tokens, and would benefit from turning `resolveEffectiveType` into a single upfront `applyInheritance`-shaped pass instead of an ad hoc per-call-site walk. Both are worth doing on their own merits, whether or not any part of the library itself is ever adopted.
