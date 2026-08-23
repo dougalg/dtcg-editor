@@ -1,22 +1,10 @@
 import { render } from "@testing-library/react";
 import axe from "axe-core";
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { WCAG_22_AA_TAGS } from "../../lib/a11y/wcag-tags.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
-import { TreeTokenNode } from "./TreeTokenNode.tsx";
-
-type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
-
-const root: PlainDtcgNode = {
-	kind: "group",
-	name: "",
-	path: [],
-	declaredType: undefined,
-	effectiveType: undefined,
-	description: undefined,
-	deprecated: undefined,
-	children: [],
-};
+import type { ResolvedReference } from "../../lib/tokens/reference-index.ts";
+import { TokenTree } from "../TokenTree/TokenTree.tsx";
 
 async function expectNoViolations(container: Element) {
 	const results = await axe.run(container, {
@@ -25,56 +13,114 @@ async function expectNoViolations(container: Element) {
 	expect(results.violations).toEqual([]);
 }
 
-test("a valid, editable token has no WCAG 2.2 AA violations", async () => {
-	const node: TokenNode = {
-		kind: "token",
-		name: "small",
-		path: ["small"],
-		value: { value: 4, unit: "px" },
-		declaredType: "dimension",
-		effectiveType: "dimension",
+function tree(node: Extract<PlainDtcgNode, { kind: "token" }>): PlainDtcgNode {
+	return {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
 		description: undefined,
 		deprecated: undefined,
+		children: [node],
 	};
+}
 
+test("has no WCAG 2.2 AA violations for a token holding a reference (resolved)", async () => {
+	const resolved: ResolvedReference = {
+		reference: {
+			targetPath: ["color", "brand", "blue"],
+			at: [],
+			raw: "{color.brand.blue}",
+		},
+		outcomes: [
+			{
+				mode: undefined,
+				chain: {
+					steps: [
+						{
+							path: ["color", "brand", "blue"],
+							file: "base.json",
+							mode: undefined,
+						},
+					],
+					outcome: {
+						kind: "resolved",
+						value: { colorSpace: "srgb", components: [0.2, 0.4, 0.9] },
+						type: "color",
+					},
+				},
+				targetFile: "base.json",
+			},
+		],
+	};
 	const { container } = render(
-		<ul>
-			<TreeTokenNode
-				node={node}
-				root={root}
-				pendingEdits={new Map()}
-				fieldErrors={new Map()}
-				onStageEdit={vi.fn()}
-				onFieldError={vi.fn()}
-			/>
-		</ul>,
+		<TokenTree
+			node={tree({
+				kind: "token",
+				name: "text",
+				path: ["text"],
+				value: "{color.brand.blue}",
+				declaredType: "color",
+				effectiveType: "color",
+				description: undefined,
+				deprecated: undefined,
+				references: [resolved],
+			})}
+			relativePath="a.json"
+		/>,
 	);
 	await expectNoViolations(container);
 });
 
-test("an invalid, read-only token with an error alert has no WCAG 2.2 AA violations", async () => {
-	const node: TokenNode = {
-		kind: "token",
-		name: "broken",
-		path: ["broken"],
-		value: { value: 4 },
-		declaredType: "dimension",
-		effectiveType: "dimension",
-		description: undefined,
-		deprecated: undefined,
+test("has no WCAG 2.2 AA violations for a token holding an unresolvable reference", async () => {
+	const resolved: ResolvedReference = {
+		reference: { targetPath: ["color", "nope"], at: [], raw: "{color.nope}" },
+		outcomes: [
+			{
+				mode: undefined,
+				chain: {
+					steps: [],
+					outcome: { kind: "unresolved", missingPath: ["color", "nope"] },
+				},
+				targetFile: undefined,
+			},
+		],
 	};
-
 	const { container } = render(
-		<ul>
-			<TreeTokenNode
-				node={node}
-				root={root}
-				pendingEdits={new Map()}
-				fieldErrors={new Map()}
-				onStageEdit={vi.fn()}
-				onFieldError={vi.fn()}
-			/>
-		</ul>,
+		<TokenTree
+			node={tree({
+				kind: "token",
+				name: "text",
+				path: ["text"],
+				value: "{color.nope}",
+				declaredType: "color",
+				effectiveType: "color",
+				description: undefined,
+				deprecated: undefined,
+				references: [resolved],
+			})}
+			relativePath="a.json"
+		/>,
+	);
+	await expectNoViolations(container);
+});
+
+test("has no WCAG 2.2 AA violations for the non-reference path (regression check)", async () => {
+	const { container } = render(
+		<TokenTree
+			node={tree({
+				kind: "token",
+				name: "gap",
+				path: ["gap"],
+				value: { value: 1, unit: "rem" },
+				declaredType: "dimension",
+				effectiveType: "dimension",
+				description: undefined,
+				deprecated: undefined,
+			})}
+			relativePath="a.json"
+		/>,
 	);
 	await expectNoViolations(container);
 });

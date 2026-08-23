@@ -1,0 +1,13 @@
+.warning {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.375rem;
+}
+
+.label {
+	font-weight: 600;
+}
+
+.path {
+	font-family: var(--dtcg-ed-font-mono);
+}

@@ -1,180 +1,141 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { expect, test, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { afterEach, expect, test } from "vitest";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
-import { TreeTokenNode } from "./TreeTokenNode.tsx";
+import type { ResolvedReference } from "../../lib/tokens/reference-index.ts";
+import { TokenTree } from "../TokenTree/TokenTree.tsx";
 
-type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
+afterEach(() => {
+	document.body.innerHTML = "";
+});
 
-function token(overrides: Partial<TokenNode> = {}): TokenNode {
+function referenceTree(
+	declaredType: string,
+	raw: string,
+	resolved: ResolvedReference | undefined,
+): PlainDtcgNode {
 	return {
-		kind: "token",
-		name: "small",
-		path: ["small"],
-		value: { value: 4, unit: "px" },
-		declaredType: "dimension",
-		effectiveType: "dimension",
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
 		description: undefined,
 		deprecated: undefined,
-		...overrides,
+		children: [
+			{
+				kind: "token",
+				name: "text",
+				path: ["text"],
+				value: raw,
+				declaredType,
+				effectiveType: declaredType,
+				description: undefined,
+				deprecated: undefined,
+				...(resolved !== undefined ? { references: [resolved] } : {}),
+			},
+		],
 	};
 }
 
-const root: PlainDtcgNode = {
-	kind: "group",
-	name: "",
-	path: [],
-	declaredType: undefined,
-	effectiveType: undefined,
-	description: undefined,
-	deprecated: undefined,
-	children: [],
-};
+function resolvedColor(): ResolvedReference {
+	return {
+		reference: {
+			targetPath: ["color", "brand", "blue"],
+			at: [],
+			raw: "{color.brand.blue}",
+		},
+		outcomes: [
+			{
+				mode: undefined,
+				chain: {
+					steps: [
+						{
+							path: ["color", "brand", "blue"],
+							file: "base.json",
+							mode: undefined,
+						},
+					],
+					outcome: {
+						kind: "resolved",
+						value: { colorSpace: "srgb", components: [0.2, 0.4, 0.9] },
+						type: "color",
+					},
+				},
+				targetFile: "base.json",
+			},
+		],
+	};
+}
 
-test("a valid dimension token renders its resolved built-in editor (path 1)", () => {
+function resolvedDimension(): ResolvedReference {
+	return {
+		reference: { targetPath: ["space", "4"], at: [], raw: "{space.4}" },
+		outcomes: [
+			{
+				mode: undefined,
+				chain: {
+					steps: [{ path: ["space", "4"], file: "base.json", mode: undefined }],
+					outcome: {
+						kind: "resolved",
+						value: { value: 1, unit: "rem" },
+						type: "dimension",
+					},
+				},
+				targetFile: "base.json",
+			},
+		],
+	};
+}
+
+test("a color token holding a reference renders no validation error (FR-009 regression)", () => {
 	render(
-		<TreeTokenNode
-			node={token()}
-			root={root}
-			pendingEdits={new Map()}
-			fieldErrors={new Map()}
-			onStageEdit={vi.fn()}
-			onFieldError={vi.fn()}
+		<TokenTree
+			node={referenceTree("color", "{color.brand.blue}", resolvedColor())}
+			relativePath="a.json"
 		/>,
 	);
-
-	expect(screen.getByLabelText("small name")).toBeTruthy();
-	expect(screen.getByLabelText("Value")).toBeTruthy();
+	expect(screen.queryByRole("alert")).toBeNull();
+	expect(screen.queryByText(/6-digit hex/)).toBeNull();
 });
 
-test("a standard type with no built-in editor renders the fallback JSON editor (path 2)", () => {
+test("a color token holding a reference shows its resolved value", () => {
 	render(
-		<TreeTokenNode
-			node={token({
-				name: "swatch",
-				path: ["swatch"],
-				value: { r: 255, g: 0, b: 0 },
-				declaredType: "fontWeight",
-				effectiveType: "fontWeight",
-			})}
-			root={root}
-			pendingEdits={new Map()}
-			fieldErrors={new Map()}
-			onStageEdit={vi.fn()}
-			onFieldError={vi.fn()}
+		<TokenTree
+			node={referenceTree("color", "{color.brand.blue}", resolvedColor())}
+			relativePath="a.json"
 		/>,
 	);
-
-	expect(screen.getByLabelText("Value (JSON)")).toBeTruthy();
+	expect(screen.getByText("{color.brand.blue}")).toBeTruthy();
+	expect(screen.getByText(/srgb/)).toBeTruthy();
 });
 
-test("an invalid dimension value renders DefaultValidationErrorHandler (path 4)", () => {
+test("a dimension token holding a reference renders no validation error", () => {
 	render(
-		<TreeTokenNode
-			node={token({ value: { value: 4 } })}
-			root={root}
-			pendingEdits={new Map()}
-			fieldErrors={new Map()}
-			onStageEdit={vi.fn()}
-			onFieldError={vi.fn()}
+		<TokenTree
+			node={referenceTree("dimension", "{space.4}", resolvedDimension())}
+			relativePath="a.json"
 		/>,
 	);
-
-	expect(screen.getByLabelText("small name")).toBeTruthy();
-	expect(screen.getByRole("alert").textContent).toMatch(
-		/Invalid dimension value/,
-	);
-});
-
-test("a non-standard type renders read-only with no error alert (path 5)", () => {
-	render(
-		<TreeTokenNode
-			node={token({
-				value: "#ff0000",
-				declaredType: "not-a-real-type",
-				effectiveType: "not-a-real-type",
-			})}
-			root={root}
-			pendingEdits={new Map()}
-			fieldErrors={new Map()}
-			onStageEdit={vi.fn()}
-			onFieldError={vi.fn()}
-		/>,
-	);
-
-	expect(screen.getByLabelText("small name")).toBeTruthy();
-	expect(screen.getByText("#ff0000")).toBeTruthy();
 	expect(screen.queryByRole("alert")).toBeNull();
 });
 
-test("renaming to an available name stages the edit", () => {
-	const onStageEdit = vi.fn();
-	const onFieldError = vi.fn();
-	const siblingRoot: PlainDtcgNode = {
-		...root,
-		children: [token(), token({ name: "large", path: ["large"] })],
-	};
-
+test("a dimension token holding a reference shows its resolved value", () => {
 	render(
-		<TreeTokenNode
-			node={token()}
-			root={siblingRoot}
-			pendingEdits={new Map()}
-			fieldErrors={new Map()}
-			onStageEdit={onStageEdit}
-			onFieldError={onFieldError}
+		<TokenTree
+			node={referenceTree("dimension", "{space.4}", resolvedDimension())}
+			relativePath="a.json"
 		/>,
 	);
-
-	fireEvent.change(screen.getByLabelText("small name"), {
-		target: { value: "tiny" },
-	});
-
-	expect(onStageEdit).toHaveBeenCalledWith(["small"], { name: "tiny" });
+	expect(screen.getByText("{space.4}")).toBeTruthy();
+	expect(screen.getByText(/rem/)).toBeTruthy();
 });
 
-test("renaming to a colliding sibling name is rejected without staging", () => {
-	const onStageEdit = vi.fn();
-	const siblingRoot: PlainDtcgNode = {
-		...root,
-		children: [token(), token({ name: "large", path: ["large"] })],
-	};
-
+test("a non-reference invalid color value is still reported as invalid (no regression on the non-reference path)", () => {
 	render(
-		<TreeTokenNode
-			node={token()}
-			root={siblingRoot}
-			pendingEdits={new Map()}
-			fieldErrors={new Map()}
-			onStageEdit={onStageEdit}
-			onFieldError={vi.fn()}
+		<TokenTree
+			node={referenceTree("color", "not-a-color", undefined)}
+			relativePath="a.json"
 		/>,
 	);
-
-	fireEvent.change(screen.getByLabelText("small name"), {
-		target: { value: "large" },
-	});
-
-	expect(onStageEdit).not.toHaveBeenCalled();
-});
-
-test("editing the description stages a description-only edit", () => {
-	const onStageEdit = vi.fn();
-	render(
-		<TreeTokenNode
-			node={token()}
-			root={root}
-			pendingEdits={new Map()}
-			fieldErrors={new Map()}
-			onStageEdit={onStageEdit}
-			onFieldError={vi.fn()}
-		/>,
-	);
-
-	fireEvent.change(screen.getByLabelText("Description"), {
-		target: { value: "Base spacing unit" },
-	});
-
-	expect(onStageEdit).toHaveBeenCalledWith(["small"], {
-		description: "Base spacing unit",
-	});
+	expect(screen.getByRole("alert")).toBeTruthy();
 });

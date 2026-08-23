@@ -19,6 +19,7 @@ import { DefaultValidationErrorHandler } from "../DefaultValidationErrorHandler/
 import { FallbackValueEditor } from "../FallbackValueEditor/FallbackValueEditor.tsx";
 import styles from "../TokenBlock/TokenBlock.module.css";
 import { TokenBlock } from "../TokenBlock/TokenBlock.tsx";
+import { TokenReferenceValue } from "../TokenReferenceValue/TokenReferenceValue.tsx";
 import type { TreeNodeProps } from "../TreeNode/TreeNode.tsx";
 
 function formatValue(value: unknown): string {
@@ -98,11 +99,15 @@ export function TreeTokenNode({
 	// so `validateTokenValue` is never called for it at all, not merely
 	// ignored. This fixes a live bug: a color token holding a reference was
 	// previously told its value "must be a 6-digit hex string" (FR-009).
-	// The reference itself is rendered here only as its raw text for now —
-	// the resolved-value display and navigation control replace this once
-	// `TokenReferenceValue` exists (plan.md stage 4).
+	// `node.references[0]` is this specific whole-value reference's own
+	// resolution — `at: []` — computed once, server-side, in
+	// `buildReferenceView`. It's `undefined` only if the page's
+	// whole-directory index build itself failed (page.tsx degrades to no
+	// reference view rather than blocking the page), in which case the raw
+	// reference text is shown instead of nothing.
 	const reference = parseReference(node.value);
 	if (reference !== undefined) {
+		const resolved = node.references?.[0];
 		return (
 			<TokenBlock
 				name={currentName}
@@ -115,7 +120,11 @@ export function TreeTokenNode({
 			>
 				<span className={styles.field}>
 					<span className={styles.fieldLabel}>Value</span>
-					<span className={styles.value}>{reference.raw}</span>
+					{resolved !== undefined ? (
+						<TokenReferenceValue resolved={resolved} />
+					) : (
+						<span className={styles.value}>{reference.raw}</span>
+					)}
 				</span>
 				{errors?.name !== undefined && <span role="alert">{errors.name}</span>}
 			</TokenBlock>
