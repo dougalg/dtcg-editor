@@ -1,12 +1,8 @@
-import { join, relative } from "node:path";
-import type { Logger, UnknownError } from "@dtcg-editor/errors";
-import { consoleLogger, toLoggedUnknownError } from "@dtcg-editor/errors";
-import { TokenParseError } from "@dtcg-editor/token-core";
-import { err, ok, type Result, ResultAsync } from "neverthrow";
+import type { Logger } from "@dtcg-editor/errors";
+import { consoleLogger } from "@dtcg-editor/errors";
 import type { ReadDirEntries, ReadTextFile } from "../platform/node-fs.ts";
 import { nodeReadDir, nodeReadFile } from "../platform/node-fs.ts";
-import { PathTraversalError } from "./path-safety.ts";
-import { FileNotFoundError, readAndParseTokenFile } from "./read.ts";
+import { loadTokenDirectory } from "./load-directory.ts";
 import { isTokenDocumentStandard } from "./standard-type.ts";
 
 export type TokenFileSummary =
@@ -21,102 +17,40 @@ export type TokenFileSummary =
 			readonly error: string;
 	  };
 
-function describeError(
-	error:
-		| PathTraversalError
-		| FileNotFoundError
-		| TokenParseError
-		| UnknownError,
-): string {
-	if (
-		error instanceof PathTraversalError ||
-		error instanceof FileNotFoundError ||
-		error instanceof TokenParseError
-	) {
-		return error.message;
-	}
-	return error.context !== undefined
-		? `Unexpected error (${error.context})`
-		: "Unexpected error";
-}
-
-async function collectJsonFiles(
-	currentDir: string,
-	logger: Logger,
-	readDirFn: ReadDirEntries,
-): Promise<Result<string[], UnknownError>> {
-	const entriesResult = await ResultAsync.fromPromise(
-		readDirFn(currentDir),
-		(cause) => toLoggedUnknownError(logger, cause, "collectJsonFiles"),
-	);
-	if (entriesResult.isErr()) {
-		return err(entriesResult.error);
-	}
-
-	const files: string[] = [];
-	for (const entry of entriesResult.value) {
-		if (entry.isSymbolicLink()) {
-			// Symlinks (files or directories) are skipped entirely: skipping
-			// symlinked directories avoids unbounded recursion through a
-			// symlink loop, and files are skipped the same way for consistency.
-			continue;
-		}
-
-		const entryPath = join(currentDir, entry.name);
-		if (entry.isDirectory()) {
-			const subResult = await collectJsonFiles(entryPath, logger, readDirFn);
-			if (subResult.isErr()) {
-				return subResult;
-			}
-			files.push(...subResult.value);
-		} else if (entry.isFile() && entry.name.endsWith(".json")) {
-			files.push(entryPath);
-		}
-	}
-
-	return ok(files);
-}
-
 /**
  * Recursively scans `rootDir` for `*.json` files at any depth (skipping
- * symlinks) and attempts to parse each one as a DTCG token file. A file
- * that fails to read or parse is recorded as invalid rather than aborting
- * the scan — one bad file never affects any other file's result. A
- * directory that fails to read (e.g. permission denied) aborts the whole
- * scan with a logged `UnknownError`, since there's no file list left to
- * report on for that subtree.
+ * symlinks) and attempts to parse each one as a DTCG token file, reducing
+ * `loadTokenDirectory`'s per-file load result to a summary — same public
+ * behavior as before this was split out (one bad file never affects any
+ * other file's result; a directory read failure aborts the whole scan with
+ * a logged `UnknownError`), now sharing one directory walk and one
+ * read-and-parse pass per file with any other consumer of
+ * `loadTokenDirectory`, instead of running its own.
  */
 export function scanTokenDirectory(
 	rootDir: string,
 	logger: Logger = consoleLogger,
 	readDirFn: ReadDirEntries = nodeReadDir,
 	readFileFn: ReadTextFile = nodeReadFile,
-): ResultAsync<TokenFileSummary[], UnknownError> {
-	return new ResultAsync(collectJsonFiles(rootDir, logger, readDirFn)).map(
-		async (absolutePaths) => {
-			const summaries = await Promise.all(
-				absolutePaths.map(async (absolutePath): Promise<TokenFileSummary> => {
-					const relativePath = relative(rootDir, absolutePath);
-					const result = await readAndParseTokenFile(
-						rootDir,
-						relativePath,
-						logger,
-						readFileFn,
-					);
-					return result.isOk()
-						? {
-								relativePath,
-								valid: true,
-								standard: isTokenDocumentStandard(result.value),
-							}
-						: {
-								relativePath,
-								valid: false,
-								error: describeError(result.error),
-							};
-				}),
-			);
-
+) {
+	return loadTokenDirectory(rootDir, logger, readDirFn, readFileFn).map(
+		({ loaded, failed }) => {
+			const summaries: TokenFileSummary[] = [
+				...loaded.map(
+					(file): TokenFileSummary => ({
+						relativePath: file.relativePath,
+						valid: true,
+						standard: isTokenDocumentStandard(file.document),
+					}),
+				),
+				...failed.map(
+					(file): TokenFileSummary => ({
+						relativePath: file.relativePath,
+						valid: false,
+						error: file.error,
+					}),
+				),
+			];
 			return summaries.sort((a, b) =>
 				a.relativePath.localeCompare(b.relativePath),
 			);

@@ -79,7 +79,7 @@ Keyboard flow to cover in Playwright, modelled on the existing `keyboard-navigat
 
 SC-010's budget is **under 50 ms to build the reference index for 5,000 tokens at chain depth 5**, asserted by T021a as a hard test gate rather than eyeballed. Depth 5 describes the benchmark fixture only — the resolver follows chains without a depth cap, terminating on cycle detection.
 
-`research.md` §2 records **1.40 ms** to parse and index this project's own 16 files, but measured with raw `JSON.parse` because the worktree had no dependencies installed at planning time. T021b replaces that with a real Zod-validated figure. The project's own set is ~565 tokens, roughly an order of magnitude inside the budget; a result anywhere near 50 ms at that size would reopen the no-cache decision.
+`research.md` §2 records the real, Zod-validated figures: **2-7 ms median** to parse and index this project's own 16 files (565 tokens), and **14-26 ms** for the SC-010 benchmark's 5,000 tokens — both comfortably inside the 50 ms budget, with real scale roughly an order of magnitude below the benchmark. A result anywhere near 50 ms at either size would reopen the no-cache decision (research.md §2).
 
 ```bash
 pnpm --filter web-app test reference-index   # includes the SC-010 budget assertion
