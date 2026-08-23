@@ -2,17 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## pnpm
-
-This repo uses `pnpm`. Always use `pnpm` commands to add files to packages, _NEVER_ directly modify a package file to manage dependencies, instead use `pnpm add` or the relevant `pnpm` command.
-
 ## Project status
 
 dtcg-editor is an open source editor for DTCG (Design Tokens Community Group) design tokens.
 
-## Local First Development
+## pnpm
 
-The `gh` command is not installed. Use `git` CLI commands directly instead.
+This repo uses `pnpm`. Always use `pnpm` commands to add files to packages, _NEVER_ directly modify a package file to manage dependencies, instead use `pnpm add` or the relevant `pnpm` command.
+
+## Always rebase
+
+Never create merge commits, always update branches from main via rebase.
+
+## Local First Development
 
 When you are asked to merge or update branches, the default assumption is **local-first**. Unless the user specifies to push to a non-local branch/worktree/etc. always assume the user wants you to work locally.
 
