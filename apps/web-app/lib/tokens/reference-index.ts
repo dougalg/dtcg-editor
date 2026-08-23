@@ -238,7 +238,17 @@ export function buildReferenceIndex(
 	};
 }
 
-/** One reference site's resolution, one outcome per mode when its target is multiply defined. */
+/**
+ * One reference site's resolution, one outcome per mode when its target is
+ * multiply defined. `targetFile` is the file where the reference's *direct*
+ * target — `reference.targetPath` itself — is defined for this mode
+ * (`chain.steps[0]`, not the chain's final literal): FR-012's "reach the
+ * token it points at" and FR-013's "definitions of [the referenced] path"
+ * are both about the immediate target, not wherever a *further* reference
+ * chain from that target eventually bottoms out. `chain` still carries the
+ * full multi-hop path for display (spec FR-003) — only navigation stops at
+ * the first hop.
+ */
 export interface ResolvedOutcome {
 	readonly mode: string | undefined;
 	readonly chain: ResolutionChain;
@@ -329,8 +339,14 @@ function resolveReferenceSite(
 
 	const outcomes = modesToTry.map((mode): ResolvedOutcome => {
 		const chain = resolveReference(reference, lookupForMode(index, mode));
+		// The *direct* target's own file — chain.steps[0] — not wherever a
+		// further chain from it eventually resolves (see ResolvedOutcome's
+		// doc comment). Still gated on "resolved" only: FR-016 keeps a
+		// circular/unresolved/group-target outcome non-activatable even
+		// though chain.steps[0] can exist for a circular chain (the cycle is
+		// only detected on revisiting a *later* step).
 		const targetFile =
-			chain.outcome.kind === "resolved" ? chain.steps.at(-1)?.file : undefined;
+			chain.outcome.kind === "resolved" ? chain.steps[0]?.file : undefined;
 		return { mode, chain, targetFile };
 	});
 

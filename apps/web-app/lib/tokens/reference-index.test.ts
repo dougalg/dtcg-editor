@@ -128,10 +128,12 @@ test("a multiply-defined path yields one outcome per mode, never silently pickin
 		],
 	);
 
-	// Something referencing "text" should see both mode outcomes. In light
-	// mode "text" is itself still a reference (into color.blue), so the
-	// chain continues one more hop and ends at colors.json; in dark mode
-	// "text" wins as a literal in dark.json, so the chain ends there.
+	// Something referencing "text" should see both mode outcomes. targetFile
+	// is "text"'s own direct definition file per mode — semantic.json for
+	// light, dark.json for dark — not wherever light's *further* reference
+	// (into color.blue) eventually ends up; the resolved *value* still
+	// reflects that full 2-hop chain (spec FR-003), only navigation stops
+	// at the direct target (spec FR-012).
 	const referencingFiles = [
 		...files,
 		file("consumer.json", { alias: { $type: "color", $value: "{text}" } }),
@@ -141,10 +143,19 @@ test("a multiply-defined path yields one outcome per mode, never silently pickin
 	const outcomes = view.references.get("alias")?.[0]?.outcomes ?? [];
 	assert.equal(outcomes.length, 2);
 	const byMode = new Map(outcomes.map((o) => [o.mode, o]));
-	assert.equal(byMode.get("light")?.targetFile, "colors.json");
+	assert.equal(byMode.get("light")?.targetFile, "semantic.json");
 	assert.equal(byMode.get("dark")?.targetFile, "dark.json");
 	assert.equal(byMode.get("light")?.chain.steps.length, 2);
 	assert.equal(byMode.get("dark")?.chain.steps.length, 1);
+	if (byMode.get("light")?.chain.outcome.kind === "resolved") {
+		assert.deepEqual(byMode.get("light")?.chain.outcome, {
+			kind: "resolved",
+			value: { hex: "#0000ff" },
+			type: "color",
+		});
+	} else {
+		assert.fail("expected light mode's alias chain to resolve");
+	}
 });
 
 test("a single-definition path yields exactly one outcome even when the token set defines modes", () => {

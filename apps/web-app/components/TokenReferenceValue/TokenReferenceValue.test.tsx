@@ -102,13 +102,22 @@ test("renders a chained reference showing the literal at the end of the chain", 
 						type: "color",
 					},
 				},
-				targetFile: "base.json",
+				// The *direct* target's file (semantic.json, where
+				// color.action.default's own target color.text.primary is
+				// defined) — not base.json, where the chain eventually ends up.
+				// Navigation stops at the direct target (FR-012); only the
+				// displayed *value* reflects the full chain.
+				targetFile: "semantic.json",
 			},
 		],
 	};
 	render(<TokenReferenceValue resolved={resolved} />);
 	expect(screen.getByText("{color.action.default}")).toBeTruthy();
 	expect(screen.getByText(/srgb/)).toBeTruthy();
+	const link = screen.getByRole("link", { name: /color\.action\.default/ });
+	expect(link.getAttribute("href")).toBe(
+		"/tokens/semantic.json#color.action.default",
+	);
 });
 
 test("delegates an unresolved outcome to ReferenceWarning", () => {
