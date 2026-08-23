@@ -1,6 +1,47 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.4.0 → 2.5.0
+Rationale: MINOR — adds a new Core Principle (XII. Design System Usage):
+all component/UI work in `apps/web-app` and every `token-editor-*` package's
+`Editor` UI MUST source every design value (color, spacing, sizing, radius,
+border, shadow, typography, motion/timing, elevation/z-index) from
+`packages/design-system`'s generated `--dtcg-ed-*` CSS custom properties —
+no hardcoded/literal design values outside `packages/design-system` itself.
+The principle states the mandatory rule; implementation detail (token flow,
+naming convention, narrow exceptions, current lack of automated lint
+enforcement) lives in the new root-level `DESIGN.md`, referenced by the
+principle the same way other principles reference `CONTRIBUTING.md`/
+`CLAUDE.md`. No existing principle is redefined or removed, so this is not
+MAJOR; a new principle is materially more than a wording clarification, so
+this is not PATCH.
+
+Added sections: XII. Design System Usage (new Core Principle)
+
+Modified principles: none (new principle only)
+
+Removed sections: none
+
+Technology Stack & Approved Dependencies: added `packages/design-system`'s
+actual runtime/dev dependencies, already in use but never previously listed
+— `@sugarcube-sh/cli` (token-JSON-to-CSS build tool), the `@radix-ui/*`
+primitive family backing the component library, `clsx`, `cmdk`, and
+`lucide-react`.
+
+Deferred / TODO items: no automated lint rule yet enforces "no hardcoded
+design values" (a future `stylelint` rule is the natural closing move,
+noted in `DESIGN.md`'s Enforcement section) — same category of known,
+tooling-unenforced gap as the one-component-per-file rule under Principle X.
+
+Source of truth for this amendment: requested directly via
+`speckit-constitution`, following a constitution/CLAUDE.md compliance audit
+that flagged `packages/design-system`'s dependencies as undocumented in
+this file's Approved Dependencies list.
+-->
+
+<!--
+Sync Impact Report (v2.4.0, superseded above)
+==================
 Version change: 2.3.0 → 2.4.0
 Rationale: MINOR — adds a new Core Principle (XI. Modern Defaults): code,
 tools, and file formats default to the modern, currently-recommended choice
@@ -530,6 +571,39 @@ case. Naming exceptions explicitly, rather than allowing silent
 inconsistency, keeps a deliberate tooling constraint from being
 indistinguishable from an unexamined default.
 
+### XII. Design System Usage
+
+All component/UI work — every component in `apps/web-app` and every
+`token-editor-*` package's `Editor` UI — MUST source every design value
+(color, spacing, sizing, radius, border, shadow, typography, motion/timing,
+elevation/z-index) from `packages/design-system`'s generated `--dtcg-ed-*`
+CSS custom properties. A hardcoded/literal design value (a hex color, a raw
+`px`/`rem` spacing number, an ad hoc `border-radius` or `box-shadow`, a
+one-off transition duration) MUST NOT appear anywhere outside
+`packages/design-system` itself, which is where these values are defined.
+The full rule — token flow from `packages/design-system/src/design-tokens`
+through the `sugarcube generate` build to `--dtcg-ed-*` custom properties,
+the naming convention, narrow permitted exceptions (component-private
+`--_`-prefixed layout math, value-free CSS keywords, runtime-computed
+layout), and current enforcement status — is specified in full in the
+root-level `DESIGN.md`, which this principle incorporates by reference the
+same way Principle X's naming convention is enforced by `.ls-lint.yml` and
+Development Workflow's commit format is enforced by `commitlint.config`.
+`DESIGN.md` is implementation detail this constitution deliberately does not
+duplicate; where the two conflict, this principle governs and `DESIGN.md`
+MUST be corrected to match, per this constitution's own Governance section.
+
+Rationale: `packages/design-system` (Principle X's consolidation target for
+repeated components) only delivers its interoperability and consistency
+value if every consumer actually draws from it — a component that hardcodes
+a color or spacing value instead of referencing a `--dtcg-ed-*` token is the
+same kind of silent drift Principle XI already prohibits for legacy tooling
+choices, just applied to design values instead of code style. Splitting the
+mandatory rule (here) from its implementation detail (`DESIGN.md`) mirrors
+how this constitution already separates principle-level governance from
+per-feature `plan.md` detail, so the token-flow mechanics can evolve without
+requiring a constitution amendment each time.
+
 ## Technology Stack & Approved Dependencies
 
 - **Language**: TypeScript. **Framework**: React (UI/token-editor packages,
@@ -555,7 +629,13 @@ indistinguishable from an unexamined default.
   (`packages/token-core` only, imported via the tree-shakable
   `colorjs.io/fn` entry point), `@ls-lint/ls-lint` (root devDependency,
   filename/directory-structure linting per Principle X, configured in
-  `.ls-lint.yml`).
+  `.ls-lint.yml`), `@sugarcube-sh/cli` (`packages/design-system` only,
+  compiles `design-tokens/*.json` into `--dtcg-ed-*` CSS custom properties
+  per Principle XII), the `@radix-ui/react-*` primitive family (`accordion`,
+  `avatar`, `checkbox`, `dialog`, `dropdown-menu`, `label`, `popover`,
+  `radio-group`, `select`, `slot`, `switch`, `tabs` — `packages/design-system`
+  only, unstyled behavior primitives underlying its components), `clsx`,
+  `cmdk`, and `lucide-react` (`packages/design-system` only).
 
 ## Development Workflow
 
@@ -620,4 +700,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 2.4.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-20
+**Version**: 2.5.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-23
