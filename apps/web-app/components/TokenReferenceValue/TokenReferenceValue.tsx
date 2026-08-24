@@ -35,21 +35,9 @@ function formatLiteralValue(
 	return preview ?? <span className={styles.text}>{formatRaw(value)}</span>;
 }
 
-/**
- * The clickable link icon that is the sole navigation control for one
- * outcome row (spec FR-012/FR-013/FR-016) — an inert, muted copy of the
- * same glyph when the outcome doesn't resolve to a single navigable
- * target, since `ReferenceWarning` (rendered alongside it) already
- * explains why.
- */
-function LinkIcon({
-	href,
-	label,
-}: {
-	readonly href: string | undefined;
-	readonly label: string;
-}) {
-	const icon = (
+/** Purely decorative — the row itself (see `OutcomeRow`) carries the link semantics/label, not this icon. */
+function LinkGlyph() {
+	return (
 		<svg
 			className={styles.linkIcon}
 			viewBox="0 0 24 24"
@@ -64,20 +52,6 @@ function LinkIcon({
 			<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
 		</svg>
 	);
-
-	if (href === undefined) {
-		return (
-			<span className={styles.linkIconInert} aria-hidden="true">
-				{icon}
-			</span>
-		);
-	}
-
-	return (
-		<Link href={href} className={styles.linkIconLink} aria-label={label}>
-			{icon}
-		</Link>
-	);
 }
 
 function pathText(path: readonly string[]): string {
@@ -88,7 +62,10 @@ function pathText(path: readonly string[]): string {
  * One row of the reference-preview list: this outcome's own navigation
  * icon, its mode label (when the target is multiply defined), and either
  * the resolved literal's preview or — for a non-resolved outcome —
- * `ReferenceWarning`'s explanation in its place.
+ * `ReferenceWarning`'s explanation in its place. The whole row is the
+ * navigation control (spec FR-012/FR-013/FR-016) — a `Link` when the
+ * outcome resolves to a single navigable target, or a plain, inert
+ * container otherwise, since `ReferenceWarning` already explains why.
  */
 function OutcomeRow({
 	outcome,
@@ -102,20 +79,9 @@ function OutcomeRow({
 			<span className={styles.modeLabel}>{outcome.mode}:</span>
 		) : null;
 
-	const targetPathText = pathText(targetPath);
-	const href =
-		outcome.chain.outcome.kind === "resolved" &&
-		outcome.targetFile !== undefined
-			? tokenHref(outcome.targetFile, targetPath)
-			: undefined;
-	const label =
-		outcome.mode !== undefined
-			? `Go to ${targetPathText} in ${outcome.targetFile} (${outcome.mode} mode)`
-			: `Go to ${targetPathText} in ${outcome.targetFile}`;
-
-	return (
-		<li className={styles.item}>
-			<LinkIcon href={href} label={label} />
+	const content = (
+		<>
+			<LinkGlyph />
 			{modeLabel}
 			{outcome.chain.outcome.kind === "resolved" ? (
 				formatLiteralValue(
@@ -125,6 +91,31 @@ function OutcomeRow({
 			) : (
 				<ReferenceWarning chain={outcome.chain} />
 			)}
+		</>
+	);
+
+	if (
+		outcome.chain.outcome.kind !== "resolved" ||
+		outcome.targetFile === undefined
+	) {
+		return <li className={styles.item}>{content}</li>;
+	}
+
+	const targetPathText = pathText(targetPath);
+	const label =
+		outcome.mode !== undefined
+			? `Go to ${targetPathText} in ${outcome.targetFile} (${outcome.mode} mode)`
+			: `Go to ${targetPathText} in ${outcome.targetFile}`;
+
+	return (
+		<li className={styles.item}>
+			<Link
+				href={tokenHref(outcome.targetFile, targetPath)}
+				className={styles.itemLink}
+				aria-label={label}
+			>
+				{content}
+			</Link>
 		</li>
 	);
 }

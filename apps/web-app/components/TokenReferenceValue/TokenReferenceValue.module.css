@@ -33,21 +33,17 @@
 	vertical-align: middle;
 }
 
-.linkIconLink {
+.itemLink {
 	display: inline-flex;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-3xs-2xs);
 	color: var(--dtcg-ed-color-neutral-text-quiet);
 	text-decoration: none;
 }
 
-.linkIconLink:hover,
-.linkIconLink:focus-visible {
+.itemLink:hover,
+.itemLink:focus-visible {
 	color: inherit;
-}
-
-.linkIconInert {
-	display: inline-flex;
-	color: var(--dtcg-ed-color-neutral-text-quiet);
-	opacity: 0.5;
 }
 
 .text {
