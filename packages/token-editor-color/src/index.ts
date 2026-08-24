@@ -1,4 +1,5 @@
 export { ColorEditor } from "./components/ColorEditor/ColorEditor.tsx";
+export { ColorPreview } from "./components/ColorPreview/ColorPreview.tsx";
 export { ColorValidationErrorHandler } from "./components/ColorValidationErrorHandler/ColorValidationErrorHandler.tsx";
 export type { ColorEditorOptions } from "./configuration.ts";
 export {

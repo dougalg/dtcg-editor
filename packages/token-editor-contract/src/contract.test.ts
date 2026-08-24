@@ -23,6 +23,12 @@ const numberContractWithValidationErrorHandler: TokenTypeContract<number> = {
 		createElement("span", null, error.message),
 };
 
+const numberContractWithPreview: TokenTypeContract<number> = {
+	...numberContract,
+	Preview: ({ value }) =>
+		typeof value === "number" ? createElement("span", null, `${value}`) : null,
+};
+
 test("a contract constructs without editorOptionsSchema", () => {
 	assert.equal(numberContract.editorOptionsSchema, undefined);
 });
@@ -38,6 +44,19 @@ test("a contract constructs with editorOptionsSchema present", () => {
 
 test("a contract constructs without ValidationErrorHandler", () => {
 	assert.equal(numberContract.ValidationErrorHandler, undefined);
+});
+
+test("a contract constructs without Preview", () => {
+	assert.equal(numberContract.Preview, undefined);
+});
+
+test("a contract's Preview receives the raw, unvalidated value and can decline to render it", () => {
+	assert.equal(
+		numberContractWithPreview.Preview?.({ value: "not a number" }),
+		null,
+	);
+	const element = numberContractWithPreview.Preview?.({ value: 42 });
+	assert.ok(element !== null && element !== undefined);
 });
 
 test("a contract's ValidationErrorHandler receives a plain value and a concrete TokenTypeValidationError, not a Result", () => {

@@ -1,0 +1,14 @@
+.swatch {
+	display: inline-block;
+	width: var(--dtcg-ed-space-md);
+	height: var(--dtcg-ed-space-md);
+	background-color: var(--swatch-color);
+	border: var(--dtcg-ed-border-width-thin) solid
+		var(--dtcg-ed-color-neutral-border-normal);
+	border-radius: var(--dtcg-ed-radius-md);
+	vertical-align: middle;
+}
+
+.text {
+	font-family: var(--dtcg-ed-font-mono);
+}

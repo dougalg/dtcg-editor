@@ -9,7 +9,7 @@
 		".": "./dist/src/index.js"
 	},
 	"scripts": {
-		"build": "tsc -p tsconfig.json && mkdir -p dist/src/components/ColorEditor && cp src/components/ColorEditor/ColorEditor.module.css dist/src/components/ColorEditor/ColorEditor.module.css",
+		"build": "tsc -p tsconfig.json && find src -name '*.module.css' | while read -r f; do mkdir -p \"dist/$(dirname \"$f\")\"; cp \"$f\" \"dist/$f\"; done",
 		"test": "node --test 'src/**/*.test.ts'",
 		"lint:write": "biome lint --write .",
 		"lint": "biome lint ."

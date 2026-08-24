@@ -45,6 +45,20 @@ export interface TokenTypeContract<TValue> {
 		readonly value: unknown;
 		readonly error: TokenTypeValidationError;
 	}): ReactElement | null;
+
+	/**
+	 * Read-only rendering for a *resolved reference's* literal outcome
+	 * value — used wherever the host shows what a `{reference}` points at
+	 * (e.g. the reference-preview list) rather than an editable field. The
+	 * value comes from resolving an arbitrary other token in the tree, so
+	 * unlike `Editor`'s `TValue` it is `unknown` here: nothing guarantees it
+	 * actually conforms to this contract's `valueSchema` (the resolver
+	 * doesn't cross-validate types), so an implementer should validate/parse
+	 * it itself and return `null` on a mismatch, letting the host fall back
+	 * to its own generic plain-text rendering. Types with nothing richer to
+	 * show than that generic fallback (e.g. dimension) omit this.
+	 */
+	Preview?(props: { readonly value: unknown }): ReactElement | null;
 }
 
 /** One issue from a `valueSchema` parse, in the same shape Zod itself reports it. */

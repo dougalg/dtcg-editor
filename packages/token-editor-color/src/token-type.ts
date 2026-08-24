@@ -1,6 +1,7 @@
 import { type ColorValue, ColorValueSchema } from "@dtcg-editor/token-core";
 import type { TokenTypeContract } from "@dtcg-editor/token-editor-contract";
 import { ColorEditor } from "./components/ColorEditor/ColorEditor.tsx";
+import { ColorPreview } from "./components/ColorPreview/ColorPreview.tsx";
 import { ColorValidationErrorHandler } from "./components/ColorValidationErrorHandler/ColorValidationErrorHandler.tsx";
 import { ColorEditorOptionsSchema } from "./configuration.ts";
 
@@ -16,5 +17,6 @@ export const colorTokenType: TokenTypeContract<ColorValue> = {
 	serializeValue: (value) => value,
 	Editor: ColorEditor,
 	ValidationErrorHandler: ColorValidationErrorHandler,
+	Preview: ColorPreview,
 	editorOptionsSchema: ColorEditorOptionsSchema,
 };
