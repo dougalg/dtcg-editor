@@ -163,9 +163,10 @@ test.describe("general-fixture controls", () => {
 });
 
 // T058 (FR-017/SC-009) — every *navigation* control this feature adds (a
-// direct reference link, a multi-definition picker's trigger and its
-// listed links, a referenced-by badge's trigger and its listed links) is
-// keyboard-operable with an accessible name describing its destination.
+// direct reference link, each row of a multiply-defined target's
+// always-visible list, a referenced-by badge's trigger and its listed
+// links) is keyboard-operable with an accessible name describing its
+// destination.
 // Runs only under the "token-references" project (see playwright.config.ts):
 // this file also carries the pre-existing general-fixture tests above,
 // which run only under "default" — Playwright routes a whole file to a
@@ -200,51 +201,26 @@ test.describe("this feature's navigation controls (T058)", () => {
 		).toBeFocused();
 	});
 
-	test("a multi-definition picker opens, lists, and activates by keyboard alone", async ({
+	test("each definition of a multiply-defined target is its own independently keyboard-operable row", async ({
 		page,
 	}) => {
 		await page.goto("/tokens/semantic.tokens.json");
 
 		// color.action.default -> {color.text.primary}, multiply defined
-		// (light: this file; dark: dark.tokens.json) — a picker, not a link.
-		const pickerTrigger = page.getByRole("button", {
-			name: /choose a definition of color\.text\.primary/i,
+		// (light: this file; dark: dark.tokens.json) — each mode is its own
+		// always-visible list row, the row itself being the link, rather than
+		// a picker behind a single trigger.
+		const lightRow = page.getByRole("link", {
+			name: /Go to color\.text\.primary in semantic\.tokens\.json/,
 		});
-		await tabUntilFocused(page, pickerTrigger);
-		expect(await hasVisibleFocusIndicator(pickerTrigger)).toBe(true);
-
-		await page.keyboard.press("Enter");
-		const dialog = page.getByRole("dialog");
-		await expect(dialog).toBeVisible();
-
-		const lightOption = dialog.getByRole("link", {
-			name: /semantic\.tokens\.json/i,
-		});
-		await tabUntilFocused(page, lightOption);
-		expect(await hasVisibleFocusIndicator(lightOption)).toBe(true);
+		await tabUntilFocused(page, lightRow);
+		expect(await hasVisibleFocusIndicator(lightRow)).toBe(true);
 
 		await page.keyboard.press("Enter");
 		await expect(page).toHaveURL(/#color\.text\.primary$/);
 		await expect(
 			page.locator("#token-color\\.text\\.primary-heading"),
 		).toBeFocused();
-	});
-
-	test("a picker closes on Escape and returns focus to its trigger", async ({
-		page,
-	}) => {
-		await page.goto("/tokens/semantic.tokens.json");
-
-		const pickerTrigger = page.getByRole("button", {
-			name: /choose a definition of color\.text\.primary/i,
-		});
-		await tabUntilFocused(page, pickerTrigger);
-		await page.keyboard.press("Enter");
-		await expect(page.getByRole("dialog")).toBeVisible();
-
-		await page.keyboard.press("Escape");
-		await expect(page.getByRole("dialog")).not.toBeVisible();
-		await expect(pickerTrigger).toBeFocused();
 	});
 
 	test("a referenced-by badge opens, lists, and navigates to a referrer by keyboard alone", async ({

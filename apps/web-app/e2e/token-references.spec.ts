@@ -64,19 +64,12 @@ test("arriving via a reference opens a collapsed ancestor group (US2 AC3)", asyn
 	await expect(textDetails).not.toHaveAttribute("open", "");
 
 	// color.action.default references color.text.primary, which is multiply
-	// defined (light: this file itself; dark: dark.tokens.json) — opens the
-	// definition picker rather than a direct link.
-	const pickerTrigger = page.getByRole("button", {
-		name: /choose a definition of color\.text\.primary/i,
+	// defined (light: this file itself; dark: dark.tokens.json) — each mode
+	// is its own always-visible list row, the row itself being the link.
+	const lightRow = page.getByRole("link", {
+		name: /Go to color\.text\.primary in semantic\.tokens\.json/,
 	});
-	await pickerTrigger.click();
-	// Scoped to the picker popover: an unrelated reference-value link
-	// elsewhere on the page also carries "semantic.tokens.json" in its
-	// accessible name.
-	const lightOption = page
-		.getByRole("dialog")
-		.getByRole("link", { name: /semantic\.tokens\.json/i });
-	await lightOption.click();
+	await lightRow.click();
 
 	await expect(page).toHaveURL(/#color\.text\.primary$/);
 	// Native <details> auto-expansion should have re-opened "text".
@@ -90,21 +83,17 @@ test("a multiply-defined target offers every definition, labelled by file and mo
 }) => {
 	await page.goto("/tokens/semantic.tokens.json");
 
-	const pickerTrigger = page.getByRole("button", {
-		name: /choose a definition of color\.text\.primary/i,
-	});
-	await pickerTrigger.click();
-
-	// Scoped to the picker popover: the mode labels also appear, unscoped,
-	// in the token's own always-visible OutcomeDisplay list.
-	const picker = page.getByRole("dialog");
-	await expect(picker.getByText("light:")).toBeVisible();
-	await expect(picker.getByText("dark:")).toBeVisible();
+	// color.action.default's reference row lists both of color.text.primary's
+	// definitions — light (this file) and dark (dark.tokens.json) — as
+	// always-visible, independently navigable rows, never picking a winner.
+	const referenceRow = page.getByTestId("token-color.action.default");
+	await expect(referenceRow.getByText("light:")).toBeVisible();
+	await expect(referenceRow.getByText("dark:")).toBeVisible();
 	await expect(
-		picker.getByRole("link", { name: /semantic\.tokens\.json/i }),
+		referenceRow.getByRole("link", { name: /semantic\.tokens\.json/i }),
 	).toBeVisible();
 	await expect(
-		picker.getByRole("link", { name: /dark\.tokens\.json/i }),
+		referenceRow.getByRole("link", { name: /dark\.tokens\.json/i }),
 	).toBeVisible();
 });
 
