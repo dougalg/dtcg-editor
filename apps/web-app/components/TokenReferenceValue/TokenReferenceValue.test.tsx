@@ -120,6 +120,41 @@ test("renders a chained reference showing the literal at the end of the chain", 
 	);
 });
 
+test("the reference's own raw text is no longer an activatable link", () => {
+	const resolved: ResolvedReference = {
+		reference: {
+			targetPath: ["color", "brand", "blue"],
+			at: [],
+			raw: "{color.brand.blue}",
+		},
+		outcomes: [
+			{
+				mode: undefined,
+				chain: {
+					steps: [
+						{
+							path: ["color", "brand", "blue"],
+							file: "base.json",
+							mode: undefined,
+						},
+					],
+					outcome: {
+						kind: "resolved",
+						value: { colorSpace: "srgb", components: [0.2, 0.4, 0.9] },
+						type: "color",
+					},
+				},
+				targetFile: "base.json",
+			},
+		],
+	};
+	render(<TokenReferenceValue resolved={resolved} />);
+	expect(
+		screen.queryByRole("link", { name: /^\{color\.brand\.blue\}$/ }),
+	).toBeNull();
+	expect(screen.getByRole("link", { name: /color\.brand\.blue/ })).toBeTruthy();
+});
+
 test("delegates an unresolved outcome to ReferenceWarning", () => {
 	const resolved: ResolvedReference = {
 		reference: { targetPath: ["color", "nope"], at: [], raw: "{color.nope}" },

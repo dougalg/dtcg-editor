@@ -1,15 +1,23 @@
 .reference {
 	display: inline-flex;
-	flex-wrap: wrap;
-	align-items: baseline;
-	gap: var(--dtcg-ed-space-2xs);
+	flex-direction: column;
+	gap: var(--dtcg-ed-space-3xs-2xs);
 }
 
 .raw {
 	font-family: var(--dtcg-ed-font-mono);
 }
 
-.outcome {
+.list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}
+
+.item {
 	display: inline-flex;
 	align-items: baseline;
 	gap: var(--dtcg-ed-space-3xs-2xs);
@@ -19,21 +27,27 @@
 	font-weight: var(--dtcg-ed-font-weight-semibold);
 }
 
-/* Mirrors packages/token-editor-color's ColorEditor.module.css .swatch,
-   same size (--dtcg-ed-space-md = 1.5rem) for true visual parity — kept as
-   a local copy rather than a cross-package CSS import, since a resolved
-   reference's swatch is read-only preview, not the editable control that
-   class is styled for, and this keeps the two independently maintainable.
-   Same visual result either way (spec FR-010). */
-.swatch {
-	display: inline-block;
-	width: var(--dtcg-ed-space-md);
-	height: var(--dtcg-ed-space-md);
-	background-color: var(--swatch-color);
-	border: var(--dtcg-ed-border-width-thin) solid
-		var(--dtcg-ed-color-neutral-border-normal);
-	border-radius: var(--dtcg-ed-radius-md);
+.linkIcon {
+	width: var(--dtcg-ed-text-sm);
+	height: var(--dtcg-ed-text-sm);
 	vertical-align: middle;
+}
+
+.linkIconLink {
+	display: inline-flex;
+	color: var(--dtcg-ed-color-neutral-text-quiet);
+	text-decoration: none;
+}
+
+.linkIconLink:hover,
+.linkIconLink:focus-visible {
+	color: inherit;
+}
+
+.linkIconInert {
+	display: inline-flex;
+	color: var(--dtcg-ed-color-neutral-text-quiet);
+	opacity: 0.5;
 }
 
 .text {

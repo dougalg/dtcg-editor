@@ -1,13 +1,11 @@
-import { ColorValueSchema } from "@dtcg-editor/token-core";
-import { colorValueToCssColor } from "@dtcg-editor/token-editor-color";
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { resolveBuiltInContract } from "../../lib/token-editors/built-in.ts";
 import type {
 	ResolvedOutcome,
 	ResolvedReference,
 } from "../../lib/tokens/reference-index.ts";
 import { tokenHref } from "../../lib/tokens/token-fragment.ts";
-import { ReferenceDefinitionPicker } from "../ReferenceDefinitionPicker/ReferenceDefinitionPicker.tsx";
 import { ReferenceWarning } from "../ReferenceWarning/ReferenceWarning.tsx";
 import styles from "./TokenReferenceValue.module.css";
 
@@ -15,62 +13,70 @@ function formatRaw(value: unknown): string {
 	return typeof value === "string" ? value : JSON.stringify(value);
 }
 
-function swatchStyle(color: string): CSSProperties {
-	return { "--swatch-color": color } as CSSProperties;
-}
-
 /**
  * Presents a resolved literal value the same way an equivalent literal
- * value of that type is presented elsewhere in the app (spec FR-010) — a
- * color gets the same swatch treatment as `ColorEditor`'s own read path,
- * computed via the same `colorValueToCssColor` utility so a referenced
- * color is exactly as recognizable as a directly-specified one. Every
- * other type falls back to its raw text form, matching how an unrecognized
- * or contract-less type is already shown elsewhere in this tree (e.g.
- * `TreeTokenNode`'s own `formatValue`).
+ * value of that type is presented elsewhere in the app (spec FR-010),
+ * delegating to that type's own built-in contract (e.g. color's swatch) —
+ * this component holds no knowledge of any specific DTCG `$type` itself.
+ * Falls back to the value's raw text form for a type with no built-in
+ * contract, no `Preview`, or whose `Preview` declines to render (e.g. the
+ * value doesn't actually parse as that type), matching how an
+ * unrecognized or contract-less type is already shown elsewhere in this
+ * tree (e.g. `TreeTokenNode`'s own `formatValue`).
  */
 function formatLiteralValue(
 	value: unknown,
 	type: string | undefined,
 ): ReactNode {
-	if (type === "color") {
-		const parsed = ColorValueSchema.safeParse(value);
-		if (parsed.success) {
-			const cssColor = colorValueToCssColor(parsed.data);
-			return (
-				<>
-					<span className={styles.swatch} style={swatchStyle(cssColor)} />
-					<span className={styles.text}>{formatRaw(value)}</span>
-				</>
-			);
-		}
-	}
-	return <span className={styles.text}>{formatRaw(value)}</span>;
+	const preview =
+		type !== undefined
+			? resolveBuiltInContract(type)?.Preview?.({ value })
+			: undefined;
+	return preview ?? <span className={styles.text}>{formatRaw(value)}</span>;
 }
 
-function OutcomeDisplay({ outcome }: { readonly outcome: ResolvedOutcome }) {
-	const modeLabel =
-		outcome.mode !== undefined ? (
-			<span className={styles.modeLabel}>{outcome.mode}:</span>
-		) : null;
+/**
+ * The clickable link icon that is the sole navigation control for one
+ * outcome row (spec FR-012/FR-013/FR-016) — an inert, muted copy of the
+ * same glyph when the outcome doesn't resolve to a single navigable
+ * target, since `ReferenceWarning` (rendered alongside it) already
+ * explains why.
+ */
+function LinkIcon({
+	href,
+	label,
+}: {
+	readonly href: string | undefined;
+	readonly label: string;
+}) {
+	const icon = (
+		<svg
+			className={styles.linkIcon}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+			<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+		</svg>
+	);
 
-	if (outcome.chain.outcome.kind === "resolved") {
+	if (href === undefined) {
 		return (
-			<span className={styles.outcome}>
-				{modeLabel}
-				{formatLiteralValue(
-					outcome.chain.outcome.value,
-					outcome.chain.outcome.type,
-				)}
+			<span className={styles.linkIconInert} aria-hidden="true">
+				{icon}
 			</span>
 		);
 	}
 
 	return (
-		<span className={styles.outcome}>
-			{modeLabel}
-			<ReferenceWarning chain={outcome.chain} />
-		</span>
+		<Link href={href} className={styles.linkIconLink} aria-label={label}>
+			{icon}
+		</Link>
 	);
 }
 
@@ -79,49 +85,56 @@ function pathText(path: readonly string[]): string {
 }
 
 /**
- * The reference text itself, as the navigation control (spec FR-012/
- * FR-013/FR-016): a `Link` when there's exactly one, resolved definition
- * to go to; `ReferenceDefinitionPicker` when the target has more than one
- * definition (never silently picking a winner); plain, non-activatable
- * text for every unresolvable/group-target/circular case, which
- * `ReferenceWarning` (rendered separately, per outcome) already explains.
+ * One row of the reference-preview list: this outcome's own navigation
+ * icon, its mode label (when the target is multiply defined), and either
+ * the resolved literal's preview or — for a non-resolved outcome —
+ * `ReferenceWarning`'s explanation in its place.
  */
-function ReferenceControl({
-	resolved,
+function OutcomeRow({
+	outcome,
+	targetPath,
 }: {
-	readonly resolved: ResolvedReference;
+	readonly outcome: ResolvedOutcome;
+	readonly targetPath: readonly string[];
 }) {
-	if (resolved.outcomes.length > 1) {
-		return <ReferenceDefinitionPicker resolved={resolved} />;
-	}
+	const modeLabel =
+		outcome.mode !== undefined ? (
+			<span className={styles.modeLabel}>{outcome.mode}:</span>
+		) : null;
 
-	const [outcome] = resolved.outcomes;
-	if (
-		outcome !== undefined &&
+	const targetPathText = pathText(targetPath);
+	const href =
 		outcome.chain.outcome.kind === "resolved" &&
 		outcome.targetFile !== undefined
-	) {
-		return (
-			<Link
-				href={tokenHref(outcome.targetFile, resolved.reference.targetPath)}
-				className={styles.raw}
-				aria-label={`Go to ${pathText(resolved.reference.targetPath)} in ${outcome.targetFile}`}
-			>
-				{resolved.reference.raw}
-			</Link>
-		);
-	}
+			? tokenHref(outcome.targetFile, targetPath)
+			: undefined;
+	const label =
+		outcome.mode !== undefined
+			? `Go to ${targetPathText} in ${outcome.targetFile} (${outcome.mode} mode)`
+			: `Go to ${targetPathText} in ${outcome.targetFile}`;
 
-	return <span className={styles.raw}>{resolved.reference.raw}</span>;
+	return (
+		<li className={styles.item}>
+			<LinkIcon href={href} label={label} />
+			{modeLabel}
+			{outcome.chain.outcome.kind === "resolved" ? (
+				formatLiteralValue(
+					outcome.chain.outcome.value,
+					outcome.chain.outcome.type,
+				)
+			) : (
+				<ReferenceWarning chain={outcome.chain} />
+			)}
+		</li>
+	);
 }
 
 /**
- * Renders a reference exactly as the file says it (as a navigation
- * control when it resolves — see `ReferenceControl`), plus what it
- * resolves to — one `OutcomeDisplay` per mode when the target is
- * multiply defined (spec FR-005), otherwise exactly one. A failing
- * outcome delegates to `ReferenceWarning` rather than duplicating its
- * distinct-per-case wording here.
+ * Renders a reference exactly as authored — plain, non-activatable text,
+ * navigation now lives on each row's own link icon below (spec FR-012/
+ * FR-013/FR-016) — plus a list of what it resolves to, one `OutcomeRow`
+ * per mode when the target is multiply defined (spec FR-005), otherwise
+ * exactly one.
  */
 export function TokenReferenceValue({
 	resolved,
@@ -130,10 +143,16 @@ export function TokenReferenceValue({
 }) {
 	return (
 		<span className={styles.reference}>
-			<ReferenceControl resolved={resolved} />
-			{resolved.outcomes.map((outcome, index) => (
-				<OutcomeDisplay key={outcome.mode ?? index} outcome={outcome} />
-			))}
+			<span className={styles.raw}>{resolved.reference.raw}</span>
+			<ul className={styles.list}>
+				{resolved.outcomes.map((outcome, index) => (
+					<OutcomeRow
+						key={outcome.mode ?? index}
+						outcome={outcome}
+						targetPath={resolved.reference.targetPath}
+					/>
+				))}
+			</ul>
 		</span>
 	);
 }
