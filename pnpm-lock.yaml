@@ -15,9 +15,6 @@ catalogs:
     '@ls-lint/ls-lint':
       specifier: ^2.3.1
       version: 2.3.1
-    '@styleframe/dtcg':
-      specifier: ^1.1.0
-      version: 1.1.0
     '@testing-library/react':
       specifier: ^16.3.2
       version: 16.3.2
@@ -285,19 +282,6 @@ importers:
         version: 4.1.11(@types/node@26.2.0)(@vitest/browser-playwright@4.1.11)(jsdom@30.0.1)(vite@8.1.5(@types/node@26.2.0)(jiti@2.7.0))
 
   packages/errors:
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.2.0
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
-
-  packages/styleframe-dtcg-spike:
-    dependencies:
-      '@styleframe/dtcg':
-        specifier: 'catalog:'
-        version: 1.1.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -1726,9 +1710,6 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@styleframe/dtcg@1.1.0':
-    resolution: {integrity: sha512-me7tN/e1wDEsXS50NID91sjEOQsrbfstACUCLmQQuTTTC+hxI85ScjWvQL32iFy61ATWe9Du26E38L7hZa+qbA==}
-
   '@sugarcube-sh/cli@0.1.24':
     resolution: {integrity: sha512-e18ahADfPHHLFRBbt2VfqWSZz7WBabk39sHmcQdRuM9ObwJliO2s8K+rHeYQ7dwzki3P0s9mtcgCeBGWSrAgkA==}
     engines: {node: '>=20.19.0'}
@@ -2232,10 +2213,6 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
-
-  culori@4.0.2:
-    resolution: {integrity: sha512-1+BhOB8ahCn4O0cep0Sh2l9KCOfOdY+BXJnKMHFFzDEouSr/el18QwXEMRlOj9UY5nCeA8UN3a/82rUWRBeyBw==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   cz-conventional-changelog@3.3.0:
     resolution: {integrity: sha512-U466fIzU5U22eES5lTNiNbZ+d8dfcHcssH4o7QsdWaCcRs/feIPCxKYSWkYBNs5mny7MvEfwpTLWjvbm94hecw==}
@@ -4636,10 +4613,6 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@styleframe/dtcg@1.1.0':
-    dependencies:
-      culori: 4.0.2
-
   '@sugarcube-sh/cli@0.1.24':
     dependencies:
       '@antfu/ni': 23.3.0
@@ -5109,8 +5082,6 @@ snapshots:
       source-map-js: 1.2.1
 
   csstype@3.2.3: {}
-
-  culori@4.0.2: {}
 
   cz-conventional-changelog@3.3.0(@types/node@26.2.0)(typescript@7.0.2):
     dependencies:
