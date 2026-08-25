@@ -18,6 +18,33 @@ function file(relativePath: string, json: unknown): LoadedTokenFile {
 	return { relativePath, document: result.value };
 }
 
+test("collectOccurrences reports a token's effectiveType inherited from an ancestor group's declared $type (no regression migrating off resolveEffectiveType)", () => {
+	const files = [
+		file("base.json", {
+			spacing: {
+				$type: "dimension",
+				small: { $value: { value: 4, unit: "px" } },
+			},
+		}),
+	];
+	const index = buildReferenceIndex(files);
+	const defs = index.definitions.get("spacing.small");
+	assert.equal(defs?.[0]?.effectiveType, "dimension");
+});
+
+test("collectOccurrences reports a shape-inferred effectiveType for an undeclared-type token", () => {
+	const files = [
+		file("base.json", {
+			color: {
+				swatch: { $value: { colorSpace: "srgb", components: [0, 0, 0] } },
+			},
+		}),
+	];
+	const index = buildReferenceIndex(files);
+	const defs = index.definitions.get("color.swatch");
+	assert.equal(defs?.[0]?.effectiveType, "color");
+});
+
 test("resolves a cross-file reference to its literal value", () => {
 	const files = [
 		file("base.json", {

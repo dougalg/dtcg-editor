@@ -8,7 +8,6 @@ import type {
 import {
 	collectReferences,
 	findNode,
-	resolveEffectiveType,
 	resolveReference,
 } from "@dtcg-editor/token-core";
 import type { LoadedTokenFile } from "./load-directory.ts";
@@ -75,26 +74,25 @@ function collectOccurrences(
 	const tokens: RawOccurrence[] = [];
 	const groupPaths = new Set<string>();
 
-	function walk(node: DtcgNode, ancestors: readonly GroupNode[]): void {
+	function walk(node: DtcgNode): void {
 		if (node.kind === "token") {
 			tokens.push({
 				path: node.path,
 				file,
 				value: node.value,
-				effectiveType: resolveEffectiveType(node, ancestors),
+				effectiveType: node.effectiveType,
 			});
 			return;
 		}
 		if (node.path.length > 0) {
 			groupPaths.add(pathKey(node.path));
 		}
-		const childAncestors = [...ancestors, node];
 		for (const child of node.children.values()) {
-			walk(child, childAncestors);
+			walk(child);
 		}
 	}
 
-	walk(root, []);
+	walk(root);
 	return { tokens, groupPaths };
 }
 
@@ -296,10 +294,7 @@ function lookupForMode(
 				if (located !== undefined) {
 					return {
 						node: located.node,
-						effectiveType: resolveEffectiveType(
-							located.node,
-							located.ancestors,
-						),
+						effectiveType: located.node.effectiveType,
 						file: chosen.file,
 						mode: chosen.mode,
 					};

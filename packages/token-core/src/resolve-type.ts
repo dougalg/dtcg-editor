@@ -5,6 +5,15 @@ import type { DtcgNode, GroupNode } from "./types.ts";
  * otherwise the nearest ancestor group's declared type, otherwise
  * `undefined`. `ancestors` must be ordered root-first, ending with the
  * node's immediate parent.
+ *
+ * An internal primitive now — `resolve-effective.ts`'s single upfront
+ * `resolveEffectiveDocument` pass is what materializes every node's
+ * `effectiveType`/`effectiveDeprecated` once (FR-004), calling this
+ * function as its own ancestor-walk building block. External code holding
+ * a `DtcgNode` should read `node.effectiveType` directly rather than
+ * calling this itself — kept exported (not deprecated or removed) since
+ * `findNode`, which shares this module, remains directly used elsewhere
+ * for path lookup, a concern independent of effective-type resolution.
  */
 export function resolveEffectiveType(
 	node: DtcgNode,
