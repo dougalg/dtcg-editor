@@ -22,6 +22,7 @@ import styles from "../TokenBlock/TokenBlock.module.css";
 import { TokenBlock } from "../TokenBlock/TokenBlock.tsx";
 import { TokenReferenceValue } from "../TokenReferenceValue/TokenReferenceValue.tsx";
 import type { TreeNodeProps } from "../TreeNode/TreeNode.tsx";
+import { TypeSuggestion } from "../TypeSuggestion/TypeSuggestion.tsx";
 
 function formatValue(value: unknown): string {
 	return typeof value === "string" ? value : JSON.stringify(value);
@@ -47,6 +48,15 @@ type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
  * 4. Recognized type, invalid value, package `ValidationErrorHandler` -> render it.
  * 5. Recognized type, invalid value, no package handler -> `DefaultValidationErrorHandler` (with `error`).
  * 6. No usable type -> `DefaultValidationErrorHandler` (without `error`).
+ *
+ * A token whose type was shape-inferred rather than declared
+ * (`node.inferredType`) already has a usable `effectiveType` by
+ * construction (`resolveEffectiveDocument` only sets `inferredType` to a
+ * value `classifyValue` actually matched, which is always a recognized
+ * `DtcgTokenType`) — it flows through path 2/3 exactly like an
+ * explicitly-typed token (FR-006), with a `TypeSuggestion` prompt layered
+ * on top offering to make the inferred type an explicit declaration
+ * (FR-003b).
  */
 export function TreeTokenNode({
 	node,
@@ -250,6 +260,16 @@ export function TreeTokenNode({
 		onStageEdit(node.path, { description: event.target.value });
 	}
 
+	// Present only when this token's type came from shape inference, not a
+	// declaration (node.inferredType, per plain-node.ts) — accepting it is
+	// the only thing that ever writes an inferred type into the document
+	// (FR-003b), and only via this same ordinary staged-edit mechanism used
+	// for every other field. Hidden once already staged this session so the
+	// suggestion doesn't linger after the user has acted on it.
+	function handleAcceptInferredType(type: string) {
+		onStageEdit(node.path, { type });
+	}
+
 	const ResolvedEditor = resolvedEditor as
 		| ((props: TokenTypeEditorProps<unknown>) => ReactElement)
 		| undefined;
@@ -267,6 +287,12 @@ export function TreeTokenNode({
 			isNonStandardType={false}
 			headerExtra={referencedByBadge}
 		>
+			{node.inferredType !== undefined && pending?.type === undefined && (
+				<TypeSuggestion
+					inferredType={node.inferredType}
+					onAccept={handleAcceptInferredType}
+				/>
+			)}
 			{ResolvedEditor !== undefined ? (
 				<ResolvedEditor
 					value={currentRawValue}

@@ -1,0 +1,5 @@
+.suggestion {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}

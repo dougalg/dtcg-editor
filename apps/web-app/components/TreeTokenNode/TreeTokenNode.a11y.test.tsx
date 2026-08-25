@@ -108,6 +108,26 @@ test("has no WCAG 2.2 AA violations for a token holding an unresolvable referenc
 	await expectNoViolations(container);
 });
 
+test("has no WCAG 2.2 AA violations for a token whose type was shape-inferred (FR-003b)", async () => {
+	const { container } = render(
+		<TokenTree
+			node={tree({
+				kind: "token",
+				name: "swatch",
+				path: ["swatch"],
+				value: { colorSpace: "srgb", components: [0, 0, 0] },
+				declaredType: undefined,
+				effectiveType: "color",
+				inferredType: "color",
+				description: undefined,
+				deprecated: undefined,
+			})}
+			relativePath="a.json"
+		/>,
+	);
+	await expectNoViolations(container);
+});
+
 test("has no WCAG 2.2 AA violations for the non-reference path (regression check)", async () => {
 	const { container } = render(
 		<TokenTree

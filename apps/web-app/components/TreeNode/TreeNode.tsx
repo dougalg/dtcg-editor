@@ -9,7 +9,7 @@ export interface FieldErrors {
 }
 
 export type EditablePatch = Partial<
-	Pick<ClientEdit, "name" | "value" | "description">
+	Pick<ClientEdit, "name" | "value" | "description" | "type">
 >;
 
 export interface TreeNodeProps<TNode extends PlainDtcgNode = PlainDtcgNode> {

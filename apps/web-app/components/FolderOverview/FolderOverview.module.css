@@ -62,6 +62,10 @@
 }
 
 .empty {
+	/* No opacity dimmer: --dtcg-ed-color-neutral-text-quiet is already the
+	 * intended "quiet" contrast level — an additional 0.7 opacity dropped
+	 * this below WCAG 2.2 AA's 4.5:1 text contrast minimum (measured 3.64:1),
+	 * a pre-existing violation this app's a11y test suite couldn't catch
+	 * until its test setup actually loaded the real design tokens. */
 	color: var(--dtcg-ed-color-neutral-text-quiet);
-	opacity: 0.7;
 }

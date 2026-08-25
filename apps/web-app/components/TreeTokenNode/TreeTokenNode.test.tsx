@@ -1,8 +1,36 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import type { ResolvedReference } from "../../lib/tokens/reference-index.ts";
 import { TokenTree } from "../TokenTree/TokenTree.tsx";
+
+function inferredTypeTree(
+	inferredType: string | undefined,
+	value: unknown,
+): PlainDtcgNode {
+	return {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [
+			{
+				kind: "token",
+				name: "swatch",
+				path: ["swatch"],
+				value,
+				declaredType: undefined,
+				effectiveType: inferredType,
+				inferredType,
+				description: undefined,
+				deprecated: undefined,
+			},
+		],
+	};
+}
 
 afterEach(() => {
 	document.body.innerHTML = "";
@@ -172,4 +200,45 @@ test("a non-reference invalid color value is still reported as invalid (no regre
 		/>,
 	);
 	expect(screen.getByRole("alert")).toBeTruthy();
+});
+
+test("an inferred-but-undeclared-type token renders editable with the suggested type visible (FR-003b)", () => {
+	render(
+		<TokenTree
+			node={inferredTypeTree("color", {
+				colorSpace: "srgb",
+				components: [0, 0, 0],
+			})}
+			relativePath="a.json"
+		/>,
+	);
+	expect(screen.getByText(/Suggested type: color/)).toBeTruthy();
+	expect(screen.getByRole("button", { name: "Use this type" })).toBeTruthy();
+	// No read-only "unsupported" state — the token is on the normal editable path.
+	expect(screen.queryByText(/Only standard DTCG token types/)).toBeNull();
+});
+
+test("accepting the suggestion stages a type edit and hides the suggestion", () => {
+	render(
+		<TokenTree
+			node={inferredTypeTree("color", {
+				colorSpace: "srgb",
+				components: [0, 0, 0],
+			})}
+			relativePath="a.json"
+		/>,
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Use this type" }));
+	expect(screen.queryByText(/Suggested type: color/)).toBeNull();
+});
+
+test("a token with no inference available still renders the existing read-only untyped path unchanged", () => {
+	render(
+		<TokenTree
+			node={inferredTypeTree(undefined, { nonsense: true })}
+			relativePath="a.json"
+		/>,
+	);
+	expect(screen.queryByText(/Suggested type/)).toBeNull();
+	expect(screen.queryByRole("button", { name: "Use this type" })).toBeNull();
 });
