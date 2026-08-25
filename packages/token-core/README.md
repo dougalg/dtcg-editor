@@ -39,9 +39,16 @@ Everything below is re-exported from `index.ts`.
 **Editing**
 - `applyTokenEdits(document: TokenDocument, edits: readonly TokenEdit[]): Result<TokenDocument, TokenEditError>` — pure: never mutates `document` or any node in it, always returns a new tree. Despite the name, it edits groups too (currently just renaming) as well as tokens, both through the same `TokenEdit` batch — `TokenEdit`, `TokenEditError`.
 
-**References**
-- `parseReference(value: unknown): TokenReference | undefined`, `collectReferences(value: unknown): readonly TokenReference[]`, `TokenReference` — alias/reference-string parsing.
-- `resolveReference(reference: TokenReference, lookup: ReferenceLookup): ResolutionChain`, `ReferenceLookup`, `ResolutionChain`, `ChainStep`, `ChainOutcome`, `LookupHit` — alias-chain resolution against a caller-supplied lookup (this package has no document-set/multi-file concept of its own).
+**References** — a *reference* is a token value pointing at another token's path via DTCG's `{a.b.c}` alias syntax; this package can detect and parse that syntax, and walk a chain of them, but has no concept of a multi-file document set on its own — the caller supplies that via `ReferenceLookup`.
+- `TokenReference: { targetPath: readonly string[]; at: readonly (string | number)[]; raw: string }` — one parsed reference: `targetPath` is the dot-separated path it points to, `at` is where inside the token's `$value` it was found (empty when the reference *is* the whole value), `raw` is the original text.
+- `parseReference(value: unknown): TokenReference | undefined` — detects the whole-string `{...}` form; pure and total, `undefined` just means "not a reference" (e.g. plain text, or a string merely containing braces), never a thrown error.
+- `collectReferences(value: unknown): readonly TokenReference[]` — walks a `$value` of any shape (object, array, nested arbitrarily deep) and returns every reference found inside it, e.g. every color reference nested in a `shadow` token's layers.
+- `ReferenceLookup: (path: readonly string[]) => LookupHit | undefined` — a caller-supplied function resolving one path to the node found there (across whatever file/document set the caller manages); `undefined` means "no node at this path."
+- `LookupHit: { node: DtcgNode; effectiveType: string | undefined; file: string; mode: string | undefined }` — what a `ReferenceLookup` returns for a resolved path; `file`/`mode` are opaque to this package, only carried through into the chain for the caller's own display/bookkeeping.
+- `resolveReference(reference: TokenReference, lookup: ReferenceLookup): ResolutionChain` — follows `reference` through every further reference it points to (via repeated `lookup` calls) until it reaches a token with a non-reference value, per the DTCG spec's "follow each reference until an explicit value" requirement. Pure and total: no depth limit, but a `circular` outcome (instead of an infinite loop) if a path is revisited.
+- `ResolutionChain: { steps: readonly ChainStep[]; outcome: ChainOutcome }` — the full result: every token traversed (`steps`, in order — not just the final one, so a UI can show the whole chain), plus how it ended (`outcome`).
+- `ChainStep: { path: readonly string[]; file: string; mode: string | undefined }` — one token traversed while following the chain.
+- `ChainOutcome` — a discriminated union of how a chain ended: `{ kind: "resolved", value, type }` (reached a literal value), `{ kind: "unresolved", missingPath }` (a target in the chain doesn't exist), `{ kind: "group-target", groupPath }` (a reference points at a group, not a token), or `{ kind: "circular", cyclePath }` (a path was revisited).
 
 **Per-type value schemas** (only types with a real schema today — see Type Coverage below)
 - `color.ts`: `ColorValueSchema`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `COLOR_SPACES`, and the `ColorValue`/`ColorObjectValue`/`ColorSpace`/`ColorComponent` types.
