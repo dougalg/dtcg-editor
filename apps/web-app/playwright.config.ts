@@ -14,6 +14,12 @@ const E2E_PORT = 3100;
 // tokens-page.spec.ts see, since both assert on that directory's file
 // listing. A second server keeps the two fixture sets from interfering.
 const TOKEN_REFERENCES_PORT = 3101;
+// A third, separate server+port for the inferred-type fixture (spec
+// 008-token-core-coherence): its one token has no `$type` anywhere in its
+// chain by design, which would change what home.spec.ts/tokens-page.spec.ts
+// see if dropped into the default fixtures directory — same rationale as
+// the token-references server above.
+const INFERRED_TYPE_PORT = 3102;
 
 export default defineConfig({
 	testDir: "./e2e",
@@ -28,12 +34,12 @@ export default defineConfig({
 		// windows. Opt into a visible browser with `pnpm test:a11y:headed`.
 		headless: true,
 	},
-	// Two projects, scoped by spec filename, so each hits its own server —
+	// Three projects, scoped by spec filename, so each hits its own server —
 	// no other change to how existing specs run (no device emulation added).
 	projects: [
 		{
 			name: "default",
-			testIgnore: "token-references.spec.ts",
+			testIgnore: ["token-references.spec.ts", "inferred-type.spec.ts"],
 			use: { baseURL: `http://localhost:${E2E_PORT}` },
 		},
 		{
@@ -45,6 +51,11 @@ export default defineConfig({
 			// tests within it.
 			testMatch: ["token-references.spec.ts", "keyboard-navigation.spec.ts"],
 			use: { baseURL: `http://localhost:${TOKEN_REFERENCES_PORT}` },
+		},
+		{
+			name: "inferred-type",
+			testMatch: "inferred-type.spec.ts",
+			use: { baseURL: `http://localhost:${INFERRED_TYPE_PORT}` },
 		},
 	],
 	webServer: [
@@ -69,6 +80,16 @@ export default defineConfig({
 			env: {
 				DTCG_EDITOR_TOKENS_DIR: "./e2e/fixtures/token-references",
 				PORT: String(TOKEN_REFERENCES_PORT),
+			},
+		},
+		{
+			command: "pnpm run start",
+			url: `http://localhost:${INFERRED_TYPE_PORT}`,
+			reuseExistingServer: !process.env.CI,
+			timeout: 120_000,
+			env: {
+				DTCG_EDITOR_TOKENS_DIR: "./e2e/fixtures/inferred-type-tokens",
+				PORT: String(INFERRED_TYPE_PORT),
 			},
 		},
 	],

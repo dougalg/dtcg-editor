@@ -1,0 +1,9 @@
+{
+	"swatch": {
+		"$description": "No $type anywhere in this token's chain — its value shape unambiguously matches only the color type.",
+		"$value": {
+			"colorSpace": "srgb",
+			"components": [0, 0, 0]
+		}
+	}
+}
