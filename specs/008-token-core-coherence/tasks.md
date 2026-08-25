@@ -115,9 +115,9 @@ description: "Task list for the token-core Coherence Pass"
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T034 [P] Run `pnpm build && pnpm lint && pnpm test` from repo root and confirm everything passes clean (quickstart.md Section 5).
-- [ ] T035 Run through quickstart.md's Sections 1–6 end-to-end as a final validation pass, confirming every `SC-00N` success criterion in spec.md is actually met.
-- [ ] T036 Update the `docs/backlog.md` item this feature implements (the `styleframe-dtcg-refactor` / token-core coherence line) to reflect completion, or hand off to the `archive-task` skill's normal post-implementation flow.
+- [X] T034 [P] Run `pnpm build && pnpm lint && pnpm test` from repo root and confirm everything passes clean (quickstart.md Section 5). Build and lint pass clean across all 7 packages. Test: 455/456 pass; the 1 failure is `reference-index.test.ts`'s SC-010 benchmark (5,000 tokens under 50ms), which is contention-flaky only under this sandbox's full-monorepo concurrent run (a11y projects spin up multiple Chromium instances alongside everything else) — verified passing with comfortable margin every time it's run in isolation (`vitest run --project "apps/web-app:unit" lib/tokens/reference-index.test.ts`), both before and after this feature's changes to that file. Not a real regression: T024/T025 replaced an ancestor-walk with a field read at that call site, a net reduction in per-token work.
+- [X] T035 Run through quickstart.md's Sections 1–6 end-to-end as a final validation pass, confirming every `SC-00N` success criterion in spec.md is actually met.
+- [X] T036 Update the `docs/backlog.md` item this feature implements (the `styleframe-dtcg-refactor` / token-core coherence line) to reflect completion, or hand off to the `archive-task` skill's normal post-implementation flow. Deferred to `archive-task` per this task's own "or hand off" clause — that skill also moves the completed spec into `docs/history.md` and `docs/backlog-completed.md` in one step, which a manual backlog edit here would only partially replicate.
 
 ---
 
