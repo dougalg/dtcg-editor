@@ -23,25 +23,25 @@ A token document flows through four stages, in order:
 Everything below is re-exported from `index.ts`.
 
 **Parsing & serialization**
-- `parseTokenFile(raw): Result<TokenDocument, TokenParseError>` — the sanctioned entry point from raw file text to a typed, fully-resolved document.
-- `serializeTokenFile(document): Result<string, TokenSerializeError>` — the inverse.
+- `parseTokenFile(raw: unknown): Result<TokenDocument, TokenParseError>` — the sanctioned entry point from raw file text to a typed, fully-resolved document.
+- `serializeTokenFile(document: TokenDocument): Result<string, TokenSerializeError>` — the inverse.
 - `TokenParseError`, `TokenSerializeError` — the error types each can return.
 
 **Types & structure**
 - `TokenDocument`, `DtcgNode`, `TokenNode`, `GroupNode` — the parsed document model.
 - `DTCG_TOKEN_TYPES`, `DtcgTokenType`, `isDtcgTokenType` — the complete set of DTCG 2025.10 `$type` values this package targets.
 
-**Effective-field resolution**
-- `resolveEffectiveDocument(document): TokenDocument` — the single upfront resolution pass; called internally by `parseTokenFile`/`applyTokenEdits`, exported for direct/test use.
-- `classifyValue(value): DtcgTokenType | undefined` — shape-based type inference, given a value and no declared type in its chain.
-- `resolveEffectiveType(node, ancestors)`, `findNode(root, path)` — lower-level primitives (`resolve-type.ts`) most callers shouldn't need directly; see Pipeline step 2.
+**Effective-field resolution** — computing each node's *effective* `$type`/`$deprecated` (declared-or-inherited-or-inferred, per Pipeline step 2 above) so downstream code never has to re-walk ancestors itself:
+- `resolveEffectiveDocument(document: TokenDocument): TokenDocument` — the single upfront resolution pass; called internally by `parseTokenFile`/`applyTokenEdits`, exported for direct/test use.
+- `classifyValue(value: unknown): DtcgTokenType | undefined` — shape-based type inference, given a value and no declared type in its chain.
+- `resolveEffectiveType(node: DtcgNode, ancestors: readonly GroupNode[]): string | undefined`, `findNode(root: GroupNode, path: readonly string[]): { node: DtcgNode; ancestors: readonly GroupNode[] } | undefined` — lower-level primitives (`resolve-type.ts`) most callers shouldn't need directly; see Pipeline step 2.
 
 **Editing**
-- `applyTokenEdits(document, edits): Result<TokenDocument, TokenEditError>`, `TokenEdit`, `TokenEditError`.
+- `applyTokenEdits(document: TokenDocument, edits: readonly TokenEdit[]): Result<TokenDocument, TokenEditError>` — pure: never mutates `document` or any node in it, always returns a new tree. Despite the name, it edits groups too (currently just renaming) as well as tokens, both through the same `TokenEdit` batch — `TokenEdit`, `TokenEditError`.
 
 **References**
-- `parseReference(value)`, `collectReferences(node)`, `TokenReference` — alias/reference-string parsing.
-- `resolveReference(reference, lookup)`, `ReferenceLookup`, `ResolutionChain`, `ChainStep`, `ChainOutcome`, `LookupHit` — alias-chain resolution against a caller-supplied lookup (this package has no document-set/multi-file concept of its own).
+- `parseReference(value: unknown): TokenReference | undefined`, `collectReferences(value: unknown): readonly TokenReference[]`, `TokenReference` — alias/reference-string parsing.
+- `resolveReference(reference: TokenReference, lookup: ReferenceLookup): ResolutionChain`, `ReferenceLookup`, `ResolutionChain`, `ChainStep`, `ChainOutcome`, `LookupHit` — alias-chain resolution against a caller-supplied lookup (this package has no document-set/multi-file concept of its own).
 
 **Per-type value schemas** (only types with a real schema today — see Type Coverage below)
 - `color.ts`: `ColorValueSchema`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `COLOR_SPACES`, and the `ColorValue`/`ColorObjectValue`/`ColorSpace`/`ColorComponent` types.
