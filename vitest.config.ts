@@ -64,6 +64,11 @@ function a11yProject(pkgRoot: string) {
 			browser: {
 				enabled: true,
 				provider: playwright(),
+				// Vitest's browser-mode headless default is CI-only (false
+				// locally), so this pins it explicitly — otherwise every local
+				// `pnpm test:vitest` pops a real Chromium window. Override with
+				// `pnpm test:vitest:headed`.
+				headless: true,
 				instances: [{ browser: "chromium" }],
 			},
 		},

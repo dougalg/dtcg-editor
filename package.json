@@ -16,6 +16,7 @@
 		"test:commits": "node --test commit-conventions.test.mjs",
 		"test:format-staged": "node --test format-staged.test.mjs",
 		"test:vitest": "pnpm --filter @dtcg-editor/web-app generate:icons && vitest run",
+		"test:vitest:headed": "pnpm --filter @dtcg-editor/web-app generate:icons && vitest run --browser.headless=false",
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"commit": "cz",
