@@ -10,6 +10,7 @@
 		"lint": "biome lint .",
 		"lint:write": "biome lint --write .",
 		"test": "pnpm test:a11y",
+		"test:headed": "pnpm test:a11y:headed",
 		"test:a11y": "playwright test",
 		"test:a11y:headed": "playwright test --headed",
 		"test:a11y:ui": "playwright test --ui",

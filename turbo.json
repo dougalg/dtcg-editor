@@ -23,6 +23,13 @@
 				"//#test:vitest"
 			]
 		},
+		"test:headed": {
+			// Not cached: a headed run is for a human to watch, so it must
+			// actually execute (and reopen a browser window) every time
+			// rather than replaying a cached pass/fail result.
+			"cache": false,
+			"dependsOn": ["^build", "//#test:vitest:headed"]
+		},
 		"//#lint:root": {
 			"outputs": []
 		},
@@ -36,6 +43,11 @@
 			"outputs": []
 		},
 		"//#test:vitest": {
+			"dependsOn": ["^build"],
+			"outputs": []
+		},
+		"//#test:vitest:headed": {
+			"cache": false,
 			"dependsOn": ["^build"],
 			"outputs": []
 		}
