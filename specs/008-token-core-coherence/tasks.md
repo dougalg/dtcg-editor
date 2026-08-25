@@ -109,7 +109,7 @@ description: "Task list for the token-core Coherence Pass"
 
 **Independent Test**: Reviewing the change diff, every coherence fix outside Stories 1–3's explicit scope is small, localized, and traceable to a one-line rationale; anything larger is a new backlog item, not an in-place change (per spec.md).
 
-- [ ] T033 [US4] Review the diff produced by T002–T032 for any other naming/structural/duplicated-logic issue actually noticed while doing that work (per this repo's existing `token-core` conventions, not `@styleframe/dtcg`'s — spec.md Assumptions). For each one found: if small and low-risk (no public API break beyond what T002–T032 already made), fix it in the same change with a one-line rationale in the commit; if larger or riskier, add a new dated item to `docs/backlog.md` instead (FR-009). If nothing is found, this task closes with no diff — it is not a mandate to invent cleanup work.
+- [X] T033 [US4] Review the diff produced by T002–T032 for any other naming/structural/duplicated-logic issue actually noticed while doing that work (per this repo's existing `token-core` conventions, not `@styleframe/dtcg`'s — spec.md Assumptions). For each one found: if small and low-risk (no public API break beyond what T002–T032 already made), fix it in the same change with a one-line rationale in the commit; if larger or riskier, add a new dated item to `docs/backlog.md` instead (FR-009). If nothing is found, this task closes with no diff — it is not a mandate to invent cleanup work.
 
 ---
 

@@ -1,28 +1,27 @@
 import { classifyValue } from "./classify-value.ts";
-import { resolveEffectiveType } from "./resolve-type.ts";
+import {
+	resolveByAncestorPrecedence,
+	resolveEffectiveType,
+} from "./resolve-type.ts";
 import type { DtcgNode, GroupNode, TokenDocument } from "./types.ts";
 
 /**
  * Resolves a node's effective `$deprecated`: its own declared value if
  * present, otherwise the nearest ancestor's, otherwise `undefined` — the
  * same ancestor-precedence shape `resolveEffectiveType` already implements
- * for `$type`, generalized to `deprecated` (not previously implemented
- * anywhere in this codebase; see research.md Task 3).
+ * for `$type` (shared via `resolveByAncestorPrecedence`), generalized to
+ * `deprecated` (not previously implemented anywhere in this codebase; see
+ * research.md Task 3).
  */
 function resolveEffectiveDeprecated(
 	node: DtcgNode,
 	ancestors: readonly GroupNode[],
 ): boolean | string | undefined {
-	if (node.deprecated !== undefined) {
-		return node.deprecated;
-	}
-	for (let i = ancestors.length - 1; i >= 0; i--) {
-		const ancestor = ancestors[i];
-		if (ancestor !== undefined && ancestor.deprecated !== undefined) {
-			return ancestor.deprecated;
-		}
-	}
-	return undefined;
+	return resolveByAncestorPrecedence(
+		node.deprecated,
+		ancestors,
+		(ancestor) => ancestor.deprecated,
+	);
 }
 
 function resolveNode(

@@ -1,6 +1,35 @@
 import type { DtcgNode, GroupNode } from "./types.ts";
 
 /**
+ * The shared ancestor-precedence shape behind both `resolveEffectiveType`
+ * (over `declaredType`) and `resolve-effective.ts`'s deprecation resolution
+ * (over `deprecated`): a node's own value if present, otherwise the nearest
+ * ancestor's, otherwise `undefined`. `ancestors` must be ordered root-first,
+ * ending with the node's immediate parent. Not exported from `index.ts` —
+ * an internal building block, not part of this package's public API.
+ */
+export function resolveByAncestorPrecedence<T>(
+	ownValue: T | undefined,
+	ancestors: readonly GroupNode[],
+	selectAncestorValue: (ancestor: GroupNode) => T | undefined,
+): T | undefined {
+	if (ownValue !== undefined) {
+		return ownValue;
+	}
+	for (let i = ancestors.length - 1; i >= 0; i--) {
+		const ancestor = ancestors[i];
+		if (ancestor === undefined) {
+			continue;
+		}
+		const ancestorValue = selectAncestorValue(ancestor);
+		if (ancestorValue !== undefined) {
+			return ancestorValue;
+		}
+	}
+	return undefined;
+}
+
+/**
  * Resolves a node's effective `$type`: its own declared type if present,
  * otherwise the nearest ancestor group's declared type, otherwise
  * `undefined`. `ancestors` must be ordered root-first, ending with the
@@ -19,16 +48,11 @@ export function resolveEffectiveType(
 	node: DtcgNode,
 	ancestors: readonly GroupNode[],
 ): string | undefined {
-	if (node.declaredType !== undefined) {
-		return node.declaredType;
-	}
-	for (let i = ancestors.length - 1; i >= 0; i--) {
-		const ancestor = ancestors[i];
-		if (ancestor !== undefined && ancestor.declaredType !== undefined) {
-			return ancestor.declaredType;
-		}
-	}
-	return undefined;
+	return resolveByAncestorPrecedence(
+		node.declaredType,
+		ancestors,
+		(ancestor) => ancestor.declaredType,
+	);
 }
 
 /**
