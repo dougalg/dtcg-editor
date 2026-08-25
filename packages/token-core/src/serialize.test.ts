@@ -64,6 +64,35 @@ test("round-trips unrecognized $-prefixed fields, including $extensions itself (
 	assert.deepEqual(second, first);
 });
 
+test("an inferred (never-accepted) type is never serialized — $type stays absent (Principle IX, SC-007)", () => {
+	const raw = JSON.stringify({
+		color: {
+			swatch: { $value: { colorSpace: "srgb", components: [0, 0, 0] } },
+		},
+	});
+
+	const parsed = parseTokenFile(raw);
+	if (!parsed.isOk()) {
+		assert.fail("expected parseTokenFile to succeed");
+	}
+	const colorGroup = parsed.value.root.children.get("color");
+	assert.ok(colorGroup !== undefined && colorGroup.kind === "group");
+	const swatch = colorGroup.children.get("swatch");
+	assert.ok(swatch !== undefined && swatch.kind === "token");
+	// Confirms this fixture actually exercises inference, not a no-op.
+	assert.equal(swatch.inferredType, "color");
+	assert.equal(swatch.declaredType, undefined);
+
+	const serialized = serializeTokenFile(parsed.value);
+	if (!serialized.isOk()) {
+		assert.fail("expected serializeTokenFile to succeed");
+	}
+	assert.doesNotMatch(serialized.value, /\$type/);
+
+	const { first, second } = roundTrip(raw);
+	assert.deepEqual(second, first);
+});
+
 test("a reference $value survives parse -> serialize byte-identical (Principle IX)", () => {
 	const raw = JSON.stringify({
 		color: {

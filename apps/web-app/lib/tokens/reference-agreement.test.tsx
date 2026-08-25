@@ -68,6 +68,7 @@ function colorTree(value: unknown): PlainDtcgNode {
 				value,
 				declaredType: "color",
 				effectiveType: "color",
+				inferredType: undefined,
 				description: undefined,
 				deprecated: undefined,
 			},

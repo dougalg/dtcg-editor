@@ -6,7 +6,6 @@ import {
 	findNode,
 	isDtcgTokenType,
 	parseReference,
-	resolveEffectiveType,
 	TokenParseError,
 } from "@dtcg-editor/token-core";
 import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
@@ -169,7 +168,11 @@ export async function patchTokenFile(
 			});
 		}
 		if (located.node.kind === "group") {
-			if (edit.value !== undefined || edit.description !== undefined) {
+			if (
+				edit.value !== undefined ||
+				edit.description !== undefined ||
+				edit.type !== undefined
+			) {
 				const message = `"${edit.path.join(".")}" is a group — only "name" can be edited`;
 				return errorResponse(400, message, {
 					kind: "validation",
@@ -182,9 +185,17 @@ export async function patchTokenFile(
 			continue;
 		}
 
-		const effectiveType = resolveEffectiveType(located.node, located.ancestors);
+		const effectiveType = located.node.effectiveType;
 		if (effectiveType === undefined || !isDtcgTokenType(effectiveType)) {
 			const message = `Only standard DTCG token types can be edited, "${effectiveType ?? "untyped"}" cannot`;
+			return errorResponse(400, message, {
+				kind: "validation",
+				issues: [message],
+			});
+		}
+
+		if (edit.type !== undefined && !isDtcgTokenType(edit.type)) {
+			const message = `"${edit.type}" is not a recognized DTCG token type`;
 			return errorResponse(400, message, {
 				kind: "validation",
 				issues: [message],
@@ -241,6 +252,7 @@ export async function patchTokenFile(
 			...(edit.description !== undefined
 				? { description: edit.description }
 				: {}),
+			...(edit.type !== undefined ? { type: edit.type } : {}),
 		});
 	}
 

@@ -191,6 +191,42 @@ test("keeps same-depth edits in their original relative order after the depth so
 	assert.ok(spacing.children.has("large"));
 });
 
+test("setting type on a token updates declaredType and the re-resolved effectiveType/inferredType (FR-003a)", () => {
+	const raw = JSON.stringify({
+		color: {
+			swatch: { $value: { colorSpace: "srgb", components: [0, 0, 0] } },
+		},
+	});
+	const parsed = parseTokenFile(raw);
+	if (!parsed.isOk()) {
+		assert.fail("expected parseTokenFile to succeed");
+	}
+	const before = parsed.value.root.children.get("color") as GroupNode;
+	const swatchBefore = before.children.get("swatch") as TokenNode;
+	assert.equal(swatchBefore.declaredType, undefined);
+	assert.equal(swatchBefore.inferredType, "color");
+
+	const result = applyTokenEdits(parsed.value, [
+		{ path: ["color", "swatch"], type: "color" },
+	]);
+	if (!result.isOk()) {
+		assert.fail("expected applyTokenEdits to succeed");
+	}
+	const after = result.value.root.children.get("color") as GroupNode;
+	const swatchAfter = after.children.get("swatch") as TokenNode;
+	assert.equal(swatchAfter.declaredType, "color");
+	assert.equal(swatchAfter.effectiveType, "color");
+	assert.equal(swatchAfter.inferredType, undefined);
+});
+
+test("setting type on a group returns a TokenEditError", () => {
+	const result = applyTokenEdits(document(), [
+		{ path: ["spacing"], type: "dimension" },
+	]);
+	assert.ok(result.isErr());
+	assert.ok(result.error instanceof TokenEditError);
+});
+
 test("re-resolves effectiveType/effectiveDeprecated after an edit", () => {
 	const result = applyTokenEdits(document(), [
 		{ path: ["spacing"], name: "gaps" },

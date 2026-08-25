@@ -6,6 +6,7 @@ export interface ClientEdit {
 	readonly name?: string;
 	readonly value?: unknown;
 	readonly description?: string;
+	readonly type?: string;
 }
 
 function pathKey(path: readonly string[]): string {
@@ -102,6 +103,7 @@ function applyEditToNode(node: PlainDtcgNode, edit: ClientEdit): PlainDtcgNode {
 			path: [...node.path.slice(0, -1), newName],
 			value: edit.value ?? node.value,
 			description: edit.description ?? node.description,
+			declaredType: edit.type ?? node.declaredType,
 		};
 	}
 

@@ -68,6 +68,7 @@ function tree(): PlainDtcgNode {
 				value: "#ff0000",
 				declaredType: typeWithoutBuiltIn,
 				effectiveType: typeWithoutBuiltIn,
+				inferredType: undefined,
 				description: undefined,
 				deprecated: undefined,
 			},

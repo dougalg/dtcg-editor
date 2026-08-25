@@ -21,6 +21,7 @@ function tokenNode(
 		value,
 		declaredType: "dimension",
 		effectiveType: "dimension",
+		inferredType: undefined,
 		description: undefined,
 		deprecated: undefined,
 	};

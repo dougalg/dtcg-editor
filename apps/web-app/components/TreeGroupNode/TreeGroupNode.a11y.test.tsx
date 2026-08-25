@@ -38,6 +38,7 @@ function groupTree(): PlainDtcgNode {
 						value: { value: 4, unit: "px" },
 						declaredType: "dimension",
 						effectiveType: "dimension",
+						inferredType: undefined,
 						description: undefined,
 						deprecated: undefined,
 					},

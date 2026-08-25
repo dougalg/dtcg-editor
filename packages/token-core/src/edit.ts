@@ -21,13 +21,18 @@ export class TokenEditError extends Error {
  * on a sibling collision). `value`/`description`, if given, replace those
  * fields as-is — this module has no concept of what a "valid" value is for
  * any particular token type; that validation happens before an edit reaches
- * here.
+ * here. `type`, if given, sets the token's declared `$type` the same way —
+ * this module has no concept of what a "recognized" DTCG type is either;
+ * that check (`isDtcgTokenType`) also happens before an edit reaches here.
+ * `type` applies to a token only, not a group (rejected the same way
+ * `value`/`description` already are for a group edit).
  */
 export interface TokenEdit {
 	readonly path: readonly string[];
 	readonly name?: string;
 	readonly value?: unknown;
 	readonly description?: string;
+	readonly type?: string;
 }
 
 function describePath(path: readonly string[]): string {
@@ -165,10 +170,14 @@ function applyOneEdit(
 	const newName = edit.name ?? currentName;
 
 	if (located.node.kind === "group") {
-		if (edit.value !== undefined || edit.description !== undefined) {
+		if (
+			edit.value !== undefined ||
+			edit.description !== undefined ||
+			edit.type !== undefined
+		) {
 			return err(
 				new TokenEditError(
-					`Cannot set value/description on a group ("${describePath(edit.path)}")`,
+					`Cannot set value/description/type on a group ("${describePath(edit.path)}")`,
 					edit.path,
 				),
 			);
@@ -222,6 +231,7 @@ function applyOneEdit(
 		path: [...located.node.path.slice(0, -1), newName],
 		value: edit.value ?? located.node.value,
 		description: edit.description ?? located.node.description,
+		declaredType: edit.type ?? located.node.declaredType,
 	};
 
 	const newRoot = rebuildAncestorChain(

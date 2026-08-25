@@ -1,5 +1,4 @@
-import type { DtcgNode, GroupNode } from "@dtcg-editor/token-core";
-import { resolveEffectiveType } from "@dtcg-editor/token-core";
+import type { DtcgNode } from "@dtcg-editor/token-core";
 import type {
 	ReferencingToken,
 	ResolvedReference,
@@ -13,15 +12,15 @@ function pathKey(path: readonly string[]): string {
 /**
  * JSON/React-prop-friendly mirror of `DtcgNode` — `token-core`'s tree uses
  * `Map` for a group's children, which neither `JSON.stringify` nor the
- * React Server/Client Component boundary can serialize directly. Also
- * precomputes each node's effective `$type` (own or inherited), since the
- * ancestor chain needed for that is only naturally available during this
- * same tree walk. A token node additionally carries its resolved
- * references and referrer list — both genuinely *optional* (omitted, not
- * present-as-`undefined`) when it has none, unlike this type's other
- * fields, so that every existing hand-built `PlainDtcgNode` test fixture
- * across the codebase (which predates this feature) stays valid without
- * needing to learn about a concept it isn't testing.
+ * React Server/Client Component boundary can serialize directly. Carries
+ * `effectiveType`/`deprecated` straight from `token-core`'s materialized
+ * fields (`resolveEffectiveDocument`'s single upfront pass) rather than
+ * re-deriving them via an ancestor walk. A token node additionally carries
+ * its resolved references and referrer list — both genuinely *optional*
+ * (omitted, not present-as-`undefined`) when it has none, unlike this
+ * type's other fields, so that every existing hand-built `PlainDtcgNode`
+ * test fixture across the codebase (which predates this feature) stays
+ * valid without needing to learn about a concept it isn't testing.
  */
 export type PlainDtcgNode =
 	| {
@@ -31,6 +30,8 @@ export type PlainDtcgNode =
 			readonly value: unknown;
 			readonly declaredType: string | undefined;
 			readonly effectiveType: string | undefined;
+			/** Present only when no `$type` is declared anywhere in this token's chain and its value shape unambiguously suggests one — the editor's type-field pre-fill suggestion (FR-003b). `undefined` whenever `effectiveType` came from a declaration instead (nothing to suggest). */
+			readonly inferredType: string | undefined;
 			readonly description: string | undefined;
 			readonly deprecated: boolean | string | undefined;
 			readonly references?: readonly ResolvedReference[];
@@ -49,11 +50,8 @@ export type PlainDtcgNode =
 
 export function toPlainNode(
 	node: DtcgNode,
-	ancestors: readonly GroupNode[] = [],
 	referenceView?: TokenReferenceView,
 ): PlainDtcgNode {
-	const effectiveType = resolveEffectiveType(node, ancestors);
-
 	if (node.kind === "token") {
 		const key = pathKey(node.path);
 		const references = referenceView?.references.get(key);
@@ -64,9 +62,10 @@ export function toPlainNode(
 			path: node.path,
 			value: node.value,
 			declaredType: node.declaredType,
-			effectiveType,
+			effectiveType: node.effectiveType,
+			inferredType: node.inferredType,
 			description: node.description,
-			deprecated: node.deprecated,
+			deprecated: node.effectiveDeprecated,
 			// Spread rather than assigned directly: `exactOptionalPropertyTypes`
 			// treats an explicit `references: undefined` as different from the
 			// key being absent, and `references`/`referencedBy` are typed to
@@ -76,17 +75,16 @@ export function toPlainNode(
 		};
 	}
 
-	const childAncestors = [...ancestors, node];
 	return {
 		kind: "group",
 		name: node.name,
 		path: node.path,
 		declaredType: node.declaredType,
-		effectiveType,
+		effectiveType: node.effectiveType,
 		description: node.description,
-		deprecated: node.deprecated,
+		deprecated: node.effectiveDeprecated,
 		children: Array.from(node.children.values()).map((child) =>
-			toPlainNode(child, childAncestors, referenceView),
+			toPlainNode(child, referenceView),
 		),
 	};
 }

@@ -54,6 +54,7 @@ test("has no WCAG 2.2 AA violations dispatching to TreeTokenNode", async () => {
 		value: { colorSpace: "srgb", components: [0, 0, 1] },
 		declaredType: "color",
 		effectiveType: "color",
+		inferredType: undefined,
 		description: undefined,
 		deprecated: undefined,
 	});

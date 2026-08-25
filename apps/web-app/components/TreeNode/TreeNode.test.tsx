@@ -41,6 +41,7 @@ test("dispatches a token node to TreeTokenNode", () => {
 		value: { colorSpace: "srgb", components: [0, 0, 1] },
 		declaredType: "color",
 		effectiveType: "color",
+		inferredType: undefined,
 		description: undefined,
 		deprecated: undefined,
 	});
@@ -96,6 +97,7 @@ test("the reference path reaches TokenReferenceValue's resolved rendering", () =
 		value: "{color.brand.blue}",
 		declaredType: "color",
 		effectiveType: "color",
+		inferredType: undefined,
 		description: undefined,
 		deprecated: undefined,
 		references: [resolved],

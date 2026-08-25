@@ -56,7 +56,7 @@ export default async function TokenFilePage({ params }: PageProps) {
 		buildReferenceViewForFile(config.tokensDir, relativePath),
 	]);
 	if (result.isOk()) {
-		node = toPlainNode(result.value.root, [], referenceView);
+		node = toPlainNode(result.value.root, referenceView);
 	} else {
 		errorMessage = describePageError(result.error, relativePath);
 	}
