@@ -191,6 +191,67 @@ test("keeps same-depth edits in their original relative order after the depth so
 	assert.ok(spacing.children.has("large"));
 });
 
+test("re-resolves effectiveType/effectiveDeprecated after an edit", () => {
+	const result = applyTokenEdits(document(), [
+		{ path: ["spacing"], name: "gaps" },
+	]);
+	if (!result.isOk()) {
+		assert.fail("expected applyTokenEdits to succeed");
+	}
+
+	const gaps = result.value.root.children.get("gaps") as GroupNode;
+	const small = gaps.children.get("small") as TokenNode;
+	assert.equal(small.effectiveType, "dimension");
+	assert.equal(small.effectiveDeprecated, undefined);
+});
+
+test("applyTokenEdits' resolution pass is never stale relative to a from-scratch re-parse (FR-004a)", () => {
+	const raw = JSON.stringify({
+		spacing: {
+			small: { $type: "dimension", $value: { value: 4, unit: "px" } },
+			inferable: {
+				$value: { colorSpace: "srgb", components: [0, 0, 0] },
+			},
+		},
+	});
+	const parsed = parseTokenFile(raw);
+	if (!parsed.isOk()) {
+		assert.fail("expected parseTokenFile to succeed");
+	}
+
+	const edited = applyTokenEdits(parsed.value, [
+		{ path: ["spacing", "small"], description: "unrelated edit" },
+	]);
+	if (!edited.isOk()) {
+		assert.fail("expected applyTokenEdits to succeed");
+	}
+
+	const serialized = serializeTokenFile(edited.value);
+	if (!serialized.isOk()) {
+		assert.fail("expected serializeTokenFile to succeed");
+	}
+	const freshlyReparsed = parseTokenFile(serialized.value);
+	if (!freshlyReparsed.isOk()) {
+		assert.fail("expected re-parse to succeed");
+	}
+
+	const editedSpacing = edited.value.root.children.get("spacing") as GroupNode;
+	const freshSpacing = freshlyReparsed.value.root.children.get(
+		"spacing",
+	) as GroupNode;
+
+	for (const key of ["small", "inferable"]) {
+		const editedToken = editedSpacing.children.get(key) as TokenNode;
+		const freshToken = freshSpacing.children.get(key) as TokenNode;
+		assert.equal(editedToken.effectiveType, freshToken.effectiveType);
+		assert.equal(
+			editedToken.effectiveDeprecated,
+			freshToken.effectiveDeprecated,
+		);
+		assert.equal(editedToken.inferredType, freshToken.inferredType);
+	}
+});
+
 test("round-trips a group rename: parse -> serialize -> re-parse preserves all data (AC-08)", () => {
 	const result = applyTokenEdits(document(), [
 		{ path: ["spacing"], name: "gaps" },

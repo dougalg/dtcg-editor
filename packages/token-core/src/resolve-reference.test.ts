@@ -15,6 +15,9 @@ function token(value: unknown, declaredType = "color"): TokenNode {
 		description: undefined,
 		deprecated: undefined,
 		extensions: {},
+		effectiveType: declaredType,
+		effectiveDeprecated: undefined,
+		inferredType: undefined,
 	};
 }
 
@@ -39,6 +42,8 @@ function lookupFrom(
 					deprecated: undefined,
 					extensions: {},
 					children: new Map(),
+					effectiveType: undefined,
+					effectiveDeprecated: undefined,
 				},
 				effectiveType: undefined,
 				file: "somewhere.json",

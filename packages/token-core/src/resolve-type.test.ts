@@ -13,6 +13,8 @@ function group(name: string, declaredType: string | undefined): GroupNode {
 		deprecated: undefined,
 		extensions: {},
 		children: new Map(),
+		effectiveType: declaredType,
+		effectiveDeprecated: undefined,
 	};
 }
 
@@ -26,6 +28,9 @@ function token(name: string, declaredType: string | undefined): TokenNode {
 		description: undefined,
 		deprecated: undefined,
 		extensions: {},
+		effectiveType: declaredType,
+		effectiveDeprecated: undefined,
+		inferredType: undefined,
 	};
 }
 

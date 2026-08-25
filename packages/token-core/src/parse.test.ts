@@ -112,6 +112,33 @@ test("returns TokenParseError when $type is not a string", () => {
 	}
 });
 
+test("materializes effectiveType/effectiveDeprecated/inferredType via the upfront resolution pass", () => {
+	const raw = JSON.stringify({
+		color: {
+			$deprecated: "legacy palette",
+			declared: { $type: "color", $value: "#ff0000" },
+			inferable: { $value: { colorSpace: "srgb", components: [0, 0, 0] } },
+		},
+	});
+
+	const result = parseTokenFile(raw);
+	if (!result.isOk()) {
+		assert.fail("expected parseTokenFile to succeed");
+	}
+
+	const colorGroup = result.value.root.children.get("color") as GroupNode;
+	assert.equal(colorGroup.effectiveDeprecated, "legacy palette");
+
+	const declared = colorGroup.children.get("declared") as TokenNode;
+	assert.equal(declared.effectiveType, "color");
+	assert.equal(declared.inferredType, undefined);
+	assert.equal(declared.effectiveDeprecated, "legacy palette");
+
+	const inferable = colorGroup.children.get("inferable") as TokenNode;
+	assert.equal(inferable.effectiveType, "color");
+	assert.equal(inferable.inferredType, "color");
+});
+
 test("returns TokenParseError when the input is not a string", () => {
 	const result = parseTokenFile({ not: "a string" });
 	assert.equal(result.isErr(), true);

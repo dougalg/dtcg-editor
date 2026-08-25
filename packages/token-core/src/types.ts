@@ -11,6 +11,29 @@ export interface TokenNode {
 	readonly deprecated: boolean | string | undefined;
 	/** Unrecognized "$"-prefixed fields, preserved verbatim (round-trip fidelity). */
 	readonly extensions: Readonly<Record<string, unknown>>;
+	/**
+	 * This node's resolved `$type`: its own `declaredType`, else the nearest
+	 * ancestor's `declaredType`, else (for a token only) a shape-based
+	 * inference from `value`, else `undefined`. Materialized once by
+	 * `resolveEffectiveDocument` — never re-derived by callers holding this
+	 * node (see `resolve-effective.ts`).
+	 */
+	readonly effectiveType: string | undefined;
+	/**
+	 * This node's resolved `$deprecated`: its own `deprecated`, else the
+	 * nearest ancestor's `deprecated`, else `undefined`. Same
+	 * ancestor-precedence shape as `effectiveType`, materialized once by
+	 * `resolveEffectiveDocument`.
+	 */
+	readonly effectiveDeprecated: boolean | string | undefined;
+	/**
+	 * Present only when `declaredType` is `undefined` on this token itself
+	 * and its `value`'s shape unambiguously matches exactly one known DTCG
+	 * type — the shape-inferred suggestion, distinct from `effectiveType`
+	 * (which may instead come from an ancestor's declaration, in which case
+	 * this stays `undefined` since there is nothing to suggest).
+	 */
+	readonly inferredType: string | undefined;
 }
 
 /**
@@ -27,6 +50,10 @@ export interface GroupNode {
 	readonly deprecated: boolean | string | undefined;
 	readonly extensions: Readonly<Record<string, unknown>>;
 	readonly children: ReadonlyMap<string, DtcgNode>;
+	/** See `TokenNode.effectiveType` — a group has no `$value`, so its effective type can only come from its own or an ancestor's declaration, never shape inference. */
+	readonly effectiveType: string | undefined;
+	/** See `TokenNode.effectiveDeprecated`. */
+	readonly effectiveDeprecated: boolean | string | undefined;
 }
 
 export type DtcgNode = TokenNode | GroupNode;

@@ -1,4 +1,5 @@
 import { err, ok, type Result } from "neverthrow";
+import { resolveEffectiveDocument } from "./resolve-effective.ts";
 import { findNode } from "./resolve-type.ts";
 import type { DtcgNode, GroupNode, TokenDocument, TokenNode } from "./types.ts";
 
@@ -269,5 +270,5 @@ export function applyTokenEdits(
 		root = result.value;
 	}
 
-	return ok({ root });
+	return ok(resolveEffectiveDocument({ root }));
 }

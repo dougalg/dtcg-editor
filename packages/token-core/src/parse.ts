@@ -1,4 +1,5 @@
 import { err, fromThrowable, ok, type Result } from "neverthrow";
+import { resolveEffectiveDocument } from "./resolve-effective.ts";
 import { NodeMetadataSchema, RawNodeSchema } from "./schema.ts";
 import type { DtcgNode, GroupNode, TokenDocument, TokenNode } from "./types.ts";
 
@@ -93,6 +94,12 @@ function parseNode(
 			description,
 			deprecated,
 			extensions,
+			// Materialized by resolveEffectiveDocument, called once by
+			// parseTokenFile below — not computed here, since it needs the
+			// whole tree's ancestor chains, not just this one node.
+			effectiveType: undefined,
+			effectiveDeprecated: undefined,
+			inferredType: undefined,
 		};
 		return ok(token);
 	}
@@ -118,6 +125,8 @@ function parseNode(
 		deprecated,
 		extensions,
 		children,
+		effectiveType: undefined,
+		effectiveDeprecated: undefined,
 	};
 	return ok(group);
 }
@@ -159,6 +168,6 @@ export function parseTokenFile(
 					),
 				);
 			}
-			return ok({ root });
+			return ok(resolveEffectiveDocument({ root }));
 		});
 }

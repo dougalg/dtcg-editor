@@ -1,3 +1,4 @@
+export { classifyValue } from "./classify-value.ts";
 export type {
 	ColorComponent,
 	ColorObjectValue,
@@ -17,6 +18,7 @@ export { applyTokenEdits, TokenEditError } from "./edit.ts";
 export { parseTokenFile, TokenParseError } from "./parse.ts";
 export type { TokenReference } from "./reference.ts";
 export { collectReferences, parseReference } from "./reference.ts";
+export { resolveEffectiveDocument } from "./resolve-effective.ts";
 export type {
 	ChainOutcome,
 	ChainStep,
