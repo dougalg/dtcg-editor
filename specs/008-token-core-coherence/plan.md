@@ -74,22 +74,29 @@ packages/token-core/
 │   ├── resolve-effective.ts     # NEW — single upfront resolution pass (User Story 2)
 │   ├── resolve-effective.test.ts # NEW
 │   ├── resolve-type.ts          # KEPT as internal primitive (ancestor walk), consumed by resolve-effective.ts
-│   ├── resolve-type.test.ts     # KEPT, unchanged behavior
+│   ├── resolve-type.test.ts     # MODIFIED (fixtures only) — hand-built TokenNode/GroupNode literals gain the 3 new fields; assertions/behavior unchanged
+│   ├── resolve-reference.test.ts # MODIFIED (fixtures only) — same reason as resolve-type.test.ts
 │   ├── edit.ts                  # MODIFIED — TokenEdit gains an optional `type` field (FR-003a)
 │   ├── edit.test.ts             # MODIFIED — new cases for type edits
 │   ├── types.ts                 # MODIFIED — TokenNode/GroupNode gain effectiveType/effectiveDeprecated + inferredType (or equivalent) fields
 │   ├── index.ts                 # MODIFIED — export new public API (classifyValue, resolveDocument or equivalent)
+│   ├── parse.ts                 # MODIFIED — parseTokenFile calls resolveEffectiveDocument internally as its final step (FR-004)
+│   ├── parse.test.ts            # MODIFIED — asserts materialized fields on the returned document
 │   ├── serialize.ts              # VERIFIED unchanged — must keep serializing only declaredType
-│   └── ... (color.ts, dimension.ts, parse.ts, schema.ts, token-types.ts, reference.ts, resolve-reference.ts unchanged)
+│   ├── serialize.test.ts         # MODIFIED — new round-trip test that an inferred (undeclared) type is never serialized (Principle IX, SC-007)
+│   └── ... (color.ts, dimension.ts, schema.ts, token-types.ts, reference.ts unchanged)
 └── README.md                     # NEW (User Story 3, FR-007)
 
 apps/web-app/
 ├── app/api/tokens/[...path]/route.ts   # MODIFIED — reads materialized field instead of resolveEffectiveType(); EditRequestSchema/TokenEdit plumbing for `type`
+├── components/
+│   ├── TreeTokenNode/TreeTokenNode.tsx # MODIFIED — dispatches to the new TypeSuggestion component on the inferred-but-undeclared-type path (FR-003b)
+│   └── TypeSuggestion/                 # NEW — TypeSuggestion.tsx, .test.tsx, .a11y.test.tsx; built from an existing packages/design-system component per Principle XII
 ├── lib/tokens/
 │   ├── reference-index.ts              # MODIFIED — 2 call sites (collectOccurrences, lookupForMode) read materialized field
-│   ├── plain-node.ts                   # MODIFIED — reads materialized field; PlainDtcgNode may add an `inferredType`-style field for FR-003b's pre-fill
+│   ├── plain-node.ts                   # MODIFIED — reads materialized field; PlainDtcgNode gains an `inferredType` field for FR-003b's pre-fill, and `deprecated` switches to `node.effectiveDeprecated`
+│   ├── edit-state.ts                   # MODIFIED — ClientEdit gains an optional `type` field
 │   └── edit-request.ts                 # MODIFIED — EditRequestSchema gains an optional `type` field
-└── lib/token-editors/ or the relevant token-type editor UI  # MODIFIED — type field pre-filled from the inferred-type suggestion (FR-003b); exact file(s) identified in tasks.md
 ```
 
 **Structure Decision**: This is a library-and-consumers change, not a new project. All new logic lands inside the existing `packages/token-core` package (new sibling modules alongside `resolve-type.ts`/`edit.ts`, not a new package — Principle II), plus the 4 already-named `apps/web-app` call sites and the request-validation/editor-UI plumbing needed to satisfy FR-003a/b. No new top-level directory is created.
