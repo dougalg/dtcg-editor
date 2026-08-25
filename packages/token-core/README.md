@@ -1,0 +1,58 @@
+# `@dtcg-editor/token-core`
+
+Parsing, typing, and value validation for [DTCG](https://www.designtokens.org/tr/2025.10/format/) (Design Tokens Community Group) token documents — every token type's schema and shape logic lives here, once, so every consumer (this repo's editor UI, a future CLI, a server-side validator) shares one spec-conformant source of truth.
+
+This package is completely UI/framework-agnostic: no React import, no knowledge of which (if any) editor renders a token's value, no filesystem or network access. It is a pure, in-memory data-transformation library. Rendering and registration are deliberately left to `token-editor-*` packages and their host app — see `TokenTypeContract` in `@dtcg-editor/token-editor-contract`.
+
+## Pipeline
+
+A token document flows through four stages, in order:
+
+1. **Parse** (`parseTokenFile`) — turns raw DTCG JSON text into a typed `TokenDocument` tree of `TokenNode`/`GroupNode`s. Validates the envelope and per-node metadata (`$type`, `$description`, `$deprecated`) via Zod; preserves every unrecognized `$`-prefixed field verbatim for round-trip fidelity. Internally finishes by running the upfront resolution pass (step 2) before returning, so a `TokenDocument` this function returns is always fully resolved.
+2. **Resolve** (`resolveEffectiveDocument`) — a single tree walk, run once per parse and once per edit batch, that materializes each node's *effective* type and deprecation status:
+   - **`effectiveType`**: the node's own declared `$type`, else the nearest ancestor group's declared `$type`, else — for a token only — a shape-based inference from its `$value` (`classifyValue`) when no declaration exists anywhere in its chain, else `undefined`.
+   - **`effectiveDeprecated`**: the node's own `$deprecated`, else the nearest ancestor's, else `undefined` — the same inheritance shape as `effectiveType`, generalized to deprecation.
+   - **`inferredType`** (tokens only): set exactly when `effectiveType` came from shape inference rather than a declaration — the value a UI can offer as an accept-or-change suggestion, never written into the document as a side effect.
+
+   Every call site that needs a node's effective type or deprecation status reads these materialized fields directly; nothing outside this module re-walks ancestors to compute them. `resolveEffectiveType`/`findNode` (`resolve-type.ts`) remain exported as the lower-level ancestor-walk/path-lookup primitives this pass and `edit.ts` are built on — most callers should never need them directly.
+3. **Edit** (`applyTokenEdits`) — applies a batch of `TokenEdit`s (rename, retype, revalue, redescribe) to a document, producing a new immutable tree. Re-runs the resolution pass (step 2) internally before returning, so an edited document's materialized fields always reflect its current content — there is no incremental/partial recompute, and no externally-observable "stale" state between an edit and a fresh parse of the same content.
+4. **Serialize** (`serializeTokenFile`) — the inverse of parse: turns a `TokenDocument` back into DTCG JSON text. Only ever writes a node's *declared* fields (`declaredType`, `description`, `deprecated`, `extensions`) — the materialized `effectiveType`/`effectiveDeprecated`/`inferredType` fields are never serialized, so an inferred-but-not-yet-accepted type can never leak into a saved file.
+
+## Public API
+
+Everything below is re-exported from `index.ts`.
+
+**Parsing & serialization**
+- `parseTokenFile(raw): Result<TokenDocument, TokenParseError>` — the sanctioned entry point from raw file text to a typed, fully-resolved document.
+- `serializeTokenFile(document): Result<string, TokenSerializeError>` — the inverse.
+- `TokenParseError`, `TokenSerializeError` — the error types each can return.
+
+**Types & structure**
+- `TokenDocument`, `DtcgNode`, `TokenNode`, `GroupNode` — the parsed document model.
+- `DTCG_TOKEN_TYPES`, `DtcgTokenType`, `isDtcgTokenType` — the complete set of DTCG 2025.10 `$type` values this package targets.
+
+**Effective-field resolution**
+- `resolveEffectiveDocument(document): TokenDocument` — the single upfront resolution pass; called internally by `parseTokenFile`/`applyTokenEdits`, exported for direct/test use.
+- `classifyValue(value): DtcgTokenType | undefined` — shape-based type inference, given a value and no declared type in its chain.
+- `resolveEffectiveType(node, ancestors)`, `findNode(root, path)` — lower-level primitives (`resolve-type.ts`) most callers shouldn't need directly; see Pipeline step 2.
+
+**Editing**
+- `applyTokenEdits(document, edits): Result<TokenDocument, TokenEditError>`, `TokenEdit`, `TokenEditError`.
+
+**References**
+- `parseReference(value)`, `collectReferences(node)`, `TokenReference` — alias/reference-string parsing.
+- `resolveReference(reference, lookup)`, `ReferenceLookup`, `ResolutionChain`, `ChainStep`, `ChainOutcome`, `LookupHit` — alias-chain resolution against a caller-supplied lookup (this package has no document-set/multi-file concept of its own).
+
+**Per-type value schemas** (only types with a real schema today — see Type Coverage below)
+- `color.ts`: `ColorValueSchema`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `COLOR_SPACES`, and the `ColorValue`/`ColorObjectValue`/`ColorSpace`/`ColorComponent` types.
+- `dimension.ts`: `DimensionValueSchema`, `DimensionValue`.
+
+## Type coverage
+
+DTCG 2025.10 defines 13 token types (`DTCG_TOKEN_TYPES`). Today, `token-core` has a real, spec-conformant Zod value schema for only 2 of them — `color` and `dimension`. `classifyValue`'s shape-inference registry iterates whatever schemas exist, so adding a schema for another type (e.g. `fontWeight`) automatically extends inference coverage with no further change to the inference logic itself.
+
+## What this package deliberately does not do
+
+- **No `@styleframe/dtcg` dependency.** This package's `parse → resolve → edit → serialize` pipeline shape was informed by that library's own `parse → validate → applyInheritance → resolveAliases` staged design (see `docs/research/styleframe-dtcg-spike.md`), but the library itself was evaluated and deliberately not adopted — its `resolve()`/`resolveAliases()` abort the entire document on the first cycle or missing target found anywhere, which conflicts with this app's graceful-degradation requirement (one broken token must not block every other token from resolving). Everything in this package is hand-rolled.
+- **No filesystem or network access.** A host app reads/writes files and passes raw text in and out; this package only ever transforms in-memory data.
+- **No React or UI framework dependency.** Rendering and registration are `token-editor-*` packages' job, via `TokenTypeContract` (`@dtcg-editor/token-editor-contract`) — this package never imports React and has no opinion on how a value is displayed or edited.
