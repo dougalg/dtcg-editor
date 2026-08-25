@@ -39,7 +39,7 @@ Deciding a node's actual, in-effect `$type`/`$deprecated` isn't always as simple
 | `effectiveDeprecated` | The node's own `$deprecated`, else the nearest ancestor's, else `undefined` — the same inheritance shape as `effectiveType`, generalized to deprecation. |
 | `inferredType` (tokens only) | Set exactly when `effectiveType` came from shape inference rather than a declaration — the value a UI can offer as an accept-or-change suggestion. Never written into the document as a side effect; only an explicit edit to a token's `type` field does that. |
 
-Every call site that needs a node's effective type or deprecation status reads these materialized fields directly; nothing outside this module re-walks ancestors to compute them. `resolveEffectiveType`/`findNode` remain exported as the lower-level ancestor-walk/path-lookup primitives this pass (and editing) are built on — most callers should never need them directly.
+Every call site that needs a node's effective type or deprecation status reads these materialized fields directly; nothing outside this module re-walks ancestors to compute them. `resolveEffectiveType` (the ancestor-walk this pass is built on) is an internal primitive only — not re-exported from `index.ts`, since nothing outside this package needs it once it can just read `node.effectiveType`. `findNode` (path lookup, the same module) *is* exported — it has real external callers unrelated to effective-type resolution.
 
 ```typescript
 import { classifyValue } from "@dtcg-editor/token-core";
@@ -56,12 +56,13 @@ Everything below is re-exported from `index.ts`.
 
 ### Parsing & serialization
 
-| Export | Signature | Description |
-|---|---|---|
-| `parseTokenFile` | `(raw: unknown) => Result<TokenDocument, TokenParseError>` | The sanctioned entry point from raw file text to a typed, fully-resolved document. |
-| `serializeTokenFile` | `(document: TokenDocument) => Result<string, TokenSerializeError>` | The inverse. |
-| `TokenParseError` | — | Returned by `parseTokenFile` for any structural or schema problem. |
-| `TokenSerializeError` | — | Returned by `serializeTokenFile` if the underlying `JSON.stringify` fails. |
+`parseTokenFile(raw: unknown) => Result<TokenDocument, TokenParseError>`
+
+The sanctioned entry point from raw file text to a typed, fully-resolved document.
+
+`serializeTokenFile(document: TokenDocument) => Result<string, TokenSerializeError>`
+
+Turns a document back into a standard DTCG string, with no extra fields attached.
 
 ### Types & structure
 
@@ -82,9 +83,10 @@ See [Effective-field resolution](#effective-field-resolution) above for what the
 | Export | Signature | Description |
 |---|---|---|
 | `resolveEffectiveDocument` | `(document: TokenDocument) => TokenDocument` | The single upfront resolution pass; called internally by `parseTokenFile`/`applyTokenEdits`, exported for direct/test use. |
-| `classifyValue` | `(value: unknown) => DtcgTokenType \| undefined` | Shape-based type inference, given a value and no declared type in its chain. |
-| `resolveEffectiveType` | `(node: DtcgNode, ancestors: readonly GroupNode[]) => string \| undefined` | Lower-level ancestor-walk primitive most callers shouldn't need directly. |
+| `classifyValue` | `(value: unknown) => DtcgTokenType \| undefined` | Shape-based type inference, given a value and no declared type in its chain — usable standalone, independent of a full parse/resolve cycle. |
 | `findNode` | `(root: GroupNode, path: readonly string[]) => { node: DtcgNode; ancestors: readonly GroupNode[] } \| undefined` | Locates a node by path, along with its ancestor chain. |
+
+`resolveEffectiveType` (the ancestor-walk `resolveEffectiveDocument` is built on) is *not* exported — it's an internal implementation detail, not part of this package's public API.
 
 ### Editing
 

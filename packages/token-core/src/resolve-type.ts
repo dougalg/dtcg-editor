@@ -35,14 +35,16 @@ export function resolveByAncestorPrecedence<T>(
  * `undefined`. `ancestors` must be ordered root-first, ending with the
  * node's immediate parent.
  *
- * An internal primitive now — `resolve-effective.ts`'s single upfront
+ * An internal primitive — `resolve-effective.ts`'s single upfront
  * `resolveEffectiveDocument` pass is what materializes every node's
  * `effectiveType`/`effectiveDeprecated` once (FR-004), calling this
  * function as its own ancestor-walk building block. External code holding
  * a `DtcgNode` should read `node.effectiveType` directly rather than
- * calling this itself — kept exported (not deprecated or removed) since
- * `findNode`, which shares this module, remains directly used elsewhere
- * for path lookup, a concern independent of effective-type resolution.
+ * calling this itself. Not re-exported from `index.ts` (unlike `findNode`,
+ * which shares this module and does have real external callers, for path
+ * lookup — a concern independent of effective-type resolution): once every
+ * in-repo call site was migrated to read the materialized field, nothing
+ * outside this package needed this function anymore.
  */
 export function resolveEffectiveType(
 	node: DtcgNode,

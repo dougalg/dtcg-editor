@@ -27,7 +27,7 @@ export type {
 	ResolutionChain,
 } from "./resolve-reference.ts";
 export { resolveReference } from "./resolve-reference.ts";
-export { findNode, resolveEffectiveType } from "./resolve-type.ts";
+export { findNode } from "./resolve-type.ts";
 export { serializeTokenFile, TokenSerializeError } from "./serialize.ts";
 export type { DtcgTokenType } from "./token-types.ts";
 export { DTCG_TOKEN_TYPES, isDtcgTokenType } from "./token-types.ts";

@@ -43,13 +43,19 @@ export interface TokenEdit {
 ```
 Non-breaking (optional field addition).
 
-## Unchanged (kept as internal primitives, per spec Assumption)
+## Removed export
 
 ```ts
 export function resolveEffectiveType(node: DtcgNode, ancestors: readonly GroupNode[]): string | undefined;
+```
+**Revised from this contract's original plan-time decision** ("kept exported... since other code in the monorepo may depend on it") once FR-005's migration (T024–T027) was actually complete: a repo-wide grep confirmed zero remaining callers of `resolveEffectiveType` outside `resolve-type.ts`/`resolve-effective.ts`/their own tests. No external code depends on it, so it is no longer re-exported from `index.ts` — it remains `export function` inside `resolve-type.ts` itself (an internal cross-module primitive `resolve-effective.ts` still imports), just not part of this package's public surface. Not a breaking change to any real consumer, since none existed.
+
+## Unchanged
+
+```ts
 export function findNode(root: GroupNode, path: readonly string[]): { node: DtcgNode; ancestors: readonly GroupNode[] } | undefined;
 ```
-Both remain exported, unchanged in behavior and signature. `resolveEffectiveType` becomes an internal building block `resolveEffectiveDocument` calls per node rather than something external callers invoke directly for that purpose; `findNode` continues to be used both by `resolveEffectiveDocument` (internally, to walk ancestors) and by `edit.ts`/`route.ts`/`reference-index.ts` for its original purpose (locating a node by path), which is orthogonal to effective-type resolution.
+Remains exported, unchanged in behavior and signature — it has real external callers (`route.ts`, `reference-index.ts`) for its original purpose (locating a node by path), orthogonal to effective-type resolution.
 
 ## Contract: `apps/web-app`'s `PATCH /api/tokens/[...path]` request body
 
