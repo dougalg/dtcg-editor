@@ -23,6 +23,10 @@ export default defineConfig({
 	globalSetup: "./e2e/support/global-setup.ts",
 	use: {
 		baseURL: `http://localhost:${E2E_PORT}`,
+		// Explicit (not just Playwright's implicit default) so a stray global
+		// config or CI env change can't silently start popping up browser
+		// windows. Opt into a visible browser with `pnpm test:a11y:headed`.
+		headless: true,
 	},
 	// Two projects, scoped by spec filename, so each hits its own server —
 	// no other change to how existing specs run (no device emulation added).
