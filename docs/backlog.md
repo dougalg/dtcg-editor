@@ -19,7 +19,7 @@ Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not 
 - [ ] Add support for "fontWeight" tokens
 - [ ] Add support for "duration" tokens
 - [ ] Add support for "cubicBezier" tokens
-- [ ] Add support for "number" tokens
+- [ ] Add support for "number" tokens (in progress — worktree `.claude/worktrees/number-token-support`, branch `worktree-number-token-support`)
 - [ ] Add support for "strokeStyle" tokens
 - [ ] Add support for "border" tokens
 - [ ] Add support for "transition" tokens
