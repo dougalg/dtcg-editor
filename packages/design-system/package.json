@@ -7,7 +7,9 @@
 		"build": "sugarcube generate",
 		"dev": "pnpm build --watch",
 		"lint:write": "biome lint --write .",
-		"lint": "biome lint ."
+		"lint": "biome lint .",
+		"storybook": "pnpm build && storybook dev -p 6006",
+		"build-storybook": "pnpm build && storybook build"
 	},
 	"exports": {
 		"./styles/tokens.css": "./dist/styles/tokens.css",
@@ -43,6 +45,9 @@
 		"react-dom": "catalog:"
 	},
 	"devDependencies": {
+		"@storybook/addon-a11y": "10.5.10",
+		"@storybook/addon-docs": "^10.5.10",
+		"@storybook/react-vite": "10.5.10",
 		"@sugarcube-sh/cli": "^0.1.24",
 		"@testing-library/react": "catalog:",
 		"@types/react": "catalog:",
@@ -52,6 +57,7 @@
 		"@vitest/browser-playwright": "catalog:",
 		"axe-core": "catalog:",
 		"jsdom": "catalog:",
+		"storybook": "^10.5.10",
 		"vitest": "catalog:"
 	}
 }
