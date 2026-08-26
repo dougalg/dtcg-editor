@@ -96,7 +96,6 @@ See [Effective-field resolution](#effective-field-resolution) above for what the
 |---|---|---|
 | `applyTokenEdits` | `(document: TokenDocument, edits: readonly TokenEdit[]) => Result<TokenDocument, TokenEditError>` | Applies a batch of patches, producing a new immutable tree. |
 | `TokenEdit` | `{ path: readonly string[]; name?: string; value?: unknown; description?: string; type?: string }` | One patch, identified by the target's current `path`. |
-| `TokenEditError` | — | Returned for any edit that can't be applied (e.g. a name collision, an unknown path). |
 
 ### References
 
@@ -119,19 +118,12 @@ if (reference) {
 | `TokenReference` | `{ targetPath: readonly string[]; at: readonly (string \| number)[]; raw: string }` | One parsed reference: `targetPath` is the dot-separated path it points to, `at` is where inside the token's `$value` it was found (empty when the reference *is* the whole value), `raw` is the original text. |
 | `parseReference` | `(value: unknown) => TokenReference \| undefined` | Detects the whole-string `{...}` form; pure and total — `undefined` just means "not a reference," never a thrown error. |
 | `collectReferences` | `(value: unknown) => readonly TokenReference[]` | Finds every reference nested in a `$value` of any shape (object, array, arbitrarily deep) — e.g. every color reference in a `shadow` token's layers. |
-| `ReferenceLookup` | `(path: readonly string[]) => LookupHit \| undefined` | A caller-supplied function resolving one path to the node found there; `undefined` means "no node at this path." |
+| `ReferenceLookup` | `(path: readonly string[]) => LookupHit | undefined` | A caller-supplied function resolving one path to the node found there; `undefined` means "no node at this path." |
 | `LookupHit` | `{ node: DtcgNode; effectiveType: string \| undefined; file: string; mode: string \| undefined }` | What a `ReferenceLookup` returns for a resolved path; `file`/`mode` are opaque to this package, only carried through for the caller's own bookkeeping. |
 | `resolveReference` | `(reference: TokenReference, lookup: ReferenceLookup) => ResolutionChain` | Follows a reference through every further reference it points to until it reaches a token with a non-reference value. Pure and total: no depth limit, but a `circular` outcome instead of an infinite loop if a path is revisited. |
 | `ResolutionChain` | `{ steps: readonly ChainStep[]; outcome: ChainOutcome }` | The full result: every token traversed, in order, plus how the chain ended. |
-| `ChainStep` | `{ path: readonly string[]; file: string; mode: string \| undefined }` | One token traversed while following the chain. |
-| `ChainOutcome` | discriminated union | How a chain ended — see below. |
-
-`ChainOutcome` is one of:
-
-- **`{ kind: "resolved", value, type }`** — reached a token with a literal (non-reference) value.
-- **`{ kind: "unresolved", missingPath }`** — a target somewhere in the chain doesn't exist.
-- **`{ kind: "group-target", groupPath }`** — a reference points at a group, not a token.
-- **`{ kind: "circular", cyclePath }`** — a path was revisited; the chain would otherwise loop forever.
+| `ChainStep` | `{ path: readonly string[]; file: string; mode: string | undefined }` | One token traversed while following the chain. |
+| `ChainOutcome` | &bull; **`{ kind: "resolved", value, type }`** — reached a token with a literal (non-reference) value.<br />&bull; **`{ kind: "unresolved", missingPath }`** — a target somewhere in the chain doesn't exist.<br/>&bull; **`{ kind: "group-target", groupPath }`** — a reference points at a group, not a token.<br/>&bull; **`{ kind: "circular", cyclePath }`** — a path was revisited; the chain would otherwise loop forever. | How a chain ended — see below. |
 
 ### Per-type value schemas
 
@@ -141,15 +133,3 @@ Only types with a real schema today — see [Type coverage](#type-coverage) belo
 |---|---|
 | `color.ts` | `ColorValueSchema`, `ColorObjectValueSchema`, `LegacyHexColorValueSchema`, `COLOR_SPACES`, and the `ColorValue`/`ColorObjectValue`/`ColorSpace`/`ColorComponent` types. |
 | `dimension.ts` | `DimensionValueSchema`, `DimensionValue`. |
-
-## Type coverage
-
-DTCG 2025.10 defines 13 token types (`DTCG_TOKEN_TYPES`). Today, `token-core` has a real, spec-conformant Zod value schema for only 2 of them — `color` and `dimension`. `classifyValue`'s shape-inference registry iterates whatever schemas exist, so adding a schema for another type (e.g. `fontWeight`) automatically extends inference coverage with no further change to the inference logic itself.
-
-## What this package deliberately does not do
-
-This package's `parse → resolve → edit → serialize` pipeline shape was informed by [`@styleframe/dtcg`](https://www.styleframe.dev/docs/getting-started/integrations/dtcg)'s own `parse → validate → applyInheritance → resolveAliases` staged design (see `docs/research/styleframe-dtcg-spike.md`), but the library itself was evaluated and deliberately not adopted as a dependency.
-
-- **No `@styleframe/dtcg` dependency.** Its `resolve()`/`resolveAliases()` abort the entire document on the first cycle or missing target found anywhere, which conflicts with this app's graceful-degradation requirement (one broken token must not block every other token from resolving). Everything in this package is hand-rolled.
-- **No filesystem or network access.** A host app reads/writes files and passes raw text in and out; this package only ever transforms in-memory data.
-- **No React or UI framework dependency.** Rendering and registration are `token-editor-*` packages' job, via `TokenTypeContract` (`@dtcg-editor/token-editor-contract`) — this package never imports React and has no opinion on how a value is displayed or edited.
