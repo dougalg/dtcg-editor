@@ -36,5 +36,9 @@
   strong recommendation for `/speckit-plan`, not a hard constraint on scope.
 - Several behavioural details deliberately left to `/speckit-clarify` or
   `/speckit-plan`: exact perceptual tolerance for SC-002, the add/remove-alpha
-  affordance, and how the legacy bare-hex form is presented inline.
+  affordance, how the legacy bare-hex form is presented inline, and the
+  sequencing of the design-system underline-treatment contribution vs this
+  editor's rework (FR-019a).
+- Channels/alpha are always live number inputs (FR-002c) — no view/edit mode
+  toggle; the function name stays a click-to-open-dropdown trigger.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`

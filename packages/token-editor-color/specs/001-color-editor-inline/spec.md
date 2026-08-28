@@ -28,13 +28,14 @@ Author-provided mockups of the resting and hover states (channels + alpha shown,
 ### User Story 1 - Read and edit channel values in place (Priority: P1)
 
 A token author looking at a color token sees its value rendered as a compact,
-readable CSS color function — for example `oklch(0.7 0.15 145)` — that reads as
-plain text with a dashed underline. Hovering a single channel number gives it a
-solid underline and a brighter foreground, signalling it is interactive.
-Clicking that number turns it into a number input focused and ready for typing;
-committing the edit (blur or Enter) writes the new value back to the token and
-the inline display re-renders with the updated number. Nothing about the
-surrounding function name, other channels, or layout shifts or reflows onto
+readable CSS color function — for example `oklch(0.7 0.15 145)` — in a monospace
+face. Each channel number is a real number input from the outset, styled to read
+as plain text with a faint dotted underline and no border, box, or spinner at
+rest; there is no "click to turn this into a field" step. Hovering or focusing a
+channel gives it a solid underline and a brighter foreground. The author types
+into it directly; committing (blur or Enter) writes the new value back to the
+token and the inline display re-renders with the updated number. Nothing about
+the surrounding function name, other channels, or layout shifts or reflows onto
 multiple lines during this.
 
 **Why this priority**: Editing an existing color's channels is the single most
@@ -42,16 +43,16 @@ common thing an author does with this control. It is a complete, demonstrable
 slice on its own — even with color-space switching and the modal not yet built,
 an author can open a color token and adjust its numbers.
 
-**Independent Test**: Render the editor for an object-form color token, hover a
-channel to confirm the affordance change, click it, type a new number, commit,
+**Independent Test**: Render the editor for an object-form color token, confirm
+each channel is already a focusable input, focus one, type a new number, commit,
 and assert the token value updated and the inline string re-rendered.
 
 **Acceptance Scenarios**:
 
-1. **Given** a color token with value `{ colorSpace: "oklch", components: [0.7, 0.15, 145] }`, **When** the editor renders, **Then** it displays the text `oklch( 0.7 0.15 145 )` in a monospace typeface, with each editable segment (the function name + parentheses as one, and each channel) carrying its own faint dotted underline, and no form-field chrome (borders, boxes) at rest.
-2. **Given** the rendered editor, **When** the pointer hovers a single channel number, **Then** only that number's underline changes from dotted to solid and its foreground colour strengthens; the other channels and the function name are unchanged.
-3. **Given** the rendered editor, **When** the author clicks a channel number, **Then** that number becomes an editable numeric input, focused, containing the current value.
-4. **Given** a focused channel input with a new valid number entered, **When** the author commits (Enter or blur), **Then** the token value's corresponding component updates to that number and the inline function string re-renders with it.
+1. **Given** a color token with value `{ colorSpace: "oklch", components: [0.7, 0.15, 145] }`, **When** the editor renders, **Then** it reads as `oklch( 0.7 0.15 145 )` in a monospace typeface, where each channel is a number input styled as plain text — faint dotted underline, no border, box, or number-spinner — and the function name + parentheses carry their own faint dotted underline; there is no form-field chrome at rest.
+2. **Given** the rendered editor, **When** the pointer hovers a single channel input, **Then** only that input's underline changes from dotted to solid and its foreground colour strengthens; the other channels and the function name are unchanged.
+3. **Given** the editor, **When** it first renders, **Then** every channel value is already a focusable numeric input (not a static label requiring a click to become editable), accepting typed input immediately on focus, with no layout shift between its resting and focused appearance.
+4. **Given** a channel input with a new valid number typed in, **When** the author commits (Enter or blur), **Then** the token value's corresponding component updates to that number and the inline function string re-renders with it.
 5. **Given** a focused channel input, **When** the author presses Escape, **Then** the edit is abandoned and the channel reverts to its previous value with no change written.
 6. **Given** a channel input containing a non-numeric or empty string, **When** the author commits, **Then** no invalid value is written to the token and the channel reverts to its last valid value.
 
@@ -98,14 +99,22 @@ appeared with per-channel deltas and that Deny left the value untouched.
 ### User Story 3 - Consistent inline appearance from the design system (Priority: P2)
 
 The control looks like editable prose, not a form. At rest it is text with a
-dashed underline; interactive sub-parts reveal themselves only on hover with a
-solid underline and a brighter colour. Every colour, spacing, typography,
+dashed underline; interactive sub-parts reveal themselves on hover or focus with
+a solid underline and a brighter colour. Every colour, spacing, typography,
 underline, and motion value it uses comes from the design system's tokens, and
 every interactive sub-part (the numeric inputs, the space dropdown, the
 accept/deny modal) is built from the design system's existing components rather
 than hand-rolled. The old stacked mini-caption layout, the bespoke per-package
 stylesheet, the native colour-picker input, the separate optional hex field, and
 the "none" checkboxes are all gone.
+
+The design system may not yet expose a token or utility for the resting
+dotted-underline / hover-and-focus solid-underline treatment itself. Where it
+does not, that treatment is contributed to the design system as its own change
+(tracked separately by the maintainer), not hardcoded in this package — this
+story is not blocked on that treatment already existing, but the editor MUST
+consume it from the design system once available rather than carrying a local
+copy.
 
 **Why this priority**: The visual/interaction model is what the author actually
 experiences, and design-system conformance is a standing project requirement.
@@ -193,7 +202,11 @@ warning modal) can be exercised.
   taken together with its opening and closing parentheses (one segment), each
   channel value, and the alpha value when present — MUST show its own faint
   dotted underline in a muted foreground colour. The editor MUST NOT display
-  form-field chrome (borders, boxes, buttons) at rest.
+  form-field chrome (borders, boxes, buttons, number-spinners) at rest.
+- **FR-002c**: Each channel value and the alpha value MUST be a real numeric
+  input element that is present and focusable from first render — never a static
+  label that a click converts into an input. Its resting and focused states MUST
+  occupy the same space so focusing one causes no layout shift or reflow.
 - **FR-002a**: The inline value — at rest and while a channel is being edited —
   MUST be rendered in a monospace typeface sourced from a design-system
   typography token, so channel columns read consistently.
@@ -213,9 +226,9 @@ warning modal) can be exercised.
 - **FR-004b**: Keyboard focus MUST produce the same solid-underline / stronger-
   foreground promotion that hover does for the focused segment, so the
   interactive parts are discoverable without a pointer.
-- **FR-005**: Clicking a channel value MUST turn it into a focused numeric input
-  pre-filled with the current value; committing via Enter or blur MUST write the
-  new number to that component; pressing Escape MUST abandon the edit.
+- **FR-005**: Typing into a channel input and committing via Enter or blur MUST
+  write the new number to that component; pressing Escape MUST abandon the
+  in-progress edit and restore the input to the component's current value.
 - **FR-006**: A channel edit that is empty or non-numeric MUST NOT be written to
   the token; the channel MUST revert to its last valid value.
 - **FR-007**: Clicking the function name MUST open a dropdown listing the colour
@@ -254,6 +267,11 @@ warning modal) can be exercised.
   no literal design values may appear in the editor's markup or styles. The one
   inherently dynamic value — the rendered swatch/preview colour, if any — is
   token data, not a design decision, and is exempt.
+- **FR-019a**: If the design system does not yet provide the resting-dotted /
+  hover-and-focus-solid underline treatment, it MUST be added to the design
+  system and consumed from there. The editor MUST NOT ship a local hardcoded
+  version of it as a permanent solution; a short-lived local placeholder is
+  acceptable only if the plan explicitly tracks its removal.
 - **FR-020**: A legacy bare-hex string value MUST remain viewable and editable;
   it MUST NOT be silently converted to object form unless the author explicitly
   changes its colour space.
@@ -291,8 +309,9 @@ warning modal) can be exercised.
 
 ### Measurable Outcomes
 
-- **SC-001**: An author can change a single channel value in at most two
-  interactions (one click to enter edit, then type and commit).
+- **SC-001**: An author can change a single channel value by focusing its input
+  (click or Tab) and typing — no mode-switch step, no more than one interaction
+  before typing.
 - **SC-002**: For every pair of colour spaces, converting an in-target-gamut
   colour from one to the other and back returns a colour within a small,
   documented perceptual tolerance of the original (no visible colour shift).
@@ -345,10 +364,22 @@ warning modal) can be exercised.
   the design system" is taken to mean the design system's existing form-control
   token set and components (text input, dropdown/select, dialog) plus its
   typography/colour tokens for the at-rest text and underline treatment; there
-  is no separately-named "inline input" component to match, so the resting
-  dashed-underline / hover solid-underline treatment is composed from design
-  tokens. The design system already defines a monospace font-family typography
-  token (`typography.mono`), which FR-002a consumes.
+  is no separately-named "inline input" component to match. The design system
+  already defines a monospace font-family typography token (`typography.mono`),
+  which FR-002a consumes.
+- **Underline treatment may be a new design-system contribution**: the design
+  system may not currently expose the resting-dotted / hover-and-focus-solid
+  underline treatment as a token or utility. Per the maintainer, adding it is a
+  separate change they will make to the design system; this feature depends on
+  it but does not have to land it. FR-019a governs: consume it from the design
+  system, no permanent local hardcode. Sequencing (does the design-system change
+  land first, or does the editor use a tracked placeholder in the interim) is a
+  `plan.md` decision.
+- **Channels are always inputs**: each channel and the alpha are real numeric
+  input elements from first render, styled to read as plain text (FR-002c) —
+  there is no view-mode/edit-mode toggle. The function name remains a
+  click-to-open-dropdown trigger, not an always-open native `<select>`; only the
+  values are "always inputs".
 - **Storybook**: the repo-root Storybook (`.storybook/`, globbing
   `packages/*/src/**/*.stories.*`, wired into turbo) and an
   `Editors/ColorEditor` story with `Default` and `RestrictedColorSpaces`
