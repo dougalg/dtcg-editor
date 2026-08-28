@@ -1,0 +1,53 @@
+.root {
+	font-family: var(--dtcg-ed-font-mono);
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	font-size: var(--dtcg-ed-text-sm);
+}
+
+.group {
+	margin: var(--dtcg-ed-space-sm) 0;
+}
+
+.groupNameField {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}
+
+/* Native <details>/<summary> disclosure — see TreeGroupNode.tsx's
+	top-level comment for why this replaced a React-managed toggle button.
+	list-style/::-webkit-details-marker together remove each engine's own
+	default marker so the ▸/▾ glyph below is the only one shown, consistent
+	across browsers. */
+.summary {
+	cursor: pointer;
+	list-style: none;
+	display: flex;
+	gap: var(--dtcg-ed-text-sm);
+	padding: var(--dtcg-ed-space-3xs) 0;
+}
+
+.summary::-webkit-details-marker {
+	display: none;
+}
+.children {
+	list-style: none;
+	margin: 0;
+	padding-left: var(--dtcg-ed-space-sm-md);
+	border-left: var(--dtcg-ed-border-width-thin) solid
+		var(--dtcg-ed-color-neutral-border-normal);
+}
+
+.marker {
+	display: inline-block;
+}
+
+.marker::before {
+	content: "▸";
+}
+
+details[open] > .summary .marker::before {
+	content: "▾";
+}

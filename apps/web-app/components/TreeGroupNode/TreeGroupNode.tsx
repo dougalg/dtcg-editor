@@ -9,8 +9,8 @@ import {
 	findSiblings,
 } from "../../lib/tokens/edit-state.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
-import styles from "../TokenTree/TokenTree.module.css";
 import { TreeNode, type TreeNodeProps } from "../TreeNode/TreeNode.tsx";
+import styles from "./TreeGroupNode.module.css";
 
 function pathKey(path: readonly string[]): string {
 	return path.join(".");
@@ -151,6 +151,7 @@ export function TreeGroupNode({
 					aria-label={`Toggle ${node.name || "/"}`}
 				>
 					<span aria-hidden="true" className={styles.marker} />
+					<p>{node.name}</p>
 				</summary>
 				{renderChildren(styles.children)}
 			</details>
