@@ -66,11 +66,12 @@ instance moving a value from `srgb` to `oklch` to reason about lightness and
 chroma. The colour-space name is a select control styled to read as plain text;
 opening it lists the available colour spaces. Choosing one converts the current
 colour to its visually-equivalent representation in the new space rather than
-carrying the old raw numbers across. When the conversion is exact within display precision, the
-new function string simply appears. When it is not exact — the colour falls
-outside the new space's gamut, or a channel becomes undefined — a modal appears
-first, listing each channel's before and after value and stating what will be
-lost, with **Accept** and **Deny** actions. Accepting applies the converted
+carrying the old raw numbers across. When the conversion stays within the
+configured perceptual tolerance (default ΔEOK 0.02), the new function string
+simply appears. When it does not — the colour falls outside the new space's
+gamut, a channel becomes undefined, or the round-trip difference reaches the
+tolerance — a modal appears first, listing each channel's before and after value
+and stating what will be lost, with **Accept** and **Deny** actions. Accepting applies the converted
 (and, where needed, gamut-mapped) value; denying leaves the token exactly as it
 was, still in the original space.
 
@@ -88,8 +89,8 @@ appeared with per-channel deltas and that Deny left the value untouched.
 
 1. **Given** the rendered editor, **When** the pointer hovers or keyboard focus lands on the colour-space select, **Then** the select and both bracketing parentheses change from a dotted to a solid underline and to a stronger foreground colour together, as one target, while the channels and alpha stay in their resting appearance.
 2. **Given** the rendered editor, **When** the author opens the colour-space select, **Then** it lists the colour spaces available for this token (all supported spaces, or the configured subset when the token type restricts them), with the current space indicated.
-3. **Given** a colour that is representable in the target space within display precision, **When** the author picks that space from the select, **Then** the token value's `colorSpace` and `components` update to the converted values, the inline string re-renders, and no modal is shown.
-4. **Given** a colour that cannot be represented exactly in the target space (out of gamut, or a channel becomes undefined), **When** the author picks that space, **Then** a modal opens before any change is written, listing each component's current value, its proposed new value, and a plain-language note of what differs (e.g. "clamped to the sRGB gamut").
+3. **Given** a colour whose conversion stays within the configured perceptual tolerance (in gamut, no undefined channel, round-trip ΔEOK below the threshold), **When** the author picks that space from the select, **Then** the token value's `colorSpace` and `components` update to the converted values, the inline string re-renders, and no modal is shown.
+4. **Given** a colour whose conversion is out of the target gamut, has an undefined channel, or differs from the original by ΔEOK at/above the configured tolerance, **When** the author picks that space, **Then** a modal opens before any change is written, listing each component's current value, its proposed new value, and a plain-language note of what differs (e.g. "clamped to the sRGB gamut").
 5. **Given** that modal, **When** the author chooses Accept, **Then** the converted and gamut-mapped value is written to the token and the inline string re-renders in the new space.
 6. **Given** that modal, **When** the author chooses Deny or dismisses it, **Then** no change is written; the token keeps its original space and components, and the colour-space select is restored to show the original space.
 7. **Given** a token whose type configuration restricts the offered colour spaces, **When** the author opens the colour-space select, **Then** it lists only the configured spaces plus the token's current space, in the spec's canonical order.
@@ -191,6 +192,23 @@ warning modal) can be exercised.
 - **Colour-space select opened then dismissed without choosing**: no change;
   focus returns to the select, still showing the current space.
 
+## Clarifications
+
+### Session 2026-08-29
+
+- Q: What perceptual-difference threshold counts as "same colour" for a silent
+  space switch (below it the switch applies with no modal; the round-trip test
+  must stay within it)? → A: Configurable via the colour editor's
+  `editorOptions` in `dtcg-editor.config` — a ΔEOK (OKLab ΔE) threshold,
+  **default 0.02**. A configured value of `0` means any ΔEOK greater than zero
+  shows the confirmation modal (no tolerance band).
+- Q: How precisely are channel values shown in the inline string and the
+  conversion modal — fixed decimals, per-channel-type precision, or none? → A:
+  No display rounding — show each value exactly as stored (whatever precision
+  the user typed or the conversion produced) — but always trim trailing zeros
+  (and a bare trailing decimal point), and normalise `-0` to `0`. The ΔEOK
+  tolerance comparison likewise uses the unrounded converted value.
+
 ## Requirements _(mandatory)_
 
 ### Functional Requirements
@@ -215,6 +233,11 @@ warning modal) can be exercised.
 - **FR-002b**: The `/` alpha separator and the whitespace padding inside the
   parentheses MUST be inert — no underline, no hover response, not focusable,
   not editable.
+- **FR-002d**: A channel or alpha value MUST be displayed exactly as stored — no
+  rounding or precision cap — with trailing zeros and any bare trailing decimal
+  point trimmed (`0.5000` → `0.5`, `145.0` → `145`), and `-0` shown as `0`. This
+  applies to the resting inline string, a focused input's initial contents, and
+  the conversion modal's before/after values.
 - **FR-003**: Hovering an individual channel value (or the alpha value) MUST
   promote that segment's underline from dotted to solid and strengthen its
   foreground colour, and MUST leave every other segment in its resting
@@ -246,11 +269,20 @@ warning modal) can be exercised.
   to its visually-equivalent representation in the target space — matching
   perceived colour — rather than copying the existing raw channel numbers under
   the new space.
-- **FR-010**: When the converted colour is representable in the target space
-  within display precision, the change MUST be applied directly with no modal.
-- **FR-011**: When the converted colour is not exactly representable in the
-  target space (outside its gamut, or a channel is undefined), the editor MUST
-  present a confirmation modal before writing any change.
+- **FR-010**: When the converted colour is within the configured perceptual
+  tolerance of the original (see FR-010a) — in gamut, no undefined channel, and
+  the round-trip ΔEOK of the unrounded converted value below the threshold — the
+  change MUST be applied directly with no modal.
+- **FR-010a**: The perceptual tolerance MUST be configurable through the colour
+  editor's `editorOptions` (in `dtcg-editor.config`) as a non-negative ΔEOK
+  (OKLab ΔE) threshold. When unset it MUST default to `0.02`. A configured value
+  of `0` MUST mean "any ΔEOK greater than zero shows the modal". An invalid
+  value (negative, non-number) MUST be rejected at config-load time, consistent
+  with how the existing `colorSpaces` option is validated.
+- **FR-011**: When the converted colour is not within tolerance — outside the
+  target space's gamut, a channel is undefined, or the round-trip ΔEOK is
+  at/above the configured threshold — the editor MUST present a confirmation
+  modal before writing any change.
 - **FR-012**: The confirmation modal MUST list, per channel, the current value,
   the proposed new value, and a plain-language description of the difference
   (e.g. gamut clamping, undefined channel substitution).
@@ -313,6 +345,10 @@ warning modal) can be exercised.
   to the decision of whether to show the confirmation modal and what it lists.
 - **Channel edit**: a transient in-progress edit of one channel value, with a
   committed and an abandoned outcome.
+- **Colour editor options**: the colour type's `editorOptions` from the host's
+  `dtcg-editor.config`, validated at config-load time. Existing field: the
+  `colorSpaces` allow-list (FR-008). New field: the perceptual tolerance —
+  a non-negative ΔEOK threshold, default `0.02` (FR-010a).
 
 ## Success Criteria _(mandatory)_
 
@@ -322,13 +358,14 @@ warning modal) can be exercised.
   (click or Tab) and typing — no mode-switch step, no more than one interaction
   before typing.
 - **SC-002**: For every pair of colour spaces, converting an in-target-gamut
-  colour from one to the other and back returns a colour within a small,
-  documented perceptual tolerance of the original (no visible colour shift).
-- **SC-003**: 100% of colour-space switches that would change the stored colour
-  beyond display precision present the confirmation modal before writing;
-  0 silent colour changes occur on space switch.
-- **SC-004**: 100% of in-gamut, exactly-representable space switches apply
-  without a modal.
+  colour from one to the other and back returns a colour within ΔEOK 0.02 (the
+  default tolerance) of the original — no visible colour shift.
+- **SC-003**: 100% of colour-space switches whose result is out of gamut, has an
+  undefined channel, or exceeds the configured ΔEOK tolerance present the
+  confirmation modal before writing; 0 silent colour changes beyond tolerance
+  occur on space switch.
+- **SC-004**: 100% of space switches whose result is in gamut, fully defined,
+  and within the configured ΔEOK tolerance apply without a modal.
 - **SC-005**: Denying the confirmation modal leaves the token value byte-for-byte
   unchanged in 100% of cases.
 - **SC-006**: An audit of the editor's markup and styles finds zero literal
@@ -358,9 +395,11 @@ warning modal) can be exercised.
   first-party/existing approach falls short" bar.
 - **"Inexact" trigger for the modal**: a conversion is treated as inexact — and
   the modal shown — when the target-space value is outside that space's gamut,
-  when any channel becomes undefined, or when any channel would change by more
-  than the editor's display rounding. A conversion that is exact within
-  displayed precision applies silently.
+  when any channel becomes undefined, or when the round-trip ΔEOK of the
+  unrounded converted value is at or above the configured tolerance (FR-010a;
+  default 0.02). Below that, the switch applies silently. There is no display
+  rounding anywhere (FR-002d); the tolerance band is what absorbs
+  floating-point conversion dust.
 - **"Deny" semantics**: denying or dismissing the modal is a full no-op — the
   token keeps its original colour space and components; it does not switch space
   with un-converted numbers.
