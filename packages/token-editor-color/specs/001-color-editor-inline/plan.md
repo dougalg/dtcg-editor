@@ -10,9 +10,12 @@ Rework `@dtcg-editor/token-editor-color`'s `Editor` from a stacked-label form in
 a single inline, monospace CSS-function widget (e.g. `oklch( 0.7 0.15 145 / 12 )`)
 where every part is a live control from first render — each channel and the alpha
 are numeric inputs, the colour space is a `Select` — all styled to read as plain
-underlined text until hovered or focused. Switching colour space converts the
-*perceived* colour (not the raw channel numbers); an inexact/gamut-mapped
-conversion is confirmed through an Accept/Deny dialog before anything is written.
+underlined text until hovered or focused. Numbers display exactly as stored
+(trailing zeros trimmed, no rounding). Switching colour space converts the
+*perceived* colour (not the raw channel numbers); a conversion that is out of
+gamut, undefines a channel, or differs by more than a configurable ΔEOK
+tolerance (`editorOptions.spaceSwitchTolerance`, default 0.02) is confirmed
+through an Accept/Deny dialog before anything is written.
 
 Technical approach: the perceptual conversion + gamut-mapping capability
 (`convertColorValue`) is added **inside `@dtcg-editor/token-editor-color`** as a
@@ -66,9 +69,16 @@ call is sub-millisecond. No batching or memoisation infrastructure needed.
   re-validation; conversion lives in `src/utils/` and validation stays in
   `token-core` (package Principles I, II).
 
-**Scale/Scope**: 1 new/extended `src/utils/` conversion module in
-`token-editor-color` (~1 function + helpers, ~11 `node:test` cases), ~5 small
-React components, 1 Storybook story extended. `token-core` untouched.
+**Scale/Scope**: extended `src/utils/conversion.ts` in `token-editor-color`
+(`convertColorValue` + `formatChannel` helper, ~13 `node:test` cases), one new
+`ColorEditorOptions` field (`spaceSwitchTolerance`) + its schema/config test, ~5
+small React components, 1 Storybook story extended. `token-core` untouched.
+
+**Config**: the colour editor's `editorOptions` (in `dtcg-editor.config`) gains
+`spaceSwitchTolerance?: number` — the ΔEOK threshold for a silent space switch
+(FR-010a, from the 2026-08-29 clarification). Default `0.02` when unset.
+Validated at config-load by `ColorEditorOptionsSchema`, exactly like the
+existing `colorSpaces` option.
 
 ## Constitution Check
 
@@ -85,7 +95,7 @@ perceptual colour conversion + `colorjs.io` in `token-editor-color`, not
 | # | Gate | Verdict | Notes |
 |---|------|---------|-------|
 | Pkg I (v2.0.0) | Parsing/validation/serialization from `token-core`, not re-implemented; colour conversion + gamut mapping owned here; `colorjs.io` allowed here; conversion module React-free + independently unit-tested | **PASS (by design)** | `convertColorValue` is a framework-free `src/utils/` module in this package, `node:test`-covered; `colorjs.io` stays this package's dependency; components import the plain function. `token-core`'s schemas/serialization are imported unchanged. |
-| Pkg II | Editor is presentational, not a validation boundary; no new Zod schema/parse edge | **PASS** | Components consume `ColorValueSchema` via the contract; channel-input numeric hygiene is control-level, explicitly permitted by Principle II. The `src/utils/` conversion module adds no schema — it transforms already-typed values. |
+| Pkg II | Editor is presentational, not a validation boundary; no new Zod schema/parse edge | **PASS** | Components consume `ColorValueSchema` via the contract; channel-input numeric hygiene is control-level, explicitly permitted by Principle II. The `src/utils/` conversion module adds no schema — it transforms already-typed values. The new `spaceSwitchTolerance` field extends the **existing** `ColorEditorOptionsSchema`, which validates host *config* at config-load time (the host's edge), not token values at runtime — same category as the existing `colorSpaces` option, not a new trust boundary in the editor. |
 | Pkg III | Design-system is the only source of UI values; reuse its components | **PASS (with tracked dependency)** | `Input`/`Select`/`Dialog` reused; all design values via `--dtcg-ed-*`. The resting-dotted / hover-and-focus-solid underline treatment may not exist in the design system yet — per FR-019a it is contributed there (maintainer-owned) and consumed by token name; the editor ships **no** permanent local hardcode. See research.md R6. |
 | Pkg IV | One component per folder; unit + a11y tests for every component | **PASS** | Structure below gives each of `ColorEditor`, `ColorFunctionValue`, `ChannelInput`, `ColorSpaceSelect`, `SpaceConversionDialog` its own folder with `*.test.tsx` + `*.a11y.test.tsx`. |
 | Pkg V | DTCG 2025.10 Color module conformance; deviations flagged | **PASS** | No change to the colour spaces, channel ranges, or `$value` shapes. The legacy bare-hex deviation is already flagged in `token-core/color.ts`; this feature keeps it viewable/editable (FR-020) without widening it. |
@@ -117,6 +127,10 @@ introduce no new violation:
 - Five single-purpose components, each foldered with unit + a11y tests — Pkg IV /
   Root X upheld; `ChannelInput` is one reused component (channels + alpha), not a
   near-duplicate set.
+- 2026-08-29 clarification folded in: `spaceSwitchTolerance` extends the existing
+  `ColorEditorOptionsSchema` (host config edge, not a new editor boundary — Pkg
+  II); `formatChannel` is a pure display helper with no rounding (FR-002d). No
+  gate affected.
 Gate still **PASS**; Complexity Tracking still empty.
 
 ## Project Structure
@@ -171,16 +185,17 @@ packages/token-editor-color/
     │   ├── ColorPreview/              # unchanged
     │   └── ColorValidationErrorHandler/  # unchanged
     ├── utils/
-    │   ├── conversion.ts              # EXTENDED — add convertColorValue() (perceptual space conversion + gamut mapping + ColorConversion metadata); keep colorValueToSrgbHex; drop srgbHexToColorSpaceComponents (FR-017 removes its only caller)
-    │   ├── conversion.test.ts         # EXTENDED — + T1–T11 (node:test)
+    │   ├── conversion.ts              # EXTENDED — add convertColorValue(value, targetSpace, tolerance) + formatChannel() display helper; keep colorValueToSrgbHex; drop srgbHexToColorSpaceComponents (FR-017 removes its only caller)
+    │   ├── conversion.test.ts         # EXTENDED — + convertColorValue T1–T13 + formatChannel (node:test)
     │   ├── css-color.ts               # kept as-is (colorValueToCssColor — no colour lib, browser does the maths)
     │   ├── css-color.test.ts          # kept
     │   ├── range-validation.ts        # kept (COMPONENT_RANGES, checkColorValueIssues) — FR-021 messages & channel labels
     │   └── range-validation.test.ts   # kept
     ├── components/ColorEditor/ColorEditor.module.css   # replaced: no bespoke literals; consumes --dtcg-ed-* only (or removed if styling is all utility-class based)
-    ├── configuration.ts               # unchanged (colorSpaces allow-list)
+    ├── configuration.ts               # + spaceSwitchTolerance? on ColorEditorOptions / ColorEditorOptionsSchema (FR-010a)
+    ├── configuration.test.ts          # + cases for the new field (accepts 0 / positive / absent; rejects negative / non-number)
     ├── token-type.ts                  # unchanged wiring
-    └── index.ts                       # + export convertColorValue & ColorConversion types; drop the srgbHexToColorSpaceComponents re-export
+    └── index.ts                       # + export convertColorValue, formatChannel & ColorConversion/ChannelChange/ConversionNote types; drop the srgbHexToColorSpaceComponents re-export
 
 packages/token-editor-color/src/components/ColorEditor/ColorEditor.stories.tsx
     # extended: + OutOfGamut, + WithAlpha, + LegacyHex, + NoneChannel stories; interaction to open the conversion dialog

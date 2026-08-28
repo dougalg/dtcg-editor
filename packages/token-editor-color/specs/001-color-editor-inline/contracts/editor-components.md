@@ -14,16 +14,18 @@ Import design-system components by concrete path, e.g.
 ## `ColorEditor` (the contract `Editor`)
 
 **Props**: `TokenTypeEditorProps<ColorValue>` — `{ value, onChange, options }`
-(unchanged from today; `options` is the validated `ColorEditorOptions` with the
-`colorSpaces` allow-list).
+(shape unchanged from today; `options` is the validated `ColorEditorOptions` —
+the `colorSpaces` allow-list plus the **new** `spaceSwitchTolerance?: number`,
+FR-010a).
 
 **Responsibilities**
 - Branch legacy-hex vs object form (R9).
 - Render `ColorSpaceSelect` + `ColorFunctionValue` inline (object form), or the
   legacy-hex treatment.
-- Own the space-switch flow: call `convertColorValue`, apply directly on
-  `"exact"`, else stage `pendingSpace` + `pendingConversion` and render
-  `SpaceConversionDialog`.
+- Own the space-switch flow: call
+  `convertColorValue(value, next, options?.spaceSwitchTolerance ?? 0.02)`; if
+  `classification === "within-tolerance"` apply directly, else stage
+  `pendingSpace` + `pendingConversion` and render `SpaceConversionDialog`.
 - On every channel/alpha change, rebuild the `ColorObjectValue` and, if the
   incoming value had `hex`, refresh it via `colorValueToSrgbHex` (R10) before
   `onChange`.
@@ -56,7 +58,8 @@ FR-016, FR-021.
 text that visually tracks the select's hover/focus state (FR-002, FR-004);
 render one `ChannelInput` per component; render the alpha `ChannelInput` when
 `value.alpha !== undefined`, else the `+ α` add-alpha control (R8); render the
-`/` separator and inner padding as inert (FR-002b).
+`/` separator and inner padding as inert (FR-002b). All displayed numbers go
+through `formatChannel` — no rounding, trailing zeros trimmed (FR-002d).
 
 **MUST**: monospace via `--dtcg-ed-*` typography token (FR-002a); wrap without
 horizontal page overflow at min width (FR-023); no layout shift when a channel
@@ -88,6 +91,8 @@ is focused (FR-002c).
   (FR-002c).
 - `value === "none"` ⇒ display the literal text `none`; first keystroke starts a
   numeric draft from empty (R4).
+- Resting display and the initial focused `draft` are `formatChannel(value)` —
+  full precision, trailing zeros trimmed, no rounding (FR-002d).
 - Local `draft` string while focused. **Enter** or **blur**: if `draft` parses to
   a finite number ⇒ `onCommit`; if `draft` is empty and `onClear` given ⇒
   `onClear`; otherwise revert to `value`, no callback (FR-005, FR-006).
@@ -142,10 +147,11 @@ parens), FR-004, FR-007, FR-008.
 
 **Behaviour**: design-system `Dialog` (`DialogContent`/`DialogTitle`/
 `DialogDescription`). Title e.g. "Convert to {targetSpace}?". Body: a table with
-a row per `conversion.channelChanges` — label, `from`, `to`, and a plain-language
-consequence from `conversion.notes` (gamut clamp / undefined hue). Two actions:
-**Accept** (writes) and **Deny** (no-op). Initial focus on **Deny**. Escape =
-Deny. Purely presentational — no maths, no state.
+a row per `conversion.channelChanges` — label, `formatChannel(from)`,
+`formatChannel(to)` (no rounding, FR-002d), and a plain-language consequence from
+`conversion.notes` (gamut clamp / undefined hue). Two actions: **Accept**
+(writes) and **Deny** (no-op). Initial focus on **Deny**. Escape = Deny. Purely
+presentational — no maths, no state.
 
 **Key acceptance mapping**: US2 AC4/AC5/AC6, FR-011, FR-012, FR-013.
 
@@ -156,9 +162,11 @@ Deny. Purely presentational — no maths, no state.
 - **Removed** from `ColorEditor.tsx`: `<input type="color">` picker (FR-017), the
   three `none` checkboxes (FR-015), the standalone hex `<input>` (FR-016), the
   "has alpha" checkbox (R8), the stacked `.labelText` captions.
+- **Changed**: `configuration.ts` — `ColorEditorOptions` /
+  `ColorEditorOptionsSchema` gain `spaceSwitchTolerance?: number`
+  (`z.number().nonnegative().optional()`), FR-010a.
 - **Unchanged**: `ColorPreview`, `ColorValidationErrorHandler`, `token-type.ts`
-  wiring, `configuration.ts` (`ColorEditorOptions` / `colorSpaces` allow-list),
-  `utils/range-validation.ts`.
+  wiring, `utils/range-validation.ts`.
 - **Story**: `ColorEditor.stories.tsx` gains `OutOfGamut`, `WithAlpha`,
   `LegacyHex`, `NoneChannel` stories and a play/interaction that opens
   `SpaceConversionDialog` (FR-022).

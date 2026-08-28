@@ -42,66 +42,92 @@ auto-register). Do **not** adopt `culori` or any other colour library.
 
 ---
 
-## R2 — Perceptual conversion + when a switch is "exact"
+## R2 — Perceptual conversion + when a switch is "within tolerance"
 
-**Decision**: `convertColorValue(value, targetSpace)` computes the target-space
-coordinates with `colorjs.io`'s `to()`, then:
+*(Updated by the 2026-08-29 clarification: the threshold is a config value, not
+a hardcoded constant; there is no display rounding.)*
+
+**Decision**: `convertColorValue(value, targetSpace, tolerance)` computes the
+target-space coordinates with `colorjs.io`'s `to()`, then:
 1. Determines in-gamut-ness of the target space (`inGamut()`).
 2. If out of gamut, produces a gamut-mapped variant with
    `toGamut(color, { space: targetSpaceId, method: "css" })` (the CSS Color 4
    OKLCH-chroma-reduction algorithm).
-3. Classifies the outcome as one of `"exact"`, `"gamut-mapped"`, or
+3. Classifies the outcome as one of `"within-tolerance"`, `"gamut-mapped"`, or
    `"channel-undefined"` (see R5), and reports per-channel `{ from, to }` pairs
-   at **display precision** (R3).
+   using the **unrounded stored values** (formatting/trimming is the view's job,
+   R3).
 
-"Exact" (apply silently, no dialog — FR-010) requires **all** of:
+`"within-tolerance"` (apply silently, no dialog — FR-010) requires **all** of:
 - the target-space value is in gamut, **and**
 - no channel is undefined in the target space, **and**
-- round-tripping the display-precision-rounded target value back to the source
-  space and comparing to the original with `deltaEOK` yields `< 0.02` (a JND is
-  ~0.02 in OKLab ΔE; below this no human sees a difference).
+- round-tripping the **unrounded** target value back to the source space and
+  comparing to the original with `deltaEOK` yields a value **strictly below
+  `tolerance`**.
 
-Anything else ⇒ `"gamut-mapped"` or `"channel-undefined"` ⇒ the confirmation
-dialog (FR-011).
+`tolerance` is the caller-supplied ΔEOK threshold — the colour editor passes
+`options.spaceSwitchTolerance ?? 0.02` (FR-010a). `tolerance === 0` ⇒ only a
+`deltaEOK` of exactly `0` is "within tolerance"; in practice every real
+cross-space conversion carries floating-point dust so the dialog fires on
+essentially every switch — a deliberate "always confirm" mode.
+
+Anything not "within-tolerance" ⇒ `"gamut-mapped"` or `"channel-undefined"` ⇒
+the confirmation dialog (FR-011).
 
 **Rationale**: `deltaEOK` is the perceptually-uniform metric colorjs.io
-recommends for "do these look the same". The 0.02 threshold is the widely-cited
-OKLab JND. Rounding to display precision before the comparison means the dialog
-only appears when the *number the user will actually see* differs — not when the
-15th decimal does.
+recommends for "do these look the same". 0.02 (the default) is the widely-cited
+OKLab JND — below it no human sees a difference. Making it configurable lets a
+host tighten or loosen how eagerly the confirmation dialog appears without a
+code change. Comparing unrounded values (rather than rounding first) is simpler
+and, with a non-zero tolerance band, has the same practical effect — the band
+absorbs the sub-perceptual dust.
 
 **Alternatives considered**:
-- *Trigger the dialog on any non-zero numeric delta* — too noisy; every lossless
-  conversion carries floating-point dust. Rejected.
-- *ΔE2000 in Lab* — heavier, and OKLab ΔE is the modern recommendation for this
-  exact "same colour?" question. Rejected.
+- *Hardcode 0.02* — the plan's first draft; the clarification made it
+  configurable. Rejected.
+- *Round to display precision before comparing* — the plan's first draft;
+  dropped with the "no display rounding" clarification. The tolerance band
+  already absorbs float dust, so rounding added nothing.
+- *ΔE2000 in Lab* — heavier, less aligned with the OKLCH pipeline. Rejected.
 
 ---
 
-## R3 — Display precision per colour space
+## R3 — Number display: no rounding, trim trailing zeros
 
-**Decision**: Round each channel for display (and for the R2 comparison) to a
-fixed number of decimal places by channel kind:
-- Unit-range RGB / XYZ / OKLab-L / alpha: **4 decimals**
-- Percentage channels (HSL/HWB S,L,W,B): **2 decimals**
-- Hue (deg): **2 decimals**
-- Lab/LCH L,C and Lab a,b: **2 decimals**
-- OKLCH C: **4 decimals**; OKLab a,b: **4 decimals**
+*(Set by the 2026-08-29 clarification.)*
 
-Trailing zeros are trimmed for display (`0.5`, not `0.5000`). The stored
-`components` keep whatever precision the user typed or the conversion produced;
-rounding is a *view* concern applied by `ColorFunctionValue`, except in the R2
-"exact?" comparison where the rounded value is what's tested.
+**Decision**: No display rounding or precision cap anywhere. A channel/alpha
+value is shown exactly as stored — whatever precision the user typed or the
+conversion produced — passed through a single formatting helper
+`formatChannel(n: number): string` that only:
+- renders the number in plain decimal notation (no exponent),
+- trims trailing zeros in the fractional part and a bare trailing `.`
+  (`0.5000` → `0.5`, `145.0` → `145`),
+- normalises `-0` to `0`.
 
-**Rationale**: Matches the ranges already encoded in
-`utils/range-validation.ts` (`COMPONENT_RANGES`) and keeps the inline string
-short enough to stay on one line for typical values. Channel-kind-based rather
-than one global precision because 4 decimals on a hue (`145.0000`) is noise and
-2 decimals on an sRGB component (`0.51`) loses real information.
+`formatChannel` is used by `ColorFunctionValue` for the resting string, by
+`ChannelInput` to seed a focused input's initial text, and by
+`SpaceConversionDialog` for the before/after cells. It never changes the stored
+`components` — those keep full precision. `convertColorValue`'s ΔEOK comparison
+(R2) also uses unrounded values.
 
-**Alternatives considered**: single global precision (rejected — see above);
-significant-figures instead of decimal places (rejected — harder to reason about
-and produces ragged columns in a monospace layout).
+**Rationale**: The maintainer chose exactness over tidiness — an authored
+`0.123456` should read back as `0.123456`, not silently truncated. Trailing-zero
+trimming is pure cosmetics (`0.5` vs `0.5000`) with no information loss. A single
+helper keeps the three render sites consistent and is trivially unit-tested.
+
+**Alternatives considered**: per-channel-type decimal places (the plan's first
+draft — rejected by the clarification as lossy); fixed N decimals or N sig-figs
+(same objection); `Number.prototype.toString()` alone (rejected — can emit
+exponent notation for very small/large magnitudes, which would look wrong in the
+inline string).
+
+**Open sub-point for implementation**: extremely long fractions (e.g. an
+irrational-looking conversion result like `0.30000000000000004`) will render in
+full. FR-023 (wrap, no page overflow) still applies. If this proves unreadable
+in practice, capping *only* the visually-displayed string (not the stored value
+or the input's editable text) at a generous length is a follow-up, not part of
+this feature.
 
 ---
 
@@ -187,9 +213,10 @@ design-system styling.
 
 The space `Select` is a **controlled** component whose `value` is
 `pendingSpace ?? value.colorSpace`. On `onValueChange(next)`:
-- compute `convertColorValue(value, next)`;
-- if `"exact"` → call `onChange` with the converted value (the controlled
-  `value` prop updates, select shows `next`);
+- compute `convertColorValue(value, next, tolerance)` where
+  `tolerance = options.spaceSwitchTolerance ?? 0.02`;
+- if `classification === "within-tolerance"` → call `onChange` with the
+  converted value (the controlled `value` prop updates, select shows `next`);
 - else → set local `pendingSpace = next` and open `SpaceConversionDialog`.
   **Accept** → `onChange(convertedValue)` then clear `pendingSpace`. **Deny /
   dismiss** → clear `pendingSpace`; because the select is controlled off

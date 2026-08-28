@@ -48,18 +48,19 @@ type — an inexact conversion is a normal, reportable result.
 | `components` | `[number, number, number]` | the value to write on Accept — always concrete numbers (never `"none"`, never `NaN`); gamut-mapped when `classification === "gamut-mapped"` |
 | `alpha` | `number \| undefined` | unchanged from the input (FR-014) |
 | `hex` | `string \| undefined` | recomputed sRGB fallback iff the input had one (R10) |
-| `classification` | `"exact" \| "gamut-mapped" \| "channel-undefined"` | drives whether the editor shows the confirmation dialog |
-| `channelChanges` | `ChannelChange[]` (length 3) | per-channel before→after at display precision, for the dialog table |
+| `classification` | `"within-tolerance" \| "gamut-mapped" \| "channel-undefined"` | `"within-tolerance"` ⇒ editor applies silently; the other two ⇒ confirmation dialog |
+| `channelChanges` | `ChannelChange[]` (length 3) | per-channel before→after, unrounded, for the dialog table |
 | `notes` | `ConversionNote[]` | human-readable, e.g. `{ kind: "gamut-clamped" }`, `{ kind: "hue-undefined", channelIndex: 2 }` |
+| `deltaEOK` | `number` | the round-trip perceptual difference actually computed — lets a caller/test see how close the switch was to the tolerance line |
 
 ### `ChannelChange`
 
 | Field | Type | Notes |
 |-------|------|-------|
 | `label` | `string` | from `COMPONENT_RANGES` of the **target** space (e.g. `"L"`, `"C"`, `"H"`) |
-| `from` | `number \| "none" \| null` | source value in the **source** space at display precision; `null` when source channel count/meaning has no counterpart |
-| `to` | `number` | target value at display precision |
-| `changed` | `boolean` | `true` when `from`/`to` differ at display precision |
+| `from` | `number \| "none" \| null` | source value in the **source** space, unrounded; `null` when source channel count/meaning has no counterpart. The dialog renders it through `formatChannel` |
+| `to` | `number` | target value, unrounded; dialog renders via `formatChannel` |
+| `changed` | `boolean` | `true` when `from`/`to` differ at all (unrounded) |
 
 ### `ConversionNote`
 
@@ -69,23 +70,42 @@ Discriminated union:
 - `{ kind: "hue-undefined", channelIndex: 0 | 1 | 2 }` — an achromatic colour
   produced an undefined hue; `0` substituted (R5).
 
-### `convertColorValue(value, targetSpace)` — signature
+### `convertColorValue(value, targetSpace, tolerance)` — signature
 
 ```
 convertColorValue(
   value: ColorObjectValue | LegacyHexColorValue,
   targetSpace: ColorSpace,
+  tolerance: number,          // ΔEOK threshold; caller passes options.spaceSwitchTolerance ?? 0.02
 ): Result<ColorConversion, UnknownError>
 ```
 
 - Lives in `token-editor-color`'s `src/utils/conversion.ts` (framework-free,
   `node:test`-covered), re-exported from the package's `src/index.ts`.
+- `tolerance` MUST be `>= 0`. The classifier reports `"within-tolerance"` only
+  when in gamut, no undefined channel, and the round-trip `deltaEOK` is
+  **strictly `< tolerance`**. `tolerance === 0` therefore treats any non-zero
+  `deltaEOK` as needing confirmation.
 - Returns `Result` per repo Principle V: the `err` branch is only for an
   unexpected `colorjs.io` throw (wrapped once with `fromThrowable`, logged via
   an injected `Logger` per Principle VI). A representable-vs-not distinction is
   **not** an error — it rides in `classification`.
 - `"none"` inputs are coerced to `0` before maths (R4).
 - A `LegacyHexColorValue` input is treated as `srgb` (R9).
+- No rounding of any kind — inputs, outputs, and the `deltaEOK` comparison all
+  use full-precision numbers (R3).
+
+### `formatChannel(n)` — new display helper (`src/utils/conversion.ts`)
+
+```
+formatChannel(n: number): string
+```
+
+Plain-decimal string of `n` with trailing fractional zeros and any bare trailing
+`.` trimmed, and `-0` rendered as `"0"`. No rounding, no exponent notation. Used
+by `ColorFunctionValue`, `ChannelInput` (initial focused text), and
+`SpaceConversionDialog`. `node:test`-covered (`0.5000→"0.5"`, `145.0→"145"`,
+`-0→"0"`, `0.123456→"0.123456"`, small magnitudes stay decimal not `1e-7`).
 
 ### `colorValueToCssColor(value)` — unchanged, stays in `token-editor-color`
 
@@ -99,6 +119,20 @@ Already here. Used by R10 to keep the optional `hex` fallback in sync.
 the native `<input type="color">` that was its only caller.
 
 ---
+
+## Changed — `ColorEditorOptions` (`src/configuration.ts`)
+
+The colour type's `editorOptions` shape gains one field. Validated at
+config-load time by `ColorEditorOptionsSchema` (Zod), exactly like the existing
+`colorSpaces` field — this is the **host's** config edge, not a new validation
+boundary inside the editor (Pkg Principle II).
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `colorSpaces` | `readonly ColorSpace[]` (optional, `.min(1)`) | existing — space allow-list (FR-008) |
+| `spaceSwitchTolerance` | `number` (optional) | **new** — ΔEOK threshold for a silent space switch (FR-010a). Schema: `z.number().nonnegative().optional()`. Absent ⇒ the editor uses `0.02`. |
+
+`defineColorConfig` (the typed identity helper) picks up the new field for free.
 
 ## New — editor-local view/interaction state (component-scoped, not exported)
 
@@ -127,11 +161,15 @@ actions. Holds no state.
 
 ---
 
-## Validation rules (all pre-existing; nothing new)
+## Validation rules
 
 - Structural: `ColorValueSchema` (in `token-core`), applied by the host via the
   contract **before** `Editor` is rendered. The editor never re-runs it (Pkg
   Principle II).
+- Config: `ColorEditorOptionsSchema` gains `spaceSwitchTolerance:
+  z.number().nonnegative().optional()` (FR-010a). Enforced at config-load in the
+  host's `defineConfig`, same as `colorSpaces` — not a runtime edge in the
+  editor.
 - In-range (FR-021): `checkColorValueIssues` / `COMPONENT_RANGES` — advisory
   messages only; out-of-range numeric values are still valid data and are
   written.

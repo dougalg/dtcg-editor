@@ -16,16 +16,23 @@ pnpm --filter @dtcg-editor/design-system build   # regenerates dist/styles/token
 pnpm --filter @dtcg-editor/token-editor-color test    # the package's own node:test script
 ```
 
-Expect: all new `src/utils/conversion.test.ts` cases (T1–T11 in
+Expect: all new `src/utils/conversion.test.ts` cases (T1–T13 in
 `contracts/convert-color-value.md`) pass, alongside the pre-existing
 `conversion.test.ts` / `css-color.test.ts` cases (`colorValueToCssColor` /
-`colorValueToSrgbHex` are unchanged). `token-core` is not modified. Key checks:
+`colorValueToSrgbHex` are unchanged), plus the new `configuration.test.ts` case
+for `spaceSwitchTolerance`. `token-core` is not modified. Key checks:
 
-- Every space↔space pair round-trips within `deltaEOK < 0.02` (T1).
-- `srgb`→`oklch` on an in-gamut colour ⇒ `classification: "exact"` (T2).
+- Every space↔space pair round-trips with result `deltaEOK < 0.02` at
+  `tolerance = 0.02` (T1).
+- `srgb`→`oklch` on an in-gamut colour, `tolerance = 0.02` ⇒
+  `classification: "within-tolerance"` (T2).
 - `oklch(0.7 0.3 30)`→`srgb` ⇒ `classification: "gamut-mapped"`, components in
   `[0,1]` (T3).
 - Achromatic ⇒ `classification: "channel-undefined"`, hue `0`, note present (T4).
+- `tolerance = 0` on an in-gamut switch with `deltaEOK > 0` ⇒ **not**
+  `"within-tolerance"` (T12).
+- `formatChannel`: `0.5000→"0.5"`, `145.0→"145"`, `-0→"0"`, `0.123456` kept in
+  full, tiny magnitudes stay decimal (no `1e-7`) (T13).
 - `alpha` and `hex` handled per T5/T7/T8; no `"none"`/`NaN` ever in output.
 
 ## 2. `token-editor-color` components (unit + a11y)
@@ -78,6 +85,14 @@ Edit a `color` token in the tree:
    are present.
 4. Tab through the control: order is space → c0 → c1 → c2 → alpha/`+ α`; focus
    shows the same solid-underline treatment as hover.
+5. Long/precise values display in full (no rounding), just with trailing zeros
+   trimmed.
+6. **Configurable tolerance**: in `dtcg-editor.config`, set the `color` entry's
+   `editorOptions.spaceSwitchTolerance` to `0` → every cross-space switch now
+   shows the confirmation dialog. Set it to a large value (e.g. `1`) → even
+   out-of-tolerance switches apply silently (gamut/undefined still show the
+   dialog). Remove the field → behaviour returns to the `0.02` default. An
+   invalid value (`-1`, `"x"`) fails `init-config` / config load.
 
 ## 5. Constitution / lint gates
 
