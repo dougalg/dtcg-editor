@@ -128,23 +128,28 @@ separate hex field.
 
 ### User Story 4 - Preview and inspect states in Storybook (Priority: P3)
 
-A contributor can open Storybook and see the color editor rendered across its
-meaningful states — a plain sRGB colour, a wide-gamut `oklch` colour that is
-out of sRGB gamut, a colour with alpha, a legacy bare-hex value, and a value
-whose channel is currently `none` — and can drive the space-switch flow to see
-the warning modal, without running the full web app.
+The editor already has a Storybook story (`Editors/ColorEditor`, with `Default`
+and `RestrictedColorSpaces` stories driven by a controlled wrapper) under the
+repo-root Storybook. This feature extends that story so a contributor can see
+the reworked editor across its meaningful states — a plain sRGB colour, a
+wide-gamut `oklch` colour that is out of sRGB gamut, a colour with alpha, a
+legacy bare-hex value, and a value whose channel is currently `none` — and can
+drive the space-switch flow to see the warning modal, without running the full
+web app.
 
 **Why this priority**: A convenience for development and review, valuable but not
-required for the feature to function.
+required for the feature to function. The story scaffold already exists, so this
+is incremental.
 
-**Independent Test**: Start Storybook, open the color editor story, and confirm
-each documented state renders and the space-switch interaction can be exercised.
+**Independent Test**: Start Storybook, open `Editors/ColorEditor`, and confirm
+each documented state renders and the space-switch interaction (including the
+warning modal) can be exercised.
 
 **Acceptance Scenarios**:
 
-1. **Given** Storybook is running, **When** the contributor opens the color editor story, **Then** it renders without error and shows the editor with a representative object-form colour value.
+1. **Given** Storybook is running, **When** the contributor opens `Editors/ColorEditor`, **Then** the reworked editor renders without error for the existing `Default` and `RestrictedColorSpaces` stories.
 2. **Given** the story, **When** the contributor selects a state showing an out-of-sRGB-gamut colour and switches it to `srgb`, **Then** the warning modal renders in Storybook with per-channel deltas.
-3. **Given** the story, **When** it renders the legacy bare-hex and `none`-channel states, **Then** each renders without error.
+3. **Given** the story, **When** it renders the added alpha, legacy bare-hex, and `none`-channel states, **Then** each renders without error.
 
 ---
 
@@ -255,10 +260,13 @@ each documented state renders and the space-switch interaction can be exercised.
 - **FR-021**: The editor MUST continue to surface the project's existing
   range / out-of-gamut validation messages for values that are numerically valid
   but outside a channel's expected range.
-- **FR-022**: A Storybook story MUST exist for the editor, covering at minimum:
-  a plain sRGB colour, an out-of-sRGB-gamut wide-gamut colour, a colour with
-  alpha, a legacy bare-hex value, and a value with a `none` channel; and it MUST
-  allow exercising the space-switch flow including the warning modal.
+- **FR-022**: The editor's existing Storybook story (`Editors/ColorEditor`)
+  MUST be extended to cover, at minimum: a plain sRGB colour (existing
+  `Default`), a restricted-space case (existing `RestrictedColorSpaces`), an
+  out-of-sRGB-gamut wide-gamut colour, a colour with alpha, a legacy bare-hex
+  value, and a value with a `none` channel; and it MUST allow exercising the
+  space-switch flow including the warning modal. No change to the repo-root
+  Storybook configuration or its story-discovery globs is required.
 - **FR-023**: The inline string MUST wrap within its container at the editor's
   minimum supported width without causing horizontal page overflow, and MUST
   stay fully editable when wrapped.
@@ -341,11 +349,12 @@ each documented state renders and the space-switch interaction can be exercised.
   dashed-underline / hover solid-underline treatment is composed from design
   tokens. The design system already defines a monospace font-family typography
   token (`typography.mono`), which FR-002a consumes.
-- **Storybook**: a Storybook setup already exists in the repository; this
-  feature adds a story for this editor and, if the existing Storybook does not
-  already include this package's stories, extends its story discovery to do so.
-  No change to how Storybook itself is configured or built is in scope beyond
-  that.
+- **Storybook**: the repo-root Storybook (`.storybook/`, globbing
+  `packages/*/src/**/*.stories.*`, wired into turbo) and an
+  `Editors/ColorEditor` story with `Default` and `RestrictedColorSpaces`
+  stories already exist. This feature only extends that story file with
+  additional states and the modal-exercising interaction; it changes nothing
+  about how Storybook itself is configured, discovered, or built.
 - **Scope boundary**: this feature reworks the color token editor UI and its
   conversion behaviour only. It does not change the color token data model, the
   set of supported colour spaces, validation rules, serialization, or any other
