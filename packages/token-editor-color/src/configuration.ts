@@ -10,17 +10,24 @@ import { z } from "zod";
  */
 export interface ColorEditorOptions {
 	readonly colorSpaces?: readonly ColorSpace[] | undefined;
+	/**
+	 * ΔEOK (OKLab ΔE) threshold below which a colour-space switch applies
+	 * without the confirmation dialog (FR-010a). Absent ⇒ the editor uses
+	 * `0.02`. A value of `0` means any ΔEOK greater than zero is confirmed.
+	 */
+	readonly spaceSwitchTolerance?: number | undefined;
 }
 
 /**
  * An explicitly empty `colorSpaces` array is rejected (`.min(1)`) rather
  * than silently producing a picker with zero selectable spaces — fails fast
  * in `defineConfig`, consistent with how other malformed config already
- * fails there.
+ * fails there. `spaceSwitchTolerance` must be a non-negative number.
  */
 export const ColorEditorOptionsSchema: z.ZodType<ColorEditorOptions> = z.object(
 	{
 		colorSpaces: z.array(z.enum(COLOR_SPACES)).min(1).optional(),
+		spaceSwitchTolerance: z.number().nonnegative().optional(),
 	},
 );
 

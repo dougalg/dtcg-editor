@@ -7,9 +7,15 @@ export {
 	defineColorConfig,
 } from "./configuration.ts";
 export { colorTokenType } from "./token-type.ts";
+export type {
+	ChannelChange,
+	ColorConversion,
+	ConversionNote,
+} from "./utils/conversion.ts";
 export {
 	colorValueToSrgbHex,
-	srgbHexToColorSpaceComponents,
+	convertColorValue,
+	formatChannel,
 } from "./utils/conversion.ts";
 export { colorValueToCssColor } from "./utils/css-color.ts";
 export {

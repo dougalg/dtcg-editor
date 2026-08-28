@@ -332,6 +332,12 @@ importers:
 
   packages/token-editor-color:
     dependencies:
+      '@dtcg-editor/design-system':
+        specifier: workspace:*
+        version: link:../design-system
+      '@dtcg-editor/errors':
+        specifier: workspace:*
+        version: link:../errors
       '@dtcg-editor/token-core':
         specifier: workspace:*
         version: link:../token-core
@@ -341,6 +347,9 @@ importers:
       colorjs.io:
         specifier: ^0.7.1
         version: 0.7.1
+      neverthrow:
+        specifier: 'catalog:'
+        version: 8.2.0
       react:
         specifier: 'catalog:'
         version: 19.2.8

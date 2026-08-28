@@ -15,9 +15,12 @@
 		"lint": "biome lint ."
 	},
 	"dependencies": {
+		"@dtcg-editor/design-system": "workspace:*",
+		"@dtcg-editor/errors": "workspace:*",
 		"@dtcg-editor/token-core": "workspace:*",
 		"@dtcg-editor/token-editor-contract": "workspace:*",
 		"colorjs.io": "^0.7.1",
+		"neverthrow": "catalog:",
 		"react": "catalog:",
 		"zod": "catalog:"
 	},

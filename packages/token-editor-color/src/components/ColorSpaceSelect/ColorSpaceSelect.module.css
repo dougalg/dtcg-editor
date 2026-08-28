@@ -1,0 +1,48 @@
+/* Reads as plain monospace text, not a form control. Values from
+ * design-system tokens; underline treatment references
+ * `--dtcg-ed-color-editable-*` (FR-019a / research R6) with neutral-token
+ * fallbacks until the design-system utility lands. */
+.trigger.trigger {
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: none;
+	border-radius: 0;
+	padding: 0;
+	margin: 0;
+	width: auto;
+	min-width: 0;
+	height: auto;
+	font: inherit;
+	font-family: var(--dtcg-ed-font-mono, monospace);
+	color: var(
+		--dtcg-ed-color-editable-fg,
+		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
+	);
+	text-decoration-line: underline;
+	text-decoration-style: dotted;
+	text-decoration-color: var(
+		--dtcg-ed-color-editable-underline,
+		var(--dtcg-ed-color-neutral-border-normal, currentColor)
+	);
+	text-underline-offset: var(--dtcg-ed-space-3xs);
+}
+
+/* Hide the design-system Select chevron — the trigger is bare text. */
+.trigger.trigger > svg {
+	display: none;
+}
+
+.trigger.trigger:hover,
+.trigger.trigger:focus-visible {
+	text-decoration-style: solid;
+	text-decoration-color: var(
+		--dtcg-ed-color-editable-underline-active,
+		var(--dtcg-ed-color-neutral-on-normal, currentColor)
+	);
+	color: var(
+		--dtcg-ed-color-editable-fg-active,
+		var(--dtcg-ed-color-neutral-on-normal, currentColor)
+	);
+	outline: none;
+}

@@ -1,0 +1,56 @@
+/* Reads as plain text until hovered/focused. All values come from
+ * design-system tokens; the resting-dotted / hover-and-focus-solid
+ * treatment references `--dtcg-ed-color-editable-*` (FR-019a / research R6)
+ * with neutral-token fallbacks until the design-system utility lands. */
+.field.field {
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: none;
+	border-radius: 0;
+	padding: 0;
+	margin: 0;
+	width: auto;
+	min-width: 0;
+	font: inherit;
+	font-family: var(--dtcg-ed-font-mono, monospace);
+	color: var(
+		--dtcg-ed-color-editable-fg,
+		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
+	);
+	text-decoration-line: underline;
+	text-decoration-style: dotted;
+	text-decoration-color: var(
+		--dtcg-ed-color-editable-underline,
+		var(--dtcg-ed-color-neutral-border-normal, currentColor)
+	);
+	text-underline-offset: var(--dtcg-ed-space-3xs);
+	field-sizing: content;
+}
+
+.field.field::-webkit-inner-spin-button,
+.field.field::-webkit-outer-spin-button {
+	appearance: none;
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.field.field:hover,
+.field.field:focus-visible,
+.field.field:focus {
+	text-decoration-style: solid;
+	text-decoration-color: var(
+		--dtcg-ed-color-editable-underline-active,
+		var(--dtcg-ed-color-neutral-on-normal, currentColor)
+	);
+	color: var(
+		--dtcg-ed-color-editable-fg-active,
+		var(--dtcg-ed-color-neutral-on-normal, currentColor)
+	);
+	outline: none;
+}
+
+.field.field[aria-invalid="true"] {
+	text-decoration-color: var(--dtcg-ed-color-error-on-normal, currentColor);
+	color: var(--dtcg-ed-color-error-on-normal, currentColor);
+}

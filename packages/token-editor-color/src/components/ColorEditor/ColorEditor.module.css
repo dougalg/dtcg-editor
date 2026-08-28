@@ -1,41 +1,20 @@
-.swatch {
-	display: inline-block;
-	width: var(--dtcg-ed-size-step-3);
-	height: var(--dtcg-ed-size-step-3);
-	background-color: var(--swatch-color);
-	border: var(--dtcg-ed-border-width-thin) solid
-		var(--dtcg-ed-color-neutral-border-normal);
-	border-radius: var(--dtcg-ed-radius-md);
-	vertical-align: middle;
+.editor {
+	font-family: var(--dtcg-ed-font-mono, monospace);
+	font-size: var(--dtcg-ed-text-sm);
 }
 
-.picker {
-	display: inline-block;
-	width: 2rem;
-	height: var(--dtcg-ed-size-step-3);
-	border: var(--dtcg-ed-border-width-thin) solid
-		var(--dtcg-ed-color-neutral-border-normal);
-	border-radius: var(--dtcg-ed-radius-md);
-	padding: 0;
-	vertical-align: middle;
-	margin-right: var(--dtcg-ed-space-2xs);
+.inert {
+	color: var(--dtcg-ed-color-neutral-on-quiet, currentColor);
+	user-select: none;
 }
 
-.labelText {
-	font-size: var(--dtcg-ed-text-xs);
-	opacity: 0.6;
-}
-
-.componentRow {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--dtcg-ed-space-3xs);
-}
-
-.colorIssues {
+.issues {
 	width: 100%;
-	color: var(--dtcg-ed-color-error-on-normal);
+	color: var(--dtcg-ed-color-error-on-normal, currentColor);
 	font-size: var(--dtcg-ed-text-xs);
+}
+
+.issues ul {
 	margin: 0;
 	padding-left: var(--dtcg-ed-space-sm);
 }

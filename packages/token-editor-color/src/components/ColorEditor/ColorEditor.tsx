@@ -7,31 +7,24 @@ import {
 	type ColorValue,
 } from "@dtcg-editor/token-core";
 import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
-import { type ChangeEvent, type CSSProperties, useState } from "react";
+import { type ReactElement, useId, useState } from "react";
 import type { ColorEditorOptions } from "../../configuration.ts";
 import {
+	type ColorConversion,
 	colorValueToSrgbHex,
-	srgbHexToColorSpaceComponents,
+	convertColorValue,
 } from "../../utils/conversion.ts";
-import { colorValueToCssColor } from "../../utils/css-color.ts";
-import {
-	COMPONENT_RANGES,
-	checkColorValueIssues,
-} from "../../utils/range-validation.ts";
+import { checkColorValueIssues } from "../../utils/range-validation.ts";
+import { ChannelInput } from "../ChannelInput/ChannelInput.tsx";
+import { ColorFunctionValue } from "../ColorFunctionValue/ColorFunctionValue.tsx";
+import { ColorSpaceSelect } from "../ColorSpaceSelect/ColorSpaceSelect.tsx";
+import { SpaceConversionDialog } from "../SpaceConversionDialog/SpaceConversionDialog.tsx";
 import styles from "./ColorEditor.module.css";
 
-const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
+const DEFAULT_TOLERANCE = 0.02;
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
-/** The swatch's fill is inherently dynamic (whatever color the token/input
- * currently resolves to), so it can't be a static CSS/design-token value —
- * threaded through as a custom property instead of a `backgroundColor`
- * inline style, so `.swatch`'s other properties (size, border, radius —
- * all design tokens) stay in CSS. */
-function swatchStyle(color: string): CSSProperties {
-	return { "--swatch-color": color } as CSSProperties;
-}
-
-/** `COLOR_SPACES`, deduped with `active` unioned in, kept in canonical order regardless of allow-list order (FR-05/AC-05/AC-06). */
+/** `COLOR_SPACES`, deduped with `active` unioned in, in canonical order. */
 function offeredColorSpaces(
 	configured: readonly ColorSpace[] | undefined,
 	active: ColorSpace,
@@ -41,286 +34,152 @@ function offeredColorSpaces(
 	return COLOR_SPACES.filter((space) => allowed.has(space));
 }
 
-function withComponent(
-	value: ColorObjectValue,
-	index: 0 | 1 | 2,
-	component: number | "none",
-): ColorObjectValue {
-	const components = [...value.components] as [
-		number | "none",
-		number | "none",
-		number | "none",
-	];
-	components[index] = component;
-	return { ...value, components };
+/** Which channel index each range issue refers to (from its `component N` text). */
+function invalidChannels(
+	issues: readonly string[],
+): [boolean, boolean, boolean] {
+	const flags: [boolean, boolean, boolean] = [false, false, false];
+	for (const issue of issues) {
+		const match = issue.match(/component (\d)/);
+		const index = match ? Number(match[1]) : Number.NaN;
+		if (index === 0 || index === 1 || index === 2) {
+			flags[index] = true;
+		}
+	}
+	return flags;
 }
 
-function withoutAlpha(value: ColorObjectValue): ColorObjectValue {
-	return {
-		colorSpace: value.colorSpace,
-		components: value.components,
-		...(value.hex !== undefined ? { hex: value.hex } : {}),
-	};
+function withHexInSync(value: ColorObjectValue): ColorObjectValue {
+	return value.hex === undefined
+		? value
+		: { ...value, hex: colorValueToSrgbHex(value) };
 }
 
-function withoutHex(value: ColorObjectValue): ColorObjectValue {
-	return {
-		colorSpace: value.colorSpace,
-		components: value.components,
-		...(value.alpha !== undefined ? { alpha: value.alpha } : {}),
-	};
-}
-
-function ObjectColorEditor({
-	value,
-	onChange,
-	colorSpaces,
-}: {
-	value: ColorObjectValue;
-	onChange: (next: ColorValue) => void;
-	colorSpaces?: readonly ColorSpace[] | undefined;
-}) {
-	const [hexInput, setHexInput] = useState(value.hex ?? "");
-	const componentLabels = COMPONENT_RANGES[value.colorSpace].map(
-		(range) => range.label,
-	);
-	const cssColor = colorValueToCssColor(value);
-	const offeredSpaces = offeredColorSpaces(colorSpaces, value.colorSpace);
-	const rangeIssues = checkColorValueIssues(value);
-
-	function handleColorSpaceChange(event: ChangeEvent<HTMLSelectElement>) {
-		onChange({
-			...value,
-			colorSpace: event.target.value as ColorObjectValue["colorSpace"],
-		});
-	}
-
-	function handlePickerChange(event: ChangeEvent<HTMLInputElement>) {
-		const components = srgbHexToColorSpaceComponents(
-			event.target.value,
-			value.colorSpace,
-		);
-		if (components === null) {
-			return;
-		}
-		onChange({ ...value, components });
-	}
-
-	function handleComponentValueChange(
-		index: 0 | 1 | 2,
-		event: ChangeEvent<HTMLInputElement>,
-	) {
-		const next = Number(event.target.value);
-		if (Number.isNaN(next)) {
-			return;
-		}
-		onChange(withComponent(value, index, next));
-	}
-
-	function handleComponentNoneToggle(
-		index: 0 | 1 | 2,
-		event: ChangeEvent<HTMLInputElement>,
-	) {
-		onChange(withComponent(value, index, event.target.checked ? "none" : 0));
-	}
-
-	function handleAlphaToggle(event: ChangeEvent<HTMLInputElement>) {
-		onChange(
-			event.target.checked ? { ...value, alpha: 1 } : withoutAlpha(value),
-		);
-	}
-
-	function handleAlphaChange(event: ChangeEvent<HTMLInputElement>) {
-		const next = Number(event.target.value);
-		if (Number.isNaN(next)) {
-			return;
-		}
-		onChange({ ...value, alpha: next });
-	}
-
-	function handleHexChange(event: ChangeEvent<HTMLInputElement>) {
-		const next = event.target.value;
-		setHexInput(next);
-		if (next === "") {
-			onChange(withoutHex(value));
-			return;
-		}
-		if (HEX_PATTERN.test(next)) {
-			onChange({ ...value, hex: next });
-		}
-	}
-
-	return (
-		<span>
-			<label>
-				<span className={styles.labelText}>Pick a color</span>
-				<input
-					type="color"
-					className={styles.picker}
-					value={colorValueToSrgbHex(value)}
-					onChange={handlePickerChange}
-				/>
-			</label>
-			<span
-				className={styles.swatch}
-				style={swatchStyle(cssColor)}
-				aria-hidden="true"
-			/>
-			<label>
-				<span className={styles.labelText}>Color space</span>
-				<select value={value.colorSpace} onChange={handleColorSpaceChange}>
-					{offeredSpaces.map((space) => (
-						<option key={space} value={space}>
-							{space}
-						</option>
-					))}
-				</select>
-			</label>
-			{([0, 1, 2] as const).map((index) => {
-				const component = value.components[index];
-				const isNone = component === "none";
-				return (
-					<span key={index} className={styles.componentRow}>
-						<label>
-							<span className={styles.labelText}>
-								{value.colorSpace} component {componentLabels[index]}
-							</span>
-							<input
-								type="number"
-								value={isNone ? "" : component}
-								disabled={isNone}
-								onChange={(event) => handleComponentValueChange(index, event)}
-							/>
-						</label>
-						<label>
-							<span className={styles.labelText}>
-								{componentLabels[index]} is none
-							</span>
-							<input
-								type="checkbox"
-								checked={isNone}
-								onChange={(event) => handleComponentNoneToggle(index, event)}
-							/>
-						</label>
-					</span>
-				);
-			})}
-			<label>
-				<span className={styles.labelText}>Has alpha</span>
-				<input
-					type="checkbox"
-					checked={value.alpha !== undefined}
-					onChange={handleAlphaToggle}
-				/>
-			</label>
-			{value.alpha !== undefined ? (
-				<label>
-					<span className={styles.labelText}>Alpha</span>
-					<input
-						type="number"
-						step="0.01"
-						value={value.alpha}
-						onChange={handleAlphaChange}
-					/>
-				</label>
-			) : null}
-			<label>
-				<span className={styles.labelText}>Hex (optional)</span>
-				<input
-					type="text"
-					value={hexInput}
-					onChange={handleHexChange}
-					placeholder="#rrggbb"
-				/>
-			</label>
-			{rangeIssues.length > 0 && (
-				<div role="alert">
-					<ul className={styles.colorIssues}>
-						{rangeIssues.map((issue) => (
-							<li key={issue}>{issue}</li>
-						))}
-					</ul>
-				</div>
-			)}
-		</span>
-	);
-}
-
-function LegacyHexColorEditor({
-	value,
-	onChange,
-}: {
-	value: string;
-	onChange: (next: ColorValue) => void;
-}) {
-	const [hexInput, setHexInput] = useState(value);
-
-	function handleHexChange(event: ChangeEvent<HTMLInputElement>) {
-		const next = event.target.value;
-		setHexInput(next);
-		if (HEX_PATTERN.test(next)) {
-			onChange(next);
-		}
-	}
-
-	function handlePickerChange(event: ChangeEvent<HTMLInputElement>) {
-		const next = event.target.value;
-		setHexInput(next);
-		onChange(next);
-	}
-
-	return (
-		<span>
-			<label>
-				<span className={styles.labelText}>Pick a color</span>
-				<input
-					type="color"
-					className={styles.picker}
-					value={colorValueToSrgbHex(value)}
-					onChange={handlePickerChange}
-				/>
-			</label>
-			<span
-				className={styles.swatch}
-				style={swatchStyle(colorValueToCssColor(value))}
-				aria-hidden="true"
-			/>
-			<label>
-				<span className={styles.labelText}>Legacy hex value</span>
-				<input
-					type="text"
-					value={hexInput}
-					onChange={handleHexChange}
-					placeholder="#rrggbb"
-				/>
-			</label>
-		</span>
-	);
-}
-
-/**
- * The editable UI for a Color token's `$value`, registered via `colorTokenType`.
- * `options` is this type's resolved `editorOptions` (validated at config-load
- * time against `ColorEditorOptionsSchema`, see `token-type.ts`) — cast via
- * unknown-erasure, the same pattern `built-in.ts` already uses to erase
- * `TokenTypeContract<unknown>`. `options === undefined` (no extension entry,
- * or one with no `editorOptions`) means all 14 spaces stay offered, matching
- * FR-04's zero-config behavior.
- */
 export function ColorEditor({
 	value,
 	onChange,
 	options,
-}: TokenTypeEditorProps<ColorValue>) {
+}: TokenTypeEditorProps<ColorValue>): ReactElement {
 	const colorSpaces = (options as ColorEditorOptions | undefined)?.colorSpaces;
-	if (typeof value === "string") {
-		return <LegacyHexColorEditor value={value} onChange={onChange} />;
+	const tolerance =
+		(options as ColorEditorOptions | undefined)?.spaceSwitchTolerance ??
+		DEFAULT_TOLERANCE;
+	const alertId = useId();
+	const [pending, setPending] = useState<{
+		space: ColorSpace;
+		conversion: ColorConversion;
+	} | null>(null);
+
+	const isLegacy = typeof value === "string";
+	const activeSpace: ColorSpace = isLegacy ? "srgb" : value.colorSpace;
+	const offered = offeredColorSpaces(colorSpaces, activeSpace);
+
+	function applyConversion(conversion: ColorConversion): void {
+		const next: ColorObjectValue = {
+			colorSpace: conversion.targetSpace,
+			components: conversion.components,
+			...(conversion.alpha !== undefined ? { alpha: conversion.alpha } : {}),
+			...(conversion.hex !== undefined ? { hex: conversion.hex } : {}),
+		};
+		onChange(next);
 	}
-	return (
-		<ObjectColorEditor
-			value={value}
-			onChange={onChange}
-			colorSpaces={colorSpaces}
+
+	function handleSpaceChange(nextSpace: ColorSpace): void {
+		if (nextSpace === activeSpace && !isLegacy) {
+			return;
+		}
+		const result = convertColorValue(value, nextSpace, tolerance);
+		if (result.isErr()) {
+			return; // UnknownError already logged; leave the value untouched
+		}
+		const conversion = result.value;
+		if (conversion.classification === "within-tolerance") {
+			applyConversion(conversion);
+		} else {
+			setPending({ space: nextSpace, conversion });
+		}
+	}
+
+	const issues = isLegacy ? [] : checkColorValueIssues(value);
+	const dialog = pending ? (
+		<SpaceConversionDialog
+			open
+			sourceSpace={activeSpace}
+			conversion={pending.conversion}
+			onAccept={() => {
+				applyConversion(pending.conversion);
+				setPending(null);
+			}}
+			onDeny={() => setPending(null)}
 		/>
+	) : null;
+
+	const spaceSelect = (
+		<ColorSpaceSelect
+			value={pending?.space ?? (isLegacy ? "hex" : value.colorSpace)}
+			offered={offered}
+			onChange={handleSpaceChange}
+		/>
+	);
+
+	if (isLegacy) {
+		return (
+			<span className={styles.editor}>
+				{spaceSelect}
+				<span className={styles.inert}> </span>
+				<ChannelInput
+					mode="text"
+					label="Legacy hex value"
+					value={value}
+					onCommit={(next) => {
+						if (HEX_RE.test(next)) onChange(next);
+					}}
+				/>
+				{dialog}
+			</span>
+		);
+	}
+
+	const invalid = invalidChannels(issues);
+
+	return (
+		<span className={styles.editor}>
+			<ColorFunctionValue
+				value={value}
+				spaceSelect={spaceSelect}
+				issueDescribedById={issues.length > 0 ? alertId : undefined}
+				invalid={invalid}
+				onComponentChange={(index, next) => {
+					const components = [
+						...value.components,
+					] as ColorObjectValue["components"];
+					components[index] = next;
+					onChange(withHexInSync({ ...value, components }));
+				}}
+				onAlphaChange={(next) => {
+					if (next === undefined) {
+						onChange(
+							withHexInSync({
+								colorSpace: value.colorSpace,
+								components: value.components,
+								...(value.hex !== undefined ? { hex: value.hex } : {}),
+							}),
+						);
+					} else {
+						onChange(withHexInSync({ ...value, alpha: next }));
+					}
+				}}
+			/>
+			{issues.length > 0 ? (
+				<div id={alertId} role="alert" className={styles.issues}>
+					<ul>
+						{issues.map((issue) => (
+							<li key={issue}>{issue}</li>
+						))}
+					</ul>
+				</div>
+			) : null}
+			{dialog}
+		</span>
 	);
 }

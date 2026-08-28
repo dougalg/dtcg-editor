@@ -11,7 +11,7 @@ async function expectNoViolations(container: Element) {
 	expect(results.violations).toEqual([]);
 }
 
-test("the object color editor (with alpha and a range issue) has no WCAG 2.2 AA violations", async () => {
+test("the object color editor (with alpha and an out-of-range channel) has no WCAG 2.2 AA violations", async () => {
 	const { container } = render(
 		<ColorEditor
 			value={{ colorSpace: "hsl", components: [400, 50, 40], alpha: 0.5 }}

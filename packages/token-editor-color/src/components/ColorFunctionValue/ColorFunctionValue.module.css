@@ -1,0 +1,81 @@
+/* The inline `space( c c c / a )` layout. Monospace + wrapping come from
+ * design-system tokens; no literal design values. */
+.value {
+	font-family: var(--dtcg-ed-font-mono, monospace);
+	font-size: var(--dtcg-ed-text-sm);
+	display: inline;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	line-height: var(--dtcg-ed-form-control-line-height, inherit);
+}
+
+/* The colour-space select and its bracketing parentheses form one segment:
+ * hovering/focusing the select promotes both parens too (FR-004). */
+.func {
+	display: inline;
+}
+
+.paren {
+	text-decoration-line: underline;
+	text-decoration-style: dotted;
+	text-decoration-color: var(
+		--dtcg-ed-color-editable-underline,
+		var(--dtcg-ed-color-neutral-border-normal, currentColor)
+	);
+	color: var(
+		--dtcg-ed-color-editable-fg,
+		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
+	);
+	text-underline-offset: var(--dtcg-ed-space-3xs);
+}
+
+.value:has(.func:hover) .paren,
+.value:has(.func:focus-within) .paren {
+	text-decoration-style: solid;
+	text-decoration-color: var(
+		--dtcg-ed-color-editable-underline-active,
+		var(--dtcg-ed-color-neutral-on-normal, currentColor)
+	);
+	color: var(
+		--dtcg-ed-color-editable-fg-active,
+		var(--dtcg-ed-color-neutral-on-normal, currentColor)
+	);
+}
+
+/* Inert glyphs — the `/` separator and the padding spaces. */
+.inert {
+	color: var(--dtcg-ed-color-neutral-on-quiet, currentColor);
+	user-select: none;
+}
+
+.addAlpha.addAlpha {
+	appearance: none;
+	background: none;
+	border: none;
+	border-radius: 0;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	font-family: var(--dtcg-ed-font-mono, monospace);
+	color: var(
+		--dtcg-ed-color-editable-fg,
+		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
+	);
+	text-decoration-line: underline;
+	text-decoration-style: dotted;
+	text-decoration-color: var(
+		--dtcg-ed-color-editable-underline,
+		var(--dtcg-ed-color-neutral-border-normal, currentColor)
+	);
+	cursor: pointer;
+}
+
+.addAlpha.addAlpha:hover,
+.addAlpha.addAlpha:focus-visible {
+	text-decoration-style: solid;
+	color: var(
+		--dtcg-ed-color-editable-fg-active,
+		var(--dtcg-ed-color-neutral-on-normal, currentColor)
+	);
+	outline: none;
+}

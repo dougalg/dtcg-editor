@@ -1,0 +1,27 @@
+.table {
+	border-collapse: collapse;
+	width: 100%;
+	font-family: var(--dtcg-ed-font-mono, monospace);
+	font-size: var(--dtcg-ed-text-sm);
+	margin-block: var(--dtcg-ed-space-sm);
+}
+
+.table th,
+.table td {
+	text-align: left;
+	padding: var(--dtcg-ed-space-3xs) var(--dtcg-ed-space-2xs);
+	border-bottom: var(--dtcg-ed-border-width-thin, thin) solid
+		var(--dtcg-ed-color-neutral-border-quiet, currentColor);
+}
+
+.note {
+	color: var(--dtcg-ed-color-neutral-on-quiet, currentColor);
+	font-size: var(--dtcg-ed-text-xs);
+}
+
+.actions {
+	display: flex;
+	gap: var(--dtcg-ed-space-2xs);
+	justify-content: flex-end;
+	margin-block-start: var(--dtcg-ed-space-md);
+}
