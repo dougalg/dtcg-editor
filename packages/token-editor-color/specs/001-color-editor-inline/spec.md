@@ -1,6 +1,6 @@
 # Feature Specification: Inline CSS-Function Color Editor
 
-**Feature Branch**: `009-color-editor-inline`
+**Feature Branch**: `001-color-editor-inline`
 
 **Created**: 2026-08-28
 
