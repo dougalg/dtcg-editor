@@ -50,6 +50,38 @@
 			"cache": false,
 			"dependsOn": ["^build"],
 			"outputs": []
+		},
+		// Storybook lives at the repo root and pulls stories from multiple
+		// packages (design-system, token-editor-*), so it has no single
+		// owning package whose `^build` would reach all of them the way a
+		// per-package task's dependsOn would. A root task's dependsOn also
+		// can't reference the plain "build" task as a stand-in for "build
+		// the whole workspace" — turbo resolves an unprefixed name in a
+		// root task's dependsOn to that same root task (`//#build`, i.e.
+		// `turbo run build`), which would nest a turbo invocation inside
+		// this one. So each package Storybook actually reads from is
+		// listed explicitly here; add to both lists when a new package's
+		// stories are wired into `.storybook/main.ts`.
+		"//#storybook": {
+			"dependsOn": [
+				"@dtcg-editor/design-system#build",
+				"@dtcg-editor/token-core#build",
+				"@dtcg-editor/token-editor-contract#build",
+				"@dtcg-editor/token-editor-color#build",
+				"@dtcg-editor/token-editor-dimension#build"
+			],
+			"cache": false,
+			"persistent": true
+		},
+		"//#build-storybook": {
+			"dependsOn": [
+				"@dtcg-editor/design-system#build",
+				"@dtcg-editor/token-core#build",
+				"@dtcg-editor/token-editor-contract#build",
+				"@dtcg-editor/token-editor-color#build",
+				"@dtcg-editor/token-editor-dimension#build"
+			],
+			"outputs": ["storybook-static/**"]
 		}
 	}
 }

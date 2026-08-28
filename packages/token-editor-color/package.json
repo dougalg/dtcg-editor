@@ -22,6 +22,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@storybook/react-vite": "catalog:",
 		"@testing-library/react": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
