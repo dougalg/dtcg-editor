@@ -15,6 +15,12 @@
 		"border-color": {
 			"$value": "{color.border.normal}"
 		},
+		"border-style-hover": {
+			"$value": "{border.style-hover}"
+		},
+		"border-color-hover": {
+			"$value": "{color.border.loud}"
+		},
 		"radius": {
 			"$value": "{radius.lg}"
 		},
@@ -32,6 +38,9 @@
 			"$value": { "value": 1.25, "unit": "rem" }
 		},
 		"value-color": {
+			"$value": "{color.text.quiet}"
+		},
+		"value-color-hover": {
 			"$value": "{color.text.normal}"
 		},
 		"label": {

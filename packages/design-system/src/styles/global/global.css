@@ -376,6 +376,12 @@ select {
 		cursor: not-allowed;
 	}
 
+	&:hover {
+		color: var(--dtcg-ed-form-control-value-color-hover);
+		border-bottom-style: var(--dtcg-ed-form-control-border-style-hover);
+		border-bottom-color: var(--dtcg-ed-form-control-border-color-hover);
+	}
+
 	&[data-inline] {
 		height: auto;
 		width: auto;

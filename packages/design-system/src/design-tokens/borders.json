@@ -24,6 +24,10 @@
 		"style": {
 			"$type": "strokeStyle",
 			"$value": "dotted"
+		},
+		"style-hover": {
+			"$type": "strokeStyle",
+			"$value": "solid"
 		}
 	}
 }

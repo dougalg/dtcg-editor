@@ -14,6 +14,7 @@ export default {
 	rules: {
 		"type-enum": [2, "always", types.map((t) => t.value)],
 		"scope-enum": [2, "always", scopes.map((s) => s.value)],
+		"subject-case": [2, "never", ["upper-case", "pascal-case", "start-case"]],
 	},
 	prompt: {
 		questions: {
