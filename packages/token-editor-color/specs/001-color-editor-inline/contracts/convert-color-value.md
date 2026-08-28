@@ -1,22 +1,30 @@
-# Contract: `token-core` colour conversion
+# Contract: `token-editor-color` colour conversion
 
-New public surface added to `@dtcg-editor/token-core`. Consumed by
-`@dtcg-editor/token-editor-color`. React-free, `colorjs.io/fn`-backed.
+New surface added to `@dtcg-editor/token-editor-color`'s
+`src/utils/conversion.ts` (framework-free, `colorjs.io/fn`-backed, `node:test`-
+covered) and re-exported from the package's `src/index.ts`. Consumed by the
+package's own React components. `token-core` is **not** involved — it supplies
+only the `ColorObjectValue` / `LegacyHexColorValue` / `ColorSpace` types, which
+are imported.
 
-## Exports (from `token-core`'s `index.ts`)
+Per repo-root Principle VII (v3.0.0) and package Principle I (v2.0.0), this
+conversion capability belongs in `token-editor-color`, and `colorjs.io` stays
+this package's dependency.
+
+## Exports (from `token-editor-color`'s `src/index.ts`)
 
 | Symbol | Kind | Status |
 |--------|------|--------|
-| `convertColorValue` | function | **new** |
+| `convertColorValue` | function | **new** (in `src/utils/conversion.ts`) |
 | `ColorConversion` | type | **new** |
 | `ChannelChange` | type | **new** |
 | `ConversionNote` | type | **new** |
-| `colorValueToCssColor` | function | **relocated** from `token-editor-color/utils/css-color.ts`, behaviour unchanged |
-| `colorValueToSrgbHex` | function | **relocated** from `token-editor-color/utils/conversion.ts`, behaviour unchanged |
+| `colorValueToCssColor` | function | unchanged, stays in `src/utils/css-color.ts` |
+| `colorValueToSrgbHex` | function | unchanged, stays in `src/utils/conversion.ts` |
 
-`srgbHexToColorSpaceComponents` is **not** re-exported — it existed only to feed
-the native `<input type="color">`, which FR-017 removes. Delete it with
-`conversion.ts`.
+`srgbHexToColorSpaceComponents` is **removed** from `conversion.ts` and its
+re-export dropped — it existed only to feed the native `<input type="color">`,
+which FR-017 removes.
 
 ## `convertColorValue(value, targetSpace)`
 
@@ -66,7 +74,7 @@ function convertColorValue(
   `classification: "exact"`, `channelChanges` all `changed: false`.
 - Pure: no I/O, no globals beyond the module-load space registration.
 
-### Test obligations (`color-convert.test.ts`, `node:test`)
+### Test obligations (`src/utils/conversion.test.ts`, `node:test`)
 
 | # | Case | Assert |
 |---|------|--------|
@@ -82,11 +90,15 @@ function convertColorValue(
 | T10 | legacy `"#3366cc"` → `oklch` | `ok`; `components` finite; treats input as sRGB |
 | T11 | forced `colorjs.io` throw (monkeypatch / impossible space id via a wrapper) | `err` is `UnknownError`, `Logger` called once, nothing thrown |
 
-### Relocation test obligations
+### Adjacent obligations
 
-- `colorValueToCssColor` and `colorValueToSrgbHex`: move their existing
-  `node:test` suites (`css-color.test.ts`, the relevant half of
-  `conversion.test.ts`) into `token-core` unchanged; they must still pass.
-- `token-editor-color`'s `src/index.ts` stops re-exporting
-  `colorValueToCssColor` / `colorValueToSrgbHex` / `srgbHexToColorSpaceComponents`;
-  any consumer imports them from `@dtcg-editor/token-core`.
+- `css-color.test.ts` and the existing `conversion.test.ts` cases stay in
+  `token-editor-color` and must still pass unchanged (`colorValueToCssColor` and
+  `colorValueToSrgbHex` do not move).
+- The `conversion.test.ts` cases that exercised `srgbHexToColorSpaceComponents`
+  are deleted along with that function.
+- `token-editor-color`'s `src/index.ts` **adds** `convertColorValue` +
+  `ColorConversion` / `ChannelChange` / `ConversionNote` exports and **drops**
+  the `srgbHexToColorSpaceComponents` re-export. `colorValueToCssColor` /
+  `colorValueToSrgbHex` re-exports are unchanged.
+- `token-core` gets **no** test or export changes.

@@ -6,19 +6,20 @@ How to prove the feature works end-to-end. Run from the repo root
 ## Prerequisites
 
 ```bash
-pnpm install            # picks up colorjs.io now under token-core, design-system under token-editor-color
+pnpm install            # picks up @dtcg-editor/design-system as a new dep of token-editor-color (colorjs.io already present)
 pnpm --filter @dtcg-editor/design-system build   # regenerates dist/styles/tokens.css consumed by Storybook + the app
 ```
 
-## 1. `token-core` conversion (unit)
+## 1. `token-editor-color` conversion util (unit)
 
 ```bash
-pnpm --filter @dtcg-editor/token-core test
+pnpm --filter @dtcg-editor/token-editor-color test    # the package's own node:test script
 ```
 
-Expect: all `color-convert.test.ts` cases (T1–T11 in
-`contracts/convert-color-value.md`) pass, plus the relocated
-`colorValueToCssColor` / `colorValueToSrgbHex` suites. Key checks:
+Expect: all new `src/utils/conversion.test.ts` cases (T1–T11 in
+`contracts/convert-color-value.md`) pass, alongside the pre-existing
+`conversion.test.ts` / `css-color.test.ts` cases (`colorValueToCssColor` /
+`colorValueToSrgbHex` are unchanged). `token-core` is not modified. Key checks:
 
 - Every space↔space pair round-trips within `deltaEOK < 0.02` (T1).
 - `srgb`→`oklch` on an in-gamut colour ⇒ `classification: "exact"` (T2).
@@ -101,8 +102,10 @@ inline editor itself; `ColorPreview` is a separate, unchanged component).
 
 - Sections 1–2 pass in CI (`pnpm test`, `pnpm build`, `pnpm lint`).
 - Section 3 stories all render and the dialog interaction works.
-- `colorjs.io` no longer appears in `packages/token-editor-color/package.json`;
-  it appears in `packages/token-core/package.json`.
+- `colorjs.io` stays in `packages/token-editor-color/package.json` and is **not**
+  added to `packages/token-core/package.json`; `token-core` has no diff.
+- `@dtcg-editor/design-system` is added to
+  `packages/token-editor-color/package.json`.
 - The design-system underline tokens/utility from research R6 exist (or the
   design-system change is filed and the editor references the agreed names with
   graceful `var()` fallback).

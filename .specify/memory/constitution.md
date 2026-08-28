@@ -1,6 +1,55 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.7.1 → 3.0.0
+Rationale: MAJOR — Principle VII (Token-Editor Package Contract) is
+redefined, narrowing what `token-core` owns. The v2.0.0 amendment had
+pulled "conversion/serialization helpers, and any other DTCG-value-shape
+logic" — including colour-space conversion — into `token-core`. This
+amendment splits that: `token-core` keeps parsing, type definitions,
+value validation, and serialization (round-tripping the on-disk `$value`,
+Principle IX), but **UI-driven perceptual colour-space conversion and
+gamut mapping are no longer `token-core`'s concern** — they are authoring
+transforms owned by the relevant `token-editor-*` package, which MAY take
+a direct colour-library dependency for them. Because this removes a
+responsibility the v2.0.0 MAJOR amendment explicitly added to `token-core`
+(and moves an Approved Dependency's sanctioned home), per this
+constitution's own versioning policy ("MAJOR — backward-incompatible
+principle removal or redefinition") this is MAJOR, not MINOR.
+
+Modified principles:
+  - VII. Token-Editor Package Contract — redefined: `token-core` owns
+    parsing / type definitions / value validation / serialization for
+    every `$type`; it does NOT own perceptual colour-space conversion or
+    gamut mapping. Those live in the `token-editor-*` package for that
+    type, stay React-free and independently unit-tested, and may depend
+    directly on a colour library. Dependency direction
+    (`token-editor-* → token-core`, never the reverse) is unchanged.
+
+Added sections: none
+
+Removed sections: none
+
+Other changes:
+  - Technology Stack & Approved Dependencies — `colorjs.io`'s approved
+    scope moves from `packages/token-core` to `packages/token-editor-color`
+    (the perceptual conversion + gamut mapping behind the colour editor's
+    space switcher), still via the tree-shakable `colorjs.io/fn` entry
+    point. This matches where the code already lives.
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: requested via `speckit-constitution`
+while planning `packages/token-editor-color/specs/001-color-editor-inline`
+— the maintainer's call that `convertColorValue` and `colorjs.io` belong
+in the colour editor package, not `token-core`. The package-scoped
+constitution (`packages/token-editor-color/.specify/memory/constitution.md`)
+is amended to v2.0.0 in the same change so the two stay consistent.
+-->
+
+<!--
+Sync Impact Report (v2.7.1, superseded above)
+==================
 Version change: 2.7.0 → 2.7.1
 Rationale: PATCH — corrects a self-contradictory error in Principle XII's
 own text (and the matching passage in `DESIGN.md`): the rule previously
@@ -541,12 +590,23 @@ ad hoc per feature.
 ### VII. Token-Editor Package Contract
 
 `token-core` is the single source of truth for every token type's parsing,
-type definitions, and value validation — Zod value schemas, conversion/
-serialization helpers, and any other DTCG-value-shape logic — for both the
-generic node/group document model and each specific `$type` (`color`,
-`dimension`, etc.). It remains completely agnostic of UI/app tooling: no
-React import, no `Editor` component, no knowledge of which UI framework (if
-any) a host app renders with. Rendering and registration are what stay
+type definitions, value validation, and serialization — Zod value schemas,
+the parse/serialize cycle, and any other logic about the shape of the
+on-disk DTCG `$value` — for both the generic node/group document model and
+each specific `$type` (`color`, `dimension`, etc.). It remains completely
+agnostic of UI/app tooling: no React import, no `Editor` component, no
+knowledge of which UI framework (if any) a host app renders with.
+
+`token-core` does **not** own UI-driven authoring transforms — chief among
+them perceptual colour-space conversion and gamut mapping (converting an
+authored colour from one `colorSpace` to the visually-equivalent value in
+another because the user asked the editor to). Those are not facts about
+the on-disk value; they are editor affordances. They live in the
+`token-editor-*` package for that type (e.g. `token-editor-color`), MAY
+depend directly on a colour library there (e.g. `colorjs.io`), and MUST
+stay React-free and independently unit-tested so they remain portable if
+this contract changes again. `token-core` MUST NOT take a colour-library
+(or equivalent conversion-library) dependency. Rendering and registration are what stay
 pluggable: each `token-editor-*` package implements a shared `TokenTypeContract`
 interface — its `Editor` component plus a `valueSchema`/`serializeValue`
 imported directly from `token-core` — that a host app's registry hosts
@@ -758,8 +818,10 @@ requiring a constitution amendment each time.
   `husky`, `inquirer` (root devDependency, backs the `pnpm commit` prompt
   flow alongside `commitizen`), `vitest`, `@vitejs/plugin-react`, `jsdom`,
   `@testing-library/react`, `colorjs.io`
-  (`packages/token-core` only, imported via the tree-shakable
-  `colorjs.io/fn` entry point), `@ls-lint/ls-lint` (root devDependency,
+  (`packages/token-editor-color` only — perceptual colour-space conversion
+  and gamut mapping behind the colour editor's space switcher, per
+  Principle VII; imported via the tree-shakable `colorjs.io/fn` entry
+  point), `@ls-lint/ls-lint` (root devDependency,
   filename/directory-structure linting per Principle X, configured in
   `.ls-lint.yml`), `@sugarcube-sh/cli` (`packages/design-system` only,
   compiles `design-tokens/*.json` into `--dtcg-ed-*` CSS custom properties
@@ -837,4 +899,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 2.7.1 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-23
+**Version**: 3.0.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-28

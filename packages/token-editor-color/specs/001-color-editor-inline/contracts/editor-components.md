@@ -30,8 +30,9 @@ Import design-system components by concrete path, e.g.
 - Surface FR-021 messages from `checkColorValueIssues(value)` in a
   `role="alert"` region.
 
-**MUST NOT**: re-validate `value` against any schema; import `colorjs.io`; hold a
-local copy of the colour (only `pendingSpace` / `pendingConversion`).
+**MUST NOT**: re-validate `value` against any schema; import `colorjs.io`
+directly (colour maths goes through `../../utils/conversion.ts`); hold a local
+copy of the colour (only `pendingSpace` / `pendingConversion`).
 
 **Key acceptance mapping**: US1 all, US2 all, US3 AC3/AC4, FR-013, FR-014,
 FR-016, FR-021.
@@ -133,7 +134,7 @@ parens), FR-004, FR-007, FR-008.
 {
   open: boolean;
   sourceSpace: ColorSpace;
-  conversion: ColorConversion;   // from token-core
+  conversion: ColorConversion;   // from ../../utils/conversion.ts
   onAccept: () => void;
   onDeny: () => void;            // also fired on Escape / backdrop / close
 }

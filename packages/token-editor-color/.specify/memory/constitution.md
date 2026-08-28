@@ -1,6 +1,46 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 1.0.0 → 2.0.0
+Rationale: MAJOR — Principle I is redefined. v1.0.0 forbade this package
+from implementing any colour-space math or perceptual conversion and
+barred a direct colour-library dependency, deferring all of it to
+`token-core`. The repo-root constitution's Principle VII has since been
+amended (v3.0.0) to place UI-driven perceptual colour-space conversion and
+gamut mapping in the `token-editor-*` package rather than `token-core`.
+This amendment brings the package constitution in line: parsing, type
+definitions, value validation, and serialization still come from
+`token-core` and MUST NOT be re-implemented here, but perceptual
+colour-space conversion, gamut mapping, and CSS-colour-string building
+are owned by this package and MAY depend directly on `colorjs.io`. Because
+this reverses a v1.0.0 prohibition (a backward-incompatible principle
+redefinition), it is MAJOR per the versioning policy below.
+
+Modified principles:
+  - I. "Conversion and Parsing Live in token-core" → "Parsing and
+    Validation Live in token-core; Colour Conversion Lives Here" —
+    redefined as above.
+
+Modified sections:
+  - Scope & Precedence — the blanket "Principle I forbids a direct
+    colour-library dependency" clause is replaced: `colorjs.io` for
+    conversion is now sanctioned by repo-root Principle VII (v3.0.0) and
+    named in its Approved Dependencies; any *other* new third-party
+    dependency still needs the Principle VIII paper trail.
+
+Added / removed sections: none
+
+Deferred / TODO items: none
+
+Source of truth for this amendment: requested via `speckit-constitution`
+alongside the repo-root v3.0.0 amendment, while planning
+`specs/001-color-editor-inline` — the maintainer's decision that
+`convertColorValue` and `colorjs.io` belong in this package.
+-->
+
+<!--
+Sync Impact Report (v1.0.0, superseded above)
+==================
 Version change: (unset/template) → 1.0.0
 Rationale: Initial ratification. The prior file on disk contained only unfilled
 [PLACEHOLDER] tokens from the core scaffold (never a real constitution), so this
@@ -32,22 +72,32 @@ IV, VII, X, XII in particular) and the existing shape of
 
 ## Core Principles
 
-### I. Conversion and Parsing Live in token-core
+### I. Parsing and Validation Live in token-core; Colour Conversion Lives Here
 
-`@dtcg-editor/token-editor-color` MUST NOT implement color-space math,
-perceptual cross-space conversion, gamut mapping, hex/CSS-color parsing, or
-`ColorValue` validation itself. Every such operation MUST be imported from
-`@dtcg-editor/token-core`, which is the single source of truth for color value
-shape, parsing, and conversion. This package MUST NOT take a direct dependency
-on any third-party color library (`colorjs.io`, `culori`, or similar); if a
-capability it needs is missing from `token-core`, the fix is to add it to
-`token-core`, not to reach around it.
+`@dtcg-editor/token-editor-color` MUST NOT re-implement `ColorValue` parsing,
+type definitions, structural/value validation, or the parse/serialize cycle —
+those come from `@dtcg-editor/token-core`, which stays the single source of
+truth for the shape of the on-disk DTCG colour `$value`. The editor imports
+`token-core`'s schemas and serialization; it does not fork them.
 
-Rationale: the repo-root constitution's Principle VII already centralizes all
-token-type parsing/validation/conversion in `token-core` so every consumer gets
-one dependency-light, spec-conformant implementation. A second color
-implementation in the editor package would be a second thing to keep
-spec-correct and a second place for the two to disagree.
+This package **does** own the UI-driven authoring transforms: perceptual
+colour-space conversion (converting an authored colour to the
+visually-equivalent value in another `colorSpace` when the user switches
+spaces), gamut mapping, and building CSS-colour strings for preview. It MAY
+depend directly on `colorjs.io` (via the tree-shakable `colorjs.io/fn` entry
+point) for these — this is sanctioned by repo-root Principle VII (v3.0.0) and
+named in its Approved Dependencies. Any other conversion/colour library still
+needs the repo-root Principle VIII justification. This conversion code MUST
+stay React-free and be independently unit-tested (a plain module under
+`src/`), so it stays portable if the repo-root contract shifts again.
+
+Rationale: parsing/validation/serialization must be centralized because
+interoperability with other DTCG tooling depends on one spec-conformant
+implementation. Perceptual conversion is different in kind — it is not a fact
+about the stored value, it is an editor affordance producing a new authored
+value — so `token-core` should not carry a colour-library dependency purely to
+serve a UI feature. Keeping the transform beside the editor that triggers it,
+but framework-free and tested on its own, keeps both concerns clean.
 
 ### II. The Editor Is Presentational, Not a Validation Boundary
 
@@ -119,12 +169,16 @@ principles that bear most directly on a token-type editor, and to add
 color-editor specifics. Where this document and the repo-root constitution
 appear to conflict, the **repo-root constitution wins** and this file MUST be
 corrected. This document MUST NOT grant an exception to, or a relaxation of, any
-repo-root principle; it may only be equal or stricter.
+repo-root principle; it may only be equal or stricter. (Principle I owning
+colour conversion is not an exception — repo-root Principle VII, as amended in
+v3.0.0, explicitly places that here.)
 
-Adding a third-party dependency (including a color library) still requires the
-repo-root Principle VIII paper trail — named and justified in the feature's
-`plan.md` before it is added — and Principle I above additionally forbids a
-direct color-library dependency in this package regardless of that trail.
+Adding a third-party dependency still requires the repo-root Principle VIII
+paper trail — named and justified in the feature's `plan.md` before it is added.
+The one colour library this package may depend on directly is `colorjs.io` (for
+Principle I's conversion/gamut-mapping), which repo-root Principle VII and its
+Approved Dependencies list already sanction for `packages/token-editor-color`;
+any additional library is still gated by Principle VIII.
 
 ## Development Workflow
 
@@ -173,4 +227,4 @@ before `speckit-implement`; `speckit-converge` MUST be run after
 constitution found at either stage is a blocking finding unless explicitly
 waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-28 | **Last Amended**: 2026-08-28
+**Version**: 2.0.0 | **Ratified**: 2026-08-28 | **Last Amended**: 2026-08-28

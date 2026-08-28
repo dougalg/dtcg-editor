@@ -1,9 +1,9 @@
 # Data Model: Inline CSS-Function Color Editor
 
 No persistence and no schema changes. This feature adds **in-memory shapes** used
-between `token-core`'s new conversion function and the editor's components. The
-authoritative `ColorValue` shape is unchanged and still owned by
-`@dtcg-editor/token-core` (`color.ts`).
+between `token-editor-color`'s `src/utils/` conversion module and its React
+components. The authoritative `ColorValue` shape is unchanged and still owned by
+`@dtcg-editor/token-core` (`color.ts`) — imported, not modified.
 
 ---
 
@@ -35,7 +35,7 @@ editor package** — it is UI labelling + messaging, not colour maths.
 
 ---
 
-## New — `token-core` conversion module (`color-convert.ts`)
+## New — `token-editor-color` conversion module (`src/utils/conversion.ts`, extended)
 
 ### `ColorConversion` (return of `convertColorValue`)
 
@@ -78,6 +78,8 @@ convertColorValue(
 ): Result<ColorConversion, UnknownError>
 ```
 
+- Lives in `token-editor-color`'s `src/utils/conversion.ts` (framework-free,
+  `node:test`-covered), re-exported from the package's `src/index.ts`.
 - Returns `Result` per repo Principle V: the `err` branch is only for an
   unexpected `colorjs.io` throw (wrapped once with `fromThrowable`, logged via
   an injected `Logger` per Principle VI). A representable-vs-not distinction is
@@ -85,16 +87,16 @@ convertColorValue(
 - `"none"` inputs are coerced to `0` before maths (R4).
 - A `LegacyHexColorValue` input is treated as `srgb` (R9).
 
-### `colorValueToCssColor(value)` — relocated, unchanged behaviour
+### `colorValueToCssColor(value)` — unchanged, stays in `token-editor-color`
 
-Moves verbatim from `token-editor-color/utils/css-color.ts` to `token-core`.
-Builds a CSS Color 4/5 function string for preview. Still needs no colour-maths
-library (the browser does the maths). Re-exported from `token-core`'s index.
+Remains in `src/utils/css-color.ts`. Builds a CSS Color 4/5 function string for
+preview; needs no colour-maths library (the browser does the maths). No change.
 
-### `colorValueToSrgbHex(value)` — relocated, unchanged behaviour
+### `colorValueToSrgbHex(value)` — unchanged, stays in `src/utils/conversion.ts`
 
-Moves from `token-editor-color/utils/conversion.ts` to `token-core`. Used by R10
-to keep the optional `hex` fallback in sync.
+Already here. Used by R10 to keep the optional `hex` fallback in sync.
+`srgbHexToColorSpaceComponents` in the same file is **deleted** — FR-017 removes
+the native `<input type="color">` that was its only caller.
 
 ---
 

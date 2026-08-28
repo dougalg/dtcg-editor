@@ -343,17 +343,19 @@ warning modal) can be exercised.
 
 ## Assumptions
 
-- **Perceptual conversion uses existing capability, not a new library**: the
-  visually-equivalent cross-space conversion and gamut mapping required by
-  FR-009/FR-011/FR-013 are provided by the project's already-approved colour
-  library, with the conversion logic living in the shared token-parsing package
-  (which already owns colour-value logic and already depends on that library),
-  exposed to the editor as a plain function. `culori` and other alternatives are
-  explicitly not adopted: the approved library already performs perceptual
-  conversion and CSS Color 4-style gamut mapping, so a new dependency would not
-  meet the project's "demonstrate the built-in/first-party approach falls short"
-  bar. This keeps the editor package free of a direct colour-library dependency,
-  consistent with the project's dependency-scoping rule.
+- **Perceptual conversion lives in this package, using the existing library**:
+  the visually-equivalent cross-space conversion and gamut mapping required by
+  FR-009/FR-011/FR-013 are implemented in `@dtcg-editor/token-editor-color`
+  itself (a framework-free `src/utils/` module), backed by the `colorjs.io`
+  dependency it already has. The constitutions were amended for this feature —
+  repo-root Principle VII (v3.0.0) and the package constitution's Principle I
+  (v2.0.0) now place UI-driven perceptual colour conversion + `colorjs.io` in
+  the `token-editor-*` package, not `token-core`. `token-core` still owns
+  `ColorValue` parsing, schemas, and serialization, which this package imports
+  unchanged. `culori` and other alternatives are explicitly not adopted:
+  `colorjs.io` already performs perceptual conversion and CSS Color 4-style
+  gamut mapping, so a new dependency would not meet the "demonstrate the
+  first-party/existing approach falls short" bar.
 - **"Inexact" trigger for the modal**: a conversion is treated as inexact — and
   the modal shown — when the target-space value is outside that space's gamut,
   when any channel becomes undefined, or when any channel would change by more

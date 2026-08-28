@@ -5,39 +5,40 @@ the plan's Technical Context.
 
 ---
 
-## R1 — Colour library: relocate `colorjs.io` into `token-core`, add nothing new
+## R1 — Colour library: `colorjs.io` stays in `token-editor-color`; no new lib
 
-**Decision**: Move `colorjs.io` (`^0.7.1`) from `packages/token-editor-color`'s
-`dependencies` into `packages/token-core`'s `dependencies`. Import only the
-tree-shakable `colorjs.io/fn` entry point. Register exactly the 14 DTCG spaces
-at module load (the `/fn` entry does not auto-register). Do **not** adopt
-`culori` or any other colour library.
+**Decision**: `colorjs.io` (`^0.7.1`) **remains a dependency of
+`packages/token-editor-color`**. `convertColorValue` is added to that package's
+existing `src/utils/conversion.ts`. `token-core` is not modified and takes no
+colour-library dependency. Continue importing only `colorjs.io/fn` and
+registering exactly the 14 DTCG spaces at module load (the `/fn` entry does not
+auto-register). Do **not** adopt `culori` or any other colour library.
 
 **Rationale**:
-- The repo-root constitution's Approved Dependencies list already scopes
-  `colorjs.io` to "`packages/token-core` only, imported via the tree-shakable
-  `colorjs.io/fn` entry point". Today it is misplaced in the editor package;
-  this feature corrects that. No Principle VIII paper trail is required for a
-  dependency that is already approved and merely moving to its sanctioned home.
-- `colorjs.io` already provides everything this feature needs: `to()` for
-  cross-space conversion, `toGamut()` for CSS Color 4-style gamut mapping,
-  `deltaEOK()` for a perceptual-difference check, and `serialize()` for the
-  sRGB-hex fallback. `culori` would be a *new* dependency doing a job an
-  approved one already does — failing the "demonstrate the first-party/approved
-  approach falls short" bar.
-- `token-core` currently has no colour-maths at all (only `color.ts` types +
-  Zod schemas). The existing editor helpers `conversion.ts` and `css-color.ts`
-  are already framework-free and already `node:test`-based, so they port to
-  `token-core` with no test-runner change.
+- The constitutions were amended for this feature (repo-root Principle VII →
+  v3.0.0; package Principle I → v2.0.0) precisely so that UI-driven perceptual
+  colour-space conversion and gamut mapping live in the `token-editor-*`
+  package, with a direct `colorjs.io` dependency, rather than in `token-core`.
+  The Approved Dependencies list now scopes `colorjs.io` to
+  `packages/token-editor-color`. This matches where the code already is.
+- Nothing moves: `src/utils/conversion.ts` and `src/utils/css-color.ts` already
+  exist here, are already `colorjs.io`-backed / framework-free, and are already
+  `node:test`-covered (excluded from the Vitest project by name). Adding
+  `convertColorValue` beside `colorValueToSrgbHex` is a local extension.
+- `colorjs.io` already provides everything needed: `to()` (cross-space
+  conversion), `toGamut()` (CSS Color 4 gamut mapping), `deltaEOK()`
+  (perceptual-difference check), `serialize()` (sRGB-hex fallback). `culori`
+  would be a *new* dependency for no capability gain — fails Principle VIII.
 
 **Alternatives considered**:
-- *Keep conversion in the editor package* — violates package Principle I and
-  repo Principle VII; rejected.
-- *`culori`* — smaller bundle, but a new dependency for no capability gain;
-  rejected per Principle VIII.
-- *Catalog `colorjs.io`* — only one workspace consumer (`token-core`); the
-  repo's convention is to catalog a dependency only when 2+ packages share it.
-  Keep it a direct dependency of `token-core`.
+- *Put conversion in `token-core`* — the plan's first draft; reversed by the
+  maintainer. Conversion is an authoring transform, not a fact about the
+  on-disk value, so `token-core` should not carry a colour-library dependency
+  for it. Constitutions amended to reflect this.
+- *A dedicated `@dtcg-editor/color-convert` package* — over-structuring for one
+  function used by one consumer; rejected. If a second consumer ever appears,
+  the framework-free `src/utils` module lifts out cleanly.
+- *`culori`* — rejected per Principle VIII (see above).
 
 ---
 
