@@ -151,3 +151,7 @@ storybook-static
 # Playwright
 test-results/
 playwright-report/
+
+# vitest failure artifacts (not source)
+.vitest-attachments/
+__screenshots__/

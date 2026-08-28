@@ -130,7 +130,7 @@ test.describe("general-fixture controls", () => {
 		expect(savedContents["spacing-scale"]["0"].$value.value).toBe(42);
 	});
 
-	test("the color editor's native color picker is keyboard-reachable with an accessible name (AC-12)", async ({
+	test("the color editor's colour-space select is keyboard-reachable with an accessible name (AC-12)", async ({
 		page,
 	}) => {
 		// Read-only: only tabs and reads focus/accessible-name, never types into or
@@ -150,15 +150,17 @@ test.describe("general-fixture controls", () => {
 		});
 		await tabUntilFocused(page, tokenNameInput);
 
-		// Every color token on this page has its own "Pick a color" input, so
+		// Every color token on this page has its own "Colour space" select, so
 		// scope to blue-500's own token `<li>` (its nearest `<li>` ancestor, not
 		// the group's, which also "contains" every sibling token) rather than
-		// `page.getByLabel`, which would be ambiguous across the whole tree.
+		// `page.getByRole`, which would be ambiguous across the whole tree.
 		const tokenListItem = tokenNameInput.locator("xpath=ancestor::li[1]");
-		const picker = tokenListItem.getByLabel("Pick a color");
-		await tabUntilFocused(page, picker);
-		expect(await hasVisibleFocusIndicator(picker)).toBe(true);
-		await expect(picker).toHaveAccessibleName("Pick a color");
+		const spaceSelect = tokenListItem.getByRole("combobox", {
+			name: "Colour space",
+		});
+		await tabUntilFocused(page, spaceSelect);
+		expect(await hasVisibleFocusIndicator(spaceSelect)).toBe(true);
+		await expect(spaceSelect).toHaveAccessibleName("Colour space");
 	});
 });
 

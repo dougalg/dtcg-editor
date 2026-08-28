@@ -1,223 +1,48 @@
-import type { ColorValue } from "@dtcg-editor/token-core";
-import {
-	ColorEditor,
-	type ColorEditorOptions,
-} from "@dtcg-editor/token-editor-color";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { useState } from "react";
+import { colorTokenType } from "@dtcg-editor/token-editor-color";
+import { render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 
 /**
- * Exercises `ColorEditor`'s two `editorOptions`-driven halves (allow-list
- * dropdown restriction and the native color picker) directly, rather than
- * through `TokenTree.tsx` — these behaviors live entirely inside
- * `packages/token-editor-color`, which has no JSX-capable test runner of its
- * own (`node --test` can't load `.tsx`), so `apps/web-app`'s Vitest/jsdom
- * setup is the nearest place that can render and interact with it.
+ * Thin integration check that the inline `ColorEditor` renders through the
+ * registered `colorTokenType.Editor` in the web app's jsdom environment.
+ * The editor's behaviour (inline channel editing, perceptual space
+ * switching + confirmation dialog, legacy-hex path, FR-021 range messages,
+ * accessibility) is exercised in full inside
+ * `packages/token-editor-color/src/components/ColorEditor/*` — that package
+ * now has its own Vitest project, so those cases no longer need to live
+ * here.
  */
 
-function StatefulColorEditor({
-	initial,
-	options,
-}: {
-	initial: ColorValue;
-	options?: ColorEditorOptions;
-}) {
-	const [value, setValue] = useState(initial);
-	return <ColorEditor value={value} onChange={setValue} options={options} />;
-}
+const Editor = colorTokenType.Editor;
 
-test("offers only the configured colorSpaces (AC-05)", () => {
+test("renders the inline function with a colour-space select and channel inputs", () => {
 	render(
-		<ColorEditor
-			value={{ colorSpace: "srgb", components: [0.2, 0.4, 0.9] }}
-			onChange={vi.fn()}
-			options={{ colorSpaces: ["srgb", "hsl"] }}
-		/>,
-	);
-
-	const select = screen.getByLabelText("Color space") as HTMLSelectElement;
-	const offered = Array.from(select.options).map((option) => option.value);
-	expect(offered).toEqual(["srgb", "hsl"]);
-});
-
-test("offers all 14 spaces when no colorSpaces option is configured (FR-04 zero-config)", () => {
-	render(
-		<ColorEditor
-			value={{ colorSpace: "srgb", components: [0.2, 0.4, 0.9] }}
+		<Editor
+			value={{ colorSpace: "oklch", components: [0.7, 0.15, 145] }}
 			onChange={vi.fn()}
 		/>,
 	);
-
-	const select = screen.getByLabelText("Color space") as HTMLSelectElement;
-	expect(select.options.length).toBe(14);
-});
-
-test("a token using a colorSpace outside the allow-list stays editable, with its colorSpace as the active value (AC-06)", () => {
-	render(
-		<ColorEditor
-			value={{ colorSpace: "lab", components: [50, 40, -30] }}
-			onChange={vi.fn()}
-			options={{ colorSpaces: ["srgb"] }}
-		/>,
+	expect(screen.getByRole("combobox", { name: "Colour space" })).toBeTruthy();
+	expect((screen.getByLabelText("oklch L") as HTMLInputElement).value).toBe(
+		"0.7",
 	);
-
-	const select = screen.getByLabelText("Color space") as HTMLSelectElement;
-	expect(select.value).toBe("lab");
-	const offered = Array.from(select.options).map((option) => option.value);
-	expect(offered).toEqual(expect.arrayContaining(["lab", "srgb"]));
-
-	// Other fields (components) remain editable.
-	const componentInput = screen.getByLabelText(
-		"lab component L",
-	) as HTMLInputElement;
-	expect(componentInput.disabled).toBe(false);
 });
 
-test("picking a color updates an srgb token's numeric components (AC-09)", () => {
-	const onChange = vi.fn();
+test("surfaces a range-issue alert for a structurally-valid but out-of-range value", () => {
 	render(
-		<ColorEditor
-			value={{ colorSpace: "srgb", components: [0, 0, 0] }}
-			onChange={onChange}
-		/>,
-	);
-
-	const picker = screen.getByLabelText("Pick a color") as HTMLInputElement;
-	fireEvent.change(picker, { target: { value: "#ff0000" } });
-
-	expect(onChange).toHaveBeenCalledTimes(1);
-	const next = onChange.mock.calls[0]?.[0] as { components: number[] };
-	expect(next.components[0]).toBeCloseTo(1, 2);
-	expect(next.components[1]).toBeCloseTo(0, 2);
-	expect(next.components[2]).toBeCloseTo(0, 2);
-});
-
-test("picking a color updates a non-RGB (oklch) token's numeric components (AC-09)", () => {
-	const onChange = vi.fn();
-	render(
-		<ColorEditor
-			value={{ colorSpace: "oklch", components: [0.5, 0.1, 100] }}
-			onChange={onChange}
-		/>,
-	);
-
-	const picker = screen.getByLabelText("Pick a color") as HTMLInputElement;
-	fireEvent.change(picker, { target: { value: "#3366cc" } });
-
-	expect(onChange).toHaveBeenCalledTimes(1);
-	const next = onChange.mock.calls[0]?.[0] as { components: number[] };
-	for (const component of next.components) {
-		expect(Number.isNaN(component)).toBe(false);
-	}
-	expect(next.components).not.toEqual([0.5, 0.1, 100]);
-});
-
-test("picking a color updates a wide-gamut (display-p3) token's numeric components (AC-09)", () => {
-	const onChange = vi.fn();
-	render(
-		<ColorEditor
-			value={{ colorSpace: "display-p3", components: [0, 0, 0] }}
-			onChange={onChange}
-		/>,
-	);
-
-	const picker = screen.getByLabelText("Pick a color") as HTMLInputElement;
-	fireEvent.change(picker, { target: { value: "#ff0000" } });
-
-	expect(onChange).toHaveBeenCalledTimes(1);
-	const next = onChange.mock.calls[0]?.[0] as { components: number[] };
-	for (const component of next.components) {
-		expect(Number.isNaN(component)).toBe(false);
-	}
-	expect(next.components).not.toEqual([0, 0, 0]);
-});
-
-test("picking a color never changes alpha (AC-11)", () => {
-	const onChange = vi.fn();
-	render(
-		<ColorEditor
-			value={{ colorSpace: "srgb", components: [0, 0, 0], alpha: 0.4 }}
-			onChange={onChange}
-		/>,
-	);
-
-	const picker = screen.getByLabelText("Pick a color") as HTMLInputElement;
-	fireEvent.change(picker, { target: { value: "#00ff00" } });
-
-	expect(onChange).toHaveBeenCalledTimes(1);
-	const next = onChange.mock.calls[0]?.[0] as { alpha: number };
-	expect(next.alpha).toBe(0.4);
-});
-
-test("manually editing a numeric component field updates the picker's own displayed color (AC-10)", () => {
-	render(
-		<StatefulColorEditor
-			initial={{ colorSpace: "srgb", components: [0, 0, 0] }}
-		/>,
-	);
-
-	const picker = screen.getByLabelText("Pick a color") as HTMLInputElement;
-	expect(picker.value).toBe("#000000");
-
-	const redInput = screen.getByLabelText(
-		"srgb component R",
-	) as HTMLInputElement;
-	fireEvent.change(redInput, { target: { value: "1" } });
-
-	expect(picker.value).toBe("#ff0000");
-});
-
-test("switching colorSpace re-syncs the picker's displayed color", () => {
-	render(
-		<StatefulColorEditor
-			initial={{ colorSpace: "srgb", components: [1, 0, 0] }}
-		/>,
-	);
-
-	const picker = screen.getByLabelText("Pick a color") as HTMLInputElement;
-	expect(picker.value).toBe("#ff0000");
-
-	const select = screen.getByLabelText("Color space") as HTMLSelectElement;
-	fireEvent.change(select, { target: { value: "hsl" } });
-
-	// Same underlying red, now interpreted as hsl components [1, 0, 0] — a
-	// very different color, so the picker's hex must change to reflect it.
-	expect(picker.value).not.toBe("#ff0000");
-});
-
-test("the legacy hex path's picker matches the current bare-hex value and updates it on pick", () => {
-	const onChange = vi.fn();
-	render(<ColorEditor value="#1f75cb" onChange={onChange} />);
-
-	const picker = screen.getByLabelText("Pick a color") as HTMLInputElement;
-	expect(picker.value).toBe("#1f75cb");
-
-	fireEvent.change(picker, { target: { value: "#abcdef" } });
-	expect(onChange).toHaveBeenCalledWith("#abcdef");
-});
-
-test("a structurally valid but out-of-range component value stays editable, with the range issue visibly displayed (AC-05)", () => {
-	render(
-		<ColorEditor
+		<Editor
 			value={{ colorSpace: "hsl", components: [400, 50, 40] }}
 			onChange={vi.fn()}
 		/>,
 	);
-
-	expect(screen.getByLabelText("hsl component H")).toBeTruthy();
 	expect(screen.getByRole("alert").textContent).toMatch(
 		/H\) must be >= 0 and < 360/,
 	);
 });
 
-test("an in-range component value shows no range-issue alert", () => {
-	render(
-		<ColorEditor
-			value={{ colorSpace: "srgb", components: [0.5, 0.2, 0.8] }}
-			onChange={vi.fn()}
-		/>,
-	);
-
-	expect(screen.queryByRole("alert")).toBeNull();
+test("renders the legacy bare-hex path with an editable hex field", () => {
+	render(<Editor value="#1f75cb" onChange={vi.fn()} />);
+	expect(
+		(screen.getByLabelText("Legacy hex value") as HTMLInputElement).value,
+	).toBe("#1f75cb");
 });
