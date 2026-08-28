@@ -15,15 +15,16 @@
 Author-provided mockups of the resting and hover states (channels + alpha shown,
 `oklch( 0 0 0 / 12 )`):
 
-- `assets/mockup-resting.png` — every editable segment (the function name with
-  its parentheses, each channel, the alpha) carries its own faint dotted
+- `assets/mockup-resting.png` — every editable segment (the colour-space select
+  with its parentheses, each channel, the alpha) carries its own faint dotted
   underline in a muted foreground colour; the whole value is monospace; the `/`
   alpha separator and the padding spaces inside the parentheses carry no
   underline.
-- `assets/mockup-hover-function-name.png` — the pointer is over the function
-  name: `oklch(` and the closing `)` have together become a solid underline in a
-  stronger foreground colour; the channels and alpha are unchanged (still faint
-  dotted underlines).
+- `assets/mockup-hover-space-select.png` — the pointer is over the colour-space
+  select: it and the bracketing `(` `)` have together become a solid underline
+  in a stronger foreground colour; the channels and alpha are unchanged (still
+  faint dotted underlines). (The mockup itself shows the space name as plain
+  text; the spec now renders that position as a `Select` styled to match.)
 
 ### User Story 1 - Read and edit channel values in place (Priority: P1)
 
@@ -35,8 +36,8 @@ rest; there is no "click to turn this into a field" step. Hovering or focusing a
 channel gives it a solid underline and a brighter foreground. The author types
 into it directly; committing (blur or Enter) writes the new value back to the
 token and the inline display re-renders with the updated number. Nothing about
-the surrounding function name, other channels, or layout shifts or reflows onto
-multiple lines during this.
+the surrounding colour-space select, other channels, or layout shifts or reflows
+onto multiple lines during this.
 
 **Why this priority**: Editing an existing color's channels is the single most
 common thing an author does with this control. It is a complete, demonstrable
@@ -49,8 +50,8 @@ and assert the token value updated and the inline string re-rendered.
 
 **Acceptance Scenarios**:
 
-1. **Given** a color token with value `{ colorSpace: "oklch", components: [0.7, 0.15, 145] }`, **When** the editor renders, **Then** it reads as `oklch( 0.7 0.15 145 )` in a monospace typeface, where each channel is a number input styled as plain text — faint dotted underline, no border, box, or number-spinner — and the function name + parentheses carry their own faint dotted underline; there is no form-field chrome at rest.
-2. **Given** the rendered editor, **When** the pointer hovers a single channel input, **Then** only that input's underline changes from dotted to solid and its foreground colour strengthens; the other channels and the function name are unchanged.
+1. **Given** a color token with value `{ colorSpace: "oklch", components: [0.7, 0.15, 145] }`, **When** the editor renders, **Then** it reads as `oklch( 0.7 0.15 145 )` in a monospace typeface, where each channel is a number input styled as plain text — faint dotted underline, no border, box, or number-spinner — the colour-space name is a select control styled the same way, and the parentheses bracketing the channels carry the same faint dotted underline; there is no form-field chrome at rest.
+2. **Given** the rendered editor, **When** the pointer hovers a single channel input, **Then** only that input's underline changes from dotted to solid and its foreground colour strengthens; the other channels and the colour-space select are unchanged.
 3. **Given** the editor, **When** it first renders, **Then** every channel value is already a focusable numeric input (not a static label requiring a click to become editable), accepting typed input immediately on focus, with no layout shift between its resting and focused appearance.
 4. **Given** a channel input with a new valid number typed in, **When** the author commits (Enter or blur), **Then** the token value's corresponding component updates to that number and the inline function string re-renders with it.
 5. **Given** a focused channel input, **When** the author presses Escape, **Then** the edit is abandoned and the channel reverts to its previous value with no change written.
@@ -62,11 +63,10 @@ and assert the token value updated and the inline string re-rendered.
 
 An author wants the same colour expressed in a different colour space — for
 instance moving a value from `srgb` to `oklch` to reason about lightness and
-chroma. They click the function name (`oklch`, including its opening and closing
-parentheses, which highlight together on hover). A dropdown lists the available
-colour spaces. Choosing one converts the current colour to its
-visually-equivalent representation in the new space rather than carrying the old
-raw numbers across. When the conversion is exact within display precision, the
+chroma. The colour-space name is a select control styled to read as plain text;
+opening it lists the available colour spaces. Choosing one converts the current
+colour to its visually-equivalent representation in the new space rather than
+carrying the old raw numbers across. When the conversion is exact within display precision, the
 new function string simply appears. When it is not exact — the colour falls
 outside the new space's gamut, or a channel becomes undefined — a modal appears
 first, listing each channel's before and after value and stating what will be
@@ -86,13 +86,13 @@ appeared with per-channel deltas and that Deny left the value untouched.
 
 **Acceptance Scenarios**:
 
-1. **Given** the rendered editor, **When** the pointer hovers the function name, **Then** the function name and both parentheses change from a dotted to a solid underline and to a stronger foreground colour together, as one target, while the channels and alpha stay in their resting appearance.
-2. **Given** the rendered editor, **When** the author clicks the function name, **Then** a dropdown opens listing the colour spaces available for this token (all supported spaces, or the configured subset when the token type restricts them), with the current space indicated.
-3. **Given** a colour that is representable in the target space within display precision, **When** the author picks that space from the dropdown, **Then** the token value's `colorSpace` and `components` update to the converted values, the inline string re-renders, and no modal is shown.
+1. **Given** the rendered editor, **When** the pointer hovers or keyboard focus lands on the colour-space select, **Then** the select and both bracketing parentheses change from a dotted to a solid underline and to a stronger foreground colour together, as one target, while the channels and alpha stay in their resting appearance.
+2. **Given** the rendered editor, **When** the author opens the colour-space select, **Then** it lists the colour spaces available for this token (all supported spaces, or the configured subset when the token type restricts them), with the current space indicated.
+3. **Given** a colour that is representable in the target space within display precision, **When** the author picks that space from the select, **Then** the token value's `colorSpace` and `components` update to the converted values, the inline string re-renders, and no modal is shown.
 4. **Given** a colour that cannot be represented exactly in the target space (out of gamut, or a channel becomes undefined), **When** the author picks that space, **Then** a modal opens before any change is written, listing each component's current value, its proposed new value, and a plain-language note of what differs (e.g. "clamped to the sRGB gamut").
 5. **Given** that modal, **When** the author chooses Accept, **Then** the converted and gamut-mapped value is written to the token and the inline string re-renders in the new space.
-6. **Given** that modal, **When** the author chooses Deny or dismisses it, **Then** no change is written; the token keeps its original space and components.
-7. **Given** a token whose type configuration restricts the offered colour spaces, **When** the dropdown opens, **Then** it lists only the configured spaces plus the token's current space, in the spec's canonical order.
+6. **Given** that modal, **When** the author chooses Deny or dismisses it, **Then** no change is written; the token keeps its original space and components, and the colour-space select is restored to show the original space.
+7. **Given** a token whose type configuration restricts the offered colour spaces, **When** the author opens the colour-space select, **Then** it lists only the configured spaces plus the token's current space, in the spec's canonical order.
 
 ---
 
@@ -102,7 +102,7 @@ The control looks like editable prose, not a form. At rest it is text with a
 dashed underline; interactive sub-parts reveal themselves on hover or focus with
 a solid underline and a brighter colour. Every colour, spacing, typography,
 underline, and motion value it uses comes from the design system's tokens, and
-every interactive sub-part (the numeric inputs, the space dropdown, the
+every interactive sub-part (the numeric inputs, the colour-space select, the
 accept/deny modal) is built from the design system's existing components rather
 than hand-rolled. The old stacked mini-caption layout, the bespoke per-package
 stylesheet, the native colour-picker input, the separate optional hex field, and
@@ -122,12 +122,12 @@ It depends on US1/US2 existing to style, so it is P2 rather than P1.
 
 **Independent Test**: Render the editor and inspect that it contains no
 hard-coded colour/length/radius/shadow/timing literals, uses design-system
-components for the inputs/dropdown/modal, and shows no "none" checkbox or
+components for the inputs/select/modal, and shows no "none" checkbox or
 separate hex field.
 
 **Acceptance Scenarios**:
 
-1. **Given** the editor at rest, **When** it renders, **Then** each editable segment (function name + parentheses, each channel, alpha) shows its own faint dotted underline in a muted foreground colour, and there is no button/box/border chrome; the `/` alpha separator and the padding spaces inside the parentheses show no underline.
+1. **Given** the editor at rest, **When** it renders, **Then** each editable segment (the colour-space select + its bracketing parentheses as one, each channel, alpha) shows its own faint dotted underline in a muted foreground colour, and there is no button/box/border/caret chrome; the `/` alpha separator and the padding spaces inside the parentheses show no underline.
 2. **Given** the editor, **When** the pointer leaves all sub-parts, **Then** every sub-part returns to the muted, faint-dotted-underline resting appearance.
 3. **Given** the editor's markup and styles, **When** audited, **Then** there are no literal design values (hex/rgb colours, raw px/rem, ad-hoc radius/shadow/transition) — all such values resolve through design-system tokens.
 4. **Given** the editor, **When** it renders any color token, **Then** no "none" checkbox and no standalone hex input field are present.
@@ -188,8 +188,8 @@ warning modal) can be exercised.
   the value is written (it is valid data) and the project's existing
   range/out-of-gamut warnings surface as they do today; this is distinct from
   the non-numeric case, which is rejected.
-- **Dropdown opened then dismissed without choosing**: no change; focus returns
-  to the function name.
+- **Colour-space select opened then dismissed without choosing**: no change;
+  focus returns to the select, still showing the current space.
 
 ## Requirements _(mandatory)_
 
@@ -198,15 +198,17 @@ warning modal) can be exercised.
 - **FR-001**: The editor MUST render an object-form color token's value as a
   single inline CSS-style colour function string (function name, parentheses,
   space-separated channel values, and an optional ` / alpha` segment).
-- **FR-002**: At rest, each independently-editable segment — the function name
-  taken together with its opening and closing parentheses (one segment), each
-  channel value, and the alpha value when present — MUST show its own faint
-  dotted underline in a muted foreground colour. The editor MUST NOT display
-  form-field chrome (borders, boxes, buttons, number-spinners) at rest.
+- **FR-002**: At rest, each independently-interactive segment — the colour-space
+  select taken together with the parentheses that visually bracket the channels
+  (one segment), each channel value, and the alpha value when present — MUST show
+  its own faint dotted underline in a muted foreground colour. The editor MUST
+  NOT display form-field chrome (borders, boxes, buttons, number-spinners,
+  select carets) at rest.
 - **FR-002c**: Each channel value and the alpha value MUST be a real numeric
-  input element that is present and focusable from first render — never a static
-  label that a click converts into an input. Its resting and focused states MUST
-  occupy the same space so focusing one causes no layout shift or reflow.
+  input element, and the colour space MUST be a real select control, all present
+  and focusable from first render — never a static label that a click converts
+  into a control. Each control's resting and focused states MUST occupy the same
+  space so focusing one causes no layout shift or reflow.
 - **FR-002a**: The inline value — at rest and while a channel is being edited —
   MUST be rendered in a monospace typeface sourced from a design-system
   typography token, so channel columns read consistently.
@@ -217,24 +219,28 @@ warning modal) can be exercised.
   promote that segment's underline from dotted to solid and strengthen its
   foreground colour, and MUST leave every other segment in its resting
   appearance.
-- **FR-004**: Hovering the function name MUST promote the function name together
-  with its opening and closing parentheses — as a single target — from a dotted
-  to a solid underline and to a stronger foreground colour, leaving the channels
-  and alpha in their resting appearance.
+- **FR-004**: Hovering the colour-space select MUST promote the select together
+  with the parentheses that bracket the channels — as a single target — from a
+  dotted to a solid underline and to a stronger foreground colour, leaving the
+  channels and alpha in their resting appearance.
 - **FR-004a**: Every segment MUST return to its resting muted, faint-dotted
-  appearance once neither hovered nor being edited.
+  appearance once neither hovered nor focused nor being edited.
 - **FR-004b**: Keyboard focus MUST produce the same solid-underline / stronger-
-  foreground promotion that hover does for the focused segment, so the
-  interactive parts are discoverable without a pointer.
+  foreground promotion that hover does for the focused segment (channel input or
+  colour-space select), so the interactive parts are discoverable without a
+  pointer.
 - **FR-005**: Typing into a channel input and committing via Enter or blur MUST
   write the new number to that component; pressing Escape MUST abandon the
   in-progress edit and restore the input to the component's current value.
 - **FR-006**: A channel edit that is empty or non-numeric MUST NOT be written to
   the token; the channel MUST revert to its last valid value.
-- **FR-007**: Clicking the function name MUST open a dropdown listing the colour
-  spaces offered for this token, indicating the current space.
+- **FR-007**: The colour space MUST be presented as a select control (the design
+  system's `Select`) rendered inline in the function-name position, present and
+  focusable from first render and styled to read as plain text at rest. Opening
+  it MUST list the colour spaces offered for this token, indicating the current
+  space.
 - **FR-008**: When the token type's configuration restricts offered colour
-  spaces, the dropdown MUST list only those spaces plus the token's current
+  spaces, the select MUST list only those spaces plus the token's current
   space, in the specification's canonical space order.
 - **FR-009**: Selecting a different colour space MUST convert the current colour
   to its visually-equivalent representation in the target space — matching
@@ -250,7 +256,9 @@ warning modal) can be exercised.
   (e.g. gamut clamping, undefined channel substitution).
 - **FR-013**: Accepting the modal MUST write the converted (and where required
   gamut-mapped) value to the token; denying or dismissing it MUST leave the
-  token's space and components unchanged.
+  token's space and components unchanged and MUST restore the colour-space
+  select to display the original space (its shown value must never drift from
+  the token's actual `colorSpace`).
 - **FR-014**: Switching space MUST preserve an existing alpha value unchanged.
 - **FR-015**: The editor MUST NOT present a "none" checkbox for any channel. A
   channel whose stored value is `"none"` MUST still render, and editing it MUST
@@ -259,9 +267,10 @@ warning modal) can be exercised.
   an object value carries an sRGB `hex` fallback, that fallback MUST be kept
   consistent with the authored colour without author intervention.
 - **FR-017**: The editor MUST NOT present a native colour-picker input.
-- **FR-018**: All interactive sub-parts (channel number inputs, colour-space
-  dropdown, confirmation modal) MUST be built from the design system's existing
-  components; none may be hand-rolled where a design-system equivalent exists.
+- **FR-018**: All interactive sub-parts (channel number inputs, the colour-space
+  select, confirmation modal) MUST be built from the design system's existing
+  components (`Input`, `Select`, `Dialog`); none may be hand-rolled where a
+  design-system equivalent exists.
 - **FR-019**: Every design value the editor uses (colour, spacing, typography,
   underline style, radius, shadow, motion) MUST come from design-system tokens;
   no literal design values may appear in the editor's markup or styles. The one
@@ -375,11 +384,19 @@ warning modal) can be exercised.
   system, no permanent local hardcode. Sequencing (does the design-system change
   land first, or does the editor use a tracked placeholder in the interim) is a
   `plan.md` decision.
-- **Channels are always inputs**: each channel and the alpha are real numeric
-  input elements from first render, styled to read as plain text (FR-002c) —
-  there is no view-mode/edit-mode toggle. The function name remains a
-  click-to-open-dropdown trigger, not an always-open native `<select>`; only the
-  values are "always inputs".
+- **Every part is a live control from first render**: each channel and the alpha
+  are real numeric inputs; the colour space is a real select — all present and
+  focusable immediately, styled to read as plain text (FR-002c). There is no
+  view-mode/edit-mode toggle for any of them.
+- **Colour-space control is a `Select` (decided for now)**: the space picker
+  uses the design system's `Select` rather than a static label with a
+  click-triggered menu. Chosen for consistency with the always-live-control
+  model, built-in keyboard/a11y behaviour, and Principle XII (reuse the
+  design-system component). Known cost: the select's trigger chrome (its caret,
+  platform rendering) must be styled down to read as bare underlined text
+  matching the channels, and on a denied space switch its shown value must be
+  reset to the original space (FR-013). Revisit if the plain-text styling proves
+  impractical.
 - **Storybook**: the repo-root Storybook (`.storybook/`, globbing
   `packages/*/src/**/*.stories.*`, wired into turbo) and an
   `Editors/ColorEditor` story with `Default` and `RestrictedColorSpaces`

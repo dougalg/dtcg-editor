@@ -39,6 +39,8 @@
   affordance, how the legacy bare-hex form is presented inline, and the
   sequencing of the design-system underline-treatment contribution vs this
   editor's rework (FR-019a).
-- Channels/alpha are always live number inputs (FR-002c) — no view/edit mode
-  toggle; the function name stays a click-to-open-dropdown trigger.
+- Channels/alpha are always live number inputs and the colour space is always a
+  live `Select` (FR-002c / FR-007) — no view/edit mode toggle for any part.
+  Select-vs-menu was decided in favour of `Select`; may be revisited in
+  `/speckit-plan` if styling it to plain text proves impractical.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
