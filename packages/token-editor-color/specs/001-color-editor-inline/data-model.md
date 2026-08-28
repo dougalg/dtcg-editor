@@ -58,7 +58,7 @@ type — an inexact conversion is a normal, reportable result.
 | Field | Type | Notes |
 |-------|------|-------|
 | `label` | `string` | from `COMPONENT_RANGES` of the **target** space (e.g. `"L"`, `"C"`, `"H"`) |
-| `from` | `number \| "none" \| null` | source value in the **source** space, unrounded; `null` when source channel count/meaning has no counterpart. The dialog renders it through `formatChannel` |
+| `from` | `number \| "none" \| null` | source value in the **source** space, unrounded. `"none"` when the source channel was `"none"` (the maths uses `0`, but the dialog shows what the author had). `null` when source channel count/meaning has no counterpart. Numbers rendered via `formatChannel`. |
 | `to` | `number` | target value, unrounded; dialog renders via `formatChannel` |
 | `changed` | `boolean` | `true` when `from`/`to` differ at all (unrounded) |
 
@@ -70,26 +70,31 @@ Discriminated union:
 - `{ kind: "hue-undefined", channelIndex: 0 | 1 | 2 }` — an achromatic colour
   produced an undefined hue; `0` substituted (R5).
 
-### `convertColorValue(value, targetSpace, tolerance)` — signature
+### `convertColorValue(value, targetSpace, tolerance, logger?)` — signature
 
 ```
 convertColorValue(
   value: ColorObjectValue | LegacyHexColorValue,
   targetSpace: ColorSpace,
-  tolerance: number,          // ΔEOK threshold; caller passes options.spaceSwitchTolerance ?? 0.02
+  tolerance: number,               // ΔEOK threshold; caller passes options.spaceSwitchTolerance ?? 0.02
+  logger: Logger = consoleLogger,  // Principle VI — injected, real default
 ): Result<ColorConversion, UnknownError>
 ```
 
 - Lives in `token-editor-color`'s `src/utils/conversion.ts` (framework-free,
   `node:test`-covered), re-exported from the package's `src/index.ts`.
+- `Result`/`err`/`ok`/`fromThrowable` from `neverthrow`; `UnknownError` /
+  `toLoggedUnknownError` / `Logger` / `consoleLogger` from `@dtcg-editor/errors`
+  — both **added to `packages/token-editor-color`'s dependencies** (tasks T001).
 - `tolerance` MUST be `>= 0`. The classifier reports `"within-tolerance"` only
   when in gamut, no undefined channel, and the round-trip `deltaEOK` is
   **strictly `< tolerance`**. `tolerance === 0` therefore treats any non-zero
   `deltaEOK` as needing confirmation.
 - Returns `Result` per repo Principle V: the `err` branch is only for an
-  unexpected `colorjs.io` throw (wrapped once with `fromThrowable`, logged via
-  an injected `Logger` per Principle VI). A representable-vs-not distinction is
-  **not** an error — it rides in `classification`.
+  unexpected `colorjs.io` throw — wrapped once with `fromThrowable`, then
+  `toLoggedUnknownError(caught, logger)` (logs immediately via the injected
+  `logger`, Principle VI). A representable-vs-not distinction is **not** an
+  error — it rides in `classification`.
 - `"none"` inputs are coerced to `0` before maths (R4).
 - A `LegacyHexColorValue` input is treated as `srgb` (R9).
 - No rounding of any kind — inputs, outputs, and the `deltaEOK` comparison all

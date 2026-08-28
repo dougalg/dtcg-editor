@@ -244,15 +244,18 @@ come from Radix.
   `ChannelInput` (0–1, step 0.01). Clearing that input to empty and committing
   **removes** alpha (`onChange` with `alpha` omitted).
 - **Alpha absent**: a single small trailing affordance rendered just before the
-  closing `)` — a `Button`-less text control reading `+ α` (or `+ alpha`),
-  `.editable-text`-styled, keyboard-focusable — that on activate sets `alpha: 1`
-  and moves focus into the new alpha input.
+  closing `)` — the design-system **`Button`** (`@dtcg-editor/design-system/
+  components/Button/Button.tsx`), visually reduced to `+ α` plain text via the
+  R6 `.editable-text` utility, keyboard-focusable — that on activate sets
+  `alpha: 1` and moves focus into the new alpha input.
 
 **Rationale**: Keeps the "everything is inline text" model — no checkbox, no
 separate row (FR-015 spirit). "Clear to remove" is discoverable once alpha is
 shown; the explicit `+ α` control is needed because there's otherwise no way to
-introduce the segment. Exact glyph/label is a visual detail for implementation;
-behaviour is fixed here.
+introduce the segment. It is a real activatable button (adds a segment), so
+repo Principle XII / `DESIGN.md` require the design-system `Button` rather than a
+raw `<button>` — even styled down to bare text. Exact glyph/label is a visual
+detail; behaviour and the backing component are fixed here.
 
 **Alternatives considered**: a persistent greyed `/ 1` that becomes real on
 focus (rejected — ambiguous whether alpha is "on"); a right-click/context menu
@@ -263,7 +266,8 @@ focus (rejected — ambiguous whether alpha is "on"); a right-click/context menu
 ## R9 — Legacy bare-hex `$value`
 
 **Decision**: A `ColorValue` that is a bare `"#rrggbb"` string renders as a
-single `.editable-text` monospace text input showing the hex, plus the
+single `ChannelInput` in `mode="text"` (design-system `Input` `type="text"`,
+`pattern="#[0-9a-fA-F]{6}"`, `.editable-text`-styled) showing the hex, plus the
 `ColorSpaceSelect` showing a synthetic current entry `hex`. Editing the hex text
 (valid `#rrggbb`) writes the string back unchanged in form. Choosing a real
 colour space from the select converts **from the hex** via `convertColorValue`
@@ -315,8 +319,12 @@ tokens that never had it, a needless diff).
 - `SpaceConversionDialog` uses design-system `Dialog` (`DialogTitle` /
   `DialogDescription`), focus-trapped, Escape = Deny, initial focus on Deny (the
   non-destructive choice).
-- FR-021 range warnings render in a `role="alert"` region referenced from the
-  offending input via `aria-describedby`.
+- FR-021 range warnings render in a `role="alert"` region owned by `ColorEditor`
+  with a stable `id`. `ColorEditor` derives a `[boolean,boolean,boolean]`
+  `invalid` map by matching each `checkColorValueIssues` string's `component N`
+  token to its index, then passes `issueDescribedById` (the region id) and
+  `invalid` down through `ColorFunctionValue` to each `ChannelInput`, which sets
+  `aria-invalid` + `aria-describedby` on the offending input(s).
 - Every component gets a `.a11y.test.tsx` asserting zero `axe-core` WCAG 2.2 AA
   violations, including a "component with no interactive semantics of its own"
   assertion for `ColorFunctionValue` where applicable.

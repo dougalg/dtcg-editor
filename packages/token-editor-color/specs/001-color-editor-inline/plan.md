@@ -38,8 +38,10 @@ layer stays presentational: it composes `convertColorValue` with
 **Primary Dependencies**:
 - `@dtcg-editor/token-core` — colour value types/schemas + serialization (unchanged; imported, not modified)
 - `@dtcg-editor/token-editor-contract` — `TokenTypeContract` / `TokenTypeEditorProps`
-- `@dtcg-editor/design-system` — `Input`, `Select`, `Dialog` components; `--dtcg-ed-*` tokens (**new dependency of this package**)
+- `@dtcg-editor/design-system` — `Input`, `Select`, `Dialog`, `Button` components; `--dtcg-ed-*` tokens (**new dependency of this package**)
 - `colorjs.io` (`/fn` entry) — **stays** a dependency of `token-editor-color`; backs the new `src/utils/` conversion module
+- `neverthrow` (catalog) — **new dependency of this package**; the `Result` return of `convertColorValue` (Principle V). `token-core` already uses it but does not re-export it.
+- `@dtcg-editor/errors` (`workspace:*`) — **new dependency of this package**; `UnknownError` / `toLoggedUnknownError` / `Logger` / `consoleLogger` for the conversion throw-wrap (Principle V/VI).
 - `react` (catalog), `zod` (catalog, existing)
 
 **Storage**: N/A — the editor is a controlled component; it reads a `ColorValue`
@@ -62,8 +64,11 @@ touched.
 call is sub-millisecond. No batching or memoisation infrastructure needed.
 
 **Constraints**:
-- New runtime dependency for this package: `@dtcg-editor/design-system` (for
-  `Input`/`Select`/`Dialog` + tokens). `colorjs.io` already present, no change.
+- New dependencies for this package: `@dtcg-editor/design-system` (Principle XII
+  components + tokens), `neverthrow` (Principle V `Result`), `@dtcg-editor/errors`
+  (Principle V/VI `UnknownError` + `Logger`). All are workspace-standard —
+  `neverthrow` is cataloged and used by `token-core`; `@dtcg-editor/errors` is a
+  workspace package. `colorjs.io` already present, no change.
 - No literal design values anywhere in the editor's TSX/CSS (repo Principle XII).
 - The React components perform no colour maths and no `ColorValue`
   re-validation; conversion lives in `src/utils/` and validation stays in
@@ -100,7 +105,7 @@ perceptual colour conversion + `colorjs.io` in `token-editor-color`, not
 | Pkg IV | One component per folder; unit + a11y tests for every component | **PASS** | Structure below gives each of `ColorEditor`, `ColorFunctionValue`, `ChannelInput`, `ColorSpaceSelect`, `SpaceConversionDialog` its own folder with `*.test.tsx` + `*.a11y.test.tsx`. |
 | Pkg V | DTCG 2025.10 Color module conformance; deviations flagged | **PASS** | No change to the colour spaces, channel ranges, or `$value` shapes. The legacy bare-hex deviation is already flagged in `token-core/color.ts`; this feature keeps it viewable/editable (FR-020) without widening it. |
 | Root VII (v3.0.0) | `token-core` owns parsing/type/validation/**serialization**; UI-driven perceptual conversion + gamut mapping live in the `token-editor-*` package and may depend on a colour library there; one-way dependency | **PASS** | Exactly this layout: conversion + `colorjs.io` in `token-editor-color`; `token-core` imported read-only for schemas/serialization; direction stays `token-editor-color → token-core`. |
-| Root VIII | New dependency needs a `plan.md` paper trail | **PASS** | Only genuinely-new dependency for this package is `@dtcg-editor/design-system` (a workspace package, `Input`/`Select`/`Dialog` + tokens) — required by Principle XII, justified here. `colorjs.io` is pre-existing and now explicitly Approved for this package (repo-root v3.0.0). |
+| Root VIII | New dependency needs a `plan.md` paper trail | **PASS** | New deps for this package: `@dtcg-editor/design-system` (workspace; Principle XII components + tokens), `neverthrow` (cataloged, already used by `token-core`; Principle V `Result`), `@dtcg-editor/errors` (workspace; Principle V/VI `UnknownError`/`Logger`). None is a genuinely-new third-party addition to the repo — all are workspace-standard and mandated by the principles they serve. `colorjs.io` is pre-existing and Approved for this package (repo-root v3.0.0). |
 | Root X | PascalCase component + folder-per-component; unit + a11y coverage; 300-line soft ceiling; flag 3+ near-duplicate components | **PASS** | See structure. `ChannelInput` is deliberately one reusable component used 3–4× (channels + alpha), not duplicated. |
 | Root XI | Modern defaults (ESM, etc.) | **PASS** | ESM `.ts`/`.tsx` with explicit source extensions, matching the package today. |
 | Root XII | Design-system tokens + components only; no literals, even in local CSS | **PASS (with R6)** | As Pkg III. Any interim gap in the underline treatment resolves to "no underline until the design-system token exists", never a literal. |
@@ -159,7 +164,7 @@ packages/token-core/
 └── (UNCHANGED — schemas, parsing, serialization imported read-only)
 
 packages/token-editor-color/
-├── package.json                       # + @dtcg-editor/design-system   (colorjs.io stays)
+├── package.json                       # + @dtcg-editor/design-system, neverthrow, @dtcg-editor/errors   (colorjs.io stays)
 └── src/
     ├── components/
     │   ├── ColorEditor/               # orchestrator: holds ColorValue, dispatches onChange, owns the conversion-confirmation flow
@@ -185,7 +190,7 @@ packages/token-editor-color/
     │   ├── ColorPreview/              # unchanged
     │   └── ColorValidationErrorHandler/  # unchanged
     ├── utils/
-    │   ├── conversion.ts              # EXTENDED — add convertColorValue(value, targetSpace, tolerance) + formatChannel() display helper; keep colorValueToSrgbHex; drop srgbHexToColorSpaceComponents (FR-017 removes its only caller)
+    │   ├── conversion.ts              # EXTENDED — add convertColorValue(value, targetSpace, tolerance, logger=consoleLogger) + formatChannel() display helper; keep colorValueToSrgbHex; drop srgbHexToColorSpaceComponents (FR-017 removes its only caller)
     │   ├── conversion.test.ts         # EXTENDED — + convertColorValue T1–T13 + formatChannel (node:test)
     │   ├── css-color.ts               # kept as-is (colorValueToCssColor — no colour lib, browser does the maths)
     │   ├── css-color.test.ts          # kept

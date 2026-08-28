@@ -11,6 +11,13 @@ Per repo-root Principle VII (v3.0.0) and package Principle I (v2.0.0), this
 conversion capability belongs in `token-editor-color`, and `colorjs.io` stays
 this package's dependency.
 
+**New dependencies of `packages/token-editor-color`** (added in tasks T001):
+`neverthrow` (`catalog:` — the `Result` return, Principle V) and
+`@dtcg-editor/errors` (`workspace:*` — `UnknownError`, `toLoggedUnknownError`,
+`Logger`, `consoleLogger`, Principle V/VI). Both are already used elsewhere in
+the workspace (`token-core` depends on `neverthrow`); this package did not
+previously need them.
+
 ## Exports (from `token-editor-color`'s `src/index.ts`)
 
 | Symbol | Kind | Status |
@@ -35,9 +42,15 @@ which FR-017 removes.
 function convertColorValue(
   value: ColorObjectValue | LegacyHexColorValue,
   targetSpace: ColorSpace,
-  tolerance: number,   // ΔEOK; caller passes options.spaceSwitchTolerance ?? 0.02; MUST be >= 0
+  tolerance: number,               // ΔEOK; caller passes options.spaceSwitchTolerance ?? 0.02; MUST be >= 0
+  logger: Logger = consoleLogger,  // Principle VI: injected externality with a real default
 ): Result<ColorConversion, UnknownError>;
 ```
+
+`Result` / `err` / `ok` / `fromThrowable` from `neverthrow`; `UnknownError` /
+`toLoggedUnknownError` / `Logger` / `consoleLogger` from `@dtcg-editor/errors`.
+Editor components call it without the `logger` arg (default applies); tests pass
+a spy `Logger` to assert the throw-wrap logs exactly once.
 
 ### Behaviour
 
@@ -61,15 +74,18 @@ function convertColorValue(
      `"gamut-mapped"` (perceptible precision loss without an explicit gamut clamp
      still warrants confirmation).
 7. **Per-channel changes** — build `ChannelChange[3]` using the **target**
-   space's `COMPONENT_RANGES` labels, `from`/`to` as **unrounded** numbers (the
-   dialog formats them via `formatChannel`), `changed` = values differ at all.
-   `from` is `null` when there is no meaningful source counterpart (channel
-   count/kind mismatch).
+   space's `COMPONENT_RANGES` labels, `from`/`to` as **unrounded** values (the
+   dialog formats numbers via `formatChannel`), `changed` = values differ at all.
+   `from` is the literal `"none"` when the source channel was `"none"` (the
+   maths uses `0`, but the dialog shows what the author actually had); `from` is
+   `null` when there is no meaningful source counterpart (channel count/kind
+   mismatch).
 8. **Alpha** — copied through unchanged (`undefined` stays `undefined`).
 9. **Hex** — if `value` is object-form and had `hex`, recompute via
    `colorValueToSrgbHex` of the *result*; else `undefined`.
-10. Wrap any `colorjs.io` throw once with `fromThrowable`; log via injected
-    `Logger`; return `err(UnknownError)`. Never throw.
+10. Wrap any `colorjs.io` throw exactly once with `fromThrowable`; pass the
+    caught value through `toLoggedUnknownError(caught, logger)` (logs immediately
+    via the injected `logger`); return `err(UnknownError)`. Never throw.
 
 No rounding at any step — inputs, outputs, and the `deltaEOK` comparison use
 full-precision numbers (R3).
@@ -102,7 +118,7 @@ full-precision numbers (R3).
 | T8 | object value without `hex` switched space | result `hex === undefined` |
 | T9 | `convertColorValue(v, v.colorSpace, 0.02)` | `"within-tolerance"`, `deltaEOK` ~ 0, every `channelChanges[i].changed === false` |
 | T10 | legacy `"#3366cc"` → `oklch`, `tolerance = 0.02` | `ok`; `components` finite; treats input as sRGB |
-| T11 | forced `colorjs.io` throw (monkeypatch / impossible space id via a wrapper) | `err` is `UnknownError`, `Logger` called once, nothing thrown |
+| T11 | forced `colorjs.io` throw (monkeypatch / impossible space id via a wrapper), spy `Logger` passed as 4th arg | `err` is `UnknownError`, spy logger called exactly once, nothing thrown |
 | T12 | in-gamut `srgb` → `oklch` with `tolerance = 0` | `classification` is **not** `"within-tolerance"` when `deltaEOK > 0`; with a same-space call `deltaEOK === 0` ⇒ still `"within-tolerance"` |
 | T13 | `formatChannel` | `0.5→"0.5"`, `0.5000→"0.5"`, `145→"145"`, `145.0→"145"`, `-0→"0"`, `0.123456→"0.123456"`, `0.0000001→"0.0000001"` (no exponent) |
 

@@ -7,7 +7,9 @@ value; all use `@dtcg-editor/design-system` components + `--dtcg-ed-*` tokens.
 
 Import design-system components by concrete path, e.g.
 `@dtcg-editor/design-system/components/Input/Input.tsx` (the package exports
-`./components/*`).
+`./components/*`). Design-system components used: `Input` (`ChannelInput`),
+`Select` + parts (`ColorSpaceSelect`), `Dialog` + parts
+(`SpaceConversionDialog`), `Button` (the `+ α` add-alpha control).
 
 ---
 
@@ -20,8 +22,17 @@ FR-010a).
 
 **Responsibilities**
 - Branch legacy-hex vs object form (R9).
-- Render `ColorSpaceSelect` + `ColorFunctionValue` inline (object form), or the
-  legacy-hex treatment.
+- **Object form**: render `ColorSpaceSelect` + `ColorFunctionValue` inline.
+- **Legacy bare-hex** (`"#rrggbb"` string): render `ColorSpaceSelect`
+  (`value="hex"`) plus one `ChannelInput` in `mode="text"` bound to the hex
+  string — a valid `#rrggbb` edit writes the string back in the same form; no
+  per-channel editing while legacy (FR-020). The legacy→object transition on a
+  real-space pick is in the space-switch flow below.
+- **FR-021 wiring**: compute `issues = checkColorValueIssues(value)`; render them
+  in a `role="alert"` region with a stable `id`; derive a
+  `[boolean, boolean, boolean]` `invalid` map by matching each issue string's
+  `component N` token to its index; pass `issueDescribedById` (the region id) and
+  `invalid` down to `ColorFunctionValue`.
 - Own the space-switch flow: call
   `convertColorValue(value, next, options?.spaceSwitchTolerance ?? 0.02)`; if
   `classification === "within-tolerance"` apply directly, else stage
@@ -49,17 +60,23 @@ FR-016, FR-021.
   value: ColorObjectValue;
   onComponentChange: (index: 0 | 1 | 2, next: number) => void;
   onAlphaChange: (next: number | undefined) => void;
-  spaceSelect: ReactNode; // the ColorSpaceSelect element, injected so layout owns order
+  spaceSelect: ReactNode;                       // the ColorSpaceSelect element, injected so layout owns order
+  issueDescribedById?: string;                  // FR-021: id of ColorEditor's role="alert" region
+  invalid?: readonly [boolean, boolean, boolean]; // FR-021: per-channel out-of-range flags
 }
 ```
 
 **Responsibilities**: render the monospace inline layout
-`{spaceSelect}( c0 c1 c2 [ / alpha ] )` with the bracketing parentheses as inert
-text that visually tracks the select's hover/focus state (FR-002, FR-004);
-render one `ChannelInput` per component; render the alpha `ChannelInput` when
-`value.alpha !== undefined`, else the `+ α` add-alpha control (R8); render the
-`/` separator and inner padding as inert (FR-002b). All displayed numbers go
-through `formatChannel` — no rounding, trailing zeros trimmed (FR-002d).
+`{spaceSelect}( c0 c1 c2 [ / alpha ] )`. The `spaceSelect` and the bracketing
+`(` `)` sit in one wrapper element that carries `:hover` / `:focus-within` so
+they promote together (FR-002, FR-004, R7). Render one `ChannelInput` per
+component with `invalid={invalid?.[i]}` and `describedById={issueDescribedById}`;
+render the alpha `ChannelInput` when `value.alpha !== undefined`, else an
+**add-alpha control built from the design-system `Button`** (visually reduced to
+`+ α`, not a raw `<button>` — Principle XII) that sets `alpha: 1` and focuses the
+new input (R8); render the `/` separator and inner padding as inert (FR-002b).
+All displayed numbers go through `formatChannel` — no rounding, trailing zeros
+trimmed (FR-002d).
 
 **MUST**: monospace via `--dtcg-ed-*` typography token (FR-002a); wrap without
 horizontal page overflow at min width (FR-023); no layout shift when a channel
@@ -75,22 +92,28 @@ is focused (FR-002c).
 ```ts
 {
   label: string;              // accessible name, e.g. "oklch L" (visually hidden)
-  value: number | "none";
-  onCommit: (next: number) => void;
+  mode?: "number" | "text";   // default "number"; "text" for the legacy hex string (ColorEditor legacy branch)
+  value: number | "none" | string;   // string only when mode === "text"
+  onCommit: (next: number | string) => void;   // string only when mode === "text"
   onClear?: () => void;       // alpha only: empty+commit ⇒ remove alpha (R8)
-  step?: number;              // default 1; alpha passes 0.01
-  invalid?: boolean;          // drives aria-invalid + describedby wiring (FR-021)
+  step?: number;              // default 1; alpha passes 0.01 (number mode only)
+  invalid?: boolean;          // drives aria-invalid + aria-describedby wiring (FR-021)
+  describedById?: string;     // id of ColorEditor's role="alert" region; used when invalid
 }
 ```
 
 **Behaviour**
-- Renders a design-system `Input` (`type="number"`, `inputMode="decimal"`)
-  styled via the R6 `.editable-text` utility so it reads as plain text: no
+- `mode="number"` (default): design-system `Input` (`type="number"`,
+  `inputMode="decimal"`). `mode="text"`: design-system `Input` (`type="text"`,
+  `pattern="#[0-9a-fA-F]{6}"`) for the legacy hex string — commit only on a
+  valid `#rrggbb`.
+- Styled via the R6 `.editable-text` utility so it reads as plain text: no
   border/box/spinner at rest, dotted underline, solid on `:hover`/`:focus-visible`.
 - Present and focusable from first render — never a click-to-activate label
   (FR-002c).
-- `value === "none"` ⇒ display the literal text `none`; first keystroke starts a
-  numeric draft from empty (R4).
+- `value === "none"` (number mode) ⇒ display the literal text `none`; first
+  keystroke starts a numeric draft from empty (R4).
+- When `invalid`, sets `aria-invalid` and `aria-describedby={describedById}`.
 - Resting display and the initial focused `draft` are `formatChannel(value)` —
   full precision, trailing zeros trimmed, no rounding (FR-002d).
 - Local `draft` string while focused. **Enter** or **blur**: if `draft` parses to
