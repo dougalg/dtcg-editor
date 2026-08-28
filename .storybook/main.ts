@@ -19,5 +19,23 @@ const config: StorybookConfig = {
 		getAbsolutePath("@storybook/addon-docs"),
 	],
 	framework: getAbsolutePath("@storybook/react-vite"),
+	// Storybook's root is the repo root (stories span multiple packages),
+	// so Vite's dev-server watcher would otherwise walk tooling/config
+	// dotdirs too (.git, .claude, .agents, .specify, .turbo) - excluded
+	// both for watcher overhead and because a broken symlink under any of
+	// them (as .agents/archive-task once was) can crash the watcher with
+	// ELOOP.
+	async viteFinal(viteConfig) {
+		viteConfig.server ??= {};
+		viteConfig.server.watch ??= {};
+		viteConfig.server.watch.ignored = [
+			"**/.git/**",
+			"**/.claude/**",
+			"**/.agents/**",
+			"**/.specify/**",
+			"**/.turbo/**",
+		];
+		return viteConfig;
+	},
 };
 export default config;
