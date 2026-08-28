@@ -8,7 +8,7 @@
 		"dev": "pnpm build --watch",
 		"lint:write": "biome lint --write .",
 		"lint": "biome lint .",
-		"storybook": "pnpm build && storybook dev -p 6006",
+		"storybook": "pnpm build && storybook dev -p 6006 --ci",
 		"build-storybook": "pnpm build && storybook build"
 	},
 	"exports": {
