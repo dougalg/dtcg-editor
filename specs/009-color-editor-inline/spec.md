@@ -10,6 +10,21 @@
 
 ## User Scenarios & Testing _(mandatory)_
 
+### Visual reference
+
+Author-provided mockups of the resting and hover states (channels + alpha shown,
+`oklch( 0 0 0 / 12 )`):
+
+- `assets/mockup-resting.png` — every editable segment (the function name with
+  its parentheses, each channel, the alpha) carries its own faint dotted
+  underline in a muted foreground colour; the whole value is monospace; the `/`
+  alpha separator and the padding spaces inside the parentheses carry no
+  underline.
+- `assets/mockup-hover-function-name.png` — the pointer is over the function
+  name: `oklch(` and the closing `)` have together become a solid underline in a
+  stronger foreground colour; the channels and alpha are unchanged (still faint
+  dotted underlines).
+
 ### User Story 1 - Read and edit channel values in place (Priority: P1)
 
 A token author looking at a color token sees its value rendered as a compact,
@@ -33,8 +48,8 @@ and assert the token value updated and the inline string re-rendered.
 
 **Acceptance Scenarios**:
 
-1. **Given** a color token with value `{ colorSpace: "oklch", components: [0.7, 0.15, 145] }`, **When** the editor renders, **Then** it displays the text `oklch(0.7 0.15 145)` in a monospace typeface with a dashed underline and no visible form-field chrome (borders, boxes) at rest.
-2. **Given** the rendered editor, **When** the pointer hovers a single channel number, **Then** only that number gains a solid underline and a brighter foreground colour; the other channels and the function name are unchanged.
+1. **Given** a color token with value `{ colorSpace: "oklch", components: [0.7, 0.15, 145] }`, **When** the editor renders, **Then** it displays the text `oklch( 0.7 0.15 145 )` in a monospace typeface, with each editable segment (the function name + parentheses as one, and each channel) carrying its own faint dotted underline, and no form-field chrome (borders, boxes) at rest.
+2. **Given** the rendered editor, **When** the pointer hovers a single channel number, **Then** only that number's underline changes from dotted to solid and its foreground colour strengthens; the other channels and the function name are unchanged.
 3. **Given** the rendered editor, **When** the author clicks a channel number, **Then** that number becomes an editable numeric input, focused, containing the current value.
 4. **Given** a focused channel input with a new valid number entered, **When** the author commits (Enter or blur), **Then** the token value's corresponding component updates to that number and the inline function string re-renders with it.
 5. **Given** a focused channel input, **When** the author presses Escape, **Then** the edit is abandoned and the channel reverts to its previous value with no change written.
@@ -70,7 +85,7 @@ appeared with per-channel deltas and that Deny left the value untouched.
 
 **Acceptance Scenarios**:
 
-1. **Given** the rendered editor, **When** the pointer hovers the function name, **Then** the function name and both parentheses gain a solid underline and a brighter foreground together, as one target.
+1. **Given** the rendered editor, **When** the pointer hovers the function name, **Then** the function name and both parentheses change from a dotted to a solid underline and to a stronger foreground colour together, as one target, while the channels and alpha stay in their resting appearance.
 2. **Given** the rendered editor, **When** the author clicks the function name, **Then** a dropdown opens listing the colour spaces available for this token (all supported spaces, or the configured subset when the token type restricts them), with the current space indicated.
 3. **Given** a colour that is representable in the target space within display precision, **When** the author picks that space from the dropdown, **Then** the token value's `colorSpace` and `components` update to the converted values, the inline string re-renders, and no modal is shown.
 4. **Given** a colour that cannot be represented exactly in the target space (out of gamut, or a channel becomes undefined), **When** the author picks that space, **Then** a modal opens before any change is written, listing each component's current value, its proposed new value, and a plain-language note of what differs (e.g. "clamped to the sRGB gamut").
@@ -103,8 +118,8 @@ separate hex field.
 
 **Acceptance Scenarios**:
 
-1. **Given** the editor at rest, **When** it renders, **Then** the whole value shows a single dashed underline and no button/box/border chrome.
-2. **Given** the editor, **When** the pointer leaves all sub-parts, **Then** every sub-part returns to the plain dashed-underline resting appearance.
+1. **Given** the editor at rest, **When** it renders, **Then** each editable segment (function name + parentheses, each channel, alpha) shows its own faint dotted underline in a muted foreground colour, and there is no button/box/border chrome; the `/` alpha separator and the padding spaces inside the parentheses show no underline.
+2. **Given** the editor, **When** the pointer leaves all sub-parts, **Then** every sub-part returns to the muted, faint-dotted-underline resting appearance.
 3. **Given** the editor's markup and styles, **When** audited, **Then** there are no literal design values (hex/rgb colours, raw px/rem, ad-hoc radius/shadow/transition) — all such values resolve through design-system tokens.
 4. **Given** the editor, **When** it renders any color token, **Then** no "none" checkbox and no standalone hex input field are present.
 5. **Given** a viewport at the editor's minimum supported width, **When** the value is long, **Then** the inline string wraps within its container without horizontal overflow and remains fully editable.
@@ -169,16 +184,30 @@ each documented state renders and the space-switch interaction can be exercised.
 - **FR-001**: The editor MUST render an object-form color token's value as a
   single inline CSS-style colour function string (function name, parentheses,
   space-separated channel values, and an optional ` / alpha` segment).
-- **FR-002**: At rest the whole value MUST be presented as text with a dashed
-  underline and MUST NOT display form-field chrome (borders, boxes, buttons).
+- **FR-002**: At rest, each independently-editable segment — the function name
+  taken together with its opening and closing parentheses (one segment), each
+  channel value, and the alpha value when present — MUST show its own faint
+  dotted underline in a muted foreground colour. The editor MUST NOT display
+  form-field chrome (borders, boxes, buttons) at rest.
 - **FR-002a**: The inline value — at rest and while a channel is being edited —
   MUST be rendered in a monospace typeface sourced from a design-system
   typography token, so channel columns read consistently.
-- **FR-003**: Hovering an individual channel value MUST give that value — and
-  only that value — a solid underline and a brighter foreground colour.
-- **FR-004**: Hovering the function name MUST give the function name together
-  with its opening and closing parentheses a solid underline and a brighter
-  foreground colour, as a single hover target.
+- **FR-002b**: The `/` alpha separator and the whitespace padding inside the
+  parentheses MUST be inert — no underline, no hover response, not focusable,
+  not editable.
+- **FR-003**: Hovering an individual channel value (or the alpha value) MUST
+  promote that segment's underline from dotted to solid and strengthen its
+  foreground colour, and MUST leave every other segment in its resting
+  appearance.
+- **FR-004**: Hovering the function name MUST promote the function name together
+  with its opening and closing parentheses — as a single target — from a dotted
+  to a solid underline and to a stronger foreground colour, leaving the channels
+  and alpha in their resting appearance.
+- **FR-004a**: Every segment MUST return to its resting muted, faint-dotted
+  appearance once neither hovered nor being edited.
+- **FR-004b**: Keyboard focus MUST produce the same solid-underline / stronger-
+  foreground promotion that hover does for the focused segment, so the
+  interactive parts are discoverable without a pointer.
 - **FR-005**: Clicking a channel value MUST turn it into a focused numeric input
   pre-filled with the current value; committing via Enter or blur MUST write the
   new number to that component; pressing Escape MUST abandon the edit.
