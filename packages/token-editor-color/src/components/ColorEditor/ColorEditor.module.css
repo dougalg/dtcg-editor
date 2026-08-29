@@ -3,11 +3,6 @@
 	font-size: var(--dtcg-ed-text-sm);
 }
 
-.inert {
-	color: var(--dtcg-ed-color-neutral-on-quiet, currentColor);
-	user-select: none;
-}
-
 .issues {
 	width: 100%;
 	color: var(--dtcg-ed-color-error-on-normal, currentColor);

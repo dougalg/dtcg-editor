@@ -5,7 +5,7 @@ import {
 	SelectItem,
 } from "@dtcg-editor/design-system/components/Select/Select.tsx";
 import type { ColorSpace } from "@dtcg-editor/token-core";
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import styles from "./ColorSpaceSelect.module.css";
 
 export interface ColorSpaceSelectProps {
@@ -14,6 +14,7 @@ export interface ColorSpaceSelectProps {
 	/** Offered spaces, already deduped and in canonical order (FR-008). */
 	readonly offered: readonly ColorSpace[];
 	readonly onChange: (next: ColorSpace) => void;
+	readonly children?: ReactNode;
 }
 
 /**
@@ -26,24 +27,30 @@ export function ColorSpaceSelect({
 	value,
 	offered,
 	onChange,
+	children,
 }: ColorSpaceSelectProps): ReactElement {
 	return (
-		<Select
-			aria-label="Colour space"
-			className={styles.trigger}
-			value={value}
-			onValueChange={(next) => onChange(next as ColorSpace)}
-		>
-			{value === "hex" ? (
-				<SelectItem value="hex" disabled>
-					hex
-				</SelectItem>
-			) : null}
-			{offered.map((space) => (
-				<SelectItem key={space} value={space}>
-					{space}
-				</SelectItem>
-			))}
-		</Select>
+		<span className={styles.value}>
+			<Select
+				aria-label="Colour space"
+				className={styles.trigger}
+				value={value}
+				onValueChange={(next) => onChange(next as ColorSpace)}
+			>
+				{value === "hex" ? (
+					<SelectItem value="hex" disabled>
+						hex
+					</SelectItem>
+				) : null}
+				{offered.map((space) => (
+					<SelectItem key={space} value={space}>
+						{space}
+					</SelectItem>
+				))}
+			</Select>
+			<span className={styles.paren}>(</span>
+			{children}
+			<span className={styles.paren}>)</span>
+		</span>
 	);
 }

@@ -130,29 +130,25 @@ export function ColorEditor({
 		/>
 	) : null;
 
-	const spaceSelect = (
-		<ColorSpaceSelect
-			value={pending?.space ?? (isLegacy ? "hex" : value.colorSpace)}
-			offered={offered}
-			onChange={(next) => {
-				void handleSpaceChange(next);
-			}}
-		/>
-	);
-
 	if (isLegacy) {
 		return (
 			<span className={styles.editor}>
-				{spaceSelect}
-				<span className={styles.inert}> </span>
-				<ChannelInput
-					mode="text"
-					label="Legacy hex value"
-					value={value}
-					onCommit={(next) => {
-						if (HEX_RE.test(next)) onChange(next);
+				<ColorSpaceSelect
+					value="hex"
+					offered={offered}
+					onChange={(next) => {
+						void handleSpaceChange(next);
 					}}
-				/>
+				>
+					<ChannelInput
+						mode="text"
+						label="Legacy hex value"
+						value={value}
+						onCommit={(next) => {
+							if (HEX_RE.test(next)) onChange(next);
+						}}
+					/>
+				</ColorSpaceSelect>
 				{dialog}
 			</span>
 		);
@@ -162,30 +158,37 @@ export function ColorEditor({
 
 	return (
 		<span className={styles.editor}>
-			<ColorFunctionValue
-				value={value}
-				spaceSelect={spaceSelect}
-				issueDescribedById={issues.length > 0 ? alertId : undefined}
-				invalid={invalid}
-				onComponentChange={(index, next) => {
-					const components = [
-						...value.components,
-					] as ColorObjectValue["components"];
-					components[index] = next;
-					commitObjectEdit({ ...value, components });
+			<ColorSpaceSelect
+				value={pending?.space ?? (isLegacy ? "hex" : value.colorSpace)}
+				offered={offered}
+				onChange={(next) => {
+					void handleSpaceChange(next);
 				}}
-				onAlphaChange={(next) => {
-					if (next === undefined) {
-						commitObjectEdit({
-							colorSpace: value.colorSpace,
-							components: value.components,
-							...(value.hex !== undefined ? { hex: value.hex } : {}),
-						});
-					} else {
-						commitObjectEdit({ ...value, alpha: next });
-					}
-				}}
-			/>
+			>
+				<ColorFunctionValue
+					value={value}
+					issueDescribedById={issues.length > 0 ? alertId : undefined}
+					invalid={invalid}
+					onComponentChange={(index, next) => {
+						const components = [
+							...value.components,
+						] as ColorObjectValue["components"];
+						components[index] = next;
+						commitObjectEdit({ ...value, components });
+					}}
+					onAlphaChange={(next) => {
+						if (next === undefined) {
+							commitObjectEdit({
+								colorSpace: value.colorSpace,
+								components: value.components,
+								...(value.hex !== undefined ? { hex: value.hex } : {}),
+							});
+						} else {
+							commitObjectEdit({ ...value, alpha: next });
+						}
+					}}
+				/>
+			</ColorSpaceSelect>
 			{issues.length > 0 ? (
 				<div id={alertId} role="alert" className={styles.issues}>
 					<ul>

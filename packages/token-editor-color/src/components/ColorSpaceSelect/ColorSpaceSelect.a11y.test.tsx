@@ -19,3 +19,19 @@ test("the closed colour-space select has no WCAG 2.2 AA violations and an access
 	});
 	expect(results.violations).toEqual([]);
 });
+
+test("the bracketing parentheses around the value are inert", () => {
+	const { container } = render(
+		<ColorSpaceSelect value="oklch" offered={[...COLOR_SPACES]} onChange={vi.fn()}>
+			<span>0.7 0.15 145</span>
+		</ColorSpaceSelect>,
+	);
+	const parens = [...container.querySelectorAll("span")].filter(
+		(el) => el.textContent === "(" || el.textContent === ")",
+	);
+	expect(parens.map((el) => el.textContent)).toEqual(["(", ")"]);
+	for (const el of parens) {
+		expect(el.getAttribute("role")).toBeNull();
+		expect(el.getAttribute("tabindex")).toBeNull();
+	}
+});

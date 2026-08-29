@@ -1,0 +1,14 @@
+/*
+BASE
+
+The design-system foundation: design tokens, global element styling, and the
+visually-hidden utility. Imported by apps/web-app/app/globals.css and by the
+Vitest a11y setup (../../../../vitest.a11y-setup.ts) so components render under
+the same cascade in tests as they do in the app.
+
+tokens.css is generated into dist/ by the design-system build — run that build
+before consuming this stylesheet from source.
+*/
+@import "../../dist/styles/tokens.css";
+@import "./global/global.css";
+@import "./utilities/visually-hidden.css";

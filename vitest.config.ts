@@ -1,6 +1,13 @@
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
+
+// Design-system foundation + component CSS, shared by every a11y project so
+// browser-mode tests render under the real cascade (see vitest.a11y-setup.ts).
+const a11yStylesSetup = fileURLToPath(
+	new URL("./vitest.a11y-setup.ts", import.meta.url),
+);
 
 /**
  * One root config aggregates every JSX-rendering package's Vitest projects
@@ -59,7 +66,7 @@ function a11yProject(pkgRoot: string) {
 		},
 		test: {
 			name: `${pkgRoot}:a11y`,
-			setupFiles: ["./vitest.setup.ts"],
+			setupFiles: [a11yStylesSetup, "./vitest.setup.ts"],
 			include: ["**/*.a11y.test.tsx"],
 			exclude: ["**/node_modules/**", "**/dist/**"],
 			browser: {

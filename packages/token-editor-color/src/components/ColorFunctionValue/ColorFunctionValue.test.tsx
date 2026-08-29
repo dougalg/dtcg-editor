@@ -9,7 +9,6 @@ const base = {
 	},
 	onComponentChange: vi.fn(),
 	onAlphaChange: vi.fn(),
-	spaceSelect: <span data-testid="space-select">oklch</span>,
 };
 
 test("renders one channel input per component with formatted (unrounded) values", () => {

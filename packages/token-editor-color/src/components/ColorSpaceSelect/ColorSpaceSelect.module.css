@@ -3,14 +3,27 @@
  * so the popup stays styleable in supporting browsers. Underline treatment
  * references `--dtcg-ed-color-editable-*` (FR-019a / research R6) with
  * neutral-token fallbacks. */
-.trigger.trigger {
+
+ /* The inline `space( c c c / a )` layout. Monospace + wrapping come from
+  * design-system tokens; no literal design values. */
+ .value {
+	 --inner-gap: var(--dtcg-ed-space-3xs);
+	 display: flex;
+	 align-items: stretch;
+	 gap: var(--inner-gap);
+	 white-space: normal;
+	 overflow-wrap: anywhere;
+	 line-height: var(--dtcg-ed-form-control-line-height, inherit);
+ }
+
+.trigger {
 	appearance: base-select;
 	background: none;
-	border: none;
 	border-radius: 0;
 	box-shadow: none;
 	padding: 0;
 	margin: 0;
+	margin-right: calc(-1 * var(--inner-gap));
 	min-height: 0;
 	min-width: var(--dtcg-ed-space-lg);
 	width: auto;
@@ -21,39 +34,41 @@
 		--dtcg-ed-color-editable-fg,
 		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
 	);
-	text-decoration-line: underline;
-	text-decoration-style: dotted;
-	text-decoration-color: var(
-		--dtcg-ed-color-editable-underline,
-		var(--dtcg-ed-color-neutral-border-normal, currentColor)
-	);
-	text-underline-offset: var(--dtcg-ed-space-3xs);
 }
 
 /* Bare text — no disclosure arrow. */
-.trigger.trigger::picker-icon {
+.trigger::picker-icon {
 	display: none;
 }
 
-.trigger.trigger:hover,
-.trigger.trigger:focus-visible {
-	text-decoration-style: solid;
-	text-decoration-color: var(
-		--dtcg-ed-color-editable-underline-active,
-		var(--dtcg-ed-color-neutral-on-normal, currentColor)
-	);
+.trigger:hover,
+.trigger:focus-visible {
 	color: var(
 		--dtcg-ed-color-editable-fg-active,
 		var(--dtcg-ed-color-neutral-on-normal, currentColor)
 	);
 }
 
-/* Keyboard focus keeps a real ring (the global `:focus-visible` outline is
- * enough on its own, but this makes the affordance explicit and detectable
- * even where the global rule is overridden). */
-.trigger.trigger:focus-visible {
-	outline-color: var(--dtcg-ed-focus-ring-color, currentColor);
-	outline-style: var(--dtcg-ed-focus-ring-style, auto);
-	outline-offset: var(--dtcg-ed-focus-ring-offset, 2px);
-	outline-width: var(--dtcg-ed-focus-ring-width, 2px);
+.value:has(.trigger:hover) .paren,
+.value:has(.trigger:focus-within) .paren {
+	color: var(
+		--dtcg-ed-color-editable-fg-active,
+		var(--dtcg-ed-color-neutral-on-normal, currentColor)
+	);
+	border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
+		var(--dtcg-ed-form-control-border-style-hover, solid)
+		var(--dtcg-ed-form-control-border-color-hover, currentColor);
+}
+
+.paren {
+	display: inline-flex;
+	align-items: center;
+	border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
+		var(--dtcg-ed-form-control-border-style, solid)
+		var(--dtcg-ed-form-control-border-color, currentColor);
+	color: var(
+		--dtcg-ed-color-editable-fg,
+		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
+	);
+	text-underline-offset: var(--dtcg-ed-space-3xs);
 }

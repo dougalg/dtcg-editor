@@ -2,7 +2,7 @@
 
 import { Button } from "@dtcg-editor/design-system/components/Button/Button.tsx";
 import type { ColorObjectValue } from "@dtcg-editor/token-core";
-import { type ReactElement, type ReactNode, useState } from "react";
+import { Fragment, type ReactElement, useState } from "react";
 import { COMPONENT_RANGES } from "../../utils/range-validation.ts";
 import { ChannelInput } from "../ChannelInput/ChannelInput.tsx";
 import styles from "./ColorFunctionValue.module.css";
@@ -11,8 +11,6 @@ export interface ColorFunctionValueProps {
 	readonly value: ColorObjectValue;
 	readonly onComponentChange: (index: 0 | 1 | 2, next: number) => void;
 	readonly onAlphaChange: (next: number | undefined) => void;
-	/** The `ColorSpaceSelect` element, injected so this component owns layout. */
-	readonly spaceSelect: ReactNode;
 	/** id of ColorEditor's range-issue `role="alert"` region (FR-021). */
 	readonly issueDescribedById?: string | undefined;
 	/** Per-channel out-of-range flags (FR-021). */
@@ -23,7 +21,6 @@ export function ColorFunctionValue({
 	value,
 	onComponentChange,
 	onAlphaChange,
-	spaceSelect,
 	issueDescribedById,
 	invalid,
 }: ColorFunctionValueProps): ReactElement {
@@ -31,14 +28,10 @@ export function ColorFunctionValue({
 	const labels = COMPONENT_RANGES[value.colorSpace];
 
 	return (
-		<span className={styles.value}>
-			<span className={styles.func}>
-				{spaceSelect}
-				<span className={styles.paren}>(</span>
-			</span>
+		<>
 			<span className={styles.inert}> </span>
 			{([0, 1, 2] as const).map((index) => (
-				<span key={index}>
+				<Fragment key={index}>
 					<ChannelInput
 						label={`${value.colorSpace} ${labels[index].label}`}
 						value={value.components[index]}
@@ -47,7 +40,7 @@ export function ColorFunctionValue({
 						describedById={issueDescribedById}
 					/>
 					<span className={styles.inert}> </span>
-				</span>
+				</Fragment>
 			))}
 			{value.alpha !== undefined ? (
 				<>
@@ -76,7 +69,6 @@ export function ColorFunctionValue({
 					<span className={styles.inert}> </span>
 				</>
 			)}
-			<span className={styles.paren}>)</span>
-		</span>
+		</>
 	);
 }

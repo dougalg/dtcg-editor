@@ -4,7 +4,7 @@
  * platform control — an accepted trade-off. All design values come from
  * `--dtcg-ed-*` tokens. */
 
-.select,
+/* .select,
 .select::picker(select) {
 	appearance: base-select;
 }
@@ -158,4 +158,4 @@
 	border: none;
 	border-top: var(--dtcg-ed-panel-border-width) var(--dtcg-ed-border-style)
 		var(--dtcg-ed-panel-border-color);
-}
+} */
