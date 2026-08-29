@@ -1,18 +1,19 @@
-/* Reads as plain monospace text, not a form control. Values from
- * design-system tokens; underline treatment references
- * `--dtcg-ed-color-editable-*` (FR-019a / research R6) with neutral-token
- * fallbacks until the design-system utility lands. */
+/* The design-system Select is a native <select>; here it's stripped to
+ * read as plain inline monospace text. `appearance: base-select` is kept
+ * so the popup stays styleable in supporting browsers. Underline treatment
+ * references `--dtcg-ed-color-editable-*` (FR-019a / research R6) with
+ * neutral-token fallbacks. */
 .trigger.trigger {
-	appearance: none;
-	-webkit-appearance: none;
+	appearance: base-select;
 	background: none;
 	border: none;
 	border-radius: 0;
+	box-shadow: none;
 	padding: 0;
 	margin: 0;
-	width: auto;
+	min-height: 0;
 	min-width: var(--dtcg-ed-space-lg);
-	height: auto;
+	width: auto;
 	display: inline;
 	font: inherit;
 	font-family: var(--dtcg-ed-font-mono, monospace);
@@ -29,8 +30,8 @@
 	text-underline-offset: var(--dtcg-ed-space-3xs);
 }
 
-/* Hide the design-system Select chevron — the trigger is bare text. */
-.trigger.trigger > svg {
+/* Bare text — no disclosure arrow. */
+.trigger.trigger::picker-icon {
 	display: none;
 }
 
@@ -45,5 +46,14 @@
 		--dtcg-ed-color-editable-fg-active,
 		var(--dtcg-ed-color-neutral-on-normal, currentColor)
 	);
-	outline: none;
+}
+
+/* Keyboard focus keeps a real ring (the global `:focus-visible` outline is
+ * enough on its own, but this makes the affordance explicit and detectable
+ * even where the global rule is overridden). */
+.trigger.trigger:focus-visible {
+	outline-color: var(--dtcg-ed-focus-ring-color, currentColor);
+	outline-style: var(--dtcg-ed-focus-ring-style, auto);
+	outline-offset: var(--dtcg-ed-focus-ring-offset, 2px);
+	outline-width: var(--dtcg-ed-focus-ring-width, 2px);
 }

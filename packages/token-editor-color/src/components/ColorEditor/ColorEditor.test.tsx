@@ -3,25 +3,14 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { ColorEditor } from "./ColorEditor.tsx";
 
-function openSpaceSelect(): void {
-	const trigger = screen.getByRole("combobox", { name: "Colour space" });
-	fireEvent.pointerDown(
-		trigger,
-		new window.PointerEvent("pointerdown", {
-			bubbles: true,
-			cancelable: true,
-			pointerId: 1,
-			button: 0,
-		}),
-	);
-	fireEvent.click(trigger);
+function spaceSelect(): HTMLSelectElement {
+	return screen.getByRole("combobox", {
+		name: "Colour space",
+	}) as HTMLSelectElement;
 }
 
 function pickSpace(name: string): void {
-	openSpaceSelect();
-	const option = screen.getByRole("option", { name });
-	fireEvent.pointerUp(option);
-	fireEvent.click(option);
+	fireEvent.change(spaceSelect(), { target: { value: name } });
 }
 
 // --- US1: inline editing -------------------------------------------------
@@ -179,7 +168,6 @@ test("restricts the offered spaces to the configured allow-list", () => {
 			options={{ colorSpaces: ["srgb", "hsl"] }}
 		/>,
 	);
-	openSpaceSelect();
 	expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([
 		"srgb",
 		"hsl",
@@ -193,7 +181,6 @@ test("offers every space when unconfigured", () => {
 			onChange={vi.fn()}
 		/>,
 	);
-	openSpaceSelect();
 	expect(screen.getAllByRole("option")).toHaveLength(COLOR_SPACES.length);
 });
 

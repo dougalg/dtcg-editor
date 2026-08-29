@@ -2,10 +2,7 @@
 
 import {
 	Select,
-	SelectContent,
 	SelectItem,
-	SelectTrigger,
-	SelectValue,
 } from "@dtcg-editor/design-system/components/Select/Select.tsx";
 import type { ColorSpace } from "@dtcg-editor/token-core";
 import type { ReactElement } from "react";
@@ -19,6 +16,12 @@ export interface ColorSpaceSelectProps {
 	readonly onChange: (next: ColorSpace) => void;
 }
 
+/**
+ * The colour-space control — the design-system `Select`, which is a native
+ * `<select>` styled to read as plain inline monospace text (see
+ * `ColorSpaceSelect.module.css`). No popup library, so nothing heavy loads
+ * on interaction.
+ */
 export function ColorSpaceSelect({
 	value,
 	offered,
@@ -26,27 +29,21 @@ export function ColorSpaceSelect({
 }: ColorSpaceSelectProps): ReactElement {
 	return (
 		<Select
+			aria-label="Colour space"
+			className={styles.trigger}
 			value={value}
 			onValueChange={(next) => onChange(next as ColorSpace)}
 		>
-			<SelectTrigger aria-label="Colour space" className={styles.trigger}>
-				{/* `placeholder` doubles as an SSR/first-paint fallback so the
-				    trigger never renders empty before Radix resolves the
-				    selected item's text — it is identical to the shown value. */}
-				<SelectValue placeholder={value} />
-			</SelectTrigger>
-			<SelectContent>
-				{value === "hex" ? (
-					<SelectItem value="hex" disabled>
-						hex
-					</SelectItem>
-				) : null}
-				{offered.map((space) => (
-					<SelectItem key={space} value={space}>
-						{space}
-					</SelectItem>
-				))}
-			</SelectContent>
+			{value === "hex" ? (
+				<SelectItem value="hex" disabled>
+					hex
+				</SelectItem>
+			) : null}
+			{offered.map((space) => (
+				<SelectItem key={space} value={space}>
+					{space}
+				</SelectItem>
+			))}
 		</Select>
 	);
 }

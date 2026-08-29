@@ -45,10 +45,10 @@ export const OutOfGamut: Story = {
 	},
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-		await userEvent.click(
+		await userEvent.selectOptions(
 			canvas.getByRole("combobox", { name: "Colour space" }),
+			"srgb",
 		);
-		await userEvent.click(await canvas.findByRole("option", { name: "srgb" }));
 		const dialog = await within(document.body).findByRole("dialog");
 		await expect(dialog).toBeInTheDocument();
 		await expect(

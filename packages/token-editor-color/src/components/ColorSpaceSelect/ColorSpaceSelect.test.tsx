@@ -3,21 +3,13 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { ColorSpaceSelect } from "./ColorSpaceSelect.tsx";
 
-function open(): void {
-	const trigger = screen.getByRole("combobox", { name: "Colour space" });
-	fireEvent.pointerDown(
-		trigger,
-		new window.PointerEvent("pointerdown", {
-			bubbles: true,
-			cancelable: true,
-			pointerId: 1,
-			button: 0,
-		}),
-	);
-	fireEvent.click(trigger);
+function combo(): HTMLSelectElement {
+	return screen.getByRole("combobox", {
+		name: "Colour space",
+	}) as HTMLSelectElement;
 }
 
-test("has an accessible name and shows the current space", () => {
+test("is a native select with an accessible name showing the current space", () => {
 	render(
 		<ColorSpaceSelect
 			value="oklch"
@@ -25,8 +17,8 @@ test("has an accessible name and shows the current space", () => {
 			onChange={vi.fn()}
 		/>,
 	);
-	const trigger = screen.getByRole("combobox", { name: "Colour space" });
-	expect(trigger.textContent).toContain("oklch");
+	expect(combo().tagName).toBe("SELECT");
+	expect(combo().value).toBe("oklch");
 });
 
 test("lists all 14 spaces in canonical order by default", () => {
@@ -37,9 +29,9 @@ test("lists all 14 spaces in canonical order by default", () => {
 			onChange={vi.fn()}
 		/>,
 	);
-	open();
-	const options = screen.getAllByRole("option").map((o) => o.textContent);
-	expect(options).toEqual([...COLOR_SPACES]);
+	expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([
+		...COLOR_SPACES,
+	]);
 });
 
 test("lists only the restricted subset plus the current space", () => {
@@ -50,7 +42,6 @@ test("lists only the restricted subset plus the current space", () => {
 			onChange={vi.fn()}
 		/>,
 	);
-	open();
 	expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([
 		"srgb",
 		"hsl",
@@ -66,14 +57,11 @@ test("emits onChange with the picked space", () => {
 			onChange={onChange}
 		/>,
 	);
-	open();
-	const option = screen.getByRole("option", { name: "oklch" });
-	fireEvent.pointerUp(option);
-	fireEvent.click(option);
+	fireEvent.change(combo(), { target: { value: "oklch" } });
 	expect(onChange).toHaveBeenCalledWith("oklch");
 });
 
-test("legacy mode shows a synthetic 'hex' current entry", () => {
+test("legacy mode shows a synthetic disabled 'hex' current entry", () => {
 	render(
 		<ColorSpaceSelect
 			value="hex"
@@ -81,11 +69,8 @@ test("legacy mode shows a synthetic 'hex' current entry", () => {
 			onChange={vi.fn()}
 		/>,
 	);
-	const trigger = screen.getByRole("combobox", { name: "Colour space" });
-	expect(trigger.textContent).toContain("hex");
-	open();
-	expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([
-		"hex",
-		...COLOR_SPACES,
-	]);
+	expect(combo().value).toBe("hex");
+	const options = screen.getAllByRole("option");
+	expect(options.map((o) => o.textContent)).toEqual(["hex", ...COLOR_SPACES]);
+	expect((options[0] as HTMLOptionElement).disabled).toBe(true);
 });
