@@ -4,17 +4,35 @@
  * references `--dtcg-ed-color-editable-*` (FR-019a / research R6) with
  * neutral-token fallbacks. */
 
- /* The inline `space( c c c / a )` layout. Monospace + wrapping come from
+.paren {
+	display: inline-flex;
+	align-items: center;
+	border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
+		var(--dtcg-ed-form-control-border-style, solid)
+		var(--dtcg-ed-form-control-border-color, currentColor);
+	color: var(--dtcg-ed-form-control-value-color);
+	text-underline-offset: var(--dtcg-ed-space-3xs);
+}
+
+/* The inline `space( c c c / a )` layout. Monospace + wrapping come from
   * design-system tokens; no literal design values. */
- .value {
-	 --inner-gap: var(--dtcg-ed-space-3xs);
-	 display: flex;
-	 align-items: stretch;
-	 gap: var(--inner-gap);
-	 white-space: normal;
-	 overflow-wrap: anywhere;
-	 line-height: var(--dtcg-ed-form-control-line-height, inherit);
- }
+.value {
+	--inner-gap: var(--dtcg-ed-space-3xs);
+	display: flex;
+	align-items: stretch;
+	gap: var(--inner-gap);
+	white-space: normal;
+	overflow-wrap: anywhere;
+	line-height: var(--dtcg-ed-form-control-line-height, inherit);
+
+	&:has(.trigger:hover) .paren,
+	&:has(.trigger:focus-within) .paren {
+		color: var(--dtcg-ed-form-control-value-color-hover);
+		border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
+			var(--dtcg-ed-form-control-border-style-hover, solid)
+			var(--dtcg-ed-form-control-border-color-hover, currentColor);
+	}
+}
 
 .trigger {
 	appearance: base-select;
@@ -25,50 +43,11 @@
 	margin: 0;
 	margin-right: calc(-1 * var(--inner-gap));
 	min-height: 0;
-	min-width: var(--dtcg-ed-space-lg);
 	width: auto;
 	display: inline;
-	font: inherit;
-	font-family: var(--dtcg-ed-font-mono, monospace);
-	color: var(
-		--dtcg-ed-color-editable-fg,
-		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
-	);
 }
 
 /* Bare text — no disclosure arrow. */
 .trigger::picker-icon {
 	display: none;
-}
-
-.trigger:hover,
-.trigger:focus-visible {
-	color: var(
-		--dtcg-ed-color-editable-fg-active,
-		var(--dtcg-ed-color-neutral-on-normal, currentColor)
-	);
-}
-
-.value:has(.trigger:hover) .paren,
-.value:has(.trigger:focus-within) .paren {
-	color: var(
-		--dtcg-ed-color-editable-fg-active,
-		var(--dtcg-ed-color-neutral-on-normal, currentColor)
-	);
-	border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
-		var(--dtcg-ed-form-control-border-style-hover, solid)
-		var(--dtcg-ed-form-control-border-color-hover, currentColor);
-}
-
-.paren {
-	display: inline-flex;
-	align-items: center;
-	border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
-		var(--dtcg-ed-form-control-border-style, solid)
-		var(--dtcg-ed-form-control-border-color, currentColor);
-	color: var(
-		--dtcg-ed-color-editable-fg,
-		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
-	);
-	text-underline-offset: var(--dtcg-ed-space-3xs);
 }

@@ -7,30 +7,12 @@
 }
 
 .addAlpha {
-	background: none;
-	border: none;
-	border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
-		var(--dtcg-ed-form-control-border-style, solid)
-		var(--dtcg-ed-form-control-border-color, currentColor);
+	width: auto;
 	border-radius: 0;
 	padding: 0;
-	font: inherit;
-	font-family: var(--dtcg-ed-font-mono, monospace);
-	color: var(
-		--dtcg-ed-color-editable-fg,
-		var(--dtcg-ed-color-neutral-on-quiet, currentColor)
-	);
-	cursor: pointer;
 }
 
 .addAlpha:hover,
 .addAlpha:focus-visible {
 	background: none;
-	color: var(
-		--dtcg-ed-color-editable-fg-active,
-		var(--dtcg-ed-color-neutral-on-normal, currentColor)
-	);
-	border-bottom: var(--dtcg-ed-form-control-border-width, 1px)
-		var(--dtcg-ed-form-control-border-style-hover, solid)
-		var(--dtcg-ed-form-control-border-color-hover, currentColor);
 }

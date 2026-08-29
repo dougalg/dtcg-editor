@@ -347,7 +347,8 @@ input:not(
 	[type="submit"]
 ),
 textarea,
-select {
+select,
+.input {
 	height: var(--dtcg-ed-_form-control-height, 2.5rem);
 	width: 100%;
 	padding: 0 0.75em;

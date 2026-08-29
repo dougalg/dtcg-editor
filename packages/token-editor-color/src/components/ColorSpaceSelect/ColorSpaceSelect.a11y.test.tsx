@@ -22,7 +22,11 @@ test("the closed colour-space select has no WCAG 2.2 AA violations and an access
 
 test("the bracketing parentheses around the value are inert", () => {
 	const { container } = render(
-		<ColorSpaceSelect value="oklch" offered={[...COLOR_SPACES]} onChange={vi.fn()}>
+		<ColorSpaceSelect
+			value="oklch"
+			offered={[...COLOR_SPACES]}
+			onChange={vi.fn()}
+		>
 			<span>0.7 0.15 145</span>
 		</ColorSpaceSelect>,
 	);

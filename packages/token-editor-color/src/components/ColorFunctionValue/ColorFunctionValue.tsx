@@ -58,7 +58,7 @@ export function ColorFunctionValue({
 				<>
 					<Button
 						type="button"
-						className={styles.addAlpha}
+						className={`${styles.addAlpha} input`}
 						onClick={() => {
 							setFocusAlpha(true);
 							onAlphaChange(1);
