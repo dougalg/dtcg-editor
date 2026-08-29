@@ -1,4 +1,4 @@
-import { dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { StorybookConfig } from "@storybook/react-vite";
 
@@ -9,6 +9,9 @@ import type { StorybookConfig } from "@storybook/react-vite";
 function getAbsolutePath(value: string) {
 	return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
 }
+
+// The repo root is the directory that contains this `.storybook/` folder.
+const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const config: StorybookConfig = {
 	stories: [
 		"../packages/*/src/**/*.mdx",
@@ -25,16 +28,22 @@ const config: StorybookConfig = {
 	// both for watcher overhead and because a broken symlink under any of
 	// them (as .agents/archive-task once was) can crash the watcher with
 	// ELOOP.
+	//
+	// These MUST be anchored to `repoRoot`, not written as floating
+	// `**/.claude/**` globs: a git worktree for this repo lives under
+	// `<main-checkout>/.claude/worktrees/<name>/`, so a floating
+	// `**/.claude/**` matches every source file in that worktree and Vite
+	// silently watches nothing - CSS/TSX edits never trigger HMR.
 	async viteFinal(viteConfig) {
 		viteConfig.server ??= {};
 		viteConfig.server.watch ??= {};
 		viteConfig.server.watch.ignored = [
-			"**/.git/**",
-			"**/.claude/**",
-			"**/.agents/**",
-			"**/.specify/**",
-			"**/.turbo/**",
-		];
+			".git",
+			".claude",
+			".agents",
+			".specify",
+			".turbo",
+		].map((d) => `${resolve(repoRoot, d)}/**`);
 		return viteConfig;
 	},
 };
