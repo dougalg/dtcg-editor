@@ -51,3 +51,4 @@ ignore:
   - out
   - build
   - apps/web-app/app
+  - "**/__screenshots__"
