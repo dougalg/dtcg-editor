@@ -40,6 +40,7 @@ function unitProject(pkgRoot: string) {
 				"src/utils/range-validation.test.ts",
 				"src/utils/css-color.test.ts",
 				"src/utils/conversion.test.ts",
+				"src/utils/format-channel.test.ts",
 			],
 		},
 	};

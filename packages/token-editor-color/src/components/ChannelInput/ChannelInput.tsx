@@ -2,7 +2,7 @@
 
 import { Input } from "@dtcg-editor/design-system/components/Input/Input.tsx";
 import { type KeyboardEvent, type ReactElement, useState } from "react";
-import { formatChannel } from "../../utils/conversion.ts";
+import { formatChannel } from "../../utils/format-channel.ts";
 import styles from "./ChannelInput.module.css";
 
 interface CommonProps {

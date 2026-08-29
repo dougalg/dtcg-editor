@@ -12,12 +12,9 @@ export type {
 	ColorConversion,
 	ConversionNote,
 } from "./utils/conversion.ts";
-export {
-	colorValueToSrgbHex,
-	convertColorValue,
-	formatChannel,
-} from "./utils/conversion.ts";
+export { colorValueToSrgbHex, convertColorValue } from "./utils/conversion.ts";
 export { colorValueToCssColor } from "./utils/css-color.ts";
+export { formatChannel } from "./utils/format-channel.ts";
 export {
 	COMPONENT_RANGES,
 	checkColorValueIssues,

@@ -30,7 +30,10 @@ export function ColorSpaceSelect({
 			onValueChange={(next) => onChange(next as ColorSpace)}
 		>
 			<SelectTrigger aria-label="Colour space" className={styles.trigger}>
-				<SelectValue />
+				{/* `placeholder` doubles as an SSR/first-paint fallback so the
+				    trigger never renders empty before Radix resolves the
+				    selected item's text — it is identical to the shown value. */}
+				<SelectValue placeholder={value} />
 			</SelectTrigger>
 			<SelectContent>
 				{value === "hex" ? (

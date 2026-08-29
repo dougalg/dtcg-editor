@@ -9,7 +9,8 @@ import {
 } from "@dtcg-editor/design-system/components/Dialog/Dialog.tsx";
 import type { ColorSpace } from "@dtcg-editor/token-core";
 import { type ReactElement, useRef } from "react";
-import { type ColorConversion, formatChannel } from "../../utils/conversion.ts";
+import type { ColorConversion } from "../../utils/conversion.ts";
+import { formatChannel } from "../../utils/format-channel.ts";
 import styles from "./SpaceConversionDialog.module.css";
 
 export interface SpaceConversionDialogProps {

@@ -9,11 +9,7 @@ import {
 import type { TokenTypeEditorProps } from "@dtcg-editor/token-editor-contract";
 import { type ReactElement, useId, useState } from "react";
 import type { ColorEditorOptions } from "../../configuration.ts";
-import {
-	type ColorConversion,
-	colorValueToSrgbHex,
-	convertColorValue,
-} from "../../utils/conversion.ts";
+import type { ColorConversion } from "../../utils/conversion.ts";
 import { checkColorValueIssues } from "../../utils/range-validation.ts";
 import { ChannelInput } from "../ChannelInput/ChannelInput.tsx";
 import { ColorFunctionValue } from "../ColorFunctionValue/ColorFunctionValue.tsx";
@@ -23,6 +19,19 @@ import styles from "./ColorEditor.module.css";
 
 const DEFAULT_TOLERANCE = 0.02;
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+/**
+ * `conversion.ts` pulls in `colorjs.io` — a chunky dependency the editor
+ * only needs when the author *switches colour space* or edits a value that
+ * carries an sRGB `hex` fallback. Load it on demand so it never lands in
+ * the initial (client-rendered) editor bundle / hydration path.
+ */
+type ConversionModule = typeof import("../../utils/conversion.ts");
+let conversionModulePromise: Promise<ConversionModule> | null = null;
+function loadConversion(): Promise<ConversionModule> {
+	conversionModulePromise ??= import("../../utils/conversion.ts");
+	return conversionModulePromise;
+}
 
 /** `COLOR_SPACES`, deduped with `active` unioned in, in canonical order. */
 function offeredColorSpaces(
@@ -47,12 +56,6 @@ function invalidChannels(
 		}
 	}
 	return flags;
-}
-
-function withHexInSync(value: ColorObjectValue): ColorObjectValue {
-	return value.hex === undefined
-		? value
-		: { ...value, hex: colorValueToSrgbHex(value) };
 }
 
 export function ColorEditor({
@@ -84,10 +87,11 @@ export function ColorEditor({
 		onChange(next);
 	}
 
-	function handleSpaceChange(nextSpace: ColorSpace): void {
+	async function handleSpaceChange(nextSpace: ColorSpace): Promise<void> {
 		if (nextSpace === activeSpace && !isLegacy) {
 			return;
 		}
+		const { convertColorValue } = await loadConversion();
 		const result = convertColorValue(value, nextSpace, tolerance);
 		if (result.isErr()) {
 			return; // UnknownError already logged; leave the value untouched
@@ -98,6 +102,18 @@ export function ColorEditor({
 		} else {
 			setPending({ space: nextSpace, conversion });
 		}
+	}
+
+	/** Rebuild an edited object value, refreshing its `hex` fallback (async,
+	 * lazy `colorjs.io`) only when one is present. */
+	function commitObjectEdit(base: ColorObjectValue): void {
+		if (base.hex === undefined) {
+			onChange(base);
+			return;
+		}
+		void loadConversion().then(({ colorValueToSrgbHex }) => {
+			onChange({ ...base, hex: colorValueToSrgbHex(base) });
+		});
 	}
 
 	const issues = isLegacy ? [] : checkColorValueIssues(value);
@@ -118,7 +134,9 @@ export function ColorEditor({
 		<ColorSpaceSelect
 			value={pending?.space ?? (isLegacy ? "hex" : value.colorSpace)}
 			offered={offered}
-			onChange={handleSpaceChange}
+			onChange={(next) => {
+				void handleSpaceChange(next);
+			}}
 		/>
 	);
 
@@ -154,19 +172,17 @@ export function ColorEditor({
 						...value.components,
 					] as ColorObjectValue["components"];
 					components[index] = next;
-					onChange(withHexInSync({ ...value, components }));
+					commitObjectEdit({ ...value, components });
 				}}
 				onAlphaChange={(next) => {
 					if (next === undefined) {
-						onChange(
-							withHexInSync({
-								colorSpace: value.colorSpace,
-								components: value.components,
-								...(value.hex !== undefined ? { hex: value.hex } : {}),
-							}),
-						);
+						commitObjectEdit({
+							colorSpace: value.colorSpace,
+							components: value.components,
+							...(value.hex !== undefined ? { hex: value.hex } : {}),
+						});
 					} else {
-						onChange(withHexInSync({ ...value, alpha: next }));
+						commitObjectEdit({ ...value, alpha: next });
 					}
 				}}
 			/>

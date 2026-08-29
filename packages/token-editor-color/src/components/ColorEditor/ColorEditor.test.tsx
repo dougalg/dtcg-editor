@@ -1,5 +1,5 @@
 import { COLOR_SPACES } from "@dtcg-editor/token-core";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { ColorEditor } from "./ColorEditor.tsx";
 
@@ -59,7 +59,7 @@ test("editing a channel calls onChange with the updated components", () => {
 	});
 });
 
-test("the hex fallback stays in sync when present and stays absent when it was not", () => {
+test("the hex fallback stays in sync when the value carries one", async () => {
 	const onChange = vi.fn();
 	render(
 		<ColorEditor
@@ -75,8 +75,28 @@ test("the hex fallback stays in sync when present and stays absent when it was n
 	fireEvent.focus(r);
 	fireEvent.change(r, { target: { value: "1" } });
 	fireEvent.blur(r);
+	await waitFor(() => expect(onChange).toHaveBeenCalled());
 	const [next] = onChange.mock.calls[0] ?? [];
+	expect(next.components).toEqual([1, 0, 0]);
 	expect(next.hex).toBe("#ff0000");
+});
+
+test("a channel edit with no hex fallback applies synchronously", () => {
+	const onChange = vi.fn();
+	render(
+		<ColorEditor
+			value={{ colorSpace: "srgb", components: [0, 0, 0] }}
+			onChange={onChange}
+		/>,
+	);
+	const r = screen.getByLabelText("srgb R");
+	fireEvent.focus(r);
+	fireEvent.change(r, { target: { value: "0.5" } });
+	fireEvent.blur(r);
+	expect(onChange).toHaveBeenCalledWith({
+		colorSpace: "srgb",
+		components: [0.5, 0, 0],
+	});
 });
 
 test("Escape mid-edit writes nothing", () => {
@@ -177,7 +197,7 @@ test("offers every space when unconfigured", () => {
 	expect(screen.getAllByRole("option")).toHaveLength(COLOR_SPACES.length);
 });
 
-test("an in-gamut switch applies immediately with no dialog", () => {
+test("an in-gamut switch applies immediately with no dialog", async () => {
 	const onChange = vi.fn();
 	render(
 		<ColorEditor
@@ -186,12 +206,13 @@ test("an in-gamut switch applies immediately with no dialog", () => {
 		/>,
 	);
 	pickSpace("oklch");
+	await waitFor(() => expect(onChange).toHaveBeenCalled());
 	expect(screen.queryByRole("dialog")).toBeNull();
 	const [next] = onChange.mock.calls[0] ?? [];
 	expect(next.colorSpace).toBe("oklch");
 });
 
-test("an out-of-gamut switch opens the dialog before any write; Deny is a no-op", () => {
+test("an out-of-gamut switch opens the dialog before any write; Deny is a no-op", async () => {
 	const onChange = vi.fn();
 	render(
 		<ColorEditor
@@ -200,7 +221,7 @@ test("an out-of-gamut switch opens the dialog before any write; Deny is a no-op"
 		/>,
 	);
 	pickSpace("srgb");
-	expect(screen.getByRole("dialog")).toBeTruthy();
+	await screen.findByRole("dialog");
 	expect(onChange).not.toHaveBeenCalled();
 	fireEvent.click(screen.getByRole("button", { name: "Deny" }));
 	expect(onChange).not.toHaveBeenCalled();
@@ -209,7 +230,7 @@ test("an out-of-gamut switch opens the dialog before any write; Deny is a no-op"
 	).toContain("oklch");
 });
 
-test("Accept writes the converted, gamut-mapped value", () => {
+test("Accept writes the converted, gamut-mapped value", async () => {
 	const onChange = vi.fn();
 	render(
 		<ColorEditor
@@ -218,7 +239,8 @@ test("Accept writes the converted, gamut-mapped value", () => {
 		/>,
 	);
 	pickSpace("srgb");
-	fireEvent.click(screen.getByRole("button", { name: "Accept" }));
+	fireEvent.click(await screen.findByRole("button", { name: "Accept" }));
+	await waitFor(() => expect(onChange).toHaveBeenCalled());
 	const [next] = onChange.mock.calls[0] ?? [];
 	expect(next.colorSpace).toBe("srgb");
 	for (const c of next.components) {
@@ -227,7 +249,7 @@ test("Accept writes the converted, gamut-mapped value", () => {
 	}
 });
 
-test("spaceSwitchTolerance: 0 forces the dialog on an otherwise-silent switch", () => {
+test("spaceSwitchTolerance: 0 forces the dialog on an otherwise-silent switch", async () => {
 	const onChange = vi.fn();
 	render(
 		<ColorEditor
@@ -237,14 +259,15 @@ test("spaceSwitchTolerance: 0 forces the dialog on an otherwise-silent switch", 
 		/>,
 	);
 	pickSpace("oklab");
-	expect(screen.getByRole("dialog")).toBeTruthy();
+	await screen.findByRole("dialog");
 	expect(onChange).not.toHaveBeenCalled();
 });
 
-test("switching a legacy bare-hex value to a real space writes object form", () => {
+test("switching a legacy bare-hex value to a real space writes object form", async () => {
 	const onChange = vi.fn();
 	render(<ColorEditor value="#1f75cb" onChange={onChange} />);
 	pickSpace("oklch");
+	await waitFor(() => expect(onChange).toHaveBeenCalled());
 	const [next] = onChange.mock.calls.at(-1) ?? [];
 	expect(typeof next).toBe("object");
 	expect(next.colorSpace).toBe("oklch");
