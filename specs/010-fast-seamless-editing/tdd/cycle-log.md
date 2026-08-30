@@ -422,3 +422,15 @@ existed and failed before the implementation.
   US3 phase). T009 and T010 ticked in tasks.md (all their `[U#]` markers DONE). 20
   store unit tests.
 - commit: `<pending>`
+
+## Cycle 27: U22 resolvePreview returns a literal value
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview returns a literal value with an empty via chain` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/preview-resolver.test.ts`
+  -> `Failed to resolve import "./preview-resolver.ts"` (module absent)
+- green: `apps/web-app/lib/tokens/preview-resolver.ts` (new) — `ResolvedValue` type +
+  `resolvePreview(key, getEffectiveNode, serverPreview)`; for a non-reference value it
+  returns `{ kind: "value", value, via: [] }` (reference following stubbed for U23-U26).
+  Full suite `pnpm exec vitest run` -> 110 files, 518 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`
