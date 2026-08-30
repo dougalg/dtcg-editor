@@ -1,6 +1,9 @@
 .editor {
 	font-family: var(--dtcg-ed-font-mono, monospace);
 	font-size: var(--dtcg-ed-text-sm);
+	display: flex;
+	align-items: center;
+	gap: var(--dtcg-ed-space-md);
 }
 
 .issues {

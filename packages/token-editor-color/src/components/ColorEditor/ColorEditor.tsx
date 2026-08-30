@@ -15,6 +15,7 @@ import { ChannelInput } from "../ChannelInput/ChannelInput.tsx";
 import { ColorFunctionValue } from "../ColorFunctionValue/ColorFunctionValue.tsx";
 import { ColorSpaceSelect } from "../ColorSpaceSelect/ColorSpaceSelect.tsx";
 import { SpaceConversionDialog } from "../SpaceConversionDialog/SpaceConversionDialog.tsx";
+import { Swatch } from "../Swatch/Swatch.tsx";
 import styles from "./ColorEditor.module.css";
 
 const DEFAULT_TOLERANCE = 0.02;
@@ -133,6 +134,7 @@ export function ColorEditor({
 	if (isLegacy) {
 		return (
 			<span className={styles.editor}>
+				<Swatch value={value} />
 				<ColorSpaceSelect
 					value="hex"
 					offered={offered}
@@ -158,6 +160,7 @@ export function ColorEditor({
 
 	return (
 		<span className={styles.editor}>
+			<Swatch value={value} />
 			<ColorSpaceSelect
 				value={pending?.space ?? (isLegacy ? "hex" : value.colorSpace)}
 				offered={offered}

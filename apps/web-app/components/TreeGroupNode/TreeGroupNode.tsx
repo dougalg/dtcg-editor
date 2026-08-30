@@ -108,9 +108,9 @@ export function TreeGroupNode({
 		onStageEdit(node.path, { name: nextName });
 	}
 
-	function renderChildren(listClassName: string | undefined) {
+	if (isRoot) {
 		return (
-			<ul className={listClassName}>
+			<ul className={styles.root}>
 				{node.children.map((child) => (
 					<TreeNode
 						key={child.path.join(".")}
@@ -125,10 +125,6 @@ export function TreeGroupNode({
 				))}
 			</ul>
 		);
-	}
-
-	if (isRoot) {
-		return renderChildren(styles.root);
 	}
 
 	return (
@@ -153,7 +149,20 @@ export function TreeGroupNode({
 					<span aria-hidden="true" className={styles.marker} />
 					<p>{node.name}</p>
 				</summary>
-				{renderChildren(styles.children)}
+				<ul className={styles.children}>
+					{node.children.map((child) => (
+						<TreeNode
+							key={child.path.join(".")}
+							node={child}
+							root={root}
+							relativePath={relativePath}
+							pendingEdits={pendingEdits}
+							fieldErrors={fieldErrors}
+							onStageEdit={onStageEdit}
+							onFieldError={onFieldError}
+						/>
+					))}
+				</ul>
 			</details>
 		</li>
 	);
