@@ -31,11 +31,27 @@ const LEAVES = 20;
 const HUB_PATH = "group-0.sub-0.token-0";
 const HUB_REFERRERS = 130;
 
+/**
+ * One token of every editable dispatch path, emitted first so a Tab-through
+ * reaches each editor kind within a few stops (SC-003). Order:
+ * color -> dimension -> reference -> unregistered-type (fallback) ->
+ * invalid-value-for-type.
+ */
+function dispatchShowcase(): JsonObject {
+	return {
+		color: { $type: "color", $value: "#3366cc" },
+		dimension: { $type: "dimension", $value: { value: 8, unit: "px" } },
+		reference: { $type: "dimension", $value: `{${HUB_PATH}}` },
+		exotic: { $type: "cubicBezier", $value: [0.4, 0, 0.2, 1] },
+		broken: { $type: "dimension", $value: "definitely-not-a-dimension" },
+	};
+}
+
 export function generateLargeFixture(
 	options: GenerateLargeFixtureOptions,
 ): JsonObject {
 	const rand = mulberry32(options.seed);
-	const doc: JsonObject = {};
+	const doc: JsonObject = { _showcase: dispatchShowcase() };
 
 	let leafIndex = 0;
 	for (let g = 0; g < GROUPS; g++) {

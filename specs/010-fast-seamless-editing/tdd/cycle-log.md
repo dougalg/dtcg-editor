@@ -112,4 +112,26 @@ existed and failed before the implementation.
   Referrer choice is leaf-index based, so U67 determinism is unaffected.
   Full suite `pnpm exec vitest run` -> 108 files, 495 passed, 0 failed (~21s)
 - refactor: none needed — added a `referrerCounts` test helper
+- commit: `56ecbf9`
+
+## Cycle 5: U73 first 20 tokens cover every editable dispatch path
+
+- test: `apps/web-app/scripts/generate-large-fixture.test.ts::generateLargeFixture puts one token of every editable dispatch path in the first 20` (new; adds a `dispatchPathOf` classifier mirroring TreeTokenNode's editor dispatch — `resolveBuiltInContract` + `validateTokenValue`)
+- red: `pnpm exec vitest run apps/web-app/scripts/generate-large-fixture.test.ts -t "every editable dispatch path in the first 20"`
+  -> `AssertionError: no "color" token in the first 20 (saw: invalid, reference)`
+  (the classifier also revealed the bulk `$value: "42px"` dimension strings classify
+  as `invalid` — they aren't valid for the dimension contract, which wants
+  `{ value, unit }` — see U75 below)
+- green: `apps/web-app/scripts/generate-large-fixture.ts` — prepend a `_showcase`
+  group with one token per path: `color` (`"#3366cc"`), `dimension`
+  (`{ value: 8, unit: "px" }`), `reference` (`{HUB_PATH}`), `exotic`
+  (`$type: "cubicBezier"` — no built-in contract → fallback), `broken`
+  (`$type: "dimension"`, `$value: "definitely-not-a-dimension"` → invalid).
+  Full suite `pnpm exec vitest run` -> 108 files, 496 passed, 0 failed (~22s)
+- refactor: none needed
+- notes: appended **U75** to the list — the ~2,000 bulk leaves currently hold
+  `"42px"` strings, invalid for the dimension contract, so they'd all render the
+  error editor rather than the real one. A1/A3 need editable bulk rows; U75 covers
+  making them valid `{ value, unit }` objects (the `_showcase` `exotic`/`broken`
+  tokens stay deliberately invalid). Not fixed this cycle (one behaviour per cycle).
 - commit: `<pending>`

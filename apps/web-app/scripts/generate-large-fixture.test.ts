@@ -1,8 +1,29 @@
 import assert from "node:assert/strict";
 import { parseTokenFile } from "@dtcg-editor/token-core";
+import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
 import { test } from "vitest";
+import { resolveBuiltInContract } from "../lib/token-editors/built-in.ts";
 import { buildReferenceIndex } from "../lib/tokens/reference-index.ts";
 import { generateLargeFixture } from "./generate-large-fixture.ts";
+
+type DispatchPath =
+	| "color"
+	| "dimension"
+	| "reference"
+	| "fallback"
+	| "invalid";
+
+/** Classify a token the way TreeTokenNode's editor dispatch would. */
+function dispatchPathOf(node: JsonObject): DispatchPath {
+	const value = node.$value;
+	if (typeof value === "string" && /^\{.+\}$/.test(value)) return "reference";
+	const type = node.$type;
+	if (typeof type !== "string") return "fallback";
+	const contract = resolveBuiltInContract(type);
+	if (!contract) return "fallback";
+	if (validateTokenValue(contract, value).isErr()) return "invalid";
+	return type === "color" ? "color" : "dimension";
+}
 
 // A fixed, arbitrary seed — the point of the behaviour is that the same seed
 // always yields the same bytes, so the committed fixture is reproducible.
@@ -68,6 +89,25 @@ function referrerCounts(tokens: { node: JsonObject }[]): Map<string, number> {
 	}
 	return counts;
 }
+
+test("generateLargeFixture puts one token of every editable dispatch path in the first 20", () => {
+	const { tokens } = walkTokens(generateLargeFixture({ seed: SEED }));
+	const firstTwenty = tokens.slice(0, 20);
+	const seen = new Set(firstTwenty.map(({ node }) => dispatchPathOf(node)));
+
+	for (const path of [
+		"color",
+		"dimension",
+		"reference",
+		"fallback",
+		"invalid",
+	] as const) {
+		assert.ok(
+			seen.has(path),
+			`no "${path}" token in the first 20 (saw: ${[...seen].join(", ")})`,
+		);
+	}
+});
 
 test("generateLargeFixture output has a token referenced by at least 100 other tokens", () => {
 	const { tokens } = walkTokens(generateLargeFixture({ seed: SEED }));
