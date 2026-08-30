@@ -1,6 +1,14 @@
+import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
+import { resolveBuiltInContract } from "../token-editors/built-in.ts";
 import type { ClientEdit } from "./edit-state.ts";
 import type { PlainDtcgNode } from "./plain-node.ts";
 import type { TokenReferenceView } from "./reference-index.ts";
+
+/** Per-field validation messages for one token; `undefined` where that field is fine. */
+export interface FieldErrors {
+	readonly name: string | undefined;
+	readonly value: string | undefined;
+}
 
 /** `path.join(".")` — how a token/group is addressed across the store's interface. */
 export type PathKey = string;
@@ -68,6 +76,7 @@ export class StagedEditsStore {
 	#tree: PlainDtcgNode;
 	#index: Map<PathKey, PlainDtcgNode>;
 	#pending = new Map<PathKey, ClientEdit>();
+	#errors = new Map<PathKey, FieldErrors>();
 	#fieldsCache = new Map<PathKey, EditableFields>();
 
 	constructor(options: StagedEditsStoreOptions) {
@@ -102,14 +111,47 @@ export class StagedEditsStore {
 		return false;
 	};
 
+	getError = (key: PathKey): FieldErrors | undefined => {
+		return this.#errors.get(key);
+	};
+
 	/**
-	 * Stage `draft` (a row's uncommitted field edits) against `key`. Only the
-	 * touched key's cached snapshot is invalidated — an unrelated key's
-	 * `getFields` reference is left intact (INV-1).
+	 * Validate `draft` (a row's uncommitted field edits) and, if it passes,
+	 * stage it against `key`. On failure the draft is not staged, `#errors[key]`
+	 * records why, and `commit` returns `false` (INV-6). Only the touched key's
+	 * cached snapshot is invalidated — an unrelated key's `getFields` reference
+	 * is left intact (INV-1).
 	 */
 	commit = (key: PathKey, draft: Partial<EditableFields>): boolean => {
+		const valueError = this.#validateDraftValue(key, draft);
+		if (valueError !== undefined) {
+			this.#errors.set(key, { name: undefined, value: valueError });
+			this.#fieldsCache.delete(key);
+			return false;
+		}
+		this.#errors.delete(key);
 		this.#pending.set(key, { path: key.split("."), ...draft });
 		this.#fieldsCache.delete(key);
 		return true;
 	};
+
+	#validateDraftValue(
+		key: PathKey,
+		draft: Partial<EditableFields>,
+	): string | undefined {
+		if (!("value" in draft)) {
+			return undefined;
+		}
+		const node = this.#index.get(key);
+		const type = draft.type ?? node?.effectiveType;
+		if (type === undefined) {
+			return undefined;
+		}
+		const contract = resolveBuiltInContract(type);
+		if (contract === undefined) {
+			return undefined;
+		}
+		const result = validateTokenValue(contract, draft.value);
+		return result.isErr() ? result.error.message : undefined;
+	}
 }

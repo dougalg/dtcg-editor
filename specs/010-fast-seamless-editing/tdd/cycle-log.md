@@ -224,3 +224,19 @@ existed and failed before the implementation.
 - notes: `commit` still returns `true` unconditionally — U5 wires `validateTokenValue`
   and the invalid path; U6 adds the unchanged-value boundary.
 - commit: `<pending>`
+
+## Cycle 12: U5 commit rejects an invalid draft
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::commit with an invalid value is rejected: returns false, stages nothing, records an error` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "invalid value is rejected"`
+  -> `AssertionError: true !== false` — `commit` staged the bad value and returned `true`
+- green: `apps/web-app/lib/tokens/staged-edits-store.ts` — wire `validateTokenValue` +
+  `resolveBuiltInContract` (both existing) into `commit` via a private
+  `#validateDraftValue`; on failure set `#errors[key] = { name: undefined, value: msg }`,
+  skip staging, return `false`. Add `#errors` map + `getError(key)`. Full suite
+  `pnpm exec vitest run` -> 109 files, 503 passed (~21s)
+- refactor: none needed
+- notes: `commit` clears `#errors[key]` on the success path; a draft with no `value`
+  key, an untyped token, or an unregistered `$type` skips value validation (returns
+  `undefined` from `#validateDraftValue`). Rename-collision validation is U8.
+- commit: `<pending>`

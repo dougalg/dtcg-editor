@@ -72,6 +72,22 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("commit with an invalid value is rejected: returns false, stages nothing, records an error", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+
+	const ok = store.commit("space.sm", { value: "not-a-dimension" });
+
+	assert.equal(ok, false);
+	assert.deepEqual(store.getFields("space.sm").value, { value: 4, unit: "px" });
+	assert.ok(store.getError("space.sm")?.value);
+});
+
 test("commit with a valid value overlays the drafted value on getFields", () => {
 	const store = makeStore(
 		group("", [
