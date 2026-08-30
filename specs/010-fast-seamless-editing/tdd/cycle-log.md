@@ -134,4 +134,19 @@ existed and failed before the implementation.
   error editor rather than the real one. A1/A3 need editable bulk rows; U75 covers
   making them valid `{ value, unit }` objects (the `_showcase` `exotic`/`broken`
   tokens stay deliberately invalid). Not fixed this cycle (one behaviour per cycle).
+- commit: `f1ca163`
+
+## Cycle 6: U74 fixture is written through an injected file-writer
+
+- test: `apps/web-app/scripts/generate-large-fixture.test.ts::writeLargeFixture serializes the pure output through an injected writer` (new)
+- red: `pnpm exec vitest run apps/web-app/scripts/generate-large-fixture.test.ts -t "serializes the pure output through an injected writer"`
+  -> `TypeError: writeLargeFixture is not a function`
+- green: `apps/web-app/scripts/generate-large-fixture.ts` — add
+  `writeLargeFixture({ seed, outPath, writeFile })` that serializes
+  `generateLargeFixture(...)` and hands it to the injected `writeFile`; no `fs`
+  import in the module. Full suite `pnpm exec vitest run` -> 108 files, 497 passed,
+  0 failed (~22s)
+- refactor: none needed — `WriteLargeFixtureOptions extends GenerateLargeFixtureOptions`
+- notes: the CLI entrypoint binding `writeFile` to real `fs.writeFileSync` is
+  non-behavioural scaffolding left for T002 / `/speckit-implement`.
 - commit: `<pending>`

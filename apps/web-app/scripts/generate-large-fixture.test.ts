@@ -4,7 +4,10 @@ import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
 import { test } from "vitest";
 import { resolveBuiltInContract } from "../lib/token-editors/built-in.ts";
 import { buildReferenceIndex } from "../lib/tokens/reference-index.ts";
-import { generateLargeFixture } from "./generate-large-fixture.ts";
+import {
+	generateLargeFixture,
+	writeLargeFixture,
+} from "./generate-large-fixture.ts";
 
 type DispatchPath =
 	| "color"
@@ -59,6 +62,23 @@ function walkTokens(
 	}
 	return acc;
 }
+
+test("writeLargeFixture serializes the pure output through an injected writer", () => {
+	const writes: { path: string; contents: string }[] = [];
+
+	writeLargeFixture({
+		seed: SEED,
+		outPath: "e2e/fixtures/tokens/large_scale.tokens.json",
+		writeFile: (path, contents) => writes.push({ path, contents }),
+	});
+
+	assert.equal(writes.length, 1);
+	assert.equal(writes[0].path, "e2e/fixtures/tokens/large_scale.tokens.json");
+	assert.deepEqual(
+		JSON.parse(writes[0].contents),
+		generateLargeFixture({ seed: SEED }),
+	);
+});
 
 test("generateLargeFixture emits byte-identical output for a fixed seed", () => {
 	const first = JSON.stringify(generateLargeFixture({ seed: SEED }));

@@ -2,6 +2,12 @@ export interface GenerateLargeFixtureOptions {
 	seed: number;
 }
 
+export interface WriteLargeFixtureOptions extends GenerateLargeFixtureOptions {
+	outPath: string;
+	/** Injected so the pure generator stays I/O-free (constitution Principle VI). */
+	writeFile: (path: string, contents: string) => void;
+}
+
 interface JsonObject {
 	[key: string]: unknown;
 }
@@ -75,4 +81,10 @@ export function generateLargeFixture(
 	}
 
 	return doc;
+}
+
+/** Serialize the pure fixture and hand it to the injected writer. No `fs` here. */
+export function writeLargeFixture(options: WriteLargeFixtureOptions): void {
+	const contents = `${JSON.stringify(generateLargeFixture(options), null, 2)}\n`;
+	options.writeFile(options.outPath, contents);
 }
