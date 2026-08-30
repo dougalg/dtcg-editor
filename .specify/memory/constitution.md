@@ -1,6 +1,46 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 3.0.0 → 3.1.0
+Rationale: MINOR — adds a new Core Principle (XIII. Test-Driven Development,
+NON-NEGOTIABLE). No existing principle is redefined or removed: Principle X
+(Component Granularity & Testing) still mandates that unit + a11y coverage
+*exist* for every component; Principle XIII adds the orthogonal requirement
+that every behavior change be driven by a test observed failing first, with
+the red recorded in specs/<feature>/tdd/cycle-log.md, tests never weakened
+or skipped to reach green, every spec.md acceptance criterion covered by a
+real-entry-point acceptance test, refactors only on green and never in a
+behavior commit, and test strength verified (mutation testing where a tool
+exists, deliberate-mutant spot check where not — this repo has none today,
+per .specify/memory/tdd-profile.md). A new principle is materially more than
+a wording clarification, so this is not PATCH; nothing backward-incompatible
+is removed or redefined, so this is not MAJOR.
+
+Added sections:
+  - Core Principle XIII. Test-Driven Development (NON-NEGOTIABLE)
+
+Modified principles: none (XIII references and sharpens X without changing it)
+
+Removed sections: none
+
+Deferred / TODO items: none
+
+Templates requiring updates: none — the speckit-tdd-* extension
+(.specify/extensions/tdd/, installed per .specify/extensions.yml) already
+implements this principle; the constitution now names it as governance.
+Consider adding a mutation-testing tool (@stryker-js/core +
+@stryker-js/vitest-runner) so "test strength MUST be verified" can use
+mutation testing rather than only spot checks — tracked in the TDD stack
+profile, not blocking.
+
+Source of truth for this amendment: proposed by speckit-tdd-setup's Phase 4
+after writing .specify/memory/tdd-profile.md, and approved by the maintainer
+in that session.
+-->
+
+<!--
+Sync Impact Report (v3.0.0, superseded above)
+==================
 Version change: 2.7.1 → 3.0.0
 Rationale: MAJOR — Principle VII (Token-Editor Package Contract) is
 redefined, narrowing what `token-core` owns. The v2.0.0 amendment had
@@ -789,6 +829,45 @@ how this constitution already separates principle-level governance from
 per-feature `plan.md` detail, so the token-flow mechanics can evolve without
 requiring a constitution amendment each time.
 
+### XIII. Test-Driven Development (NON-NEGOTIABLE)
+
+Every behavior change MUST be driven by a test that was observed failing
+first. A test MUST exist and MUST have been observed failing, for the
+intended reason, before the code that makes it pass is written; that failure
+is recorded in `specs/<feature>/tdd/cycle-log.md`. Test tasks in `tasks.md`
+are not optional and MUST be ordered before the implementation task they
+cover, and that implementation task MUST NOT be started until its test is
+red. A test MUST NOT be weakened, skipped, deleted, or filtered out of the
+run to reach green — when a test and the code disagree, `spec.md` decides
+which is wrong and the fix is its own step with a stated reason. Every
+acceptance criterion in `spec.md` MUST have at least one acceptance test
+that exercises the real entry point (`@playwright/test` for
+whole-page / keyboard / timing flows, per Principle X's tiers). Refactoring
+happens only on a green suite and MUST NOT change a test in the same commit
+as a behavior change. Test strength MUST be verified, not assumed: mutation
+testing on the changed files where a mutation tool is configured, and a
+deliberate-mutant spot check (break the implementation one small way,
+confirm a test fails, restore exactly) where one is not — this repository
+currently has no mutation tool, so the spot check applies (see
+`.specify/memory/tdd-profile.md`, written and verified by
+`speckit-tdd-setup`).
+
+Rationale: Principle X already requires that every component and behavior
+*have* tests; it does not establish that those tests could actually catch
+the bug they nominally guard. Writing the test first, and watching it fail
+for the right reason, is the cheap proof that the test is wired to the
+behavior rather than vacuously passing — a test written after the code, or
+one that passes the moment it is written, proves nothing about the code.
+Recording the red in `cycle-log.md` makes that proof auditable by a later
+session with no memory of the work, the same way Principle I's round-trip
+fixture and Principle X's `.ls-lint.yml` enforcement outlast the context
+that created them. The prohibition on weakening or skipping a test to reach
+green keeps the suite's meaning stable over time: a filtered-out or
+loosened test is a silent coverage regression that no lint rule catches.
+This principle governs the `speckit-tdd-*` pipeline steps
+(`tdd-setup` → `tdd-plan` → `tdd-run` → `tdd-verify`) that sit alongside the
+core Spec-Driven Development workflow.
+
 ## Technology Stack & Approved Dependencies
 
 - **Language**: TypeScript. **Framework**: React (UI/token-editor packages,
@@ -899,4 +978,4 @@ verify the resulting code actually matches what `spec.md`/`plan.md`/
 either stage is a blocking finding, not an optional suggestion, unless
 explicitly waived with recorded rationale in the feature's `plan.md`.
 
-**Version**: 3.0.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-28
+**Version**: 3.1.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-08-30
