@@ -240,3 +240,15 @@ existed and failed before the implementation.
   key, an untyped token, or an unregistered `$type` skips value validation (returns
   `undefined` from `#validateDraftValue`). Rename-collision validation is U8.
 - commit: `<pending>`
+
+## Cycle 13: U9 getHasPending reflects staged edits
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::getHasPending reflects whether any edit is staged` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "getHasPending reflects whether any edit is staged"`
+  -> `AssertionError: false !== true` (getHasPending was hardcoded `false`)
+- green: `getHasPending = () => this.#pending.size > 0` (INV-4). Full suite -> 109 files, 504 passed (~21s)
+- refactor: none needed
+- notes: taken ahead of list order — U6 (unchanged-value boundary) needs a real
+  `getHasPending` to observe "nothing staged". `discard` / `save` sides of the
+  boundary come with those cycles.
+- commit: `<pending>`

@@ -72,6 +72,20 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("getHasPending reflects whether any edit is staged", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+
+	assert.equal(store.getHasPending(), false);
+	store.commit("space.sm", { value: { value: 8, unit: "px" } });
+	assert.equal(store.getHasPending(), true);
+});
+
 test("commit with an invalid value is rejected: returns false, stages nothing, records an error", () => {
 	const store = makeStore(
 		group("", [

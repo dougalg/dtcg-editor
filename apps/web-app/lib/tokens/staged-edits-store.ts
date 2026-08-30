@@ -108,7 +108,7 @@ export class StagedEditsStore {
 	};
 
 	getHasPending = (): boolean => {
-		return false;
+		return this.#pending.size > 0;
 	};
 
 	getError = (key: PathKey): FieldErrors | undefined => {
