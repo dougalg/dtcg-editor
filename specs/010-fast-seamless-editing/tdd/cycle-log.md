@@ -166,3 +166,15 @@ existed and failed before the implementation.
   tokens stay deliberately invalid (they exercise the fallback + error dispatch
   paths for U73 / A3).
 - commit: `<pending>`
+
+## Cycle 8: U1 StagedEditsStore read methods are bound to the instance
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::StagedEditsStore read methods are bound and callable when destructured off the instance` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts`
+  -> minimal stub with prototype methods -> `TypeError: Cannot read properties of undefined (reading '#tree')` when `getTree` is called detached from the instance
+- green: `apps/web-app/lib/tokens/staged-edits-store.ts` (new) — `subscribe` / `getTree` /
+  `getHasPending` as bound arrow-fn class fields, not prototype methods, so
+  `useSyncExternalStore(store.subscribe, () => store.getFields(key))` can hold bare
+  references (INV-2 / INV-19). Full suite `pnpm exec vitest run` -> 109 files, 499 passed (~25s)
+- refactor: none needed
+- commit: `<pending>`

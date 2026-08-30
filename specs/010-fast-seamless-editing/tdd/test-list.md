@@ -69,7 +69,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U1  | `getFields`, `getError`, `getResolvedPreview`, `subscribe` are the same function reference for the store instance's lifetime | INV-2, INV-19 | example | PENDING | `staged-edits-store.test.ts` |
+| U1  | `subscribe` / `getTree` / the read methods stay callable when destructured off the instance (bound fields, not prototype methods) so `useSyncExternalStore` can hold a bare reference | INV-2, INV-19 | example | DONE | `apps/web-app/lib/tokens/staged-edits-store.test.ts::StagedEditsStore read methods are bound and callable when destructured off the instance` |
 | U2  | `getFields(P)` returns base ⊕ pending for `P` and returns the **same object reference** on repeated calls while `P`'s inputs are unchanged | INV-3 | example | PENDING | `staged-edits-store.test.ts` |
 | U3  | After `commit(P, …)`, `getFields(Q)` / `getError(Q)` / `getResolvedPreview(Q)` return the identical reference as before for every `Q` outside `{P} ∪ reverseDeps(P)` | INV-1, C-LR-2, C-RI-1 | example | PENDING | `staged-edits-store.test.ts` |
 | U4  | `commit` runs validation **before** staging: on a valid draft it stages only the fields whose value differs from the current effective value | INV-6, C-RI-6 | example | PENDING | `staged-edits-store.test.ts` |
