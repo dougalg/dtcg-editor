@@ -17,10 +17,12 @@ file this is where the lag, the caret jumps, and the layout churn on tab come fr
 The approach, in priority order matching the spec's user stories:
 
 1. **Isolate the edited row's render (P1).** Give each token row local input state so typing
-   updates only that row; commit to the shared staged-edits store on blur/debounce. Memoize
-   the row and group components and stabilize the callbacks and derived values they depend
-   on. Split `fieldErrors` / `pendingEdits` lookups so an unrelated row's props don't change
-   identity when a sibling is edited.
+   updates only that row; commit to a per-mount staged-edits **instance store** on
+   blur/debounce. Each row subscribes to just its own `pendingEdit` / `fieldError` slice via
+   React's native `useSyncExternalStore` (store passed by context; no shim), which removes
+   the Map/callback prop-drilling through `TreeNode` → `TreeGroupNode` → `TreeTokenNode`
+   entirely and lets plain `memo` on the group/row components do its job. `pendingEdits`
+   stays a pure overlay — never folded into a merged tree while editing (`research.md` §2a).
 2. **Stabilize keyboard navigation (P2).** Reserve layout space for validation messages and
    any focus-revealed helper UI so tabbing never reflows; guarantee the focus indicator is
    never clipped by an `overflow` ancestor; keep native `<details>` uncontrolled so focus
@@ -89,7 +91,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 | V. Result-Pattern Errors | — | **PASS** — no new fallible boundaries |
 | VI. Dependency Injection for I/O | Perf/measurement harness must not reach into globals ad hoc | **PASS (with care)** — test-only measurement uses Playwright's `page.evaluate` + `PerformanceObserver`; any in-component timing hook (if used) takes an injected clock, matching `TokenTree`'s existing injected `navigate` |
 | VII. Token-Editor Package Contract | — | **PASS** — editors unchanged; they already receive `value`/`onChange` |
-| VIII. Minimal Dependencies | Prefer React built-ins over a library | **PASS (intended)** — `memo`/`useCallback`/`useMemo`/`useDeferredValue`/`useTransition` only; **no** virtualization library unless Phase 0 proves it necessary, which would require a Tech-Stack amendment (tracked in Complexity Tracking) |
+| VIII. Minimal Dependencies | Prefer React built-ins over a library | **PASS (intended)** — `memo`/`useCallback`/`useMemo`/`useDeferredValue`/`useTransition`/`useSyncExternalStore` (all native React, **no** `use-sync-external-store/with-selector` shim); the staged-edits store is a ~40-line hand-rolled instance class, not a state library; **no** virtualization library unless Phase 0 proves it necessary, which would require a Tech-Stack amendment (tracked in Complexity Tracking) |
 | IX. Round-Trip Fidelity | — | **PASS** — save path untouched |
 | X. Component Granularity & Testing | Any new component: own file/folder, < 300 lines, unit + a11y tests; 3+ near-duplicates → `design-system` | **PASS (with obligations)** — an extracted memoized row or a reserved-space "field error slot" gets its own folder + `*.test.tsx` + `*.a11y.test.tsx`; if the error-slot / focus-visible pattern is reused 3+ places it moves to `design-system` |
 | XI. Modern Defaults | Use current React idioms | **PASS** — React 19 concurrent primitives are the modern-default tool here |
@@ -100,11 +102,13 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 tracked below; if Phase 0 selects it, this section gains a MAJOR/MINOR dependency note and a
 Complexity Tracking row before implementation.
 
-**Post-design re-check (after Phase 1): PASS.** Research selected the React-built-in
-render-isolation approach and explicitly deferred virtualization behind a measurement gate
-(`research.md` §7), so Principle VIII holds with no amendment. `data-model.md` adds only
-in-memory UI state (no new edges → IV/V unaffected) and preserves staged-edit / save
-semantics byte-for-byte (INV-4..INV-7 → I/IX hold). Design work items that touch CSS are
+**Post-design re-check (after Phase 1): PASS.** Research selected a render-isolation approach
+built only on native React (`memo`/`useMemo`/`useDeferredValue`/`useSyncExternalStore`) plus
+a ~40-line hand-rolled `StagedEditsStore` — no state library, no `with-selector` shim — and
+explicitly deferred virtualization behind a measurement gate (`research.md` §7), so
+Principle VIII holds with no amendment. `data-model.md` adds only in-memory UI state (no new
+edges → IV/V unaffected); `pendingEdits` stays a pure overlay and the save-success merge is
+net-identical to today (INV-1..INV-4 → I/IX hold). Design work items that touch CSS are
 constrained to `--dtcg-ed-*` tokens and new components get their own folder + unit + a11y
 tests (`plan.md` structure table), keeping X/XII satisfied. No Complexity Tracking row is
 active.
@@ -135,16 +139,18 @@ specs/010-fast-seamless-editing/
 apps/web-app/
 ├── components/
 │   ├── TokenTree/
-│   │   ├── TokenTree.tsx            # CHANGED: delegate staged-edit state to a hook; pass
-│   │   │                            #          per-row slices, not whole Maps
-│   │   ├── TokenTree.test.tsx       # CHANGED: cover state delegation
+│   │   ├── TokenTree.tsx            # CHANGED: create the store via useStagedEdits, provide
+│   │   │                            #          it by context, keep treeState as useState;
+│   │   │                            #          stop passing Maps/callbacks down
+│   │   ├── TokenTree.test.tsx       # CHANGED: cover store wiring + save-success merge
 │   │   └── TokenTree.module.css
 │   ├── TreeNode/TreeNode.tsx        # CHANGED: wrap dispatch children in memo boundaries
-│   ├── TreeGroupNode/               # CHANGED: memo; stop forwarding whole Maps
+│   ├── TreeGroupNode/               # CHANGED: memo; no longer forwards Maps/callbacks
 │   ├── TreeTokenNode/
-│   │   ├── TreeTokenNode.tsx        # CHANGED: local input state; memoize derived
-│   │   │                            #          contract/validation/editor resolution;
-│   │   │                            #          commit on blur/debounce
+│   │   ├── TreeTokenNode.tsx        # CHANGED: memo; two useSyncExternalStore reads for its
+│   │   │                            #          own pendingEdit/fieldError; local draft state;
+│   │   │                            #          memoize contract/validation/editor resolution;
+│   │   │                            #          commit on blur/Enter/debounce
 │   │   ├── TreeTokenNode.test.tsx   # CHANGED
 │   │   └── TreeTokenNode.a11y.test.tsx  # NEW/CHANGED: focus + no-shift on tab
 │   ├── TokenBlock/
@@ -157,9 +163,12 @@ apps/web-app/
 │       ├── FieldErrorSlot.test.tsx
 │       └── FieldErrorSlot.a11y.test.tsx
 ├── hooks/
-│   ├── useStagedEdits.ts           # NEW: owns pendingEdits/fieldErrors/treeState + stable
-│   │                               #      callbacks + per-path selectors
-│   └── useStagedEdits.test.tsx     # NEW
+│   ├── useStagedEdits.ts           # NEW: StagedEditsStore class (pendingEdits/fieldErrors +
+│   │                               #      subscribe/getters/mutators) + a hook that lazily
+│   │                               #      instantiates it per mount; + StagedEditsContext.
+│   │                               #      treeState is NOT here — stays in TokenTree
+│   └── useStagedEdits.test.tsx     # NEW: pure store (INV-1/2a/3/4) + hook wiring
+│                                   #      (INV-2 subscribe stability, INV-3a per-mount)
 ├── e2e/
 │   ├── editing-perf.spec.ts        # NEW: edit-echo latency, typing lag, ripple latency
 │   ├── render-stability.spec.ts    # NEW: zero out-of-region layout shift on edit / tab / ripple

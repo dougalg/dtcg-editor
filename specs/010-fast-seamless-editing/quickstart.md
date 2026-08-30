@@ -27,8 +27,9 @@ pnpm test:vitest
 ```
 
 Expected:
-- `useStagedEdits.test.tsx` — per-path selectors and callbacks keep stable identity across
-  an unrelated edit (INV-1, INV-2).
+- `useStagedEdits.test.tsx` — `getPendingEdit(k)` / `getFieldError(k)` return a stable
+  reference across an unrelated edit and a stable empty `getServerSnapshot`; `subscribe` and
+  the mutators keep stable identity for the store's lifetime (INV-1, INV-2, INV-2a).
 - `TreeTokenNode.test.tsx` — typing in one row of a multi-row tree re-renders only that row
   (C-RI-1); staged-edit payloads match the pre-change baseline for the same input (C-RI-6).
 - `TokenBlock.test.tsx` / `FieldErrorSlot.test.tsx` — the error slot's box size is identical

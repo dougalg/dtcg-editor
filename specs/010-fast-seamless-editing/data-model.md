@@ -5,38 +5,52 @@ in-memory state shapes the render-isolation work introduces or reshapes, plus th
 measurement artifacts. Existing types (`ClientEdit`, `PlainDtcgNode`, `FieldErrors`,
 `EditablePatch`) are unchanged in shape.
 
-## 1. Staged-edit store (`useStagedEdits`)
+## 1. Staged-edit store (`StagedEditsStore` + `useStagedEdits`)
 
-Extracted from `TokenTree`'s three `useState` hooks into one hook so the tree can be handed
-stable callbacks and per-path slices instead of whole Maps.
+The unsaved overlay moves out of `TokenTree`'s `useState` into a per-mount **instance
+store** read through React's native `useSyncExternalStore`, so rows subscribe to just their
+own slice and prop-drilling of Maps/callbacks through `TreeNode` → `TreeGroupNode` →
+`TreeTokenNode` goes away entirely. `useStagedEdits()` creates the instance (lazy
+`useRef`/`useState`, **never module-level**) and exposes it via `StagedEditsContext` (the
+instance identity never changes, so context alone re-renders nobody).
 
-**State**
-- `treeState: PlainDtcgNode` — the optimistically-updated tree (unchanged role; still only
-  updated on successful save via `applyEditsToPlainNode`).
+`treeState` does **not** move into the store — it stays a plain `useState` in `TokenTree`
+and changes only on save success (see §2a of `research.md`).
+
+**Store state (private)**
 - `pendingEdits: Map<PathKey, ClientEdit>` — staged, unsaved edits. `PathKey = path.join(".")`.
 - `fieldErrors: Map<PathKey, FieldErrors>` — per-field validation messages.
+- `listeners: Set<() => void>`.
 
-**Exposed API (all referentially stable across renders)**
+**Store API**
 | Member | Type | Notes |
 | --- | --- | --- |
-| `getPendingEdit(path)` | `(readonly string[]) => ClientEdit \| undefined` | Per-path selector; the value a memoized row receives as a prop |
-| `getFieldError(path)` | `(readonly string[]) => FieldErrors \| undefined` | Per-path selector |
-| `stageEdit(path, patch)` | `(path, EditablePatch) => void` | Same merge semantics as today; stable identity |
-| `setFieldError(path, errors)` | `(path, FieldErrors) => void` | Clears the entry when both fields are `undefined` (unchanged) |
-| `clearAllEdits()` | `() => void` | Replaces the "discard" path (`setPendingEdits(new Map())`) |
-| `commitSavedEdits(edits)` | `(readonly ClientEdit[]) => void` | `applyEditsToPlainNode` + clear, on save success |
-| `hasPendingEdits` | `boolean` | Derived; drives Save button + the unsaved-nav guard |
-| `pendingEditsSnapshot()` | `() => readonly ClientEdit[]` | For `handleSave` and the rename-collision check |
+| `subscribe(listener)` | `(() => void) => () => void` | Adds to `listeners`; returns an unsubscribe |
+| `getPendingEdit(key)` | `(PathKey) => ClientEdit \| undefined` | Returns the **stored object reference**, not a copy — a valid `useSyncExternalStore` snapshot |
+| `getFieldError(key)` | `(PathKey) => FieldErrors \| undefined` | Same; stored reference or `undefined` |
+| `getHasPending()` | `() => boolean` | Primitive snapshot; drives Save button + the unsaved-nav guard (FR-018) |
+| `getEdits()` | `() => readonly ClientEdit[]` | **Imperative read only** (fresh array each call) — for `handleSave` and the rename-collision derivation; never used as a subscribed snapshot |
+| `stageEdit(key, patch)` | `(PathKey, EditablePatch) => void` | Merge semantics identical to today's `stageEdit`; then notifies |
+| `setFieldError(key, errors)` | `(PathKey, FieldErrors) => void` | Clears the entry when both fields are `undefined` (unchanged); then notifies |
+| `clearAll()` | `() => void` | Empties both maps; then notifies — the "discard" path and part of save success |
+| module const `EMPTY_SNAPSHOT` | — | Stable reference returned by every `getServerSnapshot` |
 
 **Invariants**
 - INV-1: A call to `stageEdit` / `setFieldError` for path *P* MUST NOT change the identity of
-  `getPendingEdit(Q)` / `getFieldError(Q)` results for any `Q ≠ P` that were unaffected.
-- INV-2: Callback identities (`stageEdit`, `setFieldError`, `clearAllEdits`,
-  `commitSavedEdits`) MUST be stable for the lifetime of the hook instance.
-- INV-3: `hasPendingEdits === (pendingEdits.size > 0)` at all times (drives FR-018 nav guard,
-  which must keep working).
-- INV-4: Save success path is unchanged: `commitSavedEdits(edits)` ≡ today's
-  `setTreeState(applyEditsToPlainNode(current, edits)); setPendingEdits(new Map())`.
+  `getPendingEdit(Q)` / `getFieldError(Q)` for any `Q ≠ P` that was unaffected.
+- INV-2: `subscribe`, `getPendingEdit`, `getFieldError`, `getHasPending`, `stageEdit`,
+  `setFieldError`, `clearAll` MUST have stable identity for the lifetime of the store
+  instance (bound methods / stable closures), so `useSyncExternalStore(store.subscribe, …)`
+  never resubscribes spuriously.
+- INV-2a: `getPendingEdit` / `getFieldError` MUST return the stored object (or `undefined`),
+  never a freshly constructed one — otherwise `useSyncExternalStore` warns and re-renders
+  every commit. `getServerSnapshot` MUST return `EMPTY_SNAPSHOT` (constant reference).
+- INV-3: `getHasPending() === (pendingEdits.size > 0)` at all times (FR-018 nav guard must
+  keep working).
+- INV-3a: The store instance is created once per `TokenTree` mount and is never module-level
+  or shared across mounts — a new file page and each test get a fresh store.
+- INV-4: Save-success path is net-identical to today: `TokenTree` does
+  `setTreeState(applyEditsToPlainNode(current, store.getEdits())); store.clearAll();`.
 
 ## 2. Row-local input state (`TreeTokenNode`)
 
@@ -53,7 +67,7 @@ Per-row transient state so keystrokes don't touch the store.
   changed — identical payloads to today's per-keystroke calls, just batched to commit
   points. Net staged result for a given sequence of keystrokes MUST equal today's.
 - INV-6: If the store's `pendingEdit` for this path changes *externally* (e.g. a sibling
-  rename frees a name, or `clearAllEdits` runs), the row re-seeds its drafts from the new
+  rename frees a name, or `clearAll` runs), the row re-seeds its drafts from the new
   source of truth when it is not the actively focused field.
 - INV-7: Validation that currently blocks a stage (`validateTokenValue`, rename-collision,
   JSON parse in the fallback editor) still runs — at the same commit point — and still
