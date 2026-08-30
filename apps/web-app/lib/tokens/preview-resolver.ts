@@ -24,7 +24,7 @@ export function resolvePreview(
 	getEffectiveNode: (key: PathKey) => PlainDtcgNode | undefined,
 	serverPreview: ReadonlyMap<PathKey, ResolvedValue>,
 ): ResolvedValue {
-	return resolveFrom(key, getEffectiveNode, serverPreview, []);
+	return resolveFrom(key, getEffectiveNode, serverPreview, [], new Set([key]));
 }
 
 function resolveFrom(
@@ -32,6 +32,7 @@ function resolveFrom(
 	getEffectiveNode: (key: PathKey) => PlainDtcgNode | undefined,
 	serverPreview: ReadonlyMap<PathKey, ResolvedValue>,
 	via: readonly PathKey[],
+	visited: Set<PathKey>,
 ): ResolvedValue {
 	const node = getEffectiveNode(key);
 	const value = node?.kind === "token" ? node.value : undefined;
@@ -41,13 +42,20 @@ function resolveFrom(
 	}
 
 	const targetKey = ref.targetPath.join(".");
+	if (visited.has(targetKey)) {
+		return { kind: "cycle", ref: ref.raw };
+	}
 	if (getEffectiveNode(targetKey) === undefined) {
 		// A hop out of this file resolves from the server-computed value; an
 		// in-file target that simply does not exist is unresolved.
 		return serverPreview.get(targetKey) ?? { kind: "unresolved", ref: ref.raw };
 	}
-	return resolveFrom(targetKey, getEffectiveNode, serverPreview, [
-		...via,
+	visited.add(targetKey);
+	return resolveFrom(
 		targetKey,
-	]);
+		getEffectiveNode,
+		serverPreview,
+		[...via, targetKey],
+		visited,
+	);
 }

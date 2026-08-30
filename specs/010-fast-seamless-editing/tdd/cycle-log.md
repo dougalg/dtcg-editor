@@ -469,3 +469,16 @@ existed and failed before the implementation.
   521 passed (~21s); lint clean (`serverPreview` now used)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 31: U26 resolvePreview is cycle-safe
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview returns a cycle marker for a reference loop, without looping` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/preview-resolver.test.ts -t "cycle marker for a reference loop"`
+  -> `TypeError: undefined is not a function` from a deeply-repeated `resolveFrom` stack
+  (`a -> {b} -> {a} -> ...` recursed until the stack gave out) — i.e. it did not return
+  in bounded time
+- green: thread a `visited: Set<PathKey>` through `resolveFrom`; before recursing on a
+  `{x}` hop, `visited.has(x)` -> `{ kind: "cycle", ref: ref.raw }` (INV-16). Full suite
+  `pnpm exec vitest run` -> 110 files, 522 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`

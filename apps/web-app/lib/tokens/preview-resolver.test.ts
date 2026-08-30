@@ -26,6 +26,18 @@ function nodesByKey(
 
 const NO_SERVER_PREVIEW = new Map<string, ResolvedValue>();
 
+test("resolvePreview returns a cycle marker for a reference loop, without looping", () => {
+	const nodes = nodesByKey({
+		a: token(["a"], "{b}"),
+		b: token(["b"], "{a}"),
+	});
+
+	assert.deepEqual(resolvePreview("a", nodes, NO_SERVER_PREVIEW), {
+		kind: "cycle",
+		ref: "{a}",
+	});
+});
+
 test("resolvePreview splices in the server value for a target outside the file", () => {
 	const serverValue: ResolvedValue = {
 		kind: "value",
