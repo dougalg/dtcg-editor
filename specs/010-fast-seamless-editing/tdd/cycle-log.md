@@ -562,3 +562,17 @@ and unaltered.
   invalidation. `#serverPreview` empty — real `TokenReferenceView` conversion is
   appended as U78.
 - commit: this entry's commit
+
+## Cycle 37: U19 commit scopes preview-cache invalidation
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::commit invalidates the preview cache for only the edited key and its dependents` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "invalidates the preview cache for only the edited key"`
+  -> `AssertionError: Values have same structure but are not reference-equal` — an
+  independent token's preview was recomputed because `commit` cleared the whole cache
+- green: `#invalidatePreview(key)` deletes `#previewCache[key]` + every
+  `#reverseDeps.get(key)` entry; `commit` calls it instead of `#previewCache.clear()`
+  (INV-17). Full suite `pnpm exec vitest run` -> 110 files, 528 passed (~21s); lint
+  clean (`#reverseDeps` now used)
+- refactor: none needed — `discard`/`save` keep their whole-cache clear for now (safe,
+  just less optimal)
+- commit: this entry's commit

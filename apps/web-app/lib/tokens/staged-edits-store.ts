@@ -292,11 +292,18 @@ export class StagedEditsStore {
 			});
 		}
 		this.#fieldsCache.delete(key);
-		// Whole-cache clear for now — U19 narrows this to key ∪ reverseDeps(key).
-		this.#previewCache.clear();
+		this.#invalidatePreview(key);
 		this.#emit();
 		return true;
 	};
+
+	/** Drop the resolved-preview cache for `key` and every token that transitively references it (INV-17). */
+	#invalidatePreview(key: PathKey): void {
+		this.#previewCache.delete(key);
+		for (const dependent of this.#reverseDeps.get(key) ?? []) {
+			this.#previewCache.delete(dependent);
+		}
+	}
 
 	#validateDraftName(
 		key: PathKey,

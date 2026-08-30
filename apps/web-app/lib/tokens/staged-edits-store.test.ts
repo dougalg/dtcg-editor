@@ -42,6 +42,25 @@ function makeStore(tree: PlainDtcgNode = group("", [])): StagedEditsStore {
 	});
 }
 
+test("commit invalidates the preview cache for only the edited key and its dependents", () => {
+	const store = makeStore(
+		group("", [
+			group("g", [
+				dimensionToken(["g", "a"], { value: 4, unit: "px" }),
+				dimensionToken(["g", "b"], "{g.a}"),
+				dimensionToken(["g", "c"], { value: 9, unit: "px" }),
+			]),
+		]),
+	);
+	const dependentBefore = store.getResolvedPreview("g.b");
+	const independentBefore = store.getResolvedPreview("g.c");
+
+	store.commit("g.a", { value: { value: 8, unit: "px" } });
+
+	assert.notEqual(store.getResolvedPreview("g.b"), dependentBefore);
+	assert.equal(store.getResolvedPreview("g.c"), independentBefore);
+});
+
 test("getResolvedPreview resolves a reference over the committed overlay, not the base", () => {
 	const store = makeStore(
 		group("", [
