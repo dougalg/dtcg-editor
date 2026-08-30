@@ -103,7 +103,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | U27 | `resolvePreview` when a value that was a literal becomes `{X}` (or vice-versa) returns `X`'s resolved value (or the new literal) — no stale carry-over | C-LR-4 | example | DONE | `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview reflects the current effective value each call, with no stale carry-over` |
 | U28 | `buildReverseDeps` maps each target key to the set of **transitive** in-file referrers (direct + through a chain), and omits cross-file referrers | data-model §6, INV-18 | example | DONE | `apps/web-app/lib/tokens/preview-resolver.test.ts::buildReverseDeps maps each target to its transitive in-file referrers` |
 | U29 | `buildReverseDeps` on a cyclic graph terminates and produces a finite map (a token in a cycle is not listed as its own referrer) | INV-16 | example | DONE | `apps/web-app/lib/tokens/preview-resolver.test.ts::buildReverseDeps terminates on a cyclic reference graph` |
-| U30 | `resolvePreview` is total over arbitrary node inputs: for any effective node it returns one of the three `ResolvedValue` kinds and never throws or infinite-loops (sampled at the boundaries — no property library, per profile) | INV-16 | example | PENDING | `preview-resolver.test.ts` |
+| U30 | `resolvePreview` is total over arbitrary node inputs: for any effective node it returns one of the three `ResolvedValue` kinds and never throws or infinite-loops (sampled at the boundaries — no property library, per profile) | INV-16 | example | DONE | `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview is total: every effective-node value yields a ResolvedValue kind, never throws` |
 
 ### `apps/web-app/hooks/useStagedEdits.ts` (NEW)
 

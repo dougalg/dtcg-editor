@@ -43,6 +43,36 @@ function nodesByKey(
 
 const NO_SERVER_PREVIEW = new Map<string, ResolvedValue>();
 
+test("resolvePreview is total: every effective-node value yields a ResolvedValue kind, never throws", () => {
+	const KINDS = new Set(["value", "unresolved", "cycle"]);
+	const values: unknown[] = [
+		undefined,
+		null,
+		"",
+		"{}",
+		"{ }",
+		"{dangling.path}",
+		"{t}", // self-reference on the token being resolved
+		{ nested: { deep: [1, 2, 3] } },
+		0,
+		Number.NaN,
+		"a {b} c",
+	];
+
+	for (const value of values) {
+		const node = token(["t"], value);
+		const result = resolvePreview(
+			"t",
+			(k) => (k === "t" ? node : undefined),
+			NO_SERVER_PREVIEW,
+		);
+		assert.ok(
+			KINDS.has(result.kind),
+			`kind was "${result.kind}" for value ${JSON.stringify(value ?? null)}`,
+		);
+	}
+});
+
 test("buildReverseDeps terminates on a cyclic reference graph", () => {
 	const tree = group("", [token(["a"], "{b}"), token(["b"], "{a}")]);
 

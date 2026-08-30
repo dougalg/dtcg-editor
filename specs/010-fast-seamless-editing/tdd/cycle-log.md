@@ -521,3 +521,16 @@ existed and failed before the implementation.
   `pnpm exec vitest run` -> 110 files, 525 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 35: U30 resolvePreview is total (boundary-sampled)
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview is total: every effective-node value yields a ResolvedValue kind, never throws` (new) — 11 boundary values (`undefined`, `null`, `""`, `"{}"`, `"{ }"`, `"{dangling.path}"`, `"{t}"` self-ref, a nested object, `0`, `NaN`, `"a {b} c"`)
+- red: passes with the resolver as built (U22-U26 made it total by construction).
+  Deliberate-mutant check: `return value as any` in the literal branch (instead of
+  `{ kind: "value", ... }`) -> `AssertionError: kind was "undefined" ...`. Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 110 files, 526 passed (~21s)
+- refactor: none needed
+- notes: **preview-resolver.ts complete** — U22-U30 all DONE (`resolvePreview` +
+  `buildReverseDeps`). Ticked T038 / T039. No `fast-check` in the profile, so totality
+  is sampled at boundaries, not proven.
+- commit: `<pending>`
