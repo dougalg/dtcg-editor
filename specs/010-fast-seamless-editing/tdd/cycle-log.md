@@ -208,3 +208,19 @@ existed and failed before the implementation.
   list wording narrowed to `getFields` only; `getError` / `getResolvedPreview` identity
   fold in when those methods exist (U16 / US3).
 - commit: `<pending>`
+
+## Cycle 11: U4 commit overlays the drafted value on getFields
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::commit with a valid value overlays the drafted value on getFields` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "overlays the drafted value on getFields"`
+  -> `AssertionError: Expected values to be strictly deep-equal: value: 4 (expected 8)` —
+  getFields was base-only, ignoring `#pending`
+- green: `getFields` now merges `#pending[key]` over the base node
+- refactor: extracted the base⊕pending merge into a module-level `mergeFields(key, node, pending)`
+  (pure) — suite unchanged, re-run green (502). **Deviation:** this structural change
+  rode in the same commit as the behaviour change rather than its own commit
+  (playbook cadence prefers separate); it is a ~20-line pure extraction with the suite
+  untouched. Full suite `pnpm exec vitest run` -> 109 files, 502 passed (~21s)
+- notes: `commit` still returns `true` unconditionally — U5 wires `validateTokenValue`
+  and the invalid path; U6 adds the unchanged-value boundary.
+- commit: `<pending>`

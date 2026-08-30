@@ -23,6 +23,26 @@ function pathKey(path: readonly string[]): PathKey {
 	return path.join(".");
 }
 
+/** Base node fields with the pending edit (if any) laid over the top. */
+function mergeFields(
+	key: PathKey,
+	node: PlainDtcgNode | undefined,
+	pending: ClientEdit | undefined,
+): EditableFields {
+	const type = pending?.type ?? node?.declaredType;
+	return {
+		name: pending?.name ?? node?.name ?? key.split(".").at(-1) ?? "",
+		value:
+			pending !== undefined && "value" in pending
+				? pending.value
+				: node?.kind === "token"
+					? node.value
+					: undefined,
+		description: pending?.description ?? node?.description ?? "",
+		...(type !== undefined ? { type } : {}),
+	};
+}
+
 function indexByPath(
 	node: PlainDtcgNode,
 	into: Map<PathKey, PlainDtcgNode>,
@@ -69,13 +89,11 @@ export class StagedEditsStore {
 		if (cached !== undefined) {
 			return cached;
 		}
-		const node = this.#index.get(key);
-		const fields: EditableFields = {
-			name: node?.name ?? key.split(".").at(-1) ?? "",
-			value: node?.kind === "token" ? node.value : undefined,
-			description: node?.description ?? "",
-			...(node?.declaredType !== undefined ? { type: node.declaredType } : {}),
-		};
+		const fields = mergeFields(
+			key,
+			this.#index.get(key),
+			this.#pending.get(key),
+		);
 		this.#fieldsCache.set(key, fields);
 		return fields;
 	};

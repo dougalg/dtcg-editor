@@ -72,6 +72,21 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("commit with a valid value overlays the drafted value on getFields", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+
+	const ok = store.commit("space.sm", { value: { value: 8, unit: "px" } });
+
+	assert.equal(ok, true);
+	assert.deepEqual(store.getFields("space.sm").value, { value: 8, unit: "px" });
+});
+
 test("commit to one token leaves getFields identity unchanged for an untouched token", () => {
 	const store = makeStore(
 		group("", [
