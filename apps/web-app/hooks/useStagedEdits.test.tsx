@@ -1,4 +1,5 @@
 import { renderHook } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { expect, test } from "vitest";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
 import { useStagedEdits } from "./useStagedEdits.ts";
@@ -49,4 +50,14 @@ test("useStagedEdits makes one store per mount and keeps it across re-renders", 
 
 	const second = renderHook(() => useStagedEdits(options()));
 	expect(second.result.current).not.toBe(storeOnMount);
+});
+
+test("useStagedEdits renders server-side (getServerSnapshot path) without throwing", () => {
+	function Probe() {
+		const store = useStagedEdits(options());
+		return <span>{store.getHasPending() ? "dirty" : "clean"}</span>;
+	}
+
+	expect(() => renderToString(<Probe />)).not.toThrow();
+	expect(renderToString(<Probe />)).toContain("clean");
 });

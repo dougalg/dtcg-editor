@@ -111,7 +111,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | --- | --- | --- | --- | --- | --- |
 | U31 | Mounting `TokenTree` twice (or remounting) yields a **distinct** `StagedEditsStore` instance each time; never a module-level singleton; the instance is stable across re-renders | INV-5 | example | DONE | `apps/web-app/hooks/useStagedEdits.test.tsx::useStagedEdits makes one store per mount and keeps it across re-renders` |
 | U32 | The hook threads the injected `save` into the store's constructor (Principle VI); the store module imports no fetcher (U14). `TokenTree` supplies `useSaveTokenEdits`'s call explicitly — no hidden default | INV-5, Principle VI | example | DONE | `apps/web-app/hooks/useStagedEdits.test.tsx::useStagedEdits threads the injected save through to the store` |
-| U33 | The `getServerSnapshot` path renders the subtree without throwing (SSR of the `"use client"` tree, no pending edits) | research §2 | example | PENDING | `useStagedEdits.test.tsx` |
+| U33 | A component using `useStagedEdits` + a store read renders server-side (`renderToString`) without throwing, with no pending edits (SSR smoke test — real `getServerSnapshot` coverage is in `useTokenSlice`, U36) | research §2 | example | DONE | `apps/web-app/hooks/useStagedEdits.test.tsx::useStagedEdits renders server-side (getServerSnapshot path) without throwing` |
 
 ### `apps/web-app/hooks/useTokenSlice.ts` (NEW)
 

@@ -618,3 +618,17 @@ and unaltered.
   "default: useSaveTokenEdits's call" is satisfied by `TokenTree` injecting it
   explicitly (T015) rather than a hidden default in the hook.
 - commit: this entry's commit
+
+## Cycle 41: U33 useStagedEdits SSR smoke test
+
+- test: `apps/web-app/hooks/useStagedEdits.test.tsx::useStagedEdits renders server-side (getServerSnapshot path) without throwing` (new — `renderToString` from `react-dom/server`)
+- red: passes first run (the hook + store are pure JS, no browser globals).
+  Mutant leverage is limited here — no meaningful small break makes a pure hook throw
+  under `renderToString`. Recorded as a smoke test; the real `getServerSnapshot`
+  assertion belongs with `useTokenSlice` (U36) which actually calls
+  `useSyncExternalStore`.
+- green: no production change. Full suite `pnpm exec vitest run` -> 111 files, 532 passed (~21s)
+- refactor: none needed
+- notes: U31 + U32 already cover the hook's real behaviour (per-mount instance,
+  injected save). With U33 done, T011/T012 (`useStagedEdits` impl + tests) are complete.
+- commit: this entry's commit
