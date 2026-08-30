@@ -42,6 +42,31 @@ function makeStore(tree: PlainDtcgNode = group("", [])): StagedEditsStore {
 	});
 }
 
+test("getResolvedPreview resolves a reference over the committed overlay, not the base", () => {
+	const store = makeStore(
+		group("", [
+			group("g", [
+				dimensionToken(["g", "a"], { value: 4, unit: "px" }),
+				dimensionToken(["g", "b"], "{g.a}"),
+			]),
+		]),
+	);
+
+	assert.deepEqual(store.getResolvedPreview("g.b"), {
+		kind: "value",
+		value: { value: 4, unit: "px" },
+		via: ["g.a"],
+	});
+
+	store.commit("g.a", { value: { value: 8, unit: "px" } });
+
+	assert.deepEqual(store.getResolvedPreview("g.b"), {
+		kind: "value",
+		value: { value: 8, unit: "px" },
+		via: ["g.a"],
+	});
+});
+
 test("discard and reportError also notify subscribers", () => {
 	const store = makeStore(
 		group("", [

@@ -534,3 +534,31 @@ existed and failed before the implementation.
   `buildReverseDeps`). Ticked T038 / T039. No `fast-check` in the profile, so totality
   is sampled at boundaries, not proven.
 - commit: `<pending>`
+
+## Note on `commit:` fields
+
+Entries for cycles 8–35 carry `commit: <pending>`. Each cycle is exactly one
+commit, in order; the commit that added a cycle's log entry *is* that cycle's
+commit (its message names the cycle). Recover the mapping with
+`git log --reverse -p specs/010-fast-seamless-editing/tdd/cycle-log.md`. From
+cycle 36 on, the field reads "this entry's commit" for the same meaning. The
+append-only evidence (red command + output, green change, suite counts) is intact
+and unaltered.
+
+## Cycle 36: U18 store.getResolvedPreview over the committed overlay
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::getResolvedPreview resolves a reference over the committed overlay, not the base` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "getResolvedPreview resolves a reference over the committed overlay"`
+  -> `TypeError: store.getResolvedPreview is not a function`
+- green: `apps/web-app/lib/tokens/staged-edits-store.ts` — add `#previewCache`,
+  `#reverseDeps` (built by `buildReverseDeps` in `#rebuildIndex`), `#serverPreview`
+  (empty Map for now), a private `#getEffectiveNode(key)` = base node ⊕ committed
+  pending value (never a draft, INV-8), and `getResolvedPreview(key)` delegating to
+  `resolvePreview` behind `#previewCache`. `commit` / `discard` / `save` clear
+  `#previewCache` wholesale for now. Full suite `pnpm exec vitest run` -> 110 files,
+  527 passed (~21s)
+- refactor: none needed
+- notes: `#reverseDeps` built but unused (biome warning) — U19 uses it to scope
+  invalidation. `#serverPreview` empty — real `TokenReferenceView` conversion is
+  appended as U78.
+- commit: this entry's commit

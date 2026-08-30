@@ -7,7 +7,14 @@ import {
 	findSiblings,
 } from "./edit-state.ts";
 import type { PlainDtcgNode } from "./plain-node.ts";
+import {
+	buildReverseDeps,
+	type ResolvedValue,
+	resolvePreview,
+} from "./preview-resolver.ts";
 import type { TokenReferenceView } from "./reference-index.ts";
+
+export type { ResolvedValue };
 
 /** Per-field validation messages for one token; `undefined` where that field is fine. */
 export interface FieldErrors {
@@ -111,6 +118,9 @@ export class StagedEditsStore {
 	#pending = new Map<PathKey, ClientEdit>();
 	#errors = new Map<PathKey, FieldErrors>();
 	#fieldsCache = new Map<PathKey, EditableFields>();
+	#previewCache = new Map<PathKey, ResolvedValue>();
+	#reverseDeps = new Map<PathKey, Set<PathKey>>();
+	#serverPreview: ReadonlyMap<PathKey, ResolvedValue> = new Map();
 	#listeners = new Set<() => void>();
 	#save: StagedEditsStoreOptions["save"];
 
@@ -124,7 +134,21 @@ export class StagedEditsStore {
 	#rebuildIndex(): void {
 		this.#index.clear();
 		indexByPath(this.#tree, this.#index);
+		this.#reverseDeps = buildReverseDeps(this.#tree, this.#serverPreview);
 	}
+
+	/** Base node with the committed pending value (if any) laid over — never a row's uncommitted draft (INV-8). */
+	#getEffectiveNode = (key: PathKey): PlainDtcgNode | undefined => {
+		const base = this.#index.get(key);
+		if (base === undefined || base.kind !== "token") {
+			return base;
+		}
+		const pending = this.#pending.get(key);
+		if (pending === undefined || !("value" in pending)) {
+			return base;
+		}
+		return { ...base, value: pending.value };
+	};
 
 	subscribe = (listener: () => void): (() => void) => {
 		this.#listeners.add(listener);
@@ -165,6 +189,21 @@ export class StagedEditsStore {
 		return this.#errors.get(key);
 	};
 
+	/** What the token at `key` currently evaluates to (references followed over the committed overlay). Cached. */
+	getResolvedPreview = (key: PathKey): ResolvedValue => {
+		const cached = this.#previewCache.get(key);
+		if (cached !== undefined) {
+			return cached;
+		}
+		const resolved = resolvePreview(
+			key,
+			this.#getEffectiveNode,
+			this.#serverPreview,
+		);
+		this.#previewCache.set(key, resolved);
+		return resolved;
+	};
+
 	/**
 	 * Validate a candidate draft and return the resulting `FieldErrors` without
 	 * writing anything — for a field that wants an inline error while typing,
@@ -201,6 +240,7 @@ export class StagedEditsStore {
 		this.#pending.delete(key);
 		this.#errors.delete(key);
 		this.#fieldsCache.delete(key);
+		this.#previewCache.clear();
 		this.#emit();
 	};
 
@@ -219,6 +259,7 @@ export class StagedEditsStore {
 			this.#errors.clear();
 			this.#rebuildIndex();
 			this.#fieldsCache.clear();
+			this.#previewCache.clear();
 			this.#emit();
 		}
 		return ok;
@@ -251,6 +292,8 @@ export class StagedEditsStore {
 			});
 		}
 		this.#fieldsCache.delete(key);
+		// Whole-cache clear for now — U19 narrows this to key ∪ reverseDeps(key).
+		this.#previewCache.clear();
 		this.#emit();
 		return true;
 	};
