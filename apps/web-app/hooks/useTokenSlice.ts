@@ -1,4 +1,4 @@
-import { useContext, useSyncExternalStore } from "react";
+import { useCallback, useContext, useSyncExternalStore } from "react";
 import type {
 	EditableFields,
 	FieldErrors,
@@ -25,16 +25,14 @@ export function useTokenSlice(key: string): TokenSlice {
 		);
 	}
 
-	const fields = useSyncExternalStore(
-		store.subscribe,
-		() => store.getFields(key),
-		() => store.getFields(key),
-	);
-	const error = useSyncExternalStore(
-		store.subscribe,
-		() => store.getError(key),
-		() => store.getError(key),
-	);
+	// Stable getsnapshot closures (INV-19): a fresh closure per render would not
+	// re-subscribe — `subscribe` is the only dep — but it churns the snapshot
+	// comparison `useSyncExternalStore` runs on every render.
+	const getFields = useCallback(() => store.getFields(key), [store, key]);
+	const getError = useCallback(() => store.getError(key), [store, key]);
+
+	const fields = useSyncExternalStore(store.subscribe, getFields, getFields);
+	const error = useSyncExternalStore(store.subscribe, getError, getError);
 
 	return {
 		fields,

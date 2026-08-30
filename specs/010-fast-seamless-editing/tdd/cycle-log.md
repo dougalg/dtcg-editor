@@ -688,3 +688,31 @@ before Cycle 42 so the baseline is genuinely green (`pnpm build` 7/7 + vitest).
 - notes: T013/T014 stay open — they carry `[U34] [U35] [U36]` and U36 is still
   PENDING.
 - commit: this entry's commit
+
+## Cycle 44: U36 useTokenSlice — subscription never thrashes
+
+- test: `apps/web-app/hooks/useTokenSlice.test.tsx::subscribes to the store once and never re-subscribes as the consumer re-renders` (new)
+- red: first attempt used `vi.spyOn(React, "useSyncExternalStore")` to assert
+  getSnapshot-closure identity directly ->
+  `TypeError: Cannot spy on export "useSyncExternalStore". Module namespace is not
+  configurable in ESM`. Not a valid red (test-infra failure). Rewrote to the
+  *observable* consequence of INV-19 — subscription thrash — by wrapping
+  `store.subscribe` with a counter. That passes first run (the hook already passes
+  the bound `store.subscribe`). Deliberate-mutant: pass `(l) => store.subscribe(l)`
+  (fresh closure per render) for both reads ->
+  `pnpm exec vitest run apps/web-app/hooks/useTokenSlice.test.tsx` ->
+  `expect(subscribeCalls).toBe(afterMount)` fails `- 2 / + 6` at
+  `hooks/useTokenSlice.test.tsx:124:25` (re-subscribes on every rerender). Restored.
+- green: no behavioural change for the subscribe path.
+- refactor: wrapped the two getsnapshot closures in `useCallback([store, key])`
+  (INV-19: "stable getsnapshot closures / bound store methods") and passed the same
+  closure as both client and server snapshot. A per-render closure would not
+  re-subscribe (`subscribe` is the only effect dep) but churns the per-render
+  snapshot comparison; closure identity itself has no independent runtime observable
+  in jsdom (ESM namespace is unspyable), so it rides on this cycle's thrash test
+  plus the refactor. Full suite `pnpm exec vitest run` -> 112 files, 535 passed
+  (~23s); `pnpm build` tsc clean; biome clean.
+- notes: appended **U36a** to the list — the deferred (cycle 41) real
+  `getServerSnapshot` coverage: a `useTokenSlice` consumer under `renderToString`.
+  T013/T014 still open until U36a lands.
+- commit: this entry's commit

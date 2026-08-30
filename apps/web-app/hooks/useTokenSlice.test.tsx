@@ -99,3 +99,27 @@ test("a commit to an unrelated key leaves this slice's identity intact and does 
 	expect(result.current.error).toBe(errorBefore);
 	expect(renders).toBe(rendersAfterMount);
 });
+
+test("subscribes to the store once and never re-subscribes as the consumer re-renders", () => {
+	const store = makeStore();
+	let subscribeCalls = 0;
+	const realSubscribe = store.subscribe;
+	(store as { subscribe: typeof store.subscribe }).subscribe = (listener) => {
+		subscribeCalls++;
+		return realSubscribe(listener);
+	};
+
+	const { rerender } = renderHook(() => useTokenSlice("g.x"), {
+		wrapper: wrapperFor(store),
+	});
+
+	// one subscription per useSyncExternalStore read (fields + error), set up once
+	const afterMount = subscribeCalls;
+	expect(afterMount).toBe(2);
+
+	rerender();
+	rerender();
+
+	// a stable `subscribe` reference means the effect never tears down and re-runs
+	expect(subscribeCalls).toBe(afterMount);
+});
