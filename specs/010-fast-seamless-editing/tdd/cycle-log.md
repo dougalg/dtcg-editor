@@ -376,3 +376,15 @@ existed and failed before the implementation.
   514 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 24: U17 validate is a pure candidate check
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::validate reports errors for a candidate draft without writing anything` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "validate reports errors"`
+  -> `TypeError: store.validate is not a function`
+- green: `validate(key, draft)` returns `{ name: #validateDraftName(...), value:
+  #validateDraftValue(...) }` with no writes.
+- refactor: `commit` now delegates to `this.validate(key, draft)` instead of calling
+  the two private validators directly — suite re-run green (515).
+- full suite `pnpm exec vitest run` -> 109 files, 515 passed (~21s)
+- commit: `<pending>`

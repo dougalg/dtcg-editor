@@ -156,6 +156,18 @@ export class StagedEditsStore {
 	};
 
 	/**
+	 * Validate a candidate draft and return the resulting `FieldErrors` without
+	 * writing anything — for a field that wants an inline error while typing,
+	 * separate from `commit`'s validate-and-stage.
+	 */
+	validate = (key: PathKey, draft: Partial<EditableFields>): FieldErrors => {
+		return {
+			name: this.#validateDraftName(key, draft),
+			value: this.#validateDraftValue(key, draft),
+		};
+	};
+
+	/**
 	 * The staged edits, as a fresh array — for `save()` only. Never a
 	 * `useSyncExternalStore` snapshot: a new array every call would make the
 	 * hook re-render forever.
@@ -207,10 +219,9 @@ export class StagedEditsStore {
 	 * is left intact (INV-1).
 	 */
 	commit = (key: PathKey, draft: Partial<EditableFields>): boolean => {
-		const nameError = this.#validateDraftName(key, draft);
-		const valueError = this.#validateDraftValue(key, draft);
-		if (nameError !== undefined || valueError !== undefined) {
-			this.#errors.set(key, { name: nameError, value: valueError });
+		const errors = this.validate(key, draft);
+		if (errors.name !== undefined || errors.value !== undefined) {
+			this.#errors.set(key, errors);
 			this.#fieldsCache.delete(key);
 			return false;
 		}

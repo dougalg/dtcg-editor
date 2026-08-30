@@ -73,6 +73,22 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("validate reports errors for a candidate draft without writing anything", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+
+	const errors = store.validate("space.sm", { value: "not-a-dimension" });
+
+	assert.ok(errors.value);
+	assert.equal(store.getError("space.sm"), undefined);
+	assert.equal(store.getHasPending(), false);
+});
+
 test("reportError records a component-supplied error without staging anything", () => {
 	const store = makeStore(
 		group("", [
