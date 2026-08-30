@@ -22,6 +22,24 @@ function options() {
 	};
 }
 
+test("useStagedEdits threads the injected save through to the store", async () => {
+	let savedWith: unknown;
+	const { result } = renderHook(() =>
+		useStagedEdits({
+			initialTree: EMPTY_TREE,
+			referenceView: undefined,
+			save: async (edits) => {
+				savedWith = edits;
+				return true;
+			},
+		}),
+	);
+
+	await result.current.save();
+
+	expect(savedWith).toEqual([]);
+});
+
 test("useStagedEdits makes one store per mount and keeps it across re-renders", () => {
 	const first = renderHook(() => useStagedEdits(options()));
 	const storeOnMount = first.result.current;

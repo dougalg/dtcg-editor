@@ -604,3 +604,17 @@ and unaltered.
   (INV-5). Full suite `pnpm exec vitest run` -> 111 files, 530 passed (~21s)
 - refactor: none needed
 - commit: this entry's commit
+
+## Cycle 40: U32 useStagedEdits threads the injected save
+
+- test: `apps/web-app/hooks/useStagedEdits.test.tsx::useStagedEdits threads the injected save through to the store` (new)
+- red: passes with cycle-39's `new StagedEditsStore(options)`. Deliberate-mutant:
+  `new StagedEditsStore({ ...options, save: async () => true })` -> `AssertionError:
+  expected undefined to deeply equal []` (the injected save was never called). Restored.
+- green: no production change — the hook passes `options` (incl. `save`) straight to the
+  constructor (Principle VI). Full suite `pnpm exec vitest run` -> 111 files, 531 passed (~21s)
+- refactor: none needed
+- notes: the "store module imports no fetcher" half of U32 is U14. The data-model's
+  "default: useSaveTokenEdits's call" is satisfied by `TokenTree` injecting it
+  explicitly (T015) rather than a hidden default in the hook.
+- commit: this entry's commit
