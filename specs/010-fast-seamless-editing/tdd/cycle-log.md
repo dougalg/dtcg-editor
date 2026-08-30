@@ -303,3 +303,17 @@ existed and failed before the implementation.
   use only (for `save()`), never a subscribed snapshot (INV-3). Full suite -> 109 files, 508 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 18: U11 save folds the overlay into the base tree once
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::save applies the staged edits into the base tree once, then clears the overlay` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "save applies the staged edits"`
+  -> `TypeError: store.save is not a function`
+- green: `apps/web-app/lib/tokens/staged-edits-store.ts` — store the injected `#save`;
+  `save()` awaits `#save(getEdits())` and, on success, `#tree = applyEditsToPlainNode(#tree, edits)`
+  (once), clears `#pending`/`#errors`, rebuilds the index, clears `#fieldsCache` (INV-7).
+- refactor: extracted the index rebuild (constructor + save) into `#rebuildIndex()`;
+  suite re-run green. Full suite `pnpm exec vitest run` -> 109 files, 509 passed (~21s)
+- notes: subscriber notification (`#emit` on `commit`/`save`) is not wired yet —
+  `subscribe` is still the U1 no-op stub; appended **U76** to the list for it.
+- commit: `<pending>`

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
+import type { ClientEdit } from "./edit-state.ts";
 import type { PlainDtcgNode } from "./plain-node.ts";
 import { StagedEditsStore } from "./staged-edits-store.ts";
 
@@ -70,6 +71,30 @@ test("getFields returns a token's base fields, and the same object on repeated r
 		type: "dimension",
 	});
 	assert.equal(store.getFields("space.sm"), fields);
+});
+
+test("save applies the staged edits into the base tree once, then clears the overlay", async () => {
+	const saveCalls: (readonly ClientEdit[])[] = [];
+	const store = new StagedEditsStore({
+		initialTree: group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+		referenceView: undefined,
+		save: async (edits) => {
+			saveCalls.push(edits);
+			return true;
+		},
+	});
+	store.commit("space.sm", { value: { value: 8, unit: "px" } });
+
+	const ok = await store.save();
+
+	assert.equal(ok, true);
+	assert.equal(saveCalls.length, 1);
+	assert.equal(store.getHasPending(), false);
+	assert.deepEqual(store.getFields("space.sm").value, { value: 8, unit: "px" });
 });
 
 test("getEdits returns a fresh array of the staged edits on each call", () => {

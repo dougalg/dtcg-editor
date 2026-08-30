@@ -1,7 +1,11 @@
 import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
 import { resolveBuiltInContract } from "../token-editors/built-in.ts";
 import type { ClientEdit } from "./edit-state.ts";
-import { checkRenameAvailable, findSiblings } from "./edit-state.ts";
+import {
+	applyEditsToPlainNode,
+	checkRenameAvailable,
+	findSiblings,
+} from "./edit-state.ts";
 import type { PlainDtcgNode } from "./plain-node.ts";
 import type { TokenReferenceView } from "./reference-index.ts";
 
@@ -107,10 +111,17 @@ export class StagedEditsStore {
 	#pending = new Map<PathKey, ClientEdit>();
 	#errors = new Map<PathKey, FieldErrors>();
 	#fieldsCache = new Map<PathKey, EditableFields>();
+	#save: StagedEditsStoreOptions["save"];
 
 	constructor(options: StagedEditsStoreOptions) {
 		this.#tree = options.initialTree;
+		this.#save = options.save;
 		this.#index = new Map();
+		this.#rebuildIndex();
+	}
+
+	#rebuildIndex(): void {
+		this.#index.clear();
 		indexByPath(this.#tree, this.#index);
 	}
 
@@ -151,6 +162,25 @@ export class StagedEditsStore {
 	 */
 	getEdits = (): readonly ClientEdit[] => {
 		return Array.from(this.#pending.values());
+	};
+
+	/**
+	 * Persist the staged edits through the injected `save`. On success the
+	 * overlay is folded into the base tree by a single `applyEditsToPlainNode`,
+	 * `#pending` / `#errors` are cleared, and the index + caches are rebuilt
+	 * (INV-7). `#tree` changes here and nowhere else.
+	 */
+	save = async (): Promise<boolean> => {
+		const edits = this.getEdits();
+		const ok = await this.#save(edits);
+		if (ok) {
+			this.#tree = applyEditsToPlainNode(this.#tree, edits);
+			this.#pending.clear();
+			this.#errors.clear();
+			this.#rebuildIndex();
+			this.#fieldsCache.clear();
+		}
+		return ok;
 	};
 
 	/**
