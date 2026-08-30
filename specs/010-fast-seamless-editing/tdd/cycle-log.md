@@ -178,3 +178,17 @@ existed and failed before the implementation.
   references (INV-2 / INV-19). Full suite `pnpm exec vitest run` -> 109 files, 499 passed (~25s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 9: U2 getFields returns cached base fields for a token
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::getFields returns a token's base fields, and the same object on repeated reads` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "getFields returns a token's base fields"`
+  -> `TypeError: store.getFields is not a function`
+- green: `apps/web-app/lib/tokens/staged-edits-store.ts` — add `PathKey` / `EditableFields`
+  types, build `#index: Map<PathKey, PlainDtcgNode>` at construction, and
+  `getFields(key)` returning `{ name, value, description, type? }` behind a
+  `#fieldsCache` so repeated reads are reference-stable (INV-3). Base-only for now;
+  the pending overlay lands with `commit` (U4). Full suite `pnpm exec vitest run`
+  -> 109 files, 500 passed (~23s)
+- refactor: none needed
+- commit: `<pending>`

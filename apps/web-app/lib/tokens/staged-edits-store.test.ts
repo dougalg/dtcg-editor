@@ -52,3 +52,22 @@ test("StagedEditsStore read methods are bound and callable when destructured off
 	assert.ok(getTree());
 	unsubscribe();
 });
+
+test("getFields returns a token's base fields, and the same object on repeated reads", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+
+	const fields = store.getFields("space.sm");
+	assert.deepEqual(fields, {
+		name: "sm",
+		value: { value: 4, unit: "px" },
+		description: "",
+		type: "dimension",
+	});
+	assert.equal(store.getFields("space.sm"), fields);
+});
