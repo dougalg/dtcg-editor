@@ -576,3 +576,20 @@ and unaltered.
 - refactor: none needed — `discard`/`save` keep their whole-cache clear for now (safe,
   just less optimal)
 - commit: this entry's commit
+
+## Cycle 38: U20 getResolvedPreview cache lifecycle
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::getResolvedPreview is cached across reads; save clears the whole preview cache` (new)
+- red: a first draft (commit `g.a` then check `g.b`) passed even with `save`'s
+  `#previewCache.clear()` removed — `commit`'s scoped invalidation already covered that
+  key. Rewrote to read an **unrelated, never-committed** token `g.y`, commit `g.x`
+  (assert `g.y` still cached), then `save` (assert `g.y` rebuilt). Deliberate-mutant:
+  removing `#previewCache.clear()` from `save` -> `AssertionError: Expected "actual"
+  not to be reference-equal` (g.y stayed cached after save). Restored.
+- green: no production change — `getResolvedPreview` already caches (cycle 36) and
+  `save` already clears the whole cache (cycle 36). Full suite `pnpm exec vitest run`
+  -> 110 files, 529 passed (~21s)
+- refactor: none needed
+- notes: **U18–U20 done — the store's preview subsystem is complete** (bar the real
+  `TokenReferenceView` → `#serverPreview` conversion, tracked as U78).
+- commit: this entry's commit

@@ -42,6 +42,30 @@ function makeStore(tree: PlainDtcgNode = group("", [])): StagedEditsStore {
 	});
 }
 
+test("getResolvedPreview is cached across reads; save clears the whole preview cache", async () => {
+	const store = new StagedEditsStore({
+		initialTree: group("", [
+			group("g", [
+				dimensionToken(["g", "x"], { value: 1, unit: "px" }),
+				dimensionToken(["g", "y"], { value: 2, unit: "px" }),
+			]),
+		]),
+		referenceView: undefined,
+		save: async () => true,
+	});
+
+	const yBefore = store.getResolvedPreview("g.y");
+	assert.equal(store.getResolvedPreview("g.y"), yBefore);
+
+	// An edit to an unrelated token leaves y's cached preview alone…
+	store.commit("g.x", { value: { value: 9, unit: "px" } });
+	assert.equal(store.getResolvedPreview("g.y"), yBefore);
+
+	// …but a save rebuilds the base tree, so every cached preview is dropped.
+	await store.save();
+	assert.notEqual(store.getResolvedPreview("g.y"), yBefore);
+});
+
 test("commit invalidates the preview cache for only the edited key and its dependents", () => {
 	const store = makeStore(
 		group("", [
