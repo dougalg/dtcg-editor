@@ -388,3 +388,24 @@ existed and failed before the implementation.
   the two private validators directly — suite re-run green (515).
 - full suite `pnpm exec vitest run` -> 109 files, 515 passed (~21s)
 - commit: `<pending>`
+
+## Cycle 25: U21 + U76 subscriber notification
+
+- **U21** (`getServerSnapshot`-equivalent stable at construction) — already covered by
+  U2's test (`getFields ... same object on repeated reads`), which reads identity at
+  construction before any commit. Marked DONE, no new cycle.
+- **U76** — the store notifies subscribers after commit / save.
+  - test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::the store notifies subscribers after a state-changing commit and after save` (new)
+  - red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "notifies subscribers after a state-changing commit"`
+    -> `AssertionError: Expected values to be strictly equal` (`notifications` stayed 0 —
+    `subscribe` was the U1 no-op stub)
+  - green: `#listeners: Set<() => void>`; real `subscribe` (add + return delete); private
+    `#emit()`; call it from `commit` (both the reject and stage paths) and from
+    `save()` on success. `unsubscribe()` removes the listener. Full suite
+    `pnpm exec vitest run` -> 109 files, 516 passed (~21s)
+  - refactor: none needed
+  - notes: a no-op successful `commit` also `#emit()`s (list text says "changed state");
+    harmless — `useSyncExternalStore` compares snapshots, which are unchanged, so no
+    re-render. Tightening to emit-only-if-changed is not worth a cycle. `discard` /
+    `reportError` do NOT emit yet — appended **U77** for that.
+- commit: `<pending>`

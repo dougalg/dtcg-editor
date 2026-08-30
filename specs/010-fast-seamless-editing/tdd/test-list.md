@@ -89,7 +89,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | U18 | `getEffectiveNode` / the resolver / `#reverseDeps` never observe a row's local `draft` — only committed intent | INV-8, C-LR-9 | example | PENDING | `staged-edits-store.test.ts` |
 | U19 | After `commit(P, …)` that changed `name`/`value`, `#previewCache` is invalidated for exactly `{P} ∪ reverseDeps(P)` and no other key | INV-17, C-LR-2 | example | PENDING | `staged-edits-store.test.ts` |
 | U20 | `getResolvedPreview` results are cached: repeated calls with unchanged inputs return the same reference; `save()` clears the cache | INV-3 | example | PENDING | `staged-edits-store.test.ts` |
-| U21 | `getServerSnapshot`-equivalent reads (base-derived, no pending) return a stable reference at first construction | INV-3 | example | PENDING | `staged-edits-store.test.ts` |
+| U21 | `getServerSnapshot`-equivalent reads (base-derived, no pending) return a stable reference at first construction | INV-3 | example | DONE | covered by U2 — `apps/web-app/lib/tokens/staged-edits-store.test.ts::getFields returns a token's base fields, and the same object on repeated reads` (asserts identity at construction, before any commit) |
 
 ### `apps/web-app/lib/tokens/preview-resolver.ts` (NEW)
 
@@ -197,7 +197,8 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | U73 | Within the first 20 tokens of the file (document order) there is ≥1 token of every editable dispatch path: a valid `color`, a valid `dimension`, a `{reference}` value, a token whose `$type` has no registered editor, and a token whose value is invalid for its `$type` | C-MB-7, SC-003 | example | DONE | `apps/web-app/scripts/generate-large-fixture.test.ts::generateLargeFixture puts one token of every editable dispatch path in the first 20` |
 | U74 | The generator writes the fixture to a caller-supplied path only through an injected file-writer (Principle VI); calling the pure `generateLargeFixture` performs no I/O | Principle VI, INV-15 | example | DONE | `apps/web-app/scripts/generate-large-fixture.test.ts::writeLargeFixture serializes the pure output through an injected writer` |
 | U75 | Every non-showcase generated token holds a value that is valid for its declared `$type` (so the bulk fixture rows drive the real editors, not the error path) — the `_showcase` group's deliberate `exotic`/`broken` tokens are exempt | C-MB-7, SC-001, SC-003 | example | DONE | `apps/web-app/scripts/generate-large-fixture.test.ts::every non-showcase generated token holds a value valid for its declared $type` |
-| U76 | The store calls every registered subscriber after a `commit` that changed state and after a successful `save()` (so `useSyncExternalStore` re-reads) | INV-2 | example | PENDING | `staged-edits-store.test.ts` |
+| U76 | The store calls every registered subscriber after a `commit` and after a successful `save()` (so `useSyncExternalStore` re-reads); `subscribe` returns a working unsubscribe | INV-2 | example | DONE | `apps/web-app/lib/tokens/staged-edits-store.test.ts::the store notifies subscribers after a state-changing commit and after save` |
+| U77 | `discard(P)` and `reportError(P, …)` also notify subscribers | INV-2 | example | PENDING | `staged-edits-store.test.ts` |
 
 ### `apps/web-app/e2e/support/stability.ts` (NEW)
 

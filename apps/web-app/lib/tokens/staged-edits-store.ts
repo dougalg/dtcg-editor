@@ -111,6 +111,7 @@ export class StagedEditsStore {
 	#pending = new Map<PathKey, ClientEdit>();
 	#errors = new Map<PathKey, FieldErrors>();
 	#fieldsCache = new Map<PathKey, EditableFields>();
+	#listeners = new Set<() => void>();
 	#save: StagedEditsStoreOptions["save"];
 
 	constructor(options: StagedEditsStoreOptions) {
@@ -125,9 +126,18 @@ export class StagedEditsStore {
 		indexByPath(this.#tree, this.#index);
 	}
 
-	subscribe = (_listener: () => void): (() => void) => {
-		return () => {};
+	subscribe = (listener: () => void): (() => void) => {
+		this.#listeners.add(listener);
+		return () => {
+			this.#listeners.delete(listener);
+		};
 	};
+
+	#emit(): void {
+		for (const listener of this.#listeners) {
+			listener();
+		}
+	}
 
 	getTree = (): PlainDtcgNode => {
 		return this.#tree;
@@ -207,6 +217,7 @@ export class StagedEditsStore {
 			this.#errors.clear();
 			this.#rebuildIndex();
 			this.#fieldsCache.clear();
+			this.#emit();
 		}
 		return ok;
 	};
@@ -223,6 +234,7 @@ export class StagedEditsStore {
 		if (errors.name !== undefined || errors.value !== undefined) {
 			this.#errors.set(key, errors);
 			this.#fieldsCache.delete(key);
+			this.#emit();
 			return false;
 		}
 		this.#errors.delete(key);
@@ -237,6 +249,7 @@ export class StagedEditsStore {
 			});
 		}
 		this.#fieldsCache.delete(key);
+		this.#emit();
 		return true;
 	};
 

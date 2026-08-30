@@ -42,6 +42,32 @@ function makeStore(tree: PlainDtcgNode = group("", [])): StagedEditsStore {
 	});
 }
 
+test("the store notifies subscribers after a state-changing commit and after save", async () => {
+	const store = new StagedEditsStore({
+		initialTree: group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+		referenceView: undefined,
+		save: async () => true,
+	});
+	let notifications = 0;
+	const unsubscribe = store.subscribe(() => {
+		notifications++;
+	});
+
+	store.commit("space.sm", { value: { value: 8, unit: "px" } });
+	assert.equal(notifications, 1);
+
+	await store.save();
+	assert.equal(notifications, 2);
+
+	unsubscribe();
+	store.commit("space.sm", { description: "no longer listening" });
+	assert.equal(notifications, 2);
+});
+
 test("StagedEditsStore read methods are bound and callable when destructured off the instance", () => {
 	const store = makeStore();
 
