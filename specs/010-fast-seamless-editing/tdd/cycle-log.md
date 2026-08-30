@@ -252,3 +252,20 @@ existed and failed before the implementation.
   `getHasPending` to observe "nothing staged". `discard` / `save` sides of the
   boundary come with those cycles.
 - commit: `<pending>`
+
+## Cycle 14: U6 commit with an unchanged value stages nothing
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::commit with the token's current value stages nothing` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "current value stages nothing"`
+  -> `AssertionError: true !== false` — `getHasPending()` was `true` after committing
+  the token's own current value
+- green: `apps/web-app/lib/tokens/staged-edits-store.ts` — add `sameValue` (JSON-equality,
+  fine for plain-JSON DTCG values) and `changedFields(draft, current)`; `commit` now
+  stages only the fields that differ from the current effective value, and skips
+  `#pending.set` entirely when nothing changed. This also delivers U4's "stages only
+  the changed fields". Full suite `pnpm exec vitest run` -> 109 files, 505 passed (~21s)
+- refactor: none needed
+- notes: the revert-an-existing-pending-back-to-base case (draft matches base while a
+  pending edit exists for that field) is not yet handled — deferred; `discard` (U15)
+  is the clean "drop the pending" path.
+- commit: `<pending>`

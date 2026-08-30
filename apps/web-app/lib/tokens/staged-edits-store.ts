@@ -31,6 +31,34 @@ function pathKey(path: readonly string[]): PathKey {
 	return path.join(".");
 }
 
+function sameValue(a: unknown, b: unknown): boolean {
+	return a === b || JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** The subset of `draft` whose values actually differ from `current`. */
+function changedFields(
+	draft: Partial<EditableFields>,
+	current: EditableFields,
+): Partial<EditableFields> {
+	const changed: Partial<EditableFields> = {};
+	if ("value" in draft && !sameValue(draft.value, current.value)) {
+		changed.value = draft.value;
+	}
+	if (draft.name !== undefined && draft.name !== current.name) {
+		changed.name = draft.name;
+	}
+	if (
+		draft.description !== undefined &&
+		draft.description !== current.description
+	) {
+		changed.description = draft.description;
+	}
+	if (draft.type !== undefined && draft.type !== current.type) {
+		changed.type = draft.type;
+	}
+	return changed;
+}
+
 /** Base node fields with the pending edit (if any) laid over the top. */
 function mergeFields(
 	key: PathKey,
@@ -130,7 +158,16 @@ export class StagedEditsStore {
 			return false;
 		}
 		this.#errors.delete(key);
-		this.#pending.set(key, { path: key.split("."), ...draft });
+		const existing = this.#pending.get(key);
+		const current = mergeFields(key, this.#index.get(key), existing);
+		const changed = changedFields(draft, current);
+		if (Object.keys(changed).length > 0) {
+			this.#pending.set(key, {
+				path: key.split("."),
+				...existing,
+				...changed,
+			});
+		}
 		this.#fieldsCache.delete(key);
 		return true;
 	};
