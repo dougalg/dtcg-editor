@@ -26,6 +26,20 @@ function nodesByKey(
 
 const NO_SERVER_PREVIEW = new Map<string, ResolvedValue>();
 
+test("resolvePreview follows a multi-hop in-file chain to the final value", () => {
+	const nodes = nodesByKey({
+		a: token(["a"], { value: 4, unit: "px" }),
+		b: token(["b"], "{a}"),
+		c: token(["c"], "{b}"),
+	});
+
+	assert.deepEqual(resolvePreview("c", nodes, NO_SERVER_PREVIEW), {
+		kind: "value",
+		value: { value: 4, unit: "px" },
+		via: ["b", "a"],
+	});
+});
+
 test("resolvePreview returns a literal value with an empty via chain", () => {
 	const nodes = nodesByKey({
 		"space.sm": token(["space", "sm"], { value: 4, unit: "px" }),

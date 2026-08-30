@@ -96,7 +96,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
 | U22 | `resolvePreview` on a literal value returns `{ kind: "value", value, via: [] }` | data-model §6 | example | DONE | `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview returns a literal value with an empty via chain` |
-| U23 | `resolvePreview` on `C → {B}`, `B → {A}` (all in-file) returns `A`'s resolved value for both `B` and `C`, with `via` listing the chain | C-LR-3 | example | PENDING | `preview-resolver.test.ts` |
+| U23 | `resolvePreview` on `C → {B}`, `B → {A}` (all in-file) returns `A`'s resolved value for both `B` and `C`, with `via` listing the chain | C-LR-3 | example | DONE | `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview follows a multi-hop in-file chain to the final value` |
 | U24 | `resolvePreview` on a reference whose in-file target does not exist returns `{ kind: "unresolved", ref }` | C-LR-5 | example | PENDING | `preview-resolver.test.ts` |
 | U25 | `resolvePreview` on a hop to a key **not in the file index** returns `serverPreview.get(x)` unchanged | INV-18, C-LR-7 | example | PENDING | `preview-resolver.test.ts` |
 | U26 | `resolvePreview` on a cycle (`A → {B}`, `B → {A}`) returns `{ kind: "cycle", ref }` in bounded time and never throws | INV-16, C-LR-6 | example | PENDING | `preview-resolver.test.ts` |

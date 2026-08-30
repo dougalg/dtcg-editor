@@ -24,12 +24,25 @@ export function resolvePreview(
 	getEffectiveNode: (key: PathKey) => PlainDtcgNode | undefined,
 	serverPreview: ReadonlyMap<PathKey, ResolvedValue>,
 ): ResolvedValue {
+	return resolveFrom(key, getEffectiveNode, serverPreview, []);
+}
+
+function resolveFrom(
+	key: PathKey,
+	getEffectiveNode: (key: PathKey) => PlainDtcgNode | undefined,
+	serverPreview: ReadonlyMap<PathKey, ResolvedValue>,
+	via: readonly PathKey[],
+): ResolvedValue {
 	const node = getEffectiveNode(key);
 	const value = node?.kind === "token" ? node.value : undefined;
 	const ref = parseReference(value);
 	if (ref === undefined) {
-		return { kind: "value", value, via: [] };
+		return { kind: "value", value, via };
 	}
-	// Reference following is added by U23–U26.
-	return { kind: "unresolved", ref: ref.raw };
+
+	const targetKey = ref.targetPath.join(".");
+	return resolveFrom(targetKey, getEffectiveNode, serverPreview, [
+		...via,
+		targetKey,
+	]);
 }

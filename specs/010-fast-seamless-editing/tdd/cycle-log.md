@@ -434,3 +434,16 @@ existed and failed before the implementation.
   Full suite `pnpm exec vitest run` -> 110 files, 518 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 28: U23 resolvePreview follows a multi-hop chain
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview follows a multi-hop in-file chain to the final value` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/preview-resolver.test.ts -t "multi-hop in-file chain"`
+  -> `AssertionError: kind: 'unresolved' (expected 'value')` — the reference branch was
+  a stub
+- green: `resolvePreview` delegates to a recursive `resolveFrom(key, ..., via)` that, on
+  a `{x}` value, recurses on `x` and appends it to `via`. Full suite
+  `pnpm exec vitest run` -> 110 files, 519 passed (~21s)
+- refactor: none needed — `resolveFrom` is the recursion carrier
+- notes: plain recursion for now; the `visited` cycle guard is U26.
+- commit: `<pending>`
