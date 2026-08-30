@@ -52,7 +52,8 @@ function changedFields(
 	draft: Partial<EditableFields>,
 	current: EditableFields,
 ): Partial<EditableFields> {
-	const changed: Partial<EditableFields> = {};
+	const changed: { -readonly [K in keyof EditableFields]?: EditableFields[K] } =
+		{};
 	if ("value" in draft && !sameValue(draft.value, current.value)) {
 		changed.value = draft.value;
 	}

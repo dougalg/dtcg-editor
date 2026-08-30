@@ -73,9 +73,11 @@ test("writeLargeFixture serializes the pure output through an injected writer", 
 	});
 
 	assert.equal(writes.length, 1);
-	assert.equal(writes[0].path, "e2e/fixtures/tokens/large_scale.tokens.json");
+	const [write] = writes;
+	assert.ok(write);
+	assert.equal(write.path, "e2e/fixtures/tokens/large_scale.tokens.json");
 	assert.deepEqual(
-		JSON.parse(writes[0].contents),
+		JSON.parse(write.contents),
 		generateLargeFixture({ seed: SEED }),
 	);
 });
