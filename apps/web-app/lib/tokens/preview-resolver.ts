@@ -73,12 +73,14 @@ export function buildReverseDeps(
 			!seen.has(target)
 		) {
 			seen.add(target);
-			let set = reverse.get(target);
-			if (set === undefined) {
-				set = new Set();
-				reverse.set(target, set);
+			if (target !== referrer) {
+				let set = reverse.get(target);
+				if (set === undefined) {
+					set = new Set();
+					reverse.set(target, set);
+				}
+				set.add(referrer);
 			}
-			set.add(referrer);
 			target = collected.edges.get(target);
 		}
 	}

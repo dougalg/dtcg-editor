@@ -508,3 +508,16 @@ existed and failed before the implementation.
   `pnpm exec vitest run` -> 110 files, 524 passed (~21s)
 - refactor: none needed — the `seen` set in the chain walk also guards cycles (U29)
 - commit: `<pending>`
+
+## Cycle 34: U29 buildReverseDeps terminates on cycles
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::buildReverseDeps terminates on a cyclic reference graph` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/preview-resolver.test.ts -t "terminates on a cyclic reference graph"`
+  -> `× buildReverseDeps terminates on a cyclic reference graph` (assertion failure) — the
+  chain wrapped `a->{b}->{a}` and listed each token as its own referrer
+  (`reverse.get("a") == {a, b}`, expected `{b}`)
+- green: skip `set.add(referrer)` when `target === referrer`. The `seen` guard already
+  bounded the loop; this fixes the *contents* for a cycle. Full suite
+  `pnpm exec vitest run` -> 110 files, 525 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`

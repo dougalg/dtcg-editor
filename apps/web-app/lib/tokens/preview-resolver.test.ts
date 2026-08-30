@@ -43,6 +43,15 @@ function nodesByKey(
 
 const NO_SERVER_PREVIEW = new Map<string, ResolvedValue>();
 
+test("buildReverseDeps terminates on a cyclic reference graph", () => {
+	const tree = group("", [token(["a"], "{b}"), token(["b"], "{a}")]);
+
+	const deps = buildReverseDeps(tree, NO_SERVER_PREVIEW);
+
+	assert.deepEqual(new Set(deps.get("a")), new Set(["b"]));
+	assert.deepEqual(new Set(deps.get("b")), new Set(["a"]));
+});
+
 test("buildReverseDeps maps each target to its transitive in-file referrers", () => {
 	const tree = group("", [
 		token(["a"], { value: 1, unit: "px" }),
