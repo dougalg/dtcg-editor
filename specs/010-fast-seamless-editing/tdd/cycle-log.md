@@ -328,3 +328,13 @@ existed and failed before the implementation.
 - green: no production change. Full suite `pnpm exec vitest run` -> 109 files, 510 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 20: U13 a failed save leaves state intact
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::a failed save leaves the overlay and tree untouched and returns false` (new)
+- red: passes with the cycle-18 `if (ok)` guard. Deliberate-mutant check: changing
+  `if (ok)` to `if (true)` -> `AssertionError: Expected values to be strictly equal`
+  (a failed save cleared pending / rebuilt the tree). Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 109 files, 511 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`

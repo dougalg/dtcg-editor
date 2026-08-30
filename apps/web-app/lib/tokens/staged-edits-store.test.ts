@@ -73,6 +73,26 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("a failed save leaves the overlay and tree untouched and returns false", async () => {
+	const store = new StagedEditsStore({
+		initialTree: group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+		referenceView: undefined,
+		save: async () => false,
+	});
+	store.commit("space.sm", { value: { value: 8, unit: "px" } });
+	const treeBefore = store.getTree();
+
+	const ok = await store.save();
+
+	assert.equal(ok, false);
+	assert.equal(store.getHasPending(), true);
+	assert.equal(store.getTree(), treeBefore);
+});
+
 test("commit leaves getTree identity unchanged; only save rebuilds the tree", async () => {
 	const store = new StagedEditsStore({
 		initialTree: group("", [
