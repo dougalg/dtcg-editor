@@ -24,9 +24,9 @@ polish. On its own this delivers a usable, pleasant editing loop.
 
 **Independent Test**: Open a token, change its value, and commit. Verify (a) the updated
 value is visible effectively instantly with no loading indicator, (b) keyboard focus is
-still on the same control, (c) the text caret is in the same place, (d) the token tree and
-the editor panel have not scrolled, and (e) no region of the page outside the edited field
-and its own validation area changed size or position.
+still on the same control, (c) the text caret is in the same place, (d) the token tree has
+not scrolled, and (e) no region of the page outside the edited field and its own validation
+area changed size or position.
 
 **Acceptance Scenarios**:
 
@@ -35,18 +35,17 @@ and its own validation area changed size or position.
    the new value is shown within the "instant" threshold, no spinner or skeleton appears,
    and focus remains on that control with the caret position preserved.
 2. **Given** the user has scrolled partway down a large token tree and opened a token,
-   **When** they commit a value edit, **Then** neither the tree nor the editor panel scrolls
-   and the same set of rows stays visible.
-3. **Given** a token whose value is referenced (aliased) by several other tokens, **When**
-   the user commits an edit to that token's value, **Then** the resolved-value previews of
-   the referencing tokens update in place without the tree visibly rebuilding, flashing, or
-   collapsing expanded groups.
-4. **Given** the user is typing quickly in a value field (or holding a key), **When** they
+   **When** they commit a value edit, **Then** the tree does not scroll and the same set of
+   rows stays visible.
+3. **Given** the user is typing quickly in a value field (or holding a key), **When** they
    continue for several seconds, **Then** no characters are dropped and the displayed text
    never falls visibly behind their typing.
-5. **Given** an edit produces an invalid value, **When** the validation message appears,
+4. **Given** an edit produces an invalid value, **When** the validation message appears,
    **Then** it appears in space already reserved for it and does not push other controls
    down or sideways.
+
+_(The former scenario 3 — referencing tokens' previews updating on commit — is delivered in
+User Story 3; see FR-001a / FR-011.)_
 
 ---
 
@@ -77,9 +76,9 @@ reading order.
    move between controls, **Then** no visible content change occurs other than the focus
    indicator moving, and the newly focused control is fully scrolled into view with its
    focus outline unclipped.
-2. **Given** focus is in the token tree, **When** the user tabs into the editor panel and
-   back out, **Then** the tree's scroll position and expanded/collapsed state are unchanged
-   and no rows re-render visibly.
+2. **Given** focus is on a token's name, **When** the user tabs forward through that token's
+   editable fields and back out, **Then** the tree's scroll position and expanded/collapsed
+   state are unchanged and no rows re-render visibly.
 3. **Given** a control that reveals supplementary UI on focus (e.g. a hint or a picker
    affordance), **When** it receives focus, **Then** that supplementary UI occupies space
    that was already reserved, so surrounding controls do not move.
@@ -92,37 +91,35 @@ reading order.
 
 ---
 
-### User Story 3 - Changes and selections stay local (Priority: P3)
+### User Story 3 - Edits stay local (Priority: P3)
 
-When the user selects a different token, or makes an edit that affects other tokens, the app
-updates only the parts of the screen that actually changed. Selecting token B after token A
-swaps the editor contents and moves the selection highlight, but the rest of the tree, the
-page header, and the file list stay visually still. An edit that changes a referenced value
-updates the affected previews and nothing else.
+When the user edits a token that other tokens depend on, the app updates only the parts of
+the screen that actually changed: the edited row and the resolved-value previews of the
+tokens that reference it. The rest of the tree, the group headers, the Save button, and the
+page header stay visually still, and expanded groups stay expanded.
 
 **Why this priority**: This is the "no unexpected re-renders" half of the request at the
 whole-page level. It matters for perceived quality and for performance on large documents,
 but the app is already usable once P1 and P2 hold; this removes the remaining churn.
 
-**Independent Test**: With a large document loaded, capture the rendered page, select a
-different token, and capture again. Verify the visual difference is confined to the editor
-panel and the selection highlight — the surrounding tree rows, header, and file list are
-pixel-stable. Repeat for an edit to a widely-referenced token, confirming the diff is
-confined to the referencing tokens' resolved previews.
+**Independent Test**: With a large document loaded, capture the rendered page, commit an
+edit to a token referenced by many others, and capture again. Verify the visual difference
+is confined to the edited row and the resolved-value previews of its referencing tokens —
+every other tree row, the group headers, the Save button, and the page header are
+pixel-stable, and expanded groups stay expanded.
 
 **Acceptance Scenarios**:
 
-1. **Given** a large token document with token A open, **When** the user selects token B,
-   **Then** only the editor panel content and the selection highlight change; the rest of
-   the tree, the header, and the file list do not shift, flash, or re-render visibly.
-2. **Given** token A is open, **When** the user selects token B, **Then** the token tree's
-   scroll position is preserved and any expanded groups remain expanded.
+1. **Given** a large token document, **When** the user commits an edit to token A's value,
+   **Then** only row A and the resolved-value previews of tokens referencing A change; the
+   rest of the tree, the group headers, the Save button, and the page header do not shift,
+   flash, or re-render visibly.
+2. **Given** a scrolled tree with expanded groups, **When** the user commits any edit,
+   **Then** the tree's scroll position and every group's expanded/collapsed state are
+   unchanged.
 3. **Given** a token referenced by many others, **When** its value is edited, **Then** the
    time to reflect the change on screen does not grow noticeably with the number of
    referencing tokens for documents within the supported size range.
-4. **Given** the user switches between the main app views (e.g. file list and token
-   editor), **When** the view changes, **Then** shared chrome that is present in both views
-   does not visibly rebuild or jump.
 
 ---
 
@@ -138,8 +135,9 @@ confined to the referencing tokens' resolved previews.
   undefined by this feature.
 - **Rapid consecutive edits**: fast typing, held keys, or quick successive commits must not
   queue up visible lag, drop input, or cause compounding re-renders.
-- **Validation state churn**: an error message appearing and then clearing on the next
-  keystroke must not cause the layout to bounce.
+- **Validation state churn**: an error message appearing on commit and clearing on the next
+  successful commit (or, for a field wired for live validation, on the next keystroke) must
+  not cause the layout to bounce — its space is reserved either way.
 - **Mode / theme change mid-edit**: switching resolver mode or light/dark theme while a
   field is focused must not discard an in-progress edit or move focus to the page body.
 - **Empty or single-token documents**: the stability guarantees still apply (no special
@@ -151,15 +149,15 @@ confined to the referencing tokens' resolved previews.
 
 ### Functional Requirements
 
-- **FR-001**: Committing a token value or name edit MUST reflect the new value in the
-  editor, and in any resolved-value previews visible on screen, within the "instant"
-  threshold defined in Success Criteria, with no loading indicator (spinner, skeleton,
-  disabled/greyed state) shown for the edit.
+- **FR-001**: Committing a token value or name edit MUST reflect the new value in that
+  token's own editor within the "instant" threshold defined in Success Criteria, with no
+  loading indicator (spinner, skeleton, disabled/greyed state) shown for the edit.
+- **FR-001a**: The same commit MUST update the resolved-value previews of tokens that
+  reference the edited token within the same threshold (delivered with FR-011).
 - **FR-002**: During and after an edit, keyboard focus MUST remain on a control (never fall
   back to the document body), and the text caret / selection position within a text control
   MUST be preserved across the commit.
-- **FR-003**: An edit MUST NOT change the scroll position of the token tree or the editor
-  panel.
+- **FR-003**: An edit MUST NOT change the scroll position of the token tree or the window.
 - **FR-004**: An edit MUST NOT cause any change in size or position of page regions other
   than the edited field and its own dedicated validation / feedback area.
 - **FR-005**: Moving focus with Tab / Shift+Tab (or arrow keys where a control uses them)
@@ -171,11 +169,12 @@ confined to the referencing tokens' resolved previews.
   by an overflow boundary, and not obscured by another element.
 - **FR-008**: When a focused control reveals supplementary UI (hints, affordances, helper
   text), that UI MUST occupy pre-reserved space so surrounding controls do not move.
-- **FR-009**: Selecting a different token MUST visibly update only the editor panel content
-  and the selection highlight; the remainder of the token tree, the page header, and the
-  file list MUST remain visually stationary (no shift, flash, or visible re-render).
-- **FR-010**: Selecting a different token, and tabbing between the tree and the editor, MUST
-  preserve the token tree's scroll position and its expanded/collapsed group state.
+- **FR-009**: Committing an edit MUST visibly update only the edited row and the
+  resolved-value previews of tokens that reference the edited token; the remainder of the
+  token tree, the group headers, the Save button, and the page header MUST remain visually
+  stationary (no shift, flash, or visible re-render).
+- **FR-010**: Committing an edit, and moving focus between rows and controls, MUST preserve
+  the token tree's scroll position and every group's expanded/collapsed state.
 - **FR-011**: Editing a token whose value is referenced by other tokens MUST update the
   resolved previews of the referencing tokens in place, without the tree rebuilding,
   flashing, or collapsing expanded groups.
@@ -185,11 +184,12 @@ confined to the referencing tokens' resolved previews.
   the displayed text MUST NOT visibly lag the user's input.
 - **FR-014**: Switching resolver mode or colour theme while a field is focused MUST NOT
   discard an in-progress edit or move focus to the document body.
-- **FR-015**: The performance and stability guarantees in FR-001 through FR-014 MUST hold
-  for documents up to the supported size defined in Assumptions; the feature MUST document
-  the measured baseline it is holding the app to.
-- **FR-016**: Switching between the app's main views MUST NOT cause shared chrome present in
-  both views to visibly rebuild or jump.
+- **FR-015**: The performance and stability guarantees in FR-001 through FR-014 (and FR-001a)
+  MUST hold for documents up to the supported size defined in Assumptions; the feature MUST
+  document the measured baseline it is holding the app to.
+- _FR-016 removed — navigation between `/` and a token file page is a full browser page
+  load, so there is no client-preserved shared chrome to keep stable. Out of scope, per
+  `research.md` §6._
 
 ### Non-Functional Requirements
 
@@ -212,9 +212,9 @@ confined to the referencing tokens' resolved previews.
   types the app currently supports editing, focus lands on a control at 100% of steps
   (never the document body), the focus indicator is fully visible at 100% of steps, and no
   element other than the focus indicator changes position at any step.
-- **SC-004**: Selecting a different token in a document of at least 1,000 tokens produces a
-  rendered-page change confined to the editor panel and the selection highlight; the tree
-  rows outside the selection, the header, and the file list are unchanged.
+- **SC-004**: Committing an edit in a document of at least 1,000 tokens produces a
+  rendered-page change confined to the edited row and the referencing tokens' resolved-value
+  previews; all other tree rows, the group headers, and the page header are unchanged.
 - **SC-005**: Editing a token referenced by at least 100 other tokens reflects on screen
   within the same 100 ms threshold as SC-001, and the tree does not visibly rebuild.
 - **SC-006**: During 5 seconds of sustained typing at ~10 characters per second in a value
@@ -247,6 +247,9 @@ confined to the referencing tokens' resolved previews.
 - The project's existing accessibility and end-to-end test tiers (component-level checks and
   whole-page / keyboard-flow checks) are the vehicle for the automated guards; no new
   testing framework is assumed.
+- Inline validation runs when a field is committed (blur / Enter / debounce), not on every
+  keystroke; a field MAY opt into live per-keystroke validation, but the reserved-space
+  guarantee (FR-012 / SC-002) holds regardless of timing.
 
 ## Dependencies
 

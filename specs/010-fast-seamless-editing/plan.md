@@ -42,12 +42,12 @@ The approach, in priority order matching the spec's user stories:
    component-level render-count guard, React-free store/resolver unit tests, and a committed
    baseline record (SC-008).
 
-**Spec-alignment note:** the spec's User Story 3 is written around "selecting a different
-token" swapping an editor panel. This app has no such panel — every token in a file is
-edited inline in one tree. The plan reads US3 as its faithful analog for this UI: *an edit
-or focus move in one row must not visibly re-render or shift any other row or the page
-chrome*. See `research.md` §6; worth a one-line `/speckit-clarify` touch-up to the spec but
-not a blocker.
+**Spec-alignment note:** this app has no token-selection / editor-panel / file-list-beside-tree
+model — every token in a file is edited inline in one tree. As of the `/speckit-analyze`
+pass, spec.md US3 / FR-009 / FR-010 / SC-004 are phrased in inline-tree terms (*an edit or a
+focus move in one row must not visibly re-render or shift any other row, the group headers,
+the Save button, or the page header*), and FR-016 (cross-view shared chrome) was removed as
+moot under full-page navigation. See `research.md` §6.
 
 ## Technical Context
 
@@ -88,7 +88,9 @@ production build), all wired through the single root `vitest.config.ts` `test.pr
 - No new runtime dependency without an Approved-Dependencies amendment (Principle VIII)
 
 **Scale/Scope**: One file's token tree per page; largest realistic hand-authored set
-~2,000 tokens; ~6 editable token types today (color, dimension, + fallback/generic)
+~2,000 tokens; today's editable dispatch paths: `color` and `dimension` (dedicated editors),
+`{reference}` values (read-only resolved view), untyped/unregistered types
+(`FallbackValueEditor`), and invalid values (read-only + error handler)
 
 ## Constitution Check
 

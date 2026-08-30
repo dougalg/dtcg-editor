@@ -243,8 +243,9 @@ inline; there is no selection/panel). The intent — "no unexpected re-renders e
 fully preserved by the row-isolation reading. Cross-**file** navigation is a full page load
 (`window.location.assign`) and out of scope for "moving around the page".
 
-**Follow-up (non-blocking)**: a one-line `/speckit-clarify` edit to spec US3 to phrase it in
-inline-tree terms. Implementation does not wait on it.
+**Resolved** (`/speckit-analyze` pass): spec.md US3 / FR-009 / FR-010 / SC-004 are now
+phrased in inline-tree terms, and FR-016 (cross-view shared chrome) — moot under full-page
+navigation — was removed. This section stands as the rationale for those edits.
 
 ## 7. Virtualization — decision gate (Principle VIII)
 

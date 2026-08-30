@@ -1,6 +1,6 @@
 # Contract: Keyboard & Layout Stability
 
-Maps to spec FR-005..FR-010, FR-012, FR-014, FR-016 and SC-002, SC-003, SC-004.
+Maps to spec FR-005..FR-010, FR-012, FR-014 and SC-002, SC-003, SC-004.
 
 ## C-KL-1 — Tab moves only the focus indicator
 
@@ -73,10 +73,5 @@ to `<body>` (FR-014).
 by a row re-rendering under the focus move (FR-005; covered by the render-isolation guarantee
 plus an `axe` clean check in the component a11y tests).
 
-## C-KL-10 — Switching app views doesn't rebuild shared chrome
-
-**Given** the user moves between the folder overview (`/`) and a token file page
-**When** the view changes
-**Then** chrome common to both (the `main.wrapper` shell, the page `<h1>` region) does not
-visibly rebuild or jump beyond the intended content swap (FR-016). Cross-**file** navigation
-remains a full page load and is out of scope.
+_(C-KL-10 removed with FR-016 — navigation between `/` and a token file page is a full
+browser page load, so there is no client-preserved shared chrome to hold stable.)_
