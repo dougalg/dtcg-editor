@@ -72,7 +72,10 @@ export function generateLargeFixture(
 					path !== HUB_PATH && leafIndex > 0 && leafIndex <= HUB_REFERRERS;
 				subgroup[`token-${l}`] = isReferrer
 					? { $type: "dimension", $value: `{${HUB_PATH}}` }
-					: { $type: "dimension", $value: `${Math.round(rand() * 64)}px` };
+					: {
+							$type: "dimension",
+							$value: { value: Math.round(rand() * 64), unit: "px" },
+						};
 				leafIndex++;
 			}
 			group[`sub-${s}`] = subgroup;

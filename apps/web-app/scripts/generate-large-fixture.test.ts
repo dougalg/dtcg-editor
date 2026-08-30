@@ -129,6 +129,21 @@ test("generateLargeFixture puts one token of every editable dispatch path in the
 	}
 });
 
+test("every non-showcase generated token holds a value valid for its declared $type", () => {
+	const { tokens } = walkTokens(generateLargeFixture({ seed: SEED }));
+
+	for (const { path, node } of tokens) {
+		if (path[0] === "_showcase") continue; // exempt: deliberate exotic/broken
+		const dispatch = dispatchPathOf(node);
+		assert.ok(
+			dispatch === "dimension" ||
+				dispatch === "color" ||
+				dispatch === "reference",
+			`${path.join(".")} classified as "${dispatch}" — bulk rows must drive a real editor`,
+		);
+	}
+});
+
 test("generateLargeFixture output has a token referenced by at least 100 other tokens", () => {
 	const { tokens } = walkTokens(generateLargeFixture({ seed: SEED }));
 	const counts = referrerCounts(tokens);

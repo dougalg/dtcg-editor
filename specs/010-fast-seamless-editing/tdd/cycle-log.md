@@ -149,4 +149,20 @@ existed and failed before the implementation.
 - refactor: none needed — `WriteLargeFixtureOptions extends GenerateLargeFixtureOptions`
 - notes: the CLI entrypoint binding `writeFile` to real `fs.writeFileSync` is
   non-behavioural scaffolding left for T002 / `/speckit-implement`.
+- commit: `5a29c63`
+
+## Cycle 7: U75 bulk generated tokens are valid for their declared $type
+
+- test: `apps/web-app/scripts/generate-large-fixture.test.ts::every non-showcase generated token holds a value valid for its declared $type` (new)
+- red: `pnpm exec vitest run apps/web-app/scripts/generate-large-fixture.test.ts -t "valid for its declared"`
+  -> `AssertionError: group-0.sub-0.token-0 classified as "invalid" — bulk rows must drive a real editor`
+- green: `apps/web-app/scripts/generate-large-fixture.ts` — bulk literal leaves now
+  emit `$value: { value: <n>, unit: "px" }` (valid for the dimension contract)
+  instead of the `"<n>px"` string. Full suite `pnpm exec vitest run` -> 108 files,
+  498 passed, 0 failed (~21s)
+- refactor: none needed
+- notes: **T001 complete** — all seven generator behaviours (U67, U68, U69, U72,
+  U73, U74, U75) DONE; T001 ticked in tasks.md. The `_showcase` `exotic`/`broken`
+  tokens stay deliberately invalid (they exercise the fallback + error dispatch
+  paths for U73 / A3).
 - commit: `<pending>`
