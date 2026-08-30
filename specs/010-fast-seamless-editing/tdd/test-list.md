@@ -118,7 +118,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
 | U34 | `useTokenSlice(key)` returns `{ fields, error, commit, discard }`; `commit`/`discard` are bound to `key` | data-model §7 | example | DONE | `apps/web-app/hooks/useTokenSlice.test.tsx::useTokenSlice returns the token's fields and error, with commit/discard bound to the key` |
-| U35 | A `commit` to an unrelated key does not change this key's `fields` / `error` reference identity and does not re-render the consumer | INV-1, C-RI-1 | example | PENDING | `useTokenSlice.test.tsx` |
+| U35 | A `commit` to an unrelated key does not change this key's `fields` / `error` reference identity and does not re-render the consumer | INV-1, C-RI-1 | example | DONE | `apps/web-app/hooks/useTokenSlice.test.tsx::a commit to an unrelated key leaves this slice's identity intact and does not re-render the consumer` |
 | U36 | The getsnapshot closures passed to `useSyncExternalStore` are stable across renders, so the subscription never thrashes | INV-19 | example | PENDING | `useTokenSlice.test.tsx` |
 
 ### `apps/web-app/hooks/useResolvedPreview.ts` (NEW)

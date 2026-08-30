@@ -39,7 +39,10 @@ function dimensionToken(
 function makeStore(): StagedEditsStore {
 	return new StagedEditsStore({
 		initialTree: group("", [
-			group("g", [dimensionToken(["g", "x"], { value: 1, unit: "px" })]),
+			group("g", [
+				dimensionToken(["g", "x"], { value: 1, unit: "px" }),
+				dimensionToken(["g", "y"], { value: 2, unit: "px" }),
+			]),
 		]),
 		referenceView: undefined,
 		save: async () => true,
@@ -71,4 +74,28 @@ test("useTokenSlice returns the token's fields and error, with commit/discard bo
 		result.current.discard();
 	});
 	expect(store.getFields("g.x").value).toEqual({ value: 1, unit: "px" });
+});
+
+test("a commit to an unrelated key leaves this slice's identity intact and does not re-render the consumer", () => {
+	const store = makeStore();
+	let renders = 0;
+	const { result } = renderHook(
+		() => {
+			renders++;
+			return useTokenSlice("g.x");
+		},
+		{ wrapper: wrapperFor(store) },
+	);
+
+	const fieldsBefore = result.current.fields;
+	const errorBefore = result.current.error;
+	const rendersAfterMount = renders;
+
+	act(() => {
+		store.commit("g.y", { value: { value: 9, unit: "px" } });
+	});
+
+	expect(result.current.fields).toBe(fieldsBefore);
+	expect(result.current.error).toBe(errorBefore);
+	expect(renders).toBe(rendersAfterMount);
 });

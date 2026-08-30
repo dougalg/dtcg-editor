@@ -670,3 +670,21 @@ before Cycle 42 so the baseline is genuinely green (`pnpm build` 7/7 + vitest).
   `TokenTree` provides it in U56 (T015). Inline getsnapshot closures for now; their
   stability is U36's behaviour.
 - commit: this entry's commit
+
+## Cycle 43: U35 useTokenSlice — unrelated commit does not disturb this slice
+
+- test: `apps/web-app/hooks/useTokenSlice.test.tsx::a commit to an unrelated key leaves this slice's identity intact and does not re-render the consumer` (new)
+- red: passes first run — `getFields` caching (cycle 37) plus `commit`'s scoped
+  `#fieldsCache.delete(key)` already give `g.x` a stable snapshot across a
+  `commit("g.y", …)`, so `useSyncExternalStore` sees `Object.is`-equal and never
+  re-renders. Deliberate-mutant: `commit`'s success-path `#fieldsCache.delete(key)`
+  -> `#fieldsCache.clear()` -> `pnpm exec vitest run apps/web-app/hooks/useTokenSlice.test.tsx`
+  -> `expect(result.current.fields).toBe(fieldsBefore)` fails at
+  `hooks/useTokenSlice.test.tsx:98:32` ("Received: serializes to the same string" —
+  a fresh re-merged object). Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 112 files, 534
+  passed (~23s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: T013/T014 stay open — they carry `[U34] [U35] [U36]` and U36 is still
+  PENDING.
+- commit: this entry's commit
