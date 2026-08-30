@@ -164,6 +164,13 @@ export class StagedEditsStore {
 		return Array.from(this.#pending.values());
 	};
 
+	/** Drop one key's staged edit and error; other keys' snapshots are untouched (INV-1). */
+	discard = (key: PathKey): void => {
+		this.#pending.delete(key);
+		this.#errors.delete(key);
+		this.#fieldsCache.delete(key);
+	};
+
 	/**
 	 * Persist the staged edits through the injected `save`. On success the
 	 * overlay is folded into the base tree by a single `applyEditsToPlainNode`,

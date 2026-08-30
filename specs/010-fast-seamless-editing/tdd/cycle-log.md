@@ -354,3 +354,14 @@ existed and failed before the implementation.
   without an injected save" is a compile error, not a runtime path — the behaviour is
   "`#save` is the only save path", tested via error propagation.
 - commit: `<pending>`
+
+## Cycle 22: U15 discard drops one key's overlay
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::discard drops one key's pending and error, leaving other keys untouched` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "discard drops one key"`
+  -> `TypeError: store.discard is not a function`
+- green: `discard(key)` deletes `#pending[key]` / `#errors[key]` / `#fieldsCache[key]`
+  only; other keys' `getFields` reference identity is preserved (INV-1). Full suite
+  `pnpm exec vitest run` -> 109 files, 513 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`
