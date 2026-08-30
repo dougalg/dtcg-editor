@@ -72,6 +72,23 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("commit renaming a token onto a sibling's name is rejected with a name error", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+				dimensionToken(["space", "lg"], { value: 16, unit: "px" }),
+			]),
+		]),
+	);
+
+	const ok = store.commit("space.sm", { name: "lg" });
+
+	assert.equal(ok, false);
+	assert.ok(store.getError("space.sm")?.name);
+	assert.equal(store.getHasPending(), false);
+});
+
 test("successive commits to one key accumulate into a single staged edit", () => {
 	const store = makeStore(
 		group("", [

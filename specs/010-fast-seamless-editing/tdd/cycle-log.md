@@ -280,3 +280,16 @@ existed and failed before the implementation.
 - green: no production change. Full suite `pnpm exec vitest run` -> 109 files, 506 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 16: U8 commit rejects a colliding rename
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::commit renaming a token onto a sibling's name is rejected with a name error` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "renaming a token onto a sibling"`
+  -> `AssertionError: true !== false` — `commit` staged the colliding rename
+- green: `apps/web-app/lib/tokens/staged-edits-store.ts` — add `#validateDraftName`
+  reusing `findSiblings` + `checkRenameAvailable` from `edit-state.ts`; `commit` now
+  computes `nameError` and `valueError` together and rejects (setting
+  `#errors[key] = { name, value }`, staging nothing) if either fails. Full suite
+  `pnpm exec vitest run` -> 109 files, 507 passed (~21s)
+- refactor: none needed — `#validateDraftName` mirrors `#validateDraftValue`
+- commit: `<pending>`

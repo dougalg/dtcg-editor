@@ -1,6 +1,7 @@
 import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
 import { resolveBuiltInContract } from "../token-editors/built-in.ts";
 import type { ClientEdit } from "./edit-state.ts";
+import { checkRenameAvailable, findSiblings } from "./edit-state.ts";
 import type { PlainDtcgNode } from "./plain-node.ts";
 import type { TokenReferenceView } from "./reference-index.ts";
 
@@ -151,9 +152,10 @@ export class StagedEditsStore {
 	 * is left intact (INV-1).
 	 */
 	commit = (key: PathKey, draft: Partial<EditableFields>): boolean => {
+		const nameError = this.#validateDraftName(key, draft);
 		const valueError = this.#validateDraftValue(key, draft);
-		if (valueError !== undefined) {
-			this.#errors.set(key, { name: undefined, value: valueError });
+		if (nameError !== undefined || valueError !== undefined) {
+			this.#errors.set(key, { name: nameError, value: valueError });
 			this.#fieldsCache.delete(key);
 			return false;
 		}
@@ -171,6 +173,21 @@ export class StagedEditsStore {
 		this.#fieldsCache.delete(key);
 		return true;
 	};
+
+	#validateDraftName(
+		key: PathKey,
+		draft: Partial<EditableFields>,
+	): string | undefined {
+		const node = this.#index.get(key);
+		if (draft.name === undefined || node === undefined) {
+			return undefined;
+		}
+		const siblings = findSiblings(this.#tree, node.path);
+		if (checkRenameAvailable(siblings, draft.name, node.name)) {
+			return undefined;
+		}
+		return `The name "${draft.name}" is already used by a sibling.`;
+	}
 
 	#validateDraftValue(
 		key: PathKey,
