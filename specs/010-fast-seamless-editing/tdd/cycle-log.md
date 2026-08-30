@@ -482,3 +482,16 @@ existed and failed before the implementation.
   `pnpm exec vitest run` -> 110 files, 522 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 32: U27 resolvePreview has no stale carry-over
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview reflects the current effective value each call, with no stale carry-over` (new)
+- red: passes with the current pure resolver (no cache). Deliberate-mutant check: adding
+  a module-level `Map` result cache keyed by `key` -> `AssertionError: Expected values
+  to be strictly deep-equal` (second call, with `a` now `{x}`, returned the cached
+  literal). Restored.
+- green: no production change — the resolver reads `getEffectiveNode` fresh every call
+  (C-LR-4: becoming / ceasing to be a reference). Full suite `pnpm exec vitest run`
+  -> 110 files, 523 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`

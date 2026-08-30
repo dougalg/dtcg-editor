@@ -26,6 +26,31 @@ function nodesByKey(
 
 const NO_SERVER_PREVIEW = new Map<string, ResolvedValue>();
 
+test("resolvePreview reflects the current effective value each call, with no stale carry-over", () => {
+	// b -> {a}, a holds a literal.
+	const beforeChange = nodesByKey({
+		b: token(["b"], "{a}"),
+		a: token(["a"], { value: 4, unit: "px" }),
+	});
+	assert.deepEqual(resolvePreview("b", beforeChange, NO_SERVER_PREVIEW), {
+		kind: "value",
+		value: { value: 4, unit: "px" },
+		via: ["a"],
+	});
+
+	// a's value has since become a reference to x.
+	const afterChange = nodesByKey({
+		b: token(["b"], "{a}"),
+		a: token(["a"], "{x}"),
+		x: token(["x"], { value: 9, unit: "px" }),
+	});
+	assert.deepEqual(resolvePreview("b", afterChange, NO_SERVER_PREVIEW), {
+		kind: "value",
+		value: { value: 9, unit: "px" },
+		via: ["a", "x"],
+	});
+});
+
 test("resolvePreview returns a cycle marker for a reference loop, without looping", () => {
 	const nodes = nodesByKey({
 		a: token(["a"], "{b}"),
