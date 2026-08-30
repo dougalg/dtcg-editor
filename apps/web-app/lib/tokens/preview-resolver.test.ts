@@ -26,6 +26,18 @@ function nodesByKey(
 
 const NO_SERVER_PREVIEW = new Map<string, ResolvedValue>();
 
+test("resolvePreview splices in the server value for a target outside the file", () => {
+	const serverValue: ResolvedValue = {
+		kind: "value",
+		value: "#3366cc",
+		via: [],
+	};
+	const server = new Map<string, ResolvedValue>([["base.color", serverValue]]);
+	const nodes = nodesByKey({ x: token(["x"], "{base.color}") });
+
+	assert.equal(resolvePreview("x", nodes, server), serverValue);
+});
+
 test("resolvePreview returns unresolved when a reference target is missing", () => {
 	const nodes = nodesByKey({ b: token(["b"], "{missing.token}") });
 

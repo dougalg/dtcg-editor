@@ -458,3 +458,14 @@ existed and failed before the implementation.
   520 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 30: U25 resolvePreview splices the server value for cross-file targets
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview splices in the server value for a target outside the file` (new)
+- red: `AssertionError: Expected "actual" to be reference-equal ... kind: 'unresolved'` —
+  a cross-file hop was reported unresolved instead of using `serverPreview`
+- green: in the missing-node branch, `return serverPreview.get(targetKey) ?? { kind:
+  "unresolved", ref: ref.raw }` (INV-18). Full suite `pnpm exec vitest run` -> 110 files,
+  521 passed (~21s); lint clean (`serverPreview` now used)
+- refactor: none needed
+- commit: `<pending>`

@@ -42,7 +42,9 @@ function resolveFrom(
 
 	const targetKey = ref.targetPath.join(".");
 	if (getEffectiveNode(targetKey) === undefined) {
-		return { kind: "unresolved", ref: ref.raw };
+		// A hop out of this file resolves from the server-computed value; an
+		// in-file target that simply does not exist is unresolved.
+		return serverPreview.get(targetKey) ?? { kind: "unresolved", ref: ref.raw };
 	}
 	return resolveFrom(targetKey, getEffectiveNode, serverPreview, [
 		...via,
