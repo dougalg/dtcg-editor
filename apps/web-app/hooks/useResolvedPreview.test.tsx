@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { expect, test } from "vitest";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
+import type { ResolvedValue } from "../lib/tokens/staged-edits-store.ts";
 import { StagedEditsStore } from "../lib/tokens/staged-edits-store.ts";
 import { useResolvedPreview } from "./useResolvedPreview.ts";
 import { StagedEditsContext } from "./useStagedEdits.ts";
@@ -89,4 +90,27 @@ test("useResolvedPreview mirrors the store's preview for the key, and follows a 
 	});
 	expect(result.current).toBe(stable);
 	expect(renders).toBe(rendersBefore);
+});
+
+test("defers the preview update: the consumer first re-renders with the stale value, then the fresh one", () => {
+	const store = makeStore();
+	const seen: ResolvedValue[] = [];
+	renderHook(
+		() => {
+			const preview = useResolvedPreview("g.b");
+			seen.push(preview);
+			return preview;
+		},
+		{ wrapper: wrapperFor(store) },
+	);
+
+	seen.length = 0;
+	act(() => {
+		store.commit("g.a", { value: { value: 7, unit: "px" } });
+	});
+
+	// useDeferredValue splits the update in two renders — old value, then new
+	expect(seen.length).toBeGreaterThanOrEqual(2);
+	expect(seen[0]).toMatchObject({ value: { value: 4, unit: "px" } });
+	expect(seen.at(-1)).toMatchObject({ value: { value: 7, unit: "px" } });
 });

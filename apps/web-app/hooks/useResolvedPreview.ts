@@ -1,4 +1,9 @@
-import { useCallback, useContext, useSyncExternalStore } from "react";
+import {
+	useCallback,
+	useContext,
+	useDeferredValue,
+	useSyncExternalStore,
+} from "react";
 import type { ResolvedValue } from "../lib/tokens/staged-edits-store.ts";
 import { StagedEditsContext } from "./useStagedEdits.ts";
 
@@ -20,5 +25,9 @@ export function useResolvedPreview(key: string): ResolvedValue {
 		[store, key],
 	);
 
-	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
+	// `useDeferredValue` (research §3, C-LR-8): during a commit-then-type burst the
+	// input's own keystroke render is urgent; the ripple of resolved-preview
+	// updates rides a later low-priority render and never blocks that paint.
+	const live = useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
+	return useDeferredValue(live);
 }

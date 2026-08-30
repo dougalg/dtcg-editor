@@ -753,3 +753,19 @@ before Cycle 42 so the baseline is genuinely green (`pnpm build` 7/7 + vitest).
   local `group`/`dimensionToken` factories are the profile's per-file convention.
 - notes: `useDeferredValue` wrapping is U38, next. T042 stays open until then.
 - commit: this entry's commit
+
+## Cycle 47: U38 useResolvedPreview — useDeferredValue wrapping
+
+- test: `apps/web-app/hooks/useResolvedPreview.test.tsx::defers the preview update: the consumer first re-renders with the stale value, then the fresh one` (new)
+- red: `pnpm exec vitest run apps/web-app/hooks/useResolvedPreview.test.tsx`
+  -> `AssertionError: expected 1 to be greater than or equal to 2` at
+  `hooks/useResolvedPreview.test.tsx:113:22` — without `useDeferredValue` a
+  dependency commit produces exactly one consumer render (the fresh value).
+- green: wrap the `useSyncExternalStore` read in `useDeferredValue` in
+  `useResolvedPreview.ts`. The commit now splits into two consumer renders — stale
+  `{value:4}` then fresh `{value:7}` — proving the preview update rides a later
+  low-priority render (research §3, C-LR-8). Full suite `pnpm exec vitest run` ->
+  113 files, 538 passed (~21s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: **U37 + U38 done — `useResolvedPreview` is complete.** T042 ticked.
+- commit: this entry's commit
