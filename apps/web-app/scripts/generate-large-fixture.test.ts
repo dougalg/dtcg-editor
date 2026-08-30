@@ -56,6 +56,30 @@ test("generateLargeFixture emits ~2,000 tokens nested at least 3 levels deep", (
 	assert.ok(maxDepth >= 3, `max group depth ${maxDepth} is < 3`);
 });
 
+/** Count, per referenced path, how many token `$value`s are the reference `{path}`. */
+function referrerCounts(tokens: { node: JsonObject }[]): Map<string, number> {
+	const counts = new Map<string, number>();
+	for (const { node } of tokens) {
+		const value = node.$value;
+		if (typeof value === "string" && /^\{.+\}$/.test(value)) {
+			const target = value.slice(1, -1);
+			counts.set(target, (counts.get(target) ?? 0) + 1);
+		}
+	}
+	return counts;
+}
+
+test("generateLargeFixture output has a token referenced by at least 100 other tokens", () => {
+	const { tokens } = walkTokens(generateLargeFixture({ seed: SEED }));
+	const counts = referrerCounts(tokens);
+	const mostReferenced = Math.max(0, ...counts.values());
+
+	assert.ok(
+		mostReferenced >= 100,
+		`most-referenced token has ${mostReferenced} referrers, expected >= 100`,
+	);
+});
+
 test("generateLargeFixture output loads through the token pipeline with no parse error", () => {
 	const parsed = parseTokenFile(
 		JSON.stringify(generateLargeFixture({ seed: SEED })),

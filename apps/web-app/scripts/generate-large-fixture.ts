@@ -26,21 +26,32 @@ const GROUPS = 10;
 const SUBGROUPS = 10;
 const LEAVES = 20;
 
+// One widely-referenced "hub" token, and how many leaves point at it — the
+// SC-005 / C-LR-8 scenario (editing a token referenced by >= 100 others).
+const HUB_PATH = "group-0.sub-0.token-0";
+const HUB_REFERRERS = 130;
+
 export function generateLargeFixture(
 	options: GenerateLargeFixtureOptions,
 ): JsonObject {
 	const rand = mulberry32(options.seed);
 	const doc: JsonObject = {};
 
+	let leafIndex = 0;
 	for (let g = 0; g < GROUPS; g++) {
 		const group: JsonObject = {};
 		for (let s = 0; s < SUBGROUPS; s++) {
 			const subgroup: JsonObject = {};
 			for (let l = 0; l < LEAVES; l++) {
-				subgroup[`token-${l}`] = {
-					$type: "dimension",
-					$value: `${Math.round(rand() * 64)}px`,
-				};
+				const path = `group-${g}.sub-${s}.token-${l}`;
+				// Point the first HUB_REFERRERS non-hub leaves at the hub;
+				// everything else holds a literal dimension.
+				const isReferrer =
+					path !== HUB_PATH && leafIndex > 0 && leafIndex <= HUB_REFERRERS;
+				subgroup[`token-${l}`] = isReferrer
+					? { $type: "dimension", $value: `{${HUB_PATH}}` }
+					: { $type: "dimension", $value: `${Math.round(rand() * 64)}px` };
+				leafIndex++;
 			}
 			group[`sub-${s}`] = subgroup;
 		}

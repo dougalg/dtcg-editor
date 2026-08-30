@@ -99,4 +99,17 @@ existed and failed before the implementation.
   file-writer / no I/O in the pure fn); T001's marker updated to
   `[U67][U68][U69][U72][U73][U74]` so it is not ticked until the generator is
   actually complete.
+- commit: `51fb0ca`
+
+## Cycle 4: U72 generator output has a token referenced by ≥100 other tokens
+
+- test: `apps/web-app/scripts/generate-large-fixture.test.ts::generateLargeFixture output has a token referenced by at least 100 other tokens` (new)
+- red: `pnpm exec vitest run apps/web-app/scripts/generate-large-fixture.test.ts -t "referenced by at least 100 other tokens"`
+  -> `AssertionError: most-referenced token has 0 referrers, expected >= 100`
+- green: `apps/web-app/scripts/generate-large-fixture.ts` — designate a `HUB_PATH`
+  (`group-0.sub-0.token-0`) and point the first `HUB_REFERRERS` (130) non-hub leaves
+  at it via `$value: "{group-0.sub-0.token-0}"`; the rest keep a literal dimension.
+  Referrer choice is leaf-index based, so U67 determinism is unaffected.
+  Full suite `pnpm exec vitest run` -> 108 files, 495 passed, 0 failed (~21s)
+- refactor: none needed — added a `referrerCounts` test helper
 - commit: `<pending>`
