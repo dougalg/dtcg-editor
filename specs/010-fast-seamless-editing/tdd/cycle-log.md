@@ -317,3 +317,14 @@ existed and failed before the implementation.
 - notes: subscriber notification (`#emit` on `commit`/`save`) is not wired yet —
   `subscribe` is still the U1 no-op stub; appended **U76** to the list for it.
 - commit: `<pending>`
+
+## Cycle 19: U12 only save changes the tree reference
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::commit leaves getTree identity unchanged; only save rebuilds the tree` (new)
+- red: passes with the cycle-18 code (commit never touches `#tree`). Deliberate-mutant
+  check: adding `this.#tree = applyEditsToPlainNode(this.#tree, [...])` into `commit` ->
+  `AssertionError: Values have same structure but are not reference-equal` (getTree
+  changed after commit). Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 109 files, 510 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`
