@@ -1,7 +1,24 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 import type { PlainDtcgNode } from "./plain-node.ts";
-import { type ResolvedValue, resolvePreview } from "./preview-resolver.ts";
+import {
+	buildReverseDeps,
+	type ResolvedValue,
+	resolvePreview,
+} from "./preview-resolver.ts";
+
+function group(name: string, children: PlainDtcgNode[]): PlainDtcgNode {
+	return {
+		kind: "group",
+		name,
+		path: name === "" ? [] : [name],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children,
+	};
+}
 
 function token(path: readonly string[], value: unknown): PlainDtcgNode {
 	return {
@@ -25,6 +42,20 @@ function nodesByKey(
 }
 
 const NO_SERVER_PREVIEW = new Map<string, ResolvedValue>();
+
+test("buildReverseDeps maps each target to its transitive in-file referrers", () => {
+	const tree = group("", [
+		token(["a"], { value: 1, unit: "px" }),
+		token(["b"], "{a}"),
+		token(["c"], "{b}"),
+		token(["d"], "{a}"),
+	]);
+
+	const deps = buildReverseDeps(tree, NO_SERVER_PREVIEW);
+
+	assert.deepEqual(new Set(deps.get("a")), new Set(["b", "c", "d"]));
+	assert.deepEqual(new Set(deps.get("b")), new Set(["c"]));
+});
 
 test("resolvePreview reflects the current effective value each call, with no stale carry-over", () => {
 	// b -> {a}, a holds a literal.

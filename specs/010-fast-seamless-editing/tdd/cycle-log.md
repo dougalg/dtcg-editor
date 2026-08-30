@@ -495,3 +495,16 @@ existed and failed before the implementation.
   -> 110 files, 523 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 33: U28 buildReverseDeps builds transitive in-file referrer sets
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::buildReverseDeps maps each target to its transitive in-file referrers` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/preview-resolver.test.ts -t "transitive in-file referrers"`
+  -> `TypeError: buildReverseDeps is not a function`
+- green: `apps/web-app/lib/tokens/preview-resolver.ts` — `collectRefEdges` walks the tree
+  gathering `key -> targetKey` whole-value edges + the set of in-file keys;
+  `buildReverseDeps` walks each referrer's chain (stopping at a cross-file key or a
+  repeat) and adds the referrer to `reverse[each in-file key on the chain]`. Full suite
+  `pnpm exec vitest run` -> 110 files, 524 passed (~21s)
+- refactor: none needed — the `seen` set in the chain walk also guards cycles (U29)
+- commit: `<pending>`

@@ -27,6 +27,64 @@ export function resolvePreview(
 	return resolveFrom(key, getEffectiveNode, serverPreview, [], new Set([key]));
 }
 
+/** Collect every token's whole-value reference edge `key -> targetKey`, plus the set of in-file keys. */
+function collectRefEdges(
+	node: PlainDtcgNode,
+	into: {
+		edges: Map<PathKey, PathKey>;
+		keys: Set<PathKey>;
+	},
+): void {
+	into.keys.add(node.path.join("."));
+	if (node.kind === "group") {
+		for (const child of node.children) {
+			collectRefEdges(child, into);
+		}
+		return;
+	}
+	const ref = parseReference(node.value);
+	if (ref !== undefined) {
+		into.edges.set(node.path.join("."), ref.targetPath.join("."));
+	}
+}
+
+/**
+ * Map each in-file token key to the set of in-file tokens that reference it,
+ * directly or through a chain. Cross-file referrers (a chain hop that leaves
+ * the file) are omitted — you cannot stage an edit to them from this view.
+ */
+export function buildReverseDeps(
+	tree: PlainDtcgNode,
+	_serverPreview: ReadonlyMap<PathKey, ResolvedValue>,
+): Map<PathKey, Set<PathKey>> {
+	const collected = {
+		edges: new Map<PathKey, PathKey>(),
+		keys: new Set<PathKey>(),
+	};
+	collectRefEdges(tree, collected);
+
+	const reverse = new Map<PathKey, Set<PathKey>>();
+	for (const [referrer, firstTarget] of collected.edges) {
+		let target: PathKey | undefined = firstTarget;
+		const seen = new Set<PathKey>();
+		while (
+			target !== undefined &&
+			collected.keys.has(target) &&
+			!seen.has(target)
+		) {
+			seen.add(target);
+			let set = reverse.get(target);
+			if (set === undefined) {
+				set = new Set();
+				reverse.set(target, set);
+			}
+			set.add(referrer);
+			target = collected.edges.get(target);
+		}
+	}
+	return reverse;
+}
+
 function resolveFrom(
 	key: PathKey,
 	getEffectiveNode: (key: PathKey) => PlainDtcgNode | undefined,
