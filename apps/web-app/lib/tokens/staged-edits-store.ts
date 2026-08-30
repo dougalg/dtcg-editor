@@ -145,6 +145,15 @@ export class StagedEditsStore {
 	};
 
 	/**
+	 * The staged edits, as a fresh array — for `save()` only. Never a
+	 * `useSyncExternalStore` snapshot: a new array every call would make the
+	 * hook re-render forever.
+	 */
+	getEdits = (): readonly ClientEdit[] => {
+		return Array.from(this.#pending.values());
+	};
+
+	/**
 	 * Validate `draft` (a row's uncommitted field edits) and, if it passes,
 	 * stage it against `key`. On failure the draft is not staged, `#errors[key]`
 	 * records why, and `commit` returns `false` (INV-6). Only the touched key's

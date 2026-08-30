@@ -293,3 +293,13 @@ existed and failed before the implementation.
   `pnpm exec vitest run` -> 109 files, 507 passed (~21s)
 - refactor: none needed — `#validateDraftName` mirrors `#validateDraftValue`
 - commit: `<pending>`
+
+## Cycle 17: U10 getEdits returns a fresh array
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::getEdits returns a fresh array of the staged edits on each call` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "getEdits returns a fresh array"`
+  -> `TypeError: store.getEdits is not a function`
+- green: `getEdits = () => Array.from(this.#pending.values())` — fresh array, imperative
+  use only (for `save()`), never a subscribed snapshot (INV-3). Full suite -> 109 files, 508 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`

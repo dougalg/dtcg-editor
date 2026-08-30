@@ -72,6 +72,25 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("getEdits returns a fresh array of the staged edits on each call", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+	store.commit("space.sm", { value: { value: 8, unit: "px" } });
+
+	const first = store.getEdits();
+	const second = store.getEdits();
+
+	assert.notEqual(first, second);
+	assert.deepEqual(first, second);
+	assert.equal(first.length, 1);
+	assert.deepEqual(first[0]?.value, { value: 8, unit: "px" });
+});
+
 test("commit renaming a token onto a sibling's name is rejected with a name error", () => {
 	const store = makeStore(
 		group("", [
