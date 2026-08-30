@@ -47,6 +47,7 @@ function indexByPath(
 export class StagedEditsStore {
 	#tree: PlainDtcgNode;
 	#index: Map<PathKey, PlainDtcgNode>;
+	#pending = new Map<PathKey, ClientEdit>();
 	#fieldsCache = new Map<PathKey, EditableFields>();
 
 	constructor(options: StagedEditsStoreOptions) {
@@ -81,5 +82,16 @@ export class StagedEditsStore {
 
 	getHasPending = (): boolean => {
 		return false;
+	};
+
+	/**
+	 * Stage `draft` (a row's uncommitted field edits) against `key`. Only the
+	 * touched key's cached snapshot is invalidated — an unrelated key's
+	 * `getFields` reference is left intact (INV-1).
+	 */
+	commit = (key: PathKey, draft: Partial<EditableFields>): boolean => {
+		this.#pending.set(key, { path: key.split("."), ...draft });
+		this.#fieldsCache.delete(key);
+		return true;
 	};
 }

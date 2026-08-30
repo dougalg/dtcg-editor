@@ -192,3 +192,19 @@ existed and failed before the implementation.
   -> 109 files, 500 passed (~23s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 10: U3 commit is surgical about the field cache
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::commit to one token leaves getFields identity unchanged for an untouched token` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "leaves getFields identity unchanged for an untouched token"`
+  -> `TypeError: store.commit is not a function`
+- green: `apps/web-app/lib/tokens/staged-edits-store.ts` — add `#pending: Map<PathKey, ClientEdit>`
+  and `commit(key, draft)` that stages the draft and invalidates only `#fieldsCache[key]`.
+  Deliberate-mutant check: swapping `#fieldsCache.delete(key)` for `.clear()` ->
+  `AssertionError: Values have same structure but are not reference-equal` (test is
+  not vacuous). Restored. Full suite `pnpm exec vitest run` -> 109 files, 501 passed (~22s)
+- refactor: none needed
+- notes: `commit` has no validation yet (fakes `return true`) — U4/U5 force it. U3's
+  list wording narrowed to `getFields` only; `getError` / `getResolvedPreview` identity
+  fold in when those methods exist (U16 / US3).
+- commit: `<pending>`

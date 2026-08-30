@@ -71,3 +71,19 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	});
 	assert.equal(store.getFields("space.sm"), fields);
 });
+
+test("commit to one token leaves getFields identity unchanged for an untouched token", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+				dimensionToken(["space", "lg"], { value: 16, unit: "px" }),
+			]),
+		]),
+	);
+
+	const untouchedBefore = store.getFields("space.lg");
+	store.commit("space.sm", { value: { value: 8, unit: "px" } });
+
+	assert.equal(store.getFields("space.lg"), untouchedBefore);
+});
