@@ -734,3 +734,22 @@ before Cycle 42 so the baseline is genuinely green (`pnpm build` 7/7 + vitest).
 - notes: **U34–U36 + U36a all DONE — `useTokenSlice` is complete.** T013 and T014
   ticked (their `[U34] [U35] [U36]` markers are all satisfied).
 - commit: this entry's commit
+
+## Cycle 46: U37 useResolvedPreview — mirrors the store's preview snapshot
+
+- test: `apps/web-app/hooks/useResolvedPreview.test.tsx::useResolvedPreview mirrors the store's preview for the key, and follows a dependency edit` (new)
+- red: `pnpm exec vitest run apps/web-app/hooks/useResolvedPreview.test.tsx`
+  -> `expect(result.current).toEqual(store.getResolvedPreview("g.b"))` fails at
+  `hooks/useResolvedPreview.test.tsx:66:25` (hollow stub returned
+  `{ kind: "unresolved", ref: "" }`).
+- green: `apps/web-app/hooks/useResolvedPreview.ts` (new) reads the store from
+  `StagedEditsContext` and does one `useSyncExternalStore` read of
+  `getResolvedPreview(key)` with a `useCallback([store, key])` snapshot closure.
+  Committing `g.a` flows into `g.b`'s preview (reverse-dep invalidation, U19);
+  committing unrelated `g.c` leaves `g.b`'s preview reference-identical and does not
+  re-render. Full suite `pnpm exec vitest run` -> 113 files, 537 passed (~21s);
+  `pnpm build` tsc clean.
+- refactor: none needed — mirrors the `useTokenSlice` context+snapshot shape; the
+  local `group`/`dimensionToken` factories are the profile's per-file convention.
+- notes: `useDeferredValue` wrapping is U38, next. T042 stays open until then.
+- commit: this entry's commit

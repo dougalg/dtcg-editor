@@ -126,7 +126,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U37 | `useResolvedPreview(key)` returns the store's current `ResolvedValue` for `key` and updates when (only when) that key's preview snapshot changes | INV-17, C-LR-1 | example | PENDING | `useResolvedPreview.test.tsx` |
+| U37 | `useResolvedPreview(key)` returns the store's current `ResolvedValue` for `key` and updates when (only when) that key's preview snapshot changes | INV-17, C-LR-1 | example | DONE | `apps/web-app/hooks/useResolvedPreview.test.tsx::useResolvedPreview mirrors the store's preview for the key, and follows a dependency edit` |
 | U38 | The read is wrapped in `useDeferredValue` so a commit-then-type burst does not block the input's own paint | research §3, C-LR-8 | example | PENDING | `useResolvedPreview.test.tsx` |
 
 ### `apps/web-app/components/TreeTokenNode/TreeTokenNode.tsx` (CHANGED)
