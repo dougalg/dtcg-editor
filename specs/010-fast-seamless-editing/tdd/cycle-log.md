@@ -632,3 +632,41 @@ and unaltered.
 - notes: U31 + U32 already cover the hook's real behaviour (per-mount instance,
   injected save). With U33 done, T011/T012 (`useStagedEdits` impl + tests) are complete.
 - commit: this entry's commit
+
+## Session-resume note (before Cycle 42): green-baseline repair
+
+On resuming `/speckit-tdd-run all`, the `turbo run build` gate (`next build`
+type-check, typescript `^7.0.2`) was red on already-committed feature code —
+`pnpm exec vitest run` (esbuild, no type-check) had stayed green so the loop
+never caught it:
+
+- `staged-edits-store.ts` `changedFields` assigned to `readonly` members of a
+  `Partial<EditableFields>` accumulator (4 errors) — switched the local to a
+  mapped mutable type, return type unchanged.
+- `generate-large-fixture.test.ts` indexed `writes[0]` under a stricter
+  possibly-undefined check (2 errors) — destructure once + `assert.ok`.
+
+Type-only, no behaviour change; vitest stayed 532. Committed as `ac890a5`
+before Cycle 42 so the baseline is genuinely green (`pnpm build` 7/7 + vitest).
+
+## Cycle 42: U34 useTokenSlice — token slice bound to key
+
+- test: `apps/web-app/hooks/useTokenSlice.test.tsx::useTokenSlice returns the token's fields and error, with commit/discard bound to the key` (new)
+- red: `pnpm exec vitest run apps/web-app/hooks/useTokenSlice.test.tsx`
+  -> `AssertionError: expected undefined to deeply equal { name: 'x', ... }` at
+  `hooks/useTokenSlice.test.tsx:57:32` (against a hollow stub returning
+  `{ fields: undefined, error: undefined, commit: () => false, discard: () => {} }`).
+- green: `apps/web-app/hooks/useTokenSlice.ts` (new) reads the store from
+  `StagedEditsContext`, two `useSyncExternalStore` reads (`getFields`, `getError`),
+  and returns `commit: (draft) => store.commit(key, draft)` / `discard: () =>
+  store.discard(key)`. Full suite `pnpm exec vitest run` -> 112 files, 533 passed
+  (~22s); `pnpm build` 7/7.
+- refactor: none needed. The test's `group`/`dimensionToken` factories duplicate
+  `staged-edits-store.test.ts`'s, which is the profile's sanctioned local-per-file
+  convention, not shared-helper duplication.
+- notes: added the `StagedEditsContext` seam to `useStagedEdits.ts` (a bare
+  `createContext<StagedEditsStore | null>(null)`) — data-model §7 gives
+  `useTokenSlice` the signature `(key) => …`, so the store must come from context.
+  `TokenTree` provides it in U56 (T015). Inline getsnapshot closures for now; their
+  stability is U36's behaviour.
+- commit: this entry's commit

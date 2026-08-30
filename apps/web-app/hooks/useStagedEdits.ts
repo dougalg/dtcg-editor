@@ -1,8 +1,15 @@
-import { useRef } from "react";
+import { createContext, useRef } from "react";
 import {
 	StagedEditsStore,
 	type StagedEditsStoreOptions,
 } from "../lib/tokens/staged-edits-store.ts";
+
+/**
+ * The store for the current `TokenTree` subtree. `TokenTree` provides it from
+ * {@link useStagedEdits}; `useTokenSlice` / `useResolvedPreview` read it here so
+ * a row does not have to thread the store down by prop.
+ */
+export const StagedEditsContext = createContext<StagedEditsStore | null>(null);
 
 /**
  * Lazily instantiates exactly one {@link StagedEditsStore} for the lifetime of
