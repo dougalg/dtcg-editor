@@ -73,6 +73,19 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("save() has no I/O fallback: it propagates whatever the injected save does", async () => {
+	const injectedFailure = new Error("injected save failed");
+	const store = new StagedEditsStore({
+		initialTree: group("", []),
+		referenceView: undefined,
+		save: async () => {
+			throw injectedFailure;
+		},
+	});
+
+	await assert.rejects(store.save(), (error) => error === injectedFailure);
+});
+
 test("a failed save leaves the overlay and tree untouched and returns false", async () => {
 	const store = new StagedEditsStore({
 		initialTree: group("", [

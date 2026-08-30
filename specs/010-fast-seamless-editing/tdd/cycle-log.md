@@ -338,3 +338,19 @@ existed and failed before the implementation.
 - green: no production change. Full suite `pnpm exec vitest run` -> 109 files, 511 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 21: U14 store does no I/O of its own
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::save() has no I/O fallback: it propagates whatever the injected save does` (new)
+- red: passes with the cycle-18 code (`#save` is awaited directly). Deliberate-mutant
+  check: wrapping `await this.#save(edits)` in `try { } catch { ok = false }` ->
+  `AssertionError: Missing expected rejection` (the store swallowed the injected
+  failure). Restored.
+- green: no production change. Also confirmed `grep -c "useSaveTokenEdits|route|fetch("
+  staged-edits-store.ts` -> 0 (no fetcher import; INV-5 / Principle VI). Full suite
+  `pnpm exec vitest run` -> 109 files, 512 passed (~21s)
+- refactor: none needed
+- notes: the constructor's `save` is a required (non-optional) option, so "constructed
+  without an injected save" is a compile error, not a runtime path — the behaviour is
+  "`#save` is the only save path", tested via error propagation.
+- commit: `<pending>`
