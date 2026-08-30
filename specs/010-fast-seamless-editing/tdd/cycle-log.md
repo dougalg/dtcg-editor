@@ -716,3 +716,21 @@ before Cycle 42 so the baseline is genuinely green (`pnpm build` 7/7 + vitest).
   `getServerSnapshot` coverage: a `useTokenSlice` consumer under `renderToString`.
   T013/T014 still open until U36a lands.
 - commit: this entry's commit
+
+## Cycle 45: U36a useTokenSlice — renders under renderToString (getServerSnapshot)
+
+- test: `apps/web-app/hooks/useTokenSlice.test.tsx::a useTokenSlice consumer renders under renderToString (getServerSnapshot path)` (new; `renderToString` from `react-dom/server`) — the real server-snapshot coverage deferred from cycle 41.
+- red: first assertion (`toContain('{"value":1,"unit":"px"}')`) failed only on
+  HTML-escaping (`&quot;`) — the render itself succeeded, so not a true red for the
+  behaviour. Rewrote the probe to emit `<output>1px</output>` and assert that.
+  Passes on the current impl (getFields/getError are already passed as the 3rd
+  `useSyncExternalStore` arg). Deliberate-mutant: drop the 3rd arg from both reads
+  -> `renderToString` throws
+  `Missing getServerSnapshot, which is required for server-rendered content` (only
+  the U36a test fails, 3 others pass). Restored from a backup copy.
+- green: no production change. Full suite `pnpm exec vitest run` -> 112 files, 536
+  passed (~30s under load); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: **U34–U36 + U36a all DONE — `useTokenSlice` is complete.** T013 and T014
+  ticked (their `[U34] [U35] [U36]` markers are all satisfied).
+- commit: this entry's commit

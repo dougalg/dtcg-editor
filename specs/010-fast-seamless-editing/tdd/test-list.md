@@ -120,7 +120,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | U34 | `useTokenSlice(key)` returns `{ fields, error, commit, discard }`; `commit`/`discard` are bound to `key` | data-model §7 | example | DONE | `apps/web-app/hooks/useTokenSlice.test.tsx::useTokenSlice returns the token's fields and error, with commit/discard bound to the key` |
 | U35 | A `commit` to an unrelated key does not change this key's `fields` / `error` reference identity and does not re-render the consumer | INV-1, C-RI-1 | example | DONE | `apps/web-app/hooks/useTokenSlice.test.tsx::a commit to an unrelated key leaves this slice's identity intact and does not re-render the consumer` |
 | U36 | The getsnapshot closures passed to `useSyncExternalStore` are stable across renders, so the subscription never thrashes | INV-19 | example | DONE | `apps/web-app/hooks/useTokenSlice.test.tsx::subscribes to the store once and never re-subscribes as the consumer re-renders` |
-| U36a | A `useTokenSlice` consumer renders under `renderToString` (the `getServerSnapshot` arg is exercised) without throwing, returning the base fields | research §2 | example | PENDING | `useTokenSlice.test.tsx` |
+| U36a | A `useTokenSlice` consumer renders under `renderToString` (the `getServerSnapshot` arg is exercised) without throwing, returning the base fields | research §2 | example | DONE | `apps/web-app/hooks/useTokenSlice.test.tsx::a useTokenSlice consumer renders under renderToString (getServerSnapshot path)` |
 
 ### `apps/web-app/hooks/useResolvedPreview.ts` (NEW)
 

@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
+import { renderToString } from "react-dom/server";
 import { expect, test } from "vitest";
 import type { PlainDtcgNode } from "../lib/tokens/plain-node.ts";
 import { StagedEditsStore } from "../lib/tokens/staged-edits-store.ts";
@@ -122,4 +123,24 @@ test("subscribes to the store once and never re-subscribes as the consumer re-re
 
 	// a stable `subscribe` reference means the effect never tears down and re-runs
 	expect(subscribeCalls).toBe(afterMount);
+});
+
+test("a useTokenSlice consumer renders under renderToString (getServerSnapshot path)", () => {
+	const store = makeStore();
+	function Row() {
+		const { fields } = useTokenSlice("g.x");
+		const value = fields.value as { value: number; unit: string };
+		return createElement("output", null, `${value.value}${value.unit}`);
+	}
+
+	const html = renderToString(
+		createElement(
+			StagedEditsContext.Provider,
+			{ value: store },
+			createElement(Row),
+		),
+	);
+
+	// the server snapshot fed the base field value straight through
+	expect(html).toContain("<output>1px</output>");
 });
