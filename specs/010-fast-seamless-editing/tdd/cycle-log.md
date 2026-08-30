@@ -365,3 +365,14 @@ existed and failed before the implementation.
   `pnpm exec vitest run` -> 109 files, 513 passed (~21s)
 - refactor: none needed
 - commit: `<pending>`
+
+## Cycle 23: U16 reportError records a component-side error
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::reportError records a component-supplied error without staging anything` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "reportError records"`
+  -> `TypeError: store.reportError is not a function`
+- green: `reportError(key, errors)` sets `#errors[key]` and nothing else (no `#pending`
+  touch); `getHasPending()` stays false. Full suite `pnpm exec vitest run` -> 109 files,
+  514 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`

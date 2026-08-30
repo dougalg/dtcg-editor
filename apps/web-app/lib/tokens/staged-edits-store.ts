@@ -164,6 +164,15 @@ export class StagedEditsStore {
 		return Array.from(this.#pending.values());
 	};
 
+	/**
+	 * Record a validation error the component produced (only the fallback
+	 * editor's `JSON.parse` failure uses this). Sets `#errors[key]`; never
+	 * touches `#pending`.
+	 */
+	reportError = (key: PathKey, errors: FieldErrors): void => {
+		this.#errors.set(key, errors);
+	};
+
 	/** Drop one key's staged edit and error; other keys' snapshots are untouched (INV-1). */
 	discard = (key: PathKey): void => {
 		this.#pending.delete(key);

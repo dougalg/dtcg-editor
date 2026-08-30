@@ -73,6 +73,21 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("reportError records a component-supplied error without staging anything", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+
+	store.reportError("space.sm", { name: undefined, value: "Invalid JSON" });
+
+	assert.equal(store.getError("space.sm")?.value, "Invalid JSON");
+	assert.equal(store.getHasPending(), false);
+});
+
 test("discard drops one key's pending and error, leaving other keys untouched", () => {
 	const store = makeStore(
 		group("", [
