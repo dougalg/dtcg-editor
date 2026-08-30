@@ -593,3 +593,14 @@ and unaltered.
 - notes: **U18–U20 done — the store's preview subsystem is complete** (bar the real
   `TokenReferenceView` → `#serverPreview` conversion, tracked as U78).
 - commit: this entry's commit
+
+## Cycle 39: U31 useStagedEdits — one store per mount
+
+- test: `apps/web-app/hooks/useStagedEdits.test.tsx::useStagedEdits makes one store per mount and keeps it across re-renders` (new — first React hook test, `renderHook` from `@testing-library/react`)
+- red: `pnpm exec vitest run apps/web-app/hooks/useStagedEdits.test.tsx`
+  -> `Failed to resolve import "./useStagedEdits.ts"` (module absent)
+- green: `apps/web-app/hooks/useStagedEdits.ts` (new) — `useRef` lazily makes one
+  `new StagedEditsStore(options)` per mount and returns it stably across re-renders
+  (INV-5). Full suite `pnpm exec vitest run` -> 111 files, 530 passed (~21s)
+- refactor: none needed
+- commit: this entry's commit
