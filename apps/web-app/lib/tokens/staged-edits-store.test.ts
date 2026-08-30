@@ -72,6 +72,23 @@ test("getFields returns a token's base fields, and the same object on repeated r
 	assert.equal(store.getFields("space.sm"), fields);
 });
 
+test("successive commits to one key accumulate into a single staged edit", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+
+	store.commit("space.sm", { description: "small spacing" });
+	store.commit("space.sm", { value: { value: 8, unit: "px" } });
+
+	const fields = store.getFields("space.sm");
+	assert.equal(fields.description, "small spacing");
+	assert.deepEqual(fields.value, { value: 8, unit: "px" });
+});
+
 test("commit with the token's current value stages nothing", () => {
 	const store = makeStore(
 		group("", [

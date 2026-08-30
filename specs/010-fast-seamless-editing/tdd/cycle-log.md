@@ -269,3 +269,14 @@ existed and failed before the implementation.
   pending edit exists for that field) is not yet handled — deferred; `discard` (U15)
   is the clean "drop the pending" path.
 - commit: `<pending>`
+
+## Cycle 15: U7 successive commits accumulate into one staged edit
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::successive commits to one key accumulate into a single staged edit` (new)
+- red: passes with the cycle-14 code (the `...existing` spread in `commit` already
+  accumulates). Deliberate-mutant check: dropping `...existing` from `#pending.set`
+  -> `AssertionError: Expected values to be strictly equal` on `fields.description`
+  (second commit clobbered the first). Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 109 files, 506 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`
