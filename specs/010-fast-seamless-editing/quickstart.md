@@ -27,13 +27,17 @@ pnpm test:vitest
 ```
 
 Expected:
-- `useStagedEdits.test.tsx` — `getPendingEdit(k)` / `getFieldError(k)` return a stable
-  reference across an unrelated edit and a stable empty `getServerSnapshot`; `subscribe` and
-  the mutators keep stable identity for the store's lifetime (INV-1, INV-2, INV-2a).
+- `staged-edits-store.test.ts` (React-free) — `getFields(k)` / `getResolvedPreview(k)`
+  return a stable reference when `k` is untouched by a `commit` elsewhere; `commit` validates
+  before staging and stages only the changed fields; `save()` is the only path that moves the
+  base tree; `resolvePreview` is cycle-safe and total (INV-1, INV-3, INV-6, INV-7, INV-16).
+- `preview-resolver.test.ts` — multi-hop chains, cycles, dangling `{a}`, and cross-file hops
+  (splice `#serverPreview`) all resolve to the documented `ResolvedValue` (C-LR-3/5/6/7).
 - `TreeTokenNode.test.tsx` — typing in one row of a multi-row tree re-renders only that row
-  (C-RI-1); staged-edit payloads match the pre-change baseline for the same input (C-RI-6).
+  (C-RI-1); editing a token referenced by another updates only the dependent's preview
+  (C-RI-4 / C-LR-2); staged payloads match the pre-change baseline for the same input (C-RI-6).
 - `TokenBlock.test.tsx` / `FieldErrorSlot.test.tsx` — the error slot's box size is identical
-  with and without a message (INV-10, C-KL-4).
+  with and without a message (INV-14, C-KL-4).
 - `*.a11y.test.tsx` — `axe` clean during and after an edit and a simulated focus move.
 
 ## 2. Baseline capture (before starting the render work)

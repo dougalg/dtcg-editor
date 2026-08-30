@@ -34,7 +34,7 @@ the unsaved-changes modal dialog (FR-006).
 **When** a validation message appears (bad value, rename collision, invalid JSON) or clears
 on the next keystroke
 **Then** no element outside that row's own error slot changes position or size; the slot's
-box size is identical whether or not a message is shown (FR-010, FR-012; SC-002; INV-10).
+box size is identical whether or not a message is shown (FR-010, FR-012; SC-002; INV-14).
 
 ## C-KL-5 — Focus-revealed helper UI uses reserved space
 

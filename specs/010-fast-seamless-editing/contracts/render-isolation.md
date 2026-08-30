@@ -44,14 +44,14 @@ and rows not referencing *T* do not re-render (SC-005, FR-011).
 **Given** any sequence of keystrokes and commits
 **Then** the resulting `pendingEdits` map, the values sent to the PATCH route on Save, and
 the on-disk file after Save are **byte-identical** to the pre-change behavior for the same
-input sequence (INV-5, INV-7; regression-guarded by existing `TokenTree` / `TreeTokenNode` /
+input sequence (INV-6; regression-guarded by existing `TokenTree` / `TreeTokenNode` /
 save tests continuing to pass unmodified except where they assert on render internals).
 
 ## C-RI-7 — Caret preservation under external re-render
 
 **Given** the user's caret is at offset *k* in a focused field of row *A*
 **When** an unrelated row is edited, or a deferred ripple recomputation completes
-**Then** row *A*'s field keeps focus and the caret stays at offset *k* (INV-8, FR-002).
+**Then** row *A*'s field keeps focus and the caret stays at offset *k* (INV-11, FR-002).
 
 ## Budgets (from spec Success Criteria)
 

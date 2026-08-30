@@ -31,7 +31,7 @@ An `e2e/render-stability.spec.ts` Playwright test MUST, using a `PerformanceObse
 
 ## C-MB-4 — Row-render isolation is guarded at component level
 
-A component test (`TreeTokenNode.test.tsx` or a new `useStagedEdits.test.tsx`) MUST render a
+A component test (`TreeTokenNode.test.tsx`, backed by `staged-edits-store.test.ts`) MUST render a
 multi-row tree with a per-row render counter, type into one row, and assert every other
 row's render count is unchanged (C-RI-1). A matching `*.a11y.test.tsx` asserts `axe` clean
 during and after the interaction.
@@ -55,7 +55,7 @@ numbers as their regression ceiling.
 `apps/web-app/scripts/generate-large-fixture.ts` MUST emit
 `apps/web-app/e2e/fixtures/tokens/large_scale.tokens.json`: ~2,000 tokens, nested groups,
 deterministic output for a fixed seed, at least one token referenced by ≥ 100 others, and
-loadable by the existing token route with no parse error (INV-11). The generator is run
+loadable by the existing token route with no parse error (INV-15). The generator is run
 once and its output committed; it is not run in CI.
 
 ## Out of scope for measurement
