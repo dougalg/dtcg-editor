@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { parseTokenFile } from "@dtcg-editor/token-core";
 import { test } from "vitest";
+import { buildReferenceIndex } from "../lib/tokens/reference-index.ts";
 import { generateLargeFixture } from "./generate-large-fixture.ts";
 
 // A fixed, arbitrary seed — the point of the behaviour is that the same seed
@@ -52,4 +54,23 @@ test("generateLargeFixture emits ~2,000 tokens nested at least 3 levels deep", (
 		`token count ${tokens.length} is outside 1900-2200`,
 	);
 	assert.ok(maxDepth >= 3, `max group depth ${maxDepth} is < 3`);
+});
+
+test("generateLargeFixture output loads through the token pipeline with no parse error", () => {
+	const parsed = parseTokenFile(
+		JSON.stringify(generateLargeFixture({ seed: SEED })),
+	);
+	assert.ok(parsed.isOk(), parsed.isErr() ? parsed.error.message : "");
+
+	const index = buildReferenceIndex([
+		{ relativePath: "large_scale.tokens.json", document: parsed.value },
+	]);
+
+	// A structural regression in the generator (collapsed nesting, a `$value`
+	// where a group should be, a group emitted as an array) shows up here as
+	// either a parse error above or an index size far outside the ~2,000 band.
+	assert.ok(
+		index.definitions.size >= 1_900 && index.definitions.size <= 2_200,
+		`indexed ${index.definitions.size} definitions, expected ~2,000`,
+	);
 });

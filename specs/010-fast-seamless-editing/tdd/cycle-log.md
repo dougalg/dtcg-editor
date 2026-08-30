@@ -66,3 +66,37 @@ existed and failed before the implementation.
 - STOP: `all` mode halted here — the full-suite green gate is unreliable on this
   machine under load, so subsequent per-cycle "nothing else broke" checks can't be
   certified honestly. See report.
+
+## Notes and deviations
+
+- Cycles 1–2 committed after the fact (session also held earlier planning artifacts):
+  `1cde422` / `317dff8` / `f006e99`, then rebased onto `main` (`9026644`, semver dep
+  upgrades) as `8d18096` (cycle 1+2 code), `0bc7971` (profile + list), `4a235c9`
+  (constitution). Rebase also picked up `604ef7e` from a parallel session, which
+  moved `reference-index.test.ts` into a dedicated non-concurrent `apps/web-app:bench`
+  Vitest project — the SC-010 perf flake that stopped the loop at cycle 2 is resolved;
+  the full suite is a reliable gate again (494 green, ~21s).
+
+## Cycle 3: U69 generator output loads through the token pipeline with no parse error
+
+- test: `apps/web-app/scripts/generate-large-fixture.test.ts::generateLargeFixture output loads through the token pipeline with no parse error` (new)
+- red: not a red-first cycle — the behaviour (structurally-valid DTCG that
+  `parseTokenFile` + `buildReferenceIndex` accept) is already satisfied by the
+  cycle-2 generator. Verified the test is not vacuous with a deliberate mutant:
+  emitting each subgroup as `[]` instead of `{}` →
+  `pnpm exec vitest run apps/web-app/scripts/generate-large-fixture.test.ts -t "loads through the token pipeline with no parse error"`
+  -> `AssertionError: Expected an object at "group-0.sub-0", got array` (1 failed);
+  code restored exactly, test green again.
+  (An earlier draft asserted only `parseTokenFile(...).isOk()`; the mutant check
+  showed `$value: null` passes it — token-core defers value-vs-type validation to
+  `validateTokenValue` by design — so the assertion was widened to also require the
+  reference index to land in the ~2,000 band, which the array mutant does trip.)
+- green: no production change — test-only cycle. Full suite `pnpm exec vitest run`
+  -> 108 files, 494 passed, 0 failed (~21s)
+- refactor: none needed
+- notes: `walkTokens` split test-list behaviour U68 into U68 + appended U72
+  (≥100-referrer token), U73 (dispatch paths in first 20 tokens), U74 (injected
+  file-writer / no I/O in the pure fn); T001's marker updated to
+  `[U67][U68][U69][U72][U73][U74]` so it is not ticked until the generator is
+  actually complete.
+- commit: `<pending>`
