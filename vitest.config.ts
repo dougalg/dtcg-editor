@@ -18,6 +18,15 @@ const a11yStylesSetup = fileURLToPath(
  * errors, etc.) are untouched and keep running via their own `test`
  * scripts outside this config.
  */
+// `apps/web-app`'s reference-index benchmark asserts a hard wall-clock
+// budget (SC-010). It must run with the machine to itself — dozens of
+// other test files scheduled concurrently onto the same cores can push a
+// sample well past budget purely from scheduling contention. It gets its
+// own project pinned to a later `sequence.groupOrder` so it runs alone
+// after every default-group project finishes, and is excluded from the
+// normal unit project below so it isn't also run under contention.
+const BENCH_FILE = "lib/tokens/reference-index.test.ts";
+
 function unitProject(pkgRoot: string) {
 	return {
 		root: pkgRoot,
@@ -40,6 +49,10 @@ function unitProject(pkgRoot: string) {
 				"**/*.a11y.test.tsx",
 				"**/node_modules/**",
 				"**/dist/**",
+				// Runs in its own late-group project instead — see BENCH_FILE.
+				// Relative to this project's `root`, so it only matches inside
+				// `apps/web-app` and is a harmless no-op for the others.
+				BENCH_FILE,
 				// Relative to this project's own `root`, so these only ever
 				// match inside `packages/token-editor-color` — harmless
 				// (unmatched) globs for the other three projects.
@@ -83,6 +96,25 @@ function a11yProject(pkgRoot: string) {
 	};
 }
 
+// Isolated project for the wall-clock-sensitive reference-index benchmark.
+// `sequence.groupOrder: 1` makes it run on its own, after every project in
+// the default group (0) has finished, so no other test files are competing
+// for the CPU while it measures.
+function benchProject(pkgRoot: string) {
+	return {
+		root: pkgRoot,
+		plugins: [react()],
+		test: {
+			name: `${pkgRoot}:bench`,
+			environment: "jsdom",
+			setupFiles: ["./vitest.setup.ts"],
+			include: [BENCH_FILE],
+			exclude: ["**/node_modules/**", "**/dist/**"],
+			sequence: { groupOrder: 1 },
+		},
+	};
+}
+
 const packages = [
 	"apps/web-app",
 	"packages/design-system",
@@ -92,9 +124,9 @@ const packages = [
 
 export default defineConfig({
 	test: {
-		projects: packages.flatMap((root) => [
-			unitProject(root),
-			a11yProject(root),
-		]),
+		projects: [
+			...packages.flatMap((root) => [unitProject(root), a11yProject(root)]),
+			benchProject("apps/web-app"),
+		],
 	},
 });
