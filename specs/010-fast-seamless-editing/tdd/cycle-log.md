@@ -409,3 +409,16 @@ existed and failed before the implementation.
     re-render. Tightening to emit-only-if-changed is not worth a cycle. `discard` /
     `reportError` do NOT emit yet — appended **U77** for that.
 - commit: `<pending>`
+
+## Cycle 26: U77 discard and reportError notify subscribers
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::discard and reportError also notify subscribers` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "discard and reportError also notify"`
+  -> `AssertionError: Expected values to be strictly equal` (notifications stayed 0)
+- green: add `this.#emit()` to `discard` and `reportError`. Full suite
+  `pnpm exec vitest run` -> 109 files, 517 passed (~21s)
+- refactor: none needed
+- notes: **StagedEditsStore core is complete** (minus the `#previewCache` — U18–U20,
+  US3 phase). T009 and T010 ticked in tasks.md (all their `[U#]` markers DONE). 20
+  store unit tests.
+- commit: `<pending>`

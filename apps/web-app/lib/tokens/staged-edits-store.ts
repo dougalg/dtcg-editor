@@ -193,6 +193,7 @@ export class StagedEditsStore {
 	 */
 	reportError = (key: PathKey, errors: FieldErrors): void => {
 		this.#errors.set(key, errors);
+		this.#emit();
 	};
 
 	/** Drop one key's staged edit and error; other keys' snapshots are untouched (INV-1). */
@@ -200,6 +201,7 @@ export class StagedEditsStore {
 		this.#pending.delete(key);
 		this.#errors.delete(key);
 		this.#fieldsCache.delete(key);
+		this.#emit();
 	};
 
 	/**

@@ -42,6 +42,26 @@ function makeStore(tree: PlainDtcgNode = group("", [])): StagedEditsStore {
 	});
 }
 
+test("discard and reportError also notify subscribers", () => {
+	const store = makeStore(
+		group("", [
+			group("space", [
+				dimensionToken(["space", "sm"], { value: 4, unit: "px" }),
+			]),
+		]),
+	);
+	let notifications = 0;
+	store.subscribe(() => {
+		notifications++;
+	});
+
+	store.reportError("space.sm", { name: undefined, value: "bad" });
+	assert.equal(notifications, 1);
+
+	store.discard("space.sm");
+	assert.equal(notifications, 2);
+});
+
 test("the store notifies subscribers after a state-changing commit and after save", async () => {
 	const store = new StagedEditsStore({
 		initialTree: group("", [
