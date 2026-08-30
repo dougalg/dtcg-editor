@@ -447,3 +447,14 @@ existed and failed before the implementation.
 - refactor: none needed — `resolveFrom` is the recursion carrier
 - notes: plain recursion for now; the `visited` cycle guard is U26.
 - commit: `<pending>`
+
+## Cycle 29: U24 resolvePreview returns unresolved for a missing target
+
+- test: `apps/web-app/lib/tokens/preview-resolver.test.ts::resolvePreview returns unresolved when a reference target is missing` (new)
+- red: `AssertionError: kind: 'value', value: undefined (expected 'unresolved')` — the
+  recursion hit a missing node and reported it as a literal `undefined`
+- green: before recursing on a `{x}` hop, if `getEffectiveNode(x) === undefined` return
+  `{ kind: "unresolved", ref: ref.raw }`. Full suite `pnpm exec vitest run` -> 110 files,
+  520 passed (~21s)
+- refactor: none needed
+- commit: `<pending>`

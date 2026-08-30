@@ -41,6 +41,9 @@ function resolveFrom(
 	}
 
 	const targetKey = ref.targetPath.join(".");
+	if (getEffectiveNode(targetKey) === undefined) {
+		return { kind: "unresolved", ref: ref.raw };
+	}
 	return resolveFrom(targetKey, getEffectiveNode, serverPreview, [
 		...via,
 		targetKey,

@@ -26,6 +26,15 @@ function nodesByKey(
 
 const NO_SERVER_PREVIEW = new Map<string, ResolvedValue>();
 
+test("resolvePreview returns unresolved when a reference target is missing", () => {
+	const nodes = nodesByKey({ b: token(["b"], "{missing.token}") });
+
+	assert.deepEqual(resolvePreview("b", nodes, NO_SERVER_PREVIEW), {
+		kind: "unresolved",
+		ref: "{missing.token}",
+	});
+});
+
 test("resolvePreview follows a multi-hop in-file chain to the final value", () => {
 	const nodes = nodesByKey({
 		a: token(["a"], { value: 4, unit: "px" }),
