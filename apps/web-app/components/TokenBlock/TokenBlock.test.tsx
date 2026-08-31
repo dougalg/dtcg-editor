@@ -155,3 +155,25 @@ test("always renders a FieldErrorSlot and shows the threaded error inside it (U6
 		"The name is taken.",
 	);
 });
+
+test("layout is independent of whether an error is present (U65)", () => {
+	function skeleton(root: Element): string {
+		const clone = root.cloneNode(true) as Element;
+		const slot = clone.querySelector("[data-testid='field-error-slot']");
+		if (slot !== null) {
+			slot.innerHTML = ""; // ignore the slot's *contents*, keep the box
+		}
+		return clone.innerHTML;
+	}
+
+	const { container: clean } = renderBlock({});
+	const cleanSkeleton = skeleton(clean);
+	cleanup();
+
+	const { container: withError } = renderBlock({
+		error: { name: "The name is taken.", value: "Not a dimension." },
+	});
+
+	// the only difference an error makes is content *inside* the reserved slot
+	expect(skeleton(withError)).toBe(cleanSkeleton);
+});

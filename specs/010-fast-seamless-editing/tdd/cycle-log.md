@@ -1363,3 +1363,28 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   error span is untouched by this cycle (T028's scope is TokenBlock +
   TreeTokenNode). T028/T036 stay open (U65, U66).
 - commit: this entry's commit
+
+## Cycle 78: U65 — TokenBlock's layout is independent of an error's presence
+
+- test: `apps/web-app/components/TokenBlock/TokenBlock.test.tsx::layout is independent of whether an error is present (U65)` (new; render with and without `error`, blank out the slot's *contents*, assert the rest of the block markup is byte-identical)
+- red: passes first run — `FieldErrorSlot` is unconditional (U60/U64), so an
+  error only adds content inside the reserved box. Deliberate-mutant:
+  `<FieldErrorSlot errors={error ?? NO_ERRORS} />` -> `{error !== undefined && <FieldErrorSlot errors={error} />}`
+  -> `pnpm exec vitest run apps/web-app/components/TokenBlock/TokenBlock.test.tsx -t "layout is independent"`
+  -> the skeletons differ (`…<span class="_slot_…" data-testid="field-error-slot"></span>` present only with an error). Restored.
+- green: no production change. Full suite -> 569 passed; tsc clean.
+- refactor: none needed.
+- commit: shared with U66.
+
+## Cycle 79: U66 — axe clean with the FieldErrorSlot integration
+
+- test: `apps/web-app/components/TokenBlock/TokenBlock.a11y.test.tsx::has no WCAG 2.2 AA violations with the FieldErrorSlot showing name + value errors (U66)` (new; real-Chromium `apps/web-app:a11y`)
+- red: passes first run. Deliberate-mutant: drop the name input's
+  `aria-label={nameAriaLabel}` -> all four `TokenBlock.a11y` tests
+  `FAIL |apps/web-app:a11y (chromium)|`. Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 120 files,
+  570 passed (~25s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: **U64–U66 done — the `TokenBlock` cluster is complete; the whole inner
+  component loop (U39–U66) is DONE.** T028 and T036 ticked.
+- commit: this entry's commit

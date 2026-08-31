@@ -47,3 +47,22 @@ test("has no WCAG 2.2 AA violations with a non-standard type", async () => {
 	);
 	await expectNoViolations(container);
 });
+
+test("has no WCAG 2.2 AA violations with the FieldErrorSlot showing name + value errors (U66)", async () => {
+	const { container } = render(
+		<ul>
+			<TokenBlock
+				name="brand-blue"
+				type="color"
+				isNonStandardType={false}
+				error={{
+					name: "The name is taken.",
+					value: "Not a valid color.",
+				}}
+			>
+				<span>value content</span>
+			</TokenBlock>
+		</ul>,
+	);
+	await expectNoViolations(container);
+});
