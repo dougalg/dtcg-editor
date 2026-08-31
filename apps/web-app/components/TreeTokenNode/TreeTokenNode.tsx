@@ -69,6 +69,12 @@ export function TreeTokenNode({
 	// blur / Enter by `commitDraft`. `shown` is what every field renders from.
 	const [draft, setDraft] = useState<Partial<EditableFields>>({});
 	const shown = { ...fields, ...draft };
+	// The fallback JSON editor's buffer is raw *text* (parsed only on blur),
+	// so it can't live in `draft` (which holds a parsed `value`). `undefined`
+	// means "not being edited — show the serialized committed value".
+	const [fallbackDraft, setFallbackDraft] = useState<string | undefined>(
+		undefined,
+	);
 
 	function commitDraft() {
 		if (Object.keys(draft).length === 0) {
@@ -76,6 +82,25 @@ export function TreeTokenNode({
 		}
 		commit(draft);
 		setDraft({});
+	}
+
+	function commitFallbackDraft() {
+		if (fallbackDraft === undefined) {
+			return;
+		}
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(fallbackDraft);
+		} catch (parseError) {
+			// Keep the unparseable text on screen so the user can fix it.
+			store?.reportError(node.path.join("."), {
+				name: error?.name,
+				value: `Invalid JSON: ${parseError instanceof Error ? parseError.message : "could not parse"}`,
+			});
+			return;
+		}
+		commit({ value: parsed });
+		setFallbackDraft(undefined);
 	}
 	// Rendered in every dispatch path below via `TokenBlock`'s `headerExtra`
 	// — `ReferencedByBadge` itself renders nothing at zero referrers, so no
@@ -218,17 +243,7 @@ export function TreeTokenNode({
 	}
 
 	function handleFallbackValueChange(nextText: string) {
-		let parsed: unknown;
-		try {
-			parsed = JSON.parse(nextText);
-		} catch (parseError) {
-			store?.reportError(node.path.join("."), {
-				name: error?.name,
-				value: `Invalid JSON: ${parseError instanceof Error ? parseError.message : "could not parse"}`,
-			});
-			return;
-		}
-		commit({ value: parsed });
+		setFallbackDraft(nextText);
 	}
 
 	function handleDescriptionChange(event: ChangeEvent<HTMLTextAreaElement>) {
@@ -278,8 +293,9 @@ export function TreeTokenNode({
 				/>
 			) : (
 				<FallbackValueEditor
-					value={JSON.stringify(currentRawValue, null, 2)}
+					value={fallbackDraft ?? JSON.stringify(currentRawValue, null, 2)}
 					onChange={handleFallbackValueChange}
+					onBlur={commitFallbackDraft}
 				/>
 			)}
 			<label className={styles.descriptionField}>

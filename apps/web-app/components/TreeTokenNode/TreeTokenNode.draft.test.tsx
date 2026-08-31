@@ -21,8 +21,23 @@ function smallToken(): TokenNode {
 	};
 }
 
-function renderRow() {
-	const node = smallToken();
+/** A standard DTCG type with no built-in contract and no registered editor —
+ * `TreeTokenNode` renders `FallbackValueEditor` (raw-JSON text) for it. */
+function fallbackToken(): TokenNode {
+	return {
+		kind: "token",
+		name: "d",
+		path: ["d"],
+		value: "100ms",
+		declaredType: "duration",
+		effectiveType: "duration",
+		inferredType: undefined,
+		description: undefined,
+		deprecated: undefined,
+	};
+}
+
+function renderRow(node: TokenNode = smallToken()) {
 	const store = new StagedEditsStore({
 		initialTree: {
 			kind: "group",
@@ -39,6 +54,8 @@ function renderRow() {
 	});
 	const commitSpy = vi.fn(store.commit);
 	store.commit = commitSpy;
+	const reportErrorSpy = vi.fn(store.reportError);
+	store.reportError = reportErrorSpy;
 	render(
 		<StagedEditsContext.Provider value={store}>
 			<ul>
@@ -46,7 +63,7 @@ function renderRow() {
 			</ul>
 		</StagedEditsContext.Provider>,
 	);
-	return { commitSpy };
+	return { commitSpy, reportErrorSpy };
 }
 
 test("a keystroke in the name field updates only local draft — no store.commit until blur", () => {
@@ -77,4 +94,20 @@ test("a keystroke in the description field updates only local draft — no store
 
 	fireEvent.blur(descriptionInput);
 	expect(commitSpy).toHaveBeenCalledWith("small", { description: "a note" });
+});
+
+test("a keystroke in the fallback JSON editor buffers text — no store call until blur", () => {
+	const { commitSpy, reportErrorSpy } = renderRow(fallbackToken());
+	const jsonInput = screen.getByLabelText(
+		"Value (JSON)",
+	) as HTMLTextAreaElement;
+
+	fireEvent.change(jsonInput, { target: { value: '"200ms"' } });
+
+	expect(jsonInput.value).toBe('"200ms"');
+	expect(commitSpy).not.toHaveBeenCalled();
+	expect(reportErrorSpy).not.toHaveBeenCalled();
+
+	fireEvent.blur(jsonInput);
+	expect(commitSpy).toHaveBeenCalledWith("d", { value: "200ms" });
 });

@@ -943,3 +943,24 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: none needed — reuses `commitDraft` / `setDraft` from U41.
 - notes: T018/T021 stay open (U41c, U41d, U42 pending).
 - commit: this entry's commit
+
+## Cycle 55: U41c — fallback JSON editor buffers text, parses + commits on blur
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the fallback JSON editor buffers text — no store call until blur` (new; a `duration` token -> `FallbackValueEditor` path; `store.commit` and `store.reportError` both wrapped by `vi.fn` spies)
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "fallback JSON editor"`
+  -> `expect(commitSpy).not.toHaveBeenCalled()` fails at
+  `components/TreeTokenNode/TreeTokenNode.draft.test.tsx:106` ("Number of calls: 1"
+  — `handleFallbackValueChange` parsed + committed on change).
+- green: new `fallbackDraft: string | undefined` state; `handleFallbackValueChange`
+  -> `setFallbackDraft(text)` only; `FallbackValueEditor value={fallbackDraft ??
+  JSON.stringify(currentRawValue, null, 2)}`. `commitFallbackDraft` parses: on
+  success `commit({ value: parsed })` + clear; on `JSON.parse` failure
+  `store.reportError(...)` and keep the text. First pass wrapped the editor in a
+  `<span onBlur>` (it had no `onBlur` prop). Full suite `pnpm exec vitest run`
+  -> 116 files, 545 passed (~23s); `pnpm build` tsc clean.
+- refactor: dropped the `<span>` wrapper — added an optional `onBlur` prop to
+  `FallbackValueEditor` (an app component, not a contract-typed editor) and put
+  it straight on the `<textarea>`. Its own two tests still pass; suite stays
+  545/545, tsc clean.
+- notes: T018/T021 stay open (U41d, U42 pending).
+- commit: this entry's commit

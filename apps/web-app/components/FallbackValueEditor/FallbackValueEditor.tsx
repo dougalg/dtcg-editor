@@ -16,7 +16,12 @@ import styles from "./FallbackValueEditor.module.css";
 export function FallbackValueEditor({
 	value,
 	onChange,
-}: TokenTypeEditorProps<string>) {
+	onBlur,
+}: TokenTypeEditorProps<string> & {
+	/** Fired when the textarea loses focus — the caller parses + commits its
+	 * buffered text draft here (INV-9). */
+	readonly onBlur?: () => void;
+}) {
 	function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
 		onChange(event.target.value);
 	}
@@ -29,6 +34,7 @@ export function FallbackValueEditor({
 				rows={1}
 				value={value}
 				onChange={handleChange}
+				onBlur={onBlur}
 				spellCheck={false}
 			/>
 		</label>
