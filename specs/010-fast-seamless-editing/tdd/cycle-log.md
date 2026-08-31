@@ -788,3 +788,43 @@ before Cycle 42 so the baseline is genuinely green (`pnpm build` 7/7 + vitest).
   to tick. `#serverPreview` is derived purely from the constructor's `referenceView`
   and never changes on `save()`, so it is built once.
 - commit: this entry's commit
+
+## Session-resume note (before Cycle 49): the component-seam refactor
+
+The four tree components (`TokenTree`, `TreeNode`, `TreeTokenNode`,
+`TreeGroupNode`) shared one prop bundle (`TreeNodeProps` with
+`pendingEdits`/`fieldErrors`/`onStageEdit`/`onFieldError`), so moving them onto
+`StagedEditsContext` + `useTokenSlice` is a single atomic change that no
+one-behaviour cycle can carry. Per this skill's Phase 1 ("introducing the seam
+is a refactor on green code"), it was done as a **behaviour-preserving
+`refactor:` commit `7d140ae`**, not a cycle:
+
+- `TokenTree` → `useStagedEdits` + `StagedEditsContext.Provider`; tree +
+  hasPending via `useSyncExternalStore`; drops its three `useState` maps.
+- `TreeNode` props reduced to `{ node, relativePath }` (no `memo` yet).
+- `TreeTokenNode`/`TreeGroupNode` → `useTokenSlice(key)`; **keystroke still
+  stages immediately** (`onChange` → `store.commit`), so the existing suite's
+  "type one char → Save enables" assertions stay green. Validation +
+  collision now happen inside `store.commit`.
+- Existing tests: `TreeNode.{test,a11y}` setup rewired to a real store +
+  provider (no assertion changes); three collision assertions moved to the
+  store's canonical wording ("… already used by a sibling") — deliberate
+  message consolidation, behaviour (reject/don't-stage/alert/Save-disabled)
+  unchanged.
+
+vitest stayed 539; `pnpm build` 7/7. The behaviour cycles below build on this.
+
+## Cycle 49: U54 TreeNode is memoised
+
+- test: `apps/web-app/components/TreeNode/TreeNode.memo.test.tsx::TreeNode is memoised: a parent re-render with the same node does not re-render the row` (new; dedicated `vi.mock` file — the two row renderers are replaced by render-counting `vi.fn` spies)
+- red: `pnpm exec vitest run apps/web-app/components/TreeNode/TreeNode.memo.test.tsx`
+  -> `AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times`
+  at `components/TreeNode/TreeNode.memo.test.tsx:58:24` — a parent re-render
+  cascaded through the un-memoised `TreeNode` into the row.
+- green: `export const TreeNode = memo(function TreeNode …)`. Parent re-render
+  with the same `node` / `relativePath` is now skipped. Full suite
+  `pnpm exec vitest run` -> 114 files, 540 passed (~45s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: T017 also carries `[U55]` (still PENDING — "renders the structure
+  after the prop-surface reduction"), so it is not ticked yet.
+- commit: this entry's commit

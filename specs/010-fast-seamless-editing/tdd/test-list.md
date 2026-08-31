@@ -158,7 +158,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U54 | `TreeNode` is `memo`'d and its props reduce to `node` + `relativePath`; given the same `node` reference it does not re-render when the store emits for an unrelated key | research §2, C-RI-1 | example | PENDING | `TreeNode.test.tsx` |
+| U54 | `TreeNode` is `memo`'d and its props reduce to `node` + `relativePath`; given the same `node` reference it does not re-render when the store emits for an unrelated key | research §2, C-RI-1 | example | DONE | `apps/web-app/components/TreeNode/TreeNode.memo.test.tsx::TreeNode is memoised: a parent re-render with the same node does not re-render the row` |
 | U55 | `TreeNode` still renders the group/token structure it is handed (no behavioural regression from the prop-surface reduction) | II (no regression) | example | PENDING | `TreeNode.test.tsx` |
 
 ### `apps/web-app/components/TokenTree/TokenTree.tsx` (CHANGED)
