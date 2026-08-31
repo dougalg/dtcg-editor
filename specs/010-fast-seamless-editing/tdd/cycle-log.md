@@ -878,3 +878,30 @@ vitest stayed 539; `pnpm build` 7/7. The behaviour cycles below build on this.
 - refactor: none needed.
 - notes: T021 still carries U41–U46 (PENDING) — not ticked.
 - commit: this entry's commit
+
+## Cycle 53: U41 (name field) — a keystroke buffers to local draft, no store call
+
+- prep: the existing `TokenTree` / `TreeGroupNode` interaction tests that did
+  `fireEvent.change` then asserted a staged/error/save consequence were adapted
+  first (commit `3f5d0c7`) to `fireEvent.change` + `fireEvent.blur` — INV-9 moves
+  staging from keystroke to blur. No assertion loosened; suite stayed 542 against
+  the still-stage-on-change impl.
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the name field updates only local draft — no store.commit until blur` (new; a real `StagedEditsStore` with `commit` wrapped by a `vi.fn` spy, `TreeTokenNode` rendered directly under `StagedEditsContext`)
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx`
+  -> `expect(commitSpy).not.toHaveBeenCalled()` fails at
+  `components/TreeTokenNode/TreeTokenNode.draft.test.tsx:61` ("Number of calls: 1"
+  — the name field committed on change).
+- green: `TreeTokenNode` gains `const [draft, setDraft] = useState<Partial<EditableFields>>({})`
+  and `shown = { ...fields, ...draft }`; `handleNameChange` -> `setDraft` only;
+  a new `commitDraft()` (`commit(draft)` + `setDraft({})` when non-empty) is wired
+  to the heading input's blur via a new `onNameBlur` passthrough on `TokenBlock`.
+  Full suite `pnpm exec vitest run` -> 116 files, 543 passed (~45s); `pnpm build`
+  tsc clean.
+- refactor: none needed.
+- notes: **scope split** — this cycle covers the **name field only**. The value
+  editor and description field still `commit` on change; the fallback JSON editor
+  too. Appended **U41b** (description-field draft), **U41c** (fallback-editor text
+  draft + parse-on-commit), **U41d** (typed value-editor draft) to the list. U42
+  (clear-only-on-success / retain-on-failure) builds on this cycle's `commitDraft`.
+  T018/T021 stay open.
+- commit: this entry's commit

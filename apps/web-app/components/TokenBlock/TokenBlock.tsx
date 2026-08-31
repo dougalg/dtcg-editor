@@ -14,6 +14,9 @@ export interface TokenBlockProps {
 	 * the caller's concern — this block just reflects whatever `name` it's
 	 * given. */
 	readonly onNameChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+	/** Fired when the heading input loses focus — the caller uses it to
+	 * commit a buffered rename draft (INV-9). */
+	readonly onNameBlur?: () => void;
 	/** Accessible name for the heading input, since its visible content is
 	 * now user-editable text rather than a fixed label. Defaults to "Name",
 	 * which is ambiguous across sibling rows — callers rendering more than
@@ -52,6 +55,7 @@ export interface TokenBlockProps {
 export function TokenBlock({
 	name,
 	onNameChange = noop,
+	onNameBlur,
 	nameAriaLabel = "Name",
 	headingId,
 	rowTestId,
@@ -78,6 +82,7 @@ export function TokenBlock({
 						data-inline
 						value={name}
 						onChange={onNameChange}
+						onBlur={onNameBlur}
 						aria-label={nameAriaLabel}
 					/>
 				</h2>

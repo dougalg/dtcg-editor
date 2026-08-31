@@ -5,13 +5,19 @@ import {
 	type TokenTypeEditorProps,
 	validateTokenValue,
 } from "@dtcg-editor/token-editor-contract";
-import { type ChangeEvent, type ReactElement, useContext } from "react";
+import {
+	type ChangeEvent,
+	type ReactElement,
+	useContext,
+	useState,
+} from "react";
 import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
 import { useTokenSlice } from "../../hooks/useTokenSlice.ts";
 import { resolveBuiltInContract } from "../../lib/token-editors/built-in.ts";
 import { resolveEditorForType } from "../../lib/token-editors/resolve-editor.ts";
 import dtcgEditorConfig from "../../lib/token-editors/user-config.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
+import type { EditableFields } from "../../lib/tokens/staged-edits-store.ts";
 import { DefaultValidationErrorHandler } from "../DefaultValidationErrorHandler/DefaultValidationErrorHandler.tsx";
 import { FallbackValueEditor } from "../FallbackValueEditor/FallbackValueEditor.tsx";
 import { ReferencedByBadge } from "../ReferencedByBadge/ReferencedByBadge.tsx";
@@ -58,6 +64,19 @@ export function TreeTokenNode({
 	const key = pathKey(node.path);
 	const store = useContext(StagedEditsContext);
 	const { fields, error, commit } = useTokenSlice(key);
+	// A keystroke updates only this local buffer — no store call, no
+	// validation, no re-subscribe (INV-9). The staged edit is produced on
+	// blur / Enter by `commitDraft`. `shown` is what every field renders from.
+	const [draft, setDraft] = useState<Partial<EditableFields>>({});
+	const shown = { ...fields, ...draft };
+
+	function commitDraft() {
+		if (Object.keys(draft).length === 0) {
+			return;
+		}
+		commit(draft);
+		setDraft({});
+	}
 	// Rendered in every dispatch path below via `TokenBlock`'s `headerExtra`
 	// — `ReferencedByBadge` itself renders nothing at zero referrers, so no
 	// conditional is needed here (spec FR-021).
@@ -76,14 +95,16 @@ export function TreeTokenNode({
 	const rowTestId = `token-${key}`;
 	const effectiveType = node.effectiveType;
 
-	const currentName = fields.name;
+	const currentName = shown.name;
 
 	// Renaming is independent of the token's value/type validity, so this is
 	// shared by both the valid/editable and invalid/read-only paths below —
 	// a token with a broken value can still be renamed. Collision validation
-	// (against other pending renames too) is the store's `commit`.
+	// (against other pending renames too) happens in the store's `commit`,
+	// reached from `commitDraft` on blur.
 	function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
-		commit({ name: event.target.value });
+		const nextName = event.target.value;
+		setDraft((current) => ({ ...current, name: nextName }));
 	}
 
 	// Path 1: the value is a reference. Checked before any per-type
@@ -101,6 +122,7 @@ export function TreeTokenNode({
 			<TokenBlock
 				name={currentName}
 				onNameChange={handleNameChange}
+				onNameBlur={commitDraft}
 				nameAriaLabel={`${node.name} name`}
 				headingId={headingId}
 				rowTestId={rowTestId}
@@ -167,6 +189,7 @@ export function TreeTokenNode({
 			<TokenBlock
 				name={currentName}
 				onNameChange={handleNameChange}
+				onNameBlur={commitDraft}
 				nameAriaLabel={`${node.name} name`}
 				headingId={headingId}
 				rowTestId={rowTestId}
@@ -232,6 +255,7 @@ export function TreeTokenNode({
 		<TokenBlock
 			name={currentName}
 			onNameChange={handleNameChange}
+			onNameBlur={commitDraft}
 			nameAriaLabel={`${node.name} name`}
 			headingId={headingId}
 			rowTestId={rowTestId}
