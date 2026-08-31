@@ -1277,3 +1277,20 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   -> `const hasPendingEdits = false` -> the "opens the unsaved-changes dialog"
   test fails. Restored. No red-green cycle (Phase 1 "already covered" path).
 - state -> DONE. With U56 + U57 + U58 done, T015 is ticked.
+
+## Cycle 72: U59 — axe clean with the store-wired TokenTree markup
+
+- test: `apps/web-app/components/TokenTree/TokenTree.a11y.test.tsx::has no WCAG 2.2 AA violations after an edit + save round-trip (U59)` (new; drafts a token-name edit, runs `axe`, then blur + Save, waits for the store's rebuilt row, runs `axe` again)
+- red: first draft used `getByRole("textbox", { name: /small name/i })` scoped
+  with `within` -> `TestingLibraryElementError: Found multiple elements` (the
+  description textarea's `aria-labelledby` name also matched) — not a valid red.
+  Switched to `getByLabelText("small name")`. Passes first run. Deliberate-mutant:
+  drop the name input's `aria-label={nameAriaLabel}` in `TokenBlock` ->
+  `pnpm exec vitest run apps/web-app/components/TokenTree/TokenTree.a11y.test.tsx`
+  -> both a11y tests `FAIL |apps/web-app:a11y (chromium)|` (axe flags the
+  unlabelled input). Restored via `git checkout`.
+- green: no production change. Full suite `pnpm exec vitest run` -> 118 files,
+  562 passed (~24s); `pnpm build` tsc clean. (Real-Chromium `apps/web-app:a11y`.)
+- refactor: none needed.
+- notes: **U56–U59 done — the `TokenTree` cluster is complete. T016 ticked.**
+- commit: this entry's commit
