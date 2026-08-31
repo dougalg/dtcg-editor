@@ -209,3 +209,25 @@ test("committing an edit shows no spinner / skeleton / disabled state in the row
 	expect(row.matches(":disabled")).toBe(false);
 	expect(valueInput.disabled).toBe(false);
 });
+
+test("the fallback editor calls store.reportError on a parse failure, not on a valid parse (U46)", () => {
+	const { commitSpy, reportErrorSpy } = renderRow(fallbackToken());
+	const jsonInput = screen.getByLabelText(
+		"Value (JSON)",
+	) as HTMLTextAreaElement;
+
+	// unparseable on blur -> reportError, nothing staged
+	fireEvent.change(jsonInput, { target: { value: "{ not json" } });
+	fireEvent.blur(jsonInput);
+
+	expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+	expect(reportErrorSpy.mock.calls[0]?.[1]?.value).toMatch(/Invalid JSON/);
+	expect(commitSpy).not.toHaveBeenCalled();
+
+	// a valid parse on blur -> commit, no further reportError
+	fireEvent.change(jsonInput, { target: { value: '"300ms"' } });
+	fireEvent.blur(jsonInput);
+
+	expect(commitSpy).toHaveBeenCalledWith("d", { value: "300ms" });
+	expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+});

@@ -1070,3 +1070,22 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   dispatch.
 - notes: T018/T021 stay open (U46 — fallback JSON-parse error path).
 - commit: this entry's commit
+
+## Cycle 61: U46 — fallback editor reportErrors on a parse failure, not on a valid parse
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::the fallback editor calls store.reportError on a parse failure, not on a valid parse (U46)` (new; reuses the `commitSpy` / `reportErrorSpy` from `renderRow`)
+- red: passes first run — `commitFallbackDraft` (built in U41c) already
+  `JSON.parse`s on blur and `reportError`s only on failure. Deliberate-mutant:
+  drop the `store?.reportError(...)` call from the `catch` branch (`catch { return; }`)
+  -> `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "reportError on a parse failure"`
+  -> `AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times`.
+  Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 117 files,
+  551 passed (~22s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: **U39–U46 all DONE** (with U41 split into U41 + U41b/c/d). T021 and
+  T018 ticked. The task recipe's `memo()` on `TreeTokenNode` itself was not
+  added — `TreeNode` is memo'd (U54) and is its only parent, so U39's
+  render-isolation holds without it; a dedicated `TreeTokenNode` memo would be
+  implementation without a driving behaviour.
+- commit: this entry's commit
