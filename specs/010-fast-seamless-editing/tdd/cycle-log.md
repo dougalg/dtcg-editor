@@ -1114,3 +1114,29 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   scopes `#previewCache` invalidation to `key ∪ reverseDeps(key)`) + U37
   (`useResolvedPreview` snapshot stability). T043/T044 stay open (U48).
 - commit: this entry's commit
+
+## Cycle 63: U48 — a pending rename of a referenced token dangles the referrer live
+
+- test (store): `apps/web-app/lib/tokens/staged-edits-store.test.ts::a pending rename of a referenced token makes the referrer's preview unresolved (U48)` (new)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "pending rename of a referenced token"`
+  -> `assert.deepEqual` at `lib/tokens/staged-edits-store.test.ts:518` — after
+  `commit("g.a", { name: "a2" })`, `getResolvedPreview("g.b")` still returned the
+  stale `{ kind: "value", value: {value:4,unit:"px"}, via:["g.a"] }`.
+- green: `#getEffectiveNode(key)` now returns `undefined` when the key's pending
+  edit renames it away (`pending.name !== base.name`) — the old key is vacated,
+  so a chain hop `{g.a}` dangles to `serverPreview` (empty) ??
+  `{ kind: "unresolved" }` (C-LR-5).
+- second test (component): `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::renaming a same-file referenced token shows the referrer's preview as unresolved, not the stale value (U48)` (new) — exposed a gap the U47 cycle left: the reference row was still falling back to the stale server literal for a same-file `unresolved` live value.
+- green (component): `ReferenceValueDisplay` now passes `liveValue` to
+  `TokenReferenceValue` **only for a same-file reference** (`outcome.targetFile
+  === relativePath`); `OutcomeRow`, when a `liveValue` is present and not
+  `"value"`, renders a synthetic `ReferenceWarning` (`unresolved` / `circular`
+  built from `liveValue.ref`) instead of the server literal. Cross-file
+  references stay on the server `referenceView` (existing tests unchanged).
+  Full suite `pnpm exec vitest run` -> 117 files, 554 passed (~23s);
+  `pnpm build` tsc clean; biome clean.
+- refactor: tightened the `OutcomeRow` `liveValue` doc comment (the U47 version
+  said non-`value` kinds fall back to the server — no longer true for same-file).
+- notes: **U47 + U48 done — T043 and T044 ticked.** Two tests in this cycle
+  (store + component) for the one C-LR-5 behaviour at its two layers.
+- commit: this entry's commit

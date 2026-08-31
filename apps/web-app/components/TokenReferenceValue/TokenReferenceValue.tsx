@@ -1,3 +1,4 @@
+import { parseReference, type ResolutionChain } from "@dtcg-editor/token-core";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { resolveBuiltInContract } from "../../lib/token-editors/built-in.ts";
@@ -75,11 +76,11 @@ function OutcomeRow({
 }: {
 	readonly outcome: ResolvedOutcome;
 	readonly targetPath: readonly string[];
-	/** The store's live resolution of this reference (present only for a
-	 * single-outcome reference). When it is a `"value"` it supersedes the
-	 * server outcome's literal so an in-session edit to the target shows
-	 * immediately (C-LR-1); `"unresolved"` / `"cycle"` fall back to the
-	 * server outcome, which the server is still the authority on. */
+	/** The store's live resolution of this reference — set only for a
+	 * same-file, single-outcome reference, and then it fully governs the
+	 * displayed outcome: a `"value"` supersedes the server literal (C-LR-1),
+	 * `"unresolved"` / `"cycle"` render a live warning in its place (C-LR-5).
+	 * The server outcome remains the navigation authority. */
 	readonly liveValue?: ResolvedValue | undefined;
 }) {
 	const modeLabel =
@@ -87,26 +88,45 @@ function OutcomeRow({
 			<span className={styles.modeLabel}>{outcome.mode}:</span>
 		) : null;
 
+	// When `liveValue` is present the reference is same-file and the store's
+	// live resolution fully governs the displayed outcome (C-LR-1 / C-LR-5);
+	// the server outcome is then only the navigation authority. Otherwise the
+	// server outcome's own literal / warning is shown.
+	const outcomeType =
+		outcome.chain.outcome.kind === "resolved"
+			? outcome.chain.outcome.type
+			: undefined;
 	const resolvedLiteral =
-		liveValue?.kind === "value"
-			? formatLiteralValue(
-					liveValue.value,
-					outcome.chain.outcome.kind === "resolved"
-						? outcome.chain.outcome.type
-						: undefined,
-				)
+		liveValue !== undefined
+			? liveValue.kind === "value"
+				? formatLiteralValue(liveValue.value, outcomeType)
+				: undefined
 			: outcome.chain.outcome.kind === "resolved"
-				? formatLiteralValue(
-						outcome.chain.outcome.value,
-						outcome.chain.outcome.type,
-					)
+				? formatLiteralValue(outcome.chain.outcome.value, outcomeType)
 				: undefined;
+
+	const warningChain: ResolutionChain =
+		liveValue !== undefined && liveValue.kind !== "value"
+			? {
+					steps: [],
+					outcome:
+						liveValue.kind === "cycle"
+							? {
+									kind: "circular",
+									cyclePath: parseReference(liveValue.ref)?.targetPath ?? [],
+								}
+							: {
+									kind: "unresolved",
+									missingPath: parseReference(liveValue.ref)?.targetPath ?? [],
+								},
+				}
+			: outcome.chain;
 
 	const content = (
 		<>
 			<LinkGlyph />
 			{modeLabel}
-			{resolvedLiteral ?? <ReferenceWarning chain={outcome.chain} />}
+			{resolvedLiteral ?? <ReferenceWarning chain={warningChain} />}
 		</>
 	);
 
@@ -151,7 +171,7 @@ export function TokenReferenceValue({
 	/** The store's live resolution (`useResolvedPreview`) — applied only when
 	 * the reference has a single outcome, since the store's resolution is not
 	 * mode-aware. */
-	readonly liveValue?: ResolvedValue;
+	readonly liveValue?: ResolvedValue | undefined;
 }) {
 	const singleOutcome = resolved.outcomes.length === 1;
 	return (

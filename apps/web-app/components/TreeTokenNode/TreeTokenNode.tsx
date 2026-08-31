@@ -50,10 +50,12 @@ type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
  */
 function ReferenceValueDisplay({
 	tokenKey,
+	relativePath,
 	resolved,
 	rawRef,
 }: {
 	readonly tokenKey: string;
+	readonly relativePath: string;
 	readonly resolved: ResolvedReference | undefined;
 	readonly rawRef: string;
 }) {
@@ -61,7 +63,19 @@ function ReferenceValueDisplay({
 	if (resolved === undefined) {
 		return <span className={styles.value}>{rawRef}</span>;
 	}
-	return <TokenReferenceValue resolved={resolved} liveValue={liveValue} />;
+	// The live resolution governs only a same-file reference; a cross-file
+	// reference stays on the server `referenceView` (the store's
+	// `#serverPreview` may not even be wired), so `useResolvedPreview` would
+	// just report `unresolved` for it.
+	const sameFile = resolved.outcomes.some(
+		(outcome) => outcome.targetFile === relativePath,
+	);
+	return (
+		<TokenReferenceValue
+			resolved={resolved}
+			liveValue={sameFile ? liveValue : undefined}
+		/>
+	);
 }
 
 /**
@@ -220,6 +234,7 @@ export function TreeTokenNode({
 					<span className={styles.fieldLabel}>Value</span>
 					<ReferenceValueDisplay
 						tokenKey={key}
+						relativePath={relativePath}
 						resolved={resolved}
 						rawRef={dispatch.reference.raw}
 					/>

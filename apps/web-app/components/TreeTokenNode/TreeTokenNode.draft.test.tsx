@@ -296,3 +296,69 @@ test("committing an edit to a referenced token updates the referencing row's liv
 
 	expect(within(bRow).getByText(/12/)).toBeTruthy();
 });
+
+test("renaming a same-file referenced token shows the referrer's preview as unresolved, not the stale value (U48)", () => {
+	const a = smallToken(); // "small" — {value:4,unit:"px"}
+	const b: TokenNode = {
+		kind: "token",
+		name: "alias",
+		path: ["alias"],
+		value: "{small}",
+		declaredType: "dimension",
+		effectiveType: "dimension",
+		inferredType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		references: [
+			{
+				reference: { targetPath: ["small"], at: [], raw: "{small}" },
+				outcomes: [
+					{
+						mode: undefined,
+						chain: {
+							steps: [{ path: ["small"], file: "a.json", mode: undefined }],
+							outcome: {
+								kind: "resolved",
+								value: { value: 4, unit: "px" },
+								type: "dimension",
+							},
+						},
+						targetFile: "a.json",
+					},
+				],
+			},
+		],
+	};
+	const store = new StagedEditsStore({
+		initialTree: {
+			kind: "group",
+			name: "",
+			path: [],
+			declaredType: undefined,
+			effectiveType: undefined,
+			description: undefined,
+			deprecated: undefined,
+			children: [a, b],
+		},
+		referenceView: undefined,
+		save: async () => true,
+	});
+	render(
+		<StagedEditsContext.Provider value={store}>
+			<ul>
+				<TreeTokenNode node={a} relativePath="a.json" />
+				<TreeTokenNode node={b} relativePath="a.json" />
+			</ul>
+		</StagedEditsContext.Provider>,
+	);
+
+	const bRow = screen.getByTestId("token-alias");
+	expect(within(bRow).getByText(/4px|"value":\s*4/)).toBeTruthy();
+
+	act(() => {
+		store.commit("small", { name: "renamed" });
+	});
+
+	expect(within(bRow).queryByText(/4px|"value":\s*4/)).toBeNull();
+	expect(within(bRow).getByRole("alert").textContent).toMatch(/small/);
+});

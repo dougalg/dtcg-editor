@@ -496,3 +496,27 @@ test("resolves a cross-file reference hop through the server-computed preview (U
 		via: [],
 	});
 });
+
+test("a pending rename of a referenced token makes the referrer's preview unresolved (U48)", () => {
+	const store = makeStore(
+		group("", [
+			group("g", [
+				dimensionToken(["g", "a"], { value: 4, unit: "px" }),
+				dimensionToken(["g", "b"], "{g.a}"),
+			]),
+		]),
+	);
+	assert.deepEqual(store.getResolvedPreview("g.b"), {
+		kind: "value",
+		value: { value: 4, unit: "px" },
+		via: ["g.a"],
+	});
+
+	// rename the target — staged, not saved
+	store.commit("g.a", { name: "a2" });
+
+	assert.deepEqual(store.getResolvedPreview("g.b"), {
+		kind: "unresolved",
+		ref: "{g.a}",
+	});
+});

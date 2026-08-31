@@ -183,7 +183,15 @@ export class StagedEditsStore {
 			return base;
 		}
 		const pending = this.#pending.get(key);
-		if (pending === undefined || !("value" in pending)) {
+		if (pending === undefined) {
+			return base;
+		}
+		// A staged rename vacates the old key: a reference `{key}` now dangles
+		// (C-LR-5), even though the token itself still exists under its new name.
+		if (pending.name !== undefined && pending.name !== base.name) {
+			return undefined;
+		}
+		if (!("value" in pending)) {
 			return base;
 		}
 		return { ...base, value: pending.value };
