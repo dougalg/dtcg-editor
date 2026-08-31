@@ -809,3 +809,29 @@ test("'Save and leave' saves the pending edit, then navigates", async () => {
 		expect(navigate).toHaveBeenCalledWith("/tokens/base.json#color.brand.blue");
 	});
 });
+
+test("the staged payload handed to Save keeps the pre-change ClientEdit shape (U40)", () => {
+	const fetchMock = vi
+		.fn()
+		.mockResolvedValue(new Response(null, { status: 200 }));
+	vi.stubGlobal("fetch", fetchMock);
+	render(<TokenTree node={tree()} relativePath="tokens.json" />);
+
+	fireEvent.change(getNameInput("small"), { target: { value: "tiny" } });
+	fireEvent.change(
+		within(getTokenRow("small")).getByRole("textbox", { name: /description/i }),
+		{ target: { value: "note" } },
+	);
+
+	fireEvent.click(screen.getByRole("button", { name: /save/i }));
+
+	expect(fetchMock).toHaveBeenCalledWith(
+		"/api/tokens/tokens.json",
+		expect.objectContaining({
+			method: "PATCH",
+			body: JSON.stringify({
+				edits: [{ path: ["small"], name: "tiny", description: "note" }],
+			}),
+		}),
+	);
+});

@@ -860,3 +860,21 @@ vitest stayed 539; `pnpm build` 7/7. The behaviour cycles below build on this.
 - refactor: none needed.
 - notes: T021 also carries U40–U46 (all PENDING), so it is not ticked.
 - commit: this entry's commit
+
+## Cycle 52: U40 staged-payload parity with the pre-change ClientEdit shape
+
+- test: `apps/web-app/components/TokenTree/TokenTree.test.tsx::the staged payload handed to Save keeps the pre-change ClientEdit shape (U40)` (new; reuses `stubSuccessfulFetch` + `tree()` + `getNameInput`) — rename + description edit on one token, click Save, assert the PATCH body is exactly `{"edits":[{"path":["small"],"name":"tiny","description":"note"}]}`.
+- red: passes first run — the migration keeps keystroke-immediate staging and
+  `commit` merges each patch into one `#pending` entry per key, so `getEdits()`
+  (the `save` payload) matches the old `pendingEdits`-map shape byte for byte.
+  Deliberate-mutant: `commit`'s `#pending.set(key, { path, ...existing, ...changed })`
+  -> drop `...existing` ->
+  `pnpm exec vitest run apps/web-app/components/TokenTree/TokenTree.test.tsx -t "keeps the pre-change ClientEdit shape"`
+  -> `expect(fetch).toHaveBeenCalledWith(...)` fails at
+  `components/TokenTree/TokenTree.test.tsx:825` (the second edit dropped `name`).
+  Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 115 files,
+  542 passed (~59s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: T021 still carries U41–U46 (PENDING) — not ticked.
+- commit: this entry's commit
