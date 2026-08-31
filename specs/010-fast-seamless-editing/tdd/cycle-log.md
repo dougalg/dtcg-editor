@@ -1162,3 +1162,20 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   external-re-render case; the real UI path is the A12 e2e (T037a). T037b ticked
   (its only marker is U49); T037a stays open (`[A12]`).
 - commit: this entry's commit
+
+## Cycle 65: U50 — axe clean during and after an edit interaction
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.a11y.test.tsx::has no WCAG 2.2 AA violations during and after an edit that surfaces an error (U50)` (new; renders `small` + `large`, drafts a colliding rename of `small`->`large`, runs `axe` mid-draft, then blurs to surface the `role="alert"` error and runs `axe` again — the existing a11y tests only check the resting state)
+- red: passes first run — the migrated `TreeTokenNode` is a11y-clean while
+  editing and with the error alert shown. Deliberate-mutant: drop the name
+  input's `aria-label={nameAriaLabel}` in `TokenBlock` ->
+  `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.a11y.test.tsx -t "during and after an edit"`
+  -> `FAIL |apps/web-app:a11y (chromium)| ... U50` (axe flags the unlabelled
+  input). Restored via `git checkout`.
+- green: no production change. Full suite `pnpm exec vitest run` -> 117 files,
+  556 passed (~20s); `pnpm build` tsc clean. (Runs in the real-Chromium
+  `apps/web-app:a11y` project.)
+- refactor: none needed.
+- notes: T023 also carries `[U53]` (TreeGroupNode a11y, still PENDING) so it is
+  not ticked yet.
+- commit: this entry's commit

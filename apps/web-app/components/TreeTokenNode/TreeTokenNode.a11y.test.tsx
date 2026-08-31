@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import axe from "axe-core";
 import { expect, test } from "vitest";
 import { WCAG_22_AA_TAGS } from "../../lib/a11y/wcag-tags.ts";
@@ -144,6 +144,50 @@ test("has no WCAG 2.2 AA violations for the non-reference path (regression check
 			})}
 			relativePath="a.json"
 		/>,
+	);
+	await expectNoViolations(container);
+});
+
+function twoTokenTree(): PlainDtcgNode {
+	const dim = (name: string): Extract<PlainDtcgNode, { kind: "token" }> => ({
+		kind: "token",
+		name,
+		path: [name],
+		value: { value: 4, unit: "px" },
+		declaredType: "dimension",
+		effectiveType: "dimension",
+		inferredType: undefined,
+		description: undefined,
+		deprecated: undefined,
+	});
+	return {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [dim("small"), dim("large")],
+	};
+}
+
+test("has no WCAG 2.2 AA violations during and after an edit that surfaces an error (U50)", async () => {
+	const { container } = render(
+		<TokenTree node={twoTokenTree()} relativePath="a.json" />,
+	);
+
+	const nameInput = within(screen.getByTestId("token-small")).getByLabelText(
+		"small name",
+	);
+	// mid-edit: an uncommitted draft
+	fireEvent.change(nameInput, { target: { value: "large" } });
+	await expectNoViolations(container);
+
+	// commit the colliding rename — a role="alert" error appears
+	fireEvent.blur(nameInput);
+	expect(screen.getByRole("alert").textContent).toMatch(
+		/already used by a sibling/,
 	);
 	await expectNoViolations(container);
 });
