@@ -905,3 +905,24 @@ vitest stayed 539; `pnpm build` 7/7. The behaviour cycles below build on this.
   (clear-only-on-success / retain-on-failure) builds on this cycle's `commitDraft`.
   T018/T021 stay open.
 - commit: this entry's commit
+
+## Outer-loop status (opened via `/speckit-tdd-run outer`, HEAD a24929a)
+
+The perf/stability harness (T003–T006) is live. Ran
+`playwright test editing-perf.spec.ts render-stability.spec.ts` against a real
+production build of the **current mid-migration code**:
+
+| behaviour | spec | current result | note |
+| --- | --- | --- | --- |
+| A1  | editing-perf: value-edit commit ≤ 100 ms×3 | **PASS** (skeleton strength) | pre-change was ~354 ms (baseline.md); the migration (memo'd `TreeNode` + per-row `useSyncExternalStore` slices + `#fieldsCache` + name draft) already brings it under budget on the 2,000-token fixture |
+| A2  | render-stability: type+commit, out-of-region shift | **PASS** | 0 out-of-region shifts |
+| A4  | render-stability: hub commit, out-of-region shift | **PASS** | 0 out-of-region shifts |
+| A10/A11 | render-stability: full tab-through, any shift | **PASS** | 0 shifts total |
+| A5  | editing-perf: hub → referrer preview ≤ 100 ms | **FAIL** | spec defect — `getByTestId(HUB_REFERRER).getByText(/px$/)` times out; the referrer row renders a reference, not an `…px` string. Selector work belongs to **T045**. Not evidence about A5's real behaviour. |
+| A6  | editing-perf: typing burst, 0 dropped | **FAIL** | 0 chars dropped, but the typed text lands at offset 0 (caret not preserved during the burst — the INV-11 behaviour **U43** delivers; still PENDING). May also need the spec's cursor handling revisited. |
+
+No state transitions, no commit — this was a read-only status run. Nothing to
+**close**: A1's units (U41–U47) are not all `DONE` and the skeleton assertions
+gain their `baseline.md` ceiling in T024/T025. A1–A12 stay `PENDING`. The
+skeletons passing early is a strong signal the render-isolation approach is
+sound; A1 formally closes once U41–U47 land + T024 tightens it.
