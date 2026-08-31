@@ -1140,3 +1140,25 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - notes: **U47 + U48 done — T043 and T044 ticked.** Two tests in this cycle
   (store + component) for the one C-LR-5 behaviour at its two layers.
 - commit: this entry's commit
+
+## Cycle 64: U49 — a mid-edit theme / resolver-mode re-render keeps the draft + focus
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::an external context re-render (theme / resolver mode) keeps the draft and focus (U49)` (new; a `Harness` re-renders the row with a fresh, equal `node` while the name field holds a draft + focus + caret)
+- red: passes first run — `draft` is local `useState` (U41), so an external
+  re-render that hands the row a new-but-equal `node` keeps the component
+  instance, the `draft`, and the focused input's value/caret. Deliberate-mutant
+  (additive): `useEffect(() => setDraft({}), [node])` re-seeds the draft on any
+  `node` change ->
+  `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "external context re-render"`
+  -> `AssertionError: expected 'small' to be 'smalll'` (draft cleared). Restored
+  via `git checkout`.
+- green: no production change. Full suite `pnpm exec vitest run` -> 117 files,
+  555 passed (~20s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: the theme half is doubly safe — `useTheme` deliberately avoids
+  render-time state, so a theme toggle does not re-render `TreeTokenNode` at
+  all. There is no client-side resolver-mode control (it is server-side in
+  `page.tsx`), so at the unit level "switch mode mid-edit" is exactly this
+  external-re-render case; the real UI path is the A12 e2e (T037a). T037b ticked
+  (its only marker is U49); T037a stays open (`[A12]`).
+- commit: this entry's commit

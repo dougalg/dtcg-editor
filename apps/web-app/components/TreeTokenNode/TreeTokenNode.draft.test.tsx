@@ -362,3 +362,44 @@ test("renaming a same-file referenced token shows the referrer's preview as unre
 	expect(within(bRow).queryByText(/4px|"value":\s*4/)).toBeNull();
 	expect(within(bRow).getByRole("alert").textContent).toMatch(/small/);
 });
+
+test("an external context re-render (theme / resolver mode) keeps the draft and focus (U49)", () => {
+	const store = new StagedEditsStore({
+		initialTree: {
+			kind: "group",
+			name: "",
+			path: [],
+			declaredType: undefined,
+			effectiveType: undefined,
+			description: undefined,
+			deprecated: undefined,
+			children: [smallToken()],
+		},
+		referenceView: undefined,
+		save: async () => true,
+	});
+	function Harness({ node }: { node: TokenNode }) {
+		return (
+			<StagedEditsContext.Provider value={store}>
+				<ul>
+					<TreeTokenNode node={node} relativePath="a.json" />
+				</ul>
+			</StagedEditsContext.Provider>
+		);
+	}
+
+	const { rerender } = render(<Harness node={smallToken()} />);
+	const nameInput = screen.getByLabelText("small name") as HTMLInputElement;
+	nameInput.focus();
+	fireEvent.change(nameInput, { target: { value: "smalll" } });
+	nameInput.setSelectionRange(4, 4);
+
+	// a resolver-mode / theme re-resolve hands the row a fresh (equal) node
+	rerender(<Harness node={smallToken()} />);
+
+	const after = screen.getByLabelText("small name") as HTMLInputElement;
+	expect(after).toBe(nameInput); // not remounted
+	expect(after.value).toBe("smalll"); // draft preserved
+	expect(document.activeElement).toBe(nameInput); // focus not lost to <body>
+	expect(after.selectionStart).toBe(4);
+});
