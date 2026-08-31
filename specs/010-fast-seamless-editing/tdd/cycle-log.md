@@ -842,3 +842,21 @@ vitest stayed 539; `pnpm build` 7/7. The behaviour cycles below build on this.
   -> 2 of 3 fail (token + reference cases). Restored.
 - No red-green cycle: Phase 1 "already covered by an existing passing test" path.
   state -> DONE. With U54 + U55 both DONE, T017 is ticked.
+
+## Cycle 51: U39 a keystroke re-renders only its own row
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.render-isolation.test.tsx::a keystroke in one row re-renders only that row — siblings do not re-render` (new; dedicated `vi.mock` file — `TokenBlock` replaced by a render-counting `vi.fn` that still renders a real name input + `children`, so a per-`rowTestId` call count is the render spy)
+- red: passes first run. The context migration (`7d140ae`) + `TreeNode` memo
+  (U54) + `getFields` caching already isolate a commit to its own key: after
+  the tree is dirty, a keystroke in row `a` leaves `getHasPending`/`getTree`
+  unchanged so `TokenTree` doesn't re-render, and siblings' `useTokenSlice`
+  snapshots are reference-equal. Deliberate-mutant: `commit`'s
+  `#fieldsCache.delete(key)` -> `#fieldsCache.clear()` ->
+  `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.render-isolation.test.tsx`
+  -> `expect(rendersOf("token-g.b")).toBe(bBefore)` fails at
+  `TreeTokenNode.render-isolation.test.tsx:99` (siblings re-rendered). Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 115 files,
+  541 passed (~46s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: T021 also carries U40–U46 (all PENDING), so it is not ticked.
+- commit: this entry's commit
