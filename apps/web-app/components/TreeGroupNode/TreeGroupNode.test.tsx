@@ -97,6 +97,7 @@ test("rejects a rename that collides with a sibling group's name", () => {
 	render(<TokenTree node={twoGroupTree()} relativePath="a.json" />);
 	const nameInput = screen.getByDisplayValue("spacing");
 	fireEvent.change(nameInput, { target: { value: "color" } });
+	fireEvent.blur(nameInput);
 	expect(screen.getByRole("alert").textContent).toMatch(
 		/already used by a sibling/,
 	);
@@ -127,6 +128,7 @@ test("a collapsed group stays collapsed when an unrelated edit forces a TokenTre
 	// re-render of the whole tree, not a mock.
 	const colorNameInput = screen.getByDisplayValue("color");
 	fireEvent.change(colorNameInput, { target: { value: "palette" } });
+	fireEvent.blur(colorNameInput);
 
 	expect(getDisclosure().open).toBe(false);
 });
@@ -138,6 +140,7 @@ test("staged edits are not lost when the disclosure moves between expanded and c
 	render(<TokenTree node={twoGroupTree()} relativePath="a.json" />);
 	const nameInput = screen.getByDisplayValue("spacing");
 	fireEvent.change(nameInput, { target: { value: "gaps" } });
+	fireEvent.blur(nameInput);
 	pending.push({ path: ["spacing"], name: "gaps" });
 
 	const summary = document.querySelector("summary");

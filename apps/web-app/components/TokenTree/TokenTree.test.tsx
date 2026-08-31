@@ -320,6 +320,7 @@ test("rejects a rename that collides with a sibling and does not stage it (AC-03
 
 	const nameInput = getNameInput("small");
 	fireEvent.change(nameInput, { target: { value: "large" } });
+	fireEvent.blur(nameInput);
 
 	expect(screen.getByText(/already used by a sibling/)).toBeTruthy();
 	const saveButton = screen.getByRole("button", {
@@ -334,12 +335,12 @@ test("allows staging a rename into a name another pending edit just freed up", (
 	// Rename "large" away first, freeing up "large" for "small" to claim in the
 	// same (unsaved) session — this must not be blocked by a stale check that
 	// only looks at the last-saved tree.
-	fireEvent.change(getNameInput("large"), {
-		target: { value: "big" },
-	});
-	fireEvent.change(getNameInput("small"), {
-		target: { value: "large" },
-	});
+	const largeInput = getNameInput("large");
+	fireEvent.change(largeInput, { target: { value: "big" } });
+	fireEvent.blur(largeInput);
+	const smallInput = getNameInput("small");
+	fireEvent.change(smallInput, { target: { value: "large" } });
+	fireEvent.blur(smallInput);
 
 	expect(screen.queryByText(/already exists/)).toBeNull();
 	const saveButton = screen.getByRole("button", {
@@ -367,6 +368,7 @@ test("keeps a pending edit visible and editable after a failed save (AC-06)", as
 
 	const nameInput = getNameInput("small");
 	fireEvent.change(nameInput, { target: { value: "tiny" } });
+	fireEvent.blur(nameInput);
 
 	const saveButton = screen.getByRole("button", {
 		name: /save/i,
@@ -403,10 +405,9 @@ test("a non-root group's name is an editable input; the root group's is not (AC-
 test("rejects a group rename that collides with a sibling group and does not stage it (AC-04)", () => {
 	render(<TokenTree node={treeWithGroup()} relativePath="tokens.json" />);
 
-	// @ts-expect-error
-	fireEvent.change(screen.getAllByLabelText("Group Name:")[0], {
-		target: { value: "colors" },
-	});
+	const groupInput = screen.getAllByLabelText("Group Name:")[0] as HTMLElement;
+	fireEvent.change(groupInput, { target: { value: "colors" } });
+	fireEvent.blur(groupInput);
 
 	expect(screen.getByText(/already used by a sibling/)).toBeTruthy();
 	const saveButton = screen.getByRole("button", {
@@ -418,10 +419,9 @@ test("rejects a group rename that collides with a sibling group and does not sta
 test("rejects a group rename to an empty/whitespace-only name and does not stage it (AC-03)", () => {
 	render(<TokenTree node={treeWithGroup()} relativePath="tokens.json" />);
 
-	// @ts-expect-error
-	fireEvent.change(screen.getAllByLabelText("Group Name:")[0], {
-		target: { value: "   " },
-	});
+	const groupInput = screen.getAllByLabelText("Group Name:")[0] as HTMLElement;
+	fireEvent.change(groupInput, { target: { value: "   " } });
+	fireEvent.blur(groupInput);
 
 	expect(screen.getByText(/cannot be empty/)).toBeTruthy();
 	const saveButton = screen.getByRole("button", {
@@ -433,10 +433,9 @@ test("rejects a group rename to an empty/whitespace-only name and does not stage
 test("accepts a group rename to its own current name as a no-op (AC-06)", () => {
 	render(<TokenTree node={treeWithGroup()} relativePath="tokens.json" />);
 
-	// @ts-expect-error
-	fireEvent.change(screen.getAllByLabelText("Group Name:")[0], {
-		target: { value: "spacing" },
-	});
+	const groupInput = screen.getAllByLabelText("Group Name:")[0] as HTMLElement;
+	fireEvent.change(groupInput, { target: { value: "spacing" } });
+	fireEvent.blur(groupInput);
 
 	expect(screen.queryByText(/already exists/)).toBeNull();
 	expect(screen.queryByText(/cannot be empty/)).toBeNull();
@@ -446,10 +445,9 @@ test("saves a staged group rename and updates the tree, including descendant pat
 	stubSuccessfulFetch();
 	render(<TokenTree node={treeWithGroup()} relativePath="tokens.json" />);
 
-	// @ts-expect-error
-	fireEvent.change(screen.getAllByLabelText("Group Name:")[0], {
-		target: { value: "gaps" },
-	});
+	const groupInput = screen.getAllByLabelText("Group Name:")[0] as HTMLElement;
+	fireEvent.change(groupInput, { target: { value: "gaps" } });
+	fireEvent.blur(groupInput);
 	const saveButton = screen.getByRole("button", {
 		name: /save/i,
 	}) as HTMLButtonElement;
@@ -466,14 +464,12 @@ test("saves a group rename together with a staged edit on one of its descendant 
 	stubSuccessfulFetch();
 	render(<TokenTree node={treeWithGroup()} relativePath="tokens.json" />);
 
-	// @ts-expect-error
-	fireEvent.change(screen.getAllByLabelText("Group Name:")[0], {
-		target: { value: "gaps" },
-	});
-	// @ts-expect-error
-	fireEvent.change(screen.getAllByLabelText("Group Name:")[1], {
-		target: { value: "tiny" },
-	});
+	const outerGroup = screen.getAllByLabelText("Group Name:")[0] as HTMLElement;
+	fireEvent.change(outerGroup, { target: { value: "gaps" } });
+	fireEvent.blur(outerGroup);
+	const innerGroup = screen.getAllByLabelText("Group Name:")[1] as HTMLElement;
+	fireEvent.change(innerGroup, { target: { value: "tiny" } });
+	fireEvent.blur(innerGroup);
 
 	const saveButton = screen.getByRole("button", {
 		name: /save/i,
@@ -552,6 +548,7 @@ test("a standard type with no built-in editor renders name/description/JSON valu
 	fireEvent.change(valueField, {
 		target: { value: '{"r":0,"g":255,"b":0}' },
 	});
+	fireEvent.blur(valueField);
 
 	const saveButton = screen.getByRole("button", {
 		name: /save/i,
@@ -577,6 +574,7 @@ test("invalid JSON in the fallback editor shows a field error and does not stage
 
 	const valueField = screen.getByLabelText("Value (JSON)");
 	fireEvent.change(valueField, { target: { value: "not valid json" } });
+	fireEvent.blur(valueField);
 
 	expect(screen.getByText(/Invalid JSON/)).toBeTruthy();
 	const saveButton = screen.getByRole("button", {
@@ -700,7 +698,10 @@ function sameFileReferenceLink(): HTMLAnchorElement {
 }
 
 function stageAnEdit() {
-	fireEvent.change(getNameInput("small"), { target: { value: "tiny" } });
+	const input = getNameInput("small");
+	fireEvent.change(input, { target: { value: "tiny" } });
+	// A field edit is drafted on keystroke and only staged on blur (INV-9).
+	fireEvent.blur(input);
 }
 
 test("a cross-file reference click with no pending edits navigates without any prompt", () => {
@@ -817,11 +818,14 @@ test("the staged payload handed to Save keeps the pre-change ClientEdit shape (U
 	vi.stubGlobal("fetch", fetchMock);
 	render(<TokenTree node={tree()} relativePath="tokens.json" />);
 
-	fireEvent.change(getNameInput("small"), { target: { value: "tiny" } });
-	fireEvent.change(
-		within(getTokenRow("small")).getByRole("textbox", { name: /description/i }),
-		{ target: { value: "note" } },
-	);
+	const nameInput = getNameInput("small");
+	fireEvent.change(nameInput, { target: { value: "tiny" } });
+	fireEvent.blur(nameInput);
+	const descriptionInput = within(getTokenRow("small")).getByRole("textbox", {
+		name: /description/i,
+	});
+	fireEvent.change(descriptionInput, { target: { value: "note" } });
+	fireEvent.blur(descriptionInput);
 
 	fireEvent.click(screen.getByRole("button", { name: /save/i }));
 
