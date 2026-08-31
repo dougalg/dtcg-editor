@@ -7,18 +7,23 @@ import { measureCommitToVisible } from "./support/stability.ts";
  * build on the `default` server, which serves `e2e/fixtures/tokens/` — where
  * `large_scale.tokens.json` (T002) lives.
  *
- * SKELETON (T004): the structure, the `measureCommitToVisible` wiring and the
- * `perf` annotations are in place; the assertions use the 100ms budget with a
- * CI margin now, and gain the `baseline.md` ceiling in T024. Expected to FAIL
- * until the feature is finished (A1 / A5 / A6) — this is the outer-loop red.
+ * SKELETON (T004): the interactions, the `measureCommitToVisible` wiring and
+ * the `perf` annotations are in place; the assertions use the 100ms budget
+ * with a CI margin now, and gain the `baseline.md` ceiling in T024. Expected
+ * to FAIL until the feature is finished (A1 / A5 / A6) — outer-loop red.
+ *
+ * Fixture landmarks (see `scripts/generate-large-fixture.ts`):
+ * - `_showcase.dimension` — a plain, editable dimension token.
+ * - `group-0.sub-0.token-0` — the hub, referenced by ~131 in-file tokens.
+ * - `group-0.sub-0.token-1` — one of those referencing tokens (value `{hub}`).
  */
 
-// 100ms budget (SC-001); a wide multiple absorbs shared-CI jitter without
-// letting a real regression through. Tightened / cross-checked against
-// baseline.md in T024. These tests only stage edits (fill + blur), never
-// Save, so the on-disk fixture is untouched — no restore needed.
 const ECHO_BUDGET_MS = 100;
 const CI_MARGIN = 3;
+
+const HUB = "token-group-0.sub-0.token-0";
+const HUB_REFERRER = "token-group-0.sub-0.token-1";
+const PLAIN = "token-_showcase.dimension";
 
 test.describe("editing-perf — large fixture", () => {
 	test("a value-edit commit is visible within the 100ms budget (A1)", async ({
@@ -26,25 +31,23 @@ test.describe("editing-perf — large fixture", () => {
 	}, testInfo) => {
 		await page.goto("/tokens/large_scale.tokens.json");
 
-		const row = page
-			.getByRole("textbox", { name: /^token-0 name$/i })
-			.first()
-			.locator("xpath=ancestor::li[1]");
-		const valueInput = row.getByRole("spinbutton").first();
+		const valueInput = page
+			.getByTestId(PLAIN)
+			.getByRole("spinbutton", { name: "Value" });
 		await expect(valueInput).toBeVisible();
 
 		const elapsed = await measureCommitToVisible(page, {
 			runCommit: async () => {
-				await valueInput.fill("999");
+				await valueInput.fill("321");
 				await valueInput.blur();
 			},
 			readDisplayedValue: () => valueInput.inputValue(),
-			expectedValue: "999",
+			expectedValue: "321",
 		});
 
 		testInfo.annotations.push({
 			type: "perf",
-			description: `commit → value visible ${Math.round(elapsed)}ms (budget ${ECHO_BUDGET_MS}ms)`,
+			description: `A1 commit → value visible: ${Number.isFinite(elapsed) ? `${Math.round(elapsed)}ms` : ">2000ms (not observed)"} (budget ${ECHO_BUDGET_MS}ms)`,
 		});
 		expect(elapsed).toBeLessThan(ECHO_BUDGET_MS * CI_MARGIN);
 	});
@@ -54,57 +57,59 @@ test.describe("editing-perf — large fixture", () => {
 	}, testInfo) => {
 		await page.goto("/tokens/large_scale.tokens.json");
 
-		// `group-0.sub-0.token-0` is the hub the generator points >=100 leaves at.
-		const hubRow = page
-			.getByRole("textbox", { name: /^token-0 name$/i })
-			.first()
-			.locator("xpath=ancestor::li[1]");
-		const hubValue = hubRow.getByRole("spinbutton").first();
+		const hubValue = page
+			.getByTestId(HUB)
+			.getByRole("spinbutton", { name: "Value" });
 		await expect(hubValue).toBeVisible();
+
+		// The number that matters: how long until a *referencing* row's shown
+		// resolved value reflects the hub edit.
+		const referrerValue = page.getByTestId(HUB_REFERRER).getByText(/px$/);
+		const before = (await referrerValue.textContent()) ?? "";
 
 		const elapsed = await measureCommitToVisible(page, {
 			runCommit: async () => {
-				await hubValue.fill("777");
+				await hubValue.fill("321");
 				await hubValue.blur();
 			},
-			readDisplayedValue: () => hubValue.inputValue(),
-			expectedValue: "777",
+			readDisplayedValue: async () =>
+				((await referrerValue.textContent()) ?? "") === before ? "" : "changed",
+			expectedValue: "changed",
 		});
 
 		testInfo.annotations.push({
 			type: "perf",
-			description: `hub commit → visible ${Math.round(elapsed)}ms (budget ${ECHO_BUDGET_MS}ms)`,
+			description: `A5 hub edit → referrer preview updates: ${Number.isFinite(elapsed) ? `${Math.round(elapsed)}ms` : ">2000ms (not observed — no live ref preview)"} (budget ${ECHO_BUDGET_MS}ms)`,
 		});
 		expect(elapsed).toBeLessThan(ECHO_BUDGET_MS * CI_MARGIN);
 	});
 
-	test("a 5s typing burst drops no characters and never trails by >1 frame (A6)", async ({
+	test("a typing burst drops no characters (A6)", async ({
 		page,
 	}, testInfo) => {
 		await page.goto("/tokens/large_scale.tokens.json");
 
-		const row = page
-			.getByRole("textbox", { name: /^token-1 name$/i })
-			.first()
-			.locator("xpath=ancestor::li[1]");
-		const nameInput = row.getByRole("textbox").first();
+		const nameInput = page
+			.getByTestId(PLAIN)
+			.getByRole("textbox", { name: /name$/i });
 		await expect(nameInput).toBeVisible();
+		const original = await nameInput.inputValue();
 		await nameInput.focus();
+		await page.keyboard.press("End");
 
-		const typed = "the-quick-brown-fox-jumps-over-the-lazy-dog-0123456789";
+		const typed = "-the-quick-brown-fox-0123456789-jumps-over-the-lazy-dog";
 		const start = await page.evaluate(() => performance.now());
 		for (const char of typed) {
 			await page.keyboard.type(char, { delay: 100 }); // ~10 cps
 		}
-		const elapsed = await page.evaluate(() => performance.now());
+		const elapsedMs = (await page.evaluate(() => performance.now())) - start;
 
 		const shown = await nameInput.inputValue();
+		const dropped = original.length + typed.length - shown.length;
 		testInfo.annotations.push({
 			type: "perf",
-			description: `typed ${typed.length} chars over ${Math.round(elapsed - start)}ms; field shows ${shown.length}`,
+			description: `A6 typing burst: ${typed.length} chars over ${Math.round(elapsedMs)}ms, ${dropped} dropped`,
 		});
-		// No dropped characters: the field shows exactly what was typed (the
-		// leading original name is still there — assert the suffix).
-		expect(shown.endsWith(typed)).toBe(true);
+		expect(shown).toBe(original + typed);
 	});
 });

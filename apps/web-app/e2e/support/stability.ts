@@ -128,9 +128,9 @@ export async function getLayoutShiftReport(
  * `page.evaluate`d DOM read) until it returns `expectedValue`, then a second
  * `performance.now()`. Returns the delta in milliseconds.
  *
- * Throws if the value has not appeared within `timeoutMs` — a caller
- * asserting a 100ms budget should set this well above it (e.g. 2000) so a
- * miss reports the real elapsed time rather than a timeout.
+ * Returns `Number.POSITIVE_INFINITY` if the value has not appeared within
+ * `timeoutMs` (rather than throwing) so a caller can still annotate the miss
+ * and let its own budget assertion fail on it.
  */
 export async function measureCommitToVisible(
 	page: Page,
@@ -158,7 +158,5 @@ export async function measureCommitToVisible(
 		}
 		await page.waitForTimeout(pollMs);
 	}
-	throw new Error(
-		`commit → value visible: "${expectedValue}" was not displayed within ${timeoutMs}ms`,
-	);
+	return Number.POSITIVE_INFINITY;
 }
