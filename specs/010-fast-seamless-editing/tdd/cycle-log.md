@@ -987,3 +987,22 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   a local draft and commits on blur (INV-9).** U42 (clear-only-on-success /
   retain-on-failure) is next. T018/T021 stay open.
 - commit: this entry's commit
+
+## Cycle 57: U42 — commitDraft clears the buffer only on a successful commit
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a rejected commit keeps the draft on screen and surfaces the error (U42)` (new; a `small` + sibling `large` store so a rename collision is rejected by `store.commit`)
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "rejected commit"`
+  -> `expect(nameInput.value).toBe("large")` fails at
+  `components/TreeTokenNode/TreeTokenNode.draft.test.tsx:144` ("Received: \"small\""
+  — `commitDraft` cleared the buffer even though `store.commit` returned `false`,
+  so the rejected value was lost).
+- green: `commitDraft` -> `if (commit(draft)) setDraft({})`. On a rejected
+  commit the draft stays (the field keeps the value being fixed) and the reason
+  shows via `getError(key)` (INV-10 / INV-12). Full suite `pnpm exec vitest run`
+  -> 116 files, 547 passed (~23s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: **U41 + U41b + U41c + U41d + U42 done** — the whole draft-buffer /
+  commit-on-blur / clear-on-success mechanism is in place. U43 (caret preserved),
+  U44 (no spinner), U45 (dispatch memo), U46 (fallback reportError path) remain
+  before T018/T021 close.
+- commit: this entry's commit

@@ -81,8 +81,12 @@ export function TreeTokenNode({
 		if (Object.keys(draft).length === 0) {
 			return;
 		}
-		commit(draft);
-		setDraft({});
+		// Clear the buffer only when the store accepted the edit (INV-10). On a
+		// rejected commit the draft stays so the user keeps the value they were
+		// fixing; the reason shows via `getError(key)` (INV-12).
+		if (commit(draft)) {
+			setDraft({});
+		}
 	}
 
 	function commitFallbackDraft() {

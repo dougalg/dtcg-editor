@@ -37,7 +37,7 @@ function fallbackToken(): TokenNode {
 	};
 }
 
-function renderRow(node: TokenNode = smallToken()) {
+function renderRow(node: TokenNode = smallToken(), siblings: TokenNode[] = []) {
 	const store = new StagedEditsStore({
 		initialTree: {
 			kind: "group",
@@ -47,7 +47,7 @@ function renderRow(node: TokenNode = smallToken()) {
 			effectiveType: undefined,
 			description: undefined,
 			deprecated: undefined,
-			children: [node],
+			children: [node, ...siblings],
 		},
 		referenceView: undefined,
 		save: async () => true,
@@ -127,4 +127,22 @@ test("a keystroke in the typed value editor updates only local draft — no stor
 	expect(commitSpy).toHaveBeenCalledWith("small", {
 		value: { value: 8, unit: "px" },
 	});
+});
+
+test("a rejected commit keeps the draft on screen and surfaces the error (U42)", () => {
+	const large: TokenNode = { ...smallToken(), name: "large", path: ["large"] };
+	const { commitSpy } = renderRow(smallToken(), [large]);
+	const nameInput = screen.getByLabelText("small name") as HTMLInputElement;
+
+	// rename "small" onto its sibling "large" — the store rejects it
+	fireEvent.change(nameInput, { target: { value: "large" } });
+	fireEvent.blur(nameInput);
+
+	expect(commitSpy).toHaveBeenCalledTimes(1);
+	expect(commitSpy).toHaveBeenCalledWith("small", { name: "large" });
+	// draft retained — the field still shows the rejected value to fix
+	expect(nameInput.value).toBe("large");
+	expect(screen.getByRole("alert").textContent).toMatch(
+		/already used by a sibling/,
+	);
 });
