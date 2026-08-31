@@ -839,3 +839,47 @@ test("the staged payload handed to Save keeps the pre-change ClientEdit shape (U
 		}),
 	);
 });
+
+test("renders the tree structure from the store, holding no local treeState (U56)", async () => {
+	stubSuccessfulFetch();
+	render(<TokenTree node={treeWithGroup()} relativePath="tokens.json" />);
+	expect(screen.getByTestId("token-spacing.small")).toBeTruthy();
+
+	const groupInput = screen.getAllByLabelText("Group Name:")[0] as HTMLElement;
+	fireEvent.change(groupInput, { target: { value: "gaps" } });
+	fireEvent.blur(groupInput);
+	fireEvent.click(screen.getByRole("button", { name: /save/i }));
+
+	// after a successful save the store rebuilt the tree — the descendant row is
+	// now at the renamed path, which is impossible if TokenTree held its own
+	// frozen `treeState` (U56 / INV-5).
+	await vi.waitFor(() => {
+		expect(screen.getByTestId("token-gaps.small")).toBeTruthy();
+	});
+	expect(screen.queryByTestId("token-spacing.small")).toBeNull();
+});
+
+test("a successful save clears the pending overlay and the render reflects the saved state (U57)", async () => {
+	stubSuccessfulFetch();
+	render(<TokenTree node={tree()} relativePath="tokens.json" />);
+
+	const nameInput = getNameInput("small");
+	fireEvent.change(nameInput, { target: { value: "tiny" } });
+	fireEvent.blur(nameInput);
+	const saveButton = screen.getByRole("button", {
+		name: /save/i,
+	}) as HTMLButtonElement;
+	expect(saveButton.disabled).toBe(false);
+
+	fireEvent.click(saveButton);
+
+	// wait until the save has actually landed — the store rebuilt the tree, so
+	// the row is now at the renamed path…
+	await vi.waitFor(() => {
+		expect(screen.getByTestId("token-tiny")).toBeTruthy();
+	});
+	// …and the pending overlay is gone: the Save button is disabled because
+	// there is nothing staged, not because a save is still in flight.
+	expect(saveButton.disabled).toBe(true);
+	expect(screen.queryByRole("alert")).toBeNull();
+});

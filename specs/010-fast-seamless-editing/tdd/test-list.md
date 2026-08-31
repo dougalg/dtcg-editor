@@ -168,9 +168,9 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U56 | `TokenTree` creates the store via `useStagedEdits({ initialTree, referenceView, save })` and renders `<TreeNode node={store.getTree()} …>`; it holds no `treeState` / `pendingEdits` / `fieldErrors` `useState` | plan.md, INV-5 | example | PENDING | `TokenTree.test.tsx` |
-| U57 | A successful `save()` rebuilds the tree once and clears the pending/error overlay; the rendered values reflect the saved state | INV-7, C-RI-6 | example | PENDING | `TokenTree.test.tsx` |
-| U58 | The unsaved-changes nav guard (`useEffect` + `Dialog`) fires off `getHasPending()` read via `useSyncExternalStore`, and the capture-phase cross-file link interception still works | FR (nav guard), INV-4 | example | PENDING | `TokenTree.test.tsx` |
+| U56 | `TokenTree` creates the store via `useStagedEdits({ initialTree, referenceView, save })` and renders `<TreeNode node={store.getTree()} …>`; it holds no `treeState` / `pendingEdits` / `fieldErrors` `useState` | plan.md, INV-5 | example | DONE | `apps/web-app/components/TokenTree/TokenTree.test.tsx::renders the tree structure from the store, holding no local treeState (U56)` |
+| U57 | A successful `save()` rebuilds the tree once and clears the pending/error overlay; the rendered values reflect the saved state | INV-7, C-RI-6 | example | DONE | `apps/web-app/components/TokenTree/TokenTree.test.tsx::a successful save clears the pending overlay and the render reflects the saved state (U57)` |
+| U58 | The unsaved-changes nav guard (`useEffect` + `Dialog`) fires off `getHasPending()` read via `useSyncExternalStore`, and the capture-phase cross-file link interception still works | FR (nav guard), INV-4 | example | DONE | `apps/web-app/components/TokenTree/TokenTree.test.tsx::a cross-file reference click with pending edits opens the unsaved-changes dialog` |
 | U59 | `axe` clean with the store-wired markup | Principle X | example | PENDING | `TokenTree.a11y.test.tsx` |
 
 ### `apps/web-app/components/FieldErrorSlot/FieldErrorSlot.tsx` (NEW)

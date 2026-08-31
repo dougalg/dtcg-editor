@@ -1235,3 +1235,45 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - notes: **U51 + U52 + U53 done — the `TreeGroupNode` cluster is complete.**
   T023 ticked (`[U50]` + `[U53]` both done).
 - commit: this entry's commit
+
+## Cycle 69: U56 — TokenTree renders from the store, holds no local edit state
+
+- test: `apps/web-app/components/TokenTree/TokenTree.test.tsx::renders the tree structure from the store, holding no local treeState (U56)` (new; rename a group + save, assert the descendant row moves to the renamed path's `data-testid`)
+- red: passes first run — the migration (`7d140ae`) already made `TokenTree`
+  read `tree` + `hasPending` via `useSyncExternalStore` and dropped the
+  `treeState` / `pendingEdits` / `fieldErrors` `useState` (`grep` confirms only
+  `guardedHref` remains). Deliberate-mutant: `const tree = useSyncExternalStore(store.getTree…)`
+  -> `const [tree] = useState(node)` ->
+  `pnpm exec vitest run apps/web-app/components/TokenTree/TokenTree.test.tsx -t "holding no local treeState"`
+  -> `TestingLibraryElementError: Unable to find an element by: [data-testid="token-gaps.small"]`
+  (the frozen tree never showed the post-save rebuild). Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 118 files,
+  560 passed; `pnpm build` tsc clean.
+- refactor: none needed.
+- commit: this entry's commit (shared with U57 / U58 — all delivered by `7d140ae`)
+
+## Cycle 70: U57 — a successful save clears the overlay; the render reflects saved state
+
+- test: `apps/web-app/components/TokenTree/TokenTree.test.tsx::a successful save clears the pending overlay and the render reflects the saved state (U57)` (new; rename + save, wait for the rebuilt `data-testid`, then assert Save is disabled because nothing is staged — not because a save is in flight — and no `role="alert"`)
+- red: passes first run. Deliberate-mutant: `SaveButton disabled={!hasPendingEdits || saveState === "pending"}`
+  -> `disabled={saveState === "pending"}` ->
+  `pnpm exec vitest run apps/web-app/components/TokenTree/TokenTree.test.tsx -t "successful save clears the pending overlay"`
+  -> `AssertionError` (Save stayed enabled after the save landed). Restored.
+  (A first draft of this test used `vi.waitFor(() => disabled === true)` which
+  the mutant slipped through by catching the transient "pending" state; the
+  assertion was reordered to check disabled only after the rebuilt row appears.)
+- green: no production change. Full suite -> 561 passed; tsc clean.
+- refactor: none needed.
+- commit: shared with U56 / U58.
+
+## Cycle 71: U58 — the nav guard fires off getHasPending; cross-file link still intercepted
+
+- Already covered by `apps/web-app/components/TokenTree/TokenTree.test.tsx` —
+  `a cross-file reference click with pending edits opens the unsaved-changes
+  dialog`, `'Stay' …`, `'Discard and leave' …`, `'Save and leave' …` — all of
+  which require `hasPendingEdits` (from `useSyncExternalStore(store.getHasPending)`)
+  to be live and the capture-phase click listener to fire.
+- Verified with a deliberate mutant: `const hasPendingEdits = useSyncExternalStore(store.getHasPending…)`
+  -> `const hasPendingEdits = false` -> the "opens the unsaved-changes dialog"
+  test fails. Restored. No red-green cycle (Phase 1 "already covered" path).
+- state -> DONE. With U56 + U57 + U58 done, T015 is ticked.
