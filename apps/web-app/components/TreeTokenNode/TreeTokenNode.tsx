@@ -7,6 +7,7 @@ import {
 } from "@dtcg-editor/token-editor-contract";
 import {
 	type ChangeEvent,
+	type FocusEvent,
 	type ReactElement,
 	useContext,
 	useState,
@@ -232,14 +233,24 @@ export function TreeTokenNode({
 		);
 	}
 
-	const currentRawValue = fields.value;
+	const currentRawValue = shown.value;
 	const currentDescription = shown.description;
 
-	// The store's `commit` validates the next value against the resolved
-	// built-in contract before staging — an invalid value sets the field
-	// error and stages nothing, exactly as the inline check here used to.
+	// A registered editor's `onChange` is keystroke-driven (e.g.
+	// `DimensionEditor`'s number input), so it only updates `draft` (INV-9);
+	// `commit` runs from `handleValueEditorBlur` when focus leaves the editor.
 	function handleValueChange(next: unknown) {
-		commit({ value: next });
+		setDraft((current) => ({ ...current, value: next }));
+	}
+
+	// The registered editor is contract-typed and pluggable — a user
+	// extension can't be given an `onBlur` prop — so blur is caught on a
+	// wrapper via bubbling `focusout`. Focus moving *within* the editor (e.g.
+	// `DimensionEditor`'s Value -> Unit) is not a commit.
+	function handleValueEditorBlur(event: FocusEvent<HTMLSpanElement>) {
+		if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+			commitDraft();
+		}
 	}
 
 	function handleFallbackValueChange(nextText: string) {
@@ -286,11 +297,14 @@ export function TreeTokenNode({
 				/>
 			)}
 			{ResolvedEditor !== undefined ? (
-				<ResolvedEditor
-					value={currentRawValue}
-					onChange={handleValueChange}
-					options={resolvedEditorOptions}
-				/>
+				// biome-ignore lint/a11y/noStaticElementInteractions: a bubble-phase focusout catcher for the pluggable editor, not an interactive control itself
+				<span onBlur={handleValueEditorBlur}>
+					<ResolvedEditor
+						value={currentRawValue}
+						onChange={handleValueChange}
+						options={resolvedEditorOptions}
+					/>
+				</span>
 			) : (
 				<FallbackValueEditor
 					value={fallbackDraft ?? JSON.stringify(currentRawValue, null, 2)}

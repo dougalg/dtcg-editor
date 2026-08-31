@@ -111,3 +111,20 @@ test("a keystroke in the fallback JSON editor buffers text — no store call unt
 	fireEvent.blur(jsonInput);
 	expect(commitSpy).toHaveBeenCalledWith("d", { value: "200ms" });
 });
+
+test("a keystroke in the typed value editor updates only local draft — no store.commit until blur", () => {
+	const { commitSpy } = renderRow();
+	const valueInput = screen.getByRole("spinbutton", {
+		name: "Value",
+	}) as HTMLInputElement;
+
+	fireEvent.change(valueInput, { target: { value: "8" } });
+
+	expect(valueInput.value).toBe("8");
+	expect(commitSpy).not.toHaveBeenCalled();
+
+	fireEvent.blur(valueInput);
+	expect(commitSpy).toHaveBeenCalledWith("small", {
+		value: { value: 8, unit: "px" },
+	});
+});

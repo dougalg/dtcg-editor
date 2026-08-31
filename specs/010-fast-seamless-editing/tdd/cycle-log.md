@@ -964,3 +964,26 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   545/545, tsc clean.
 - notes: T018/T021 stay open (U41d, U42 pending).
 - commit: this entry's commit
+
+## Cycle 56: U41d — registered value editor buffers to draft, commit on editor blur
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the typed value editor updates only local draft — no store.commit until blur` (new; a `dimension` token -> `DimensionEditor`; `store.commit` spied)
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "typed value editor"`
+  -> `expect(commitSpy).not.toHaveBeenCalled()` fails at
+  `components/TreeTokenNode/TreeTokenNode.draft.test.tsx:124` ("Number of calls: 1"
+  — `handleValueChange` committed on the editor's `onChange`).
+- green: `handleValueChange` -> `setDraft((c) => ({ ...c, value: next }))`;
+  `currentRawValue = shown.value`. The registered editor is contract-typed and
+  pluggable (a user extension can't take an `onBlur` prop), so blur is caught on
+  a wrapping `<span onBlur={handleValueEditorBlur}>` via bubbling `focusout`;
+  `handleValueEditorBlur` commits only when `relatedTarget` is outside the span
+  (focus moving Value -> Unit inside `DimensionEditor` is not a commit). Full
+  suite `pnpm exec vitest run` -> 116 files, 546 passed (~23s); `pnpm build`
+  tsc clean; biome clean (one `noStaticElementInteractions` ignore on the span).
+- refactor: none needed. (Asymmetry with U41c's direct `onBlur` prop is
+  deliberate — `FallbackValueEditor` is an app component, the registered
+  editors are not.)
+- notes: **U41 + U41b + U41c + U41d done — every editable field now buffers to
+  a local draft and commits on blur (INV-9).** U42 (clear-only-on-success /
+  retain-on-failure) is next. T018/T021 stay open.
+- commit: this entry's commit
