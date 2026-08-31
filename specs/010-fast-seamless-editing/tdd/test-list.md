@@ -209,8 +209,8 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U70 | The `layout-shift` collector records each entry's `sources` (node + previous/current rect) and can answer "were all sources within subtree X" | C-MB-3 | example | PENDING | exercised via `render-stability.spec.ts` |
-| U71 | The `commit → value visible` timing helper measures the delta with `performance.now()` around `page.evaluate` DOM reads | C-MB-1 | example | PENDING | exercised via `editing-perf.spec.ts` |
+| U70 | The `layout-shift` collector records each entry's `sources` (node + previous/current rect) and can answer "were all sources within subtree X" | C-MB-3 | example | DONE | `apps/web-app/e2e/support/stability.ts` — exercised green via `render-stability.spec.ts` (A2/A4/A10/A11) |
+| U71 | The `commit → value visible` timing helper measures the delta with `performance.now()` around `page.evaluate` DOM reads | C-MB-1 | example | DONE | `apps/web-app/e2e/support/stability.ts` — exercised via `editing-perf.spec.ts` (A1 returns a real measurement) |
 
 ## Invariants and edge cases still to place
 

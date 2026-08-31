@@ -1388,3 +1388,27 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - notes: **U64–U66 done — the `TokenBlock` cluster is complete; the whole inner
   component loop (U39–U66) is DONE.** T028 and T036 ticked.
 - commit: this entry's commit
+
+## Cycle 80: U70 + U71 — the e2e stability helpers (exercised via the acceptance specs)
+
+- `apps/web-app/e2e/support/stability.ts` was written in the T003–T006 harness
+  scaffold (commit `0463c51`, selectors fixed in `84b8f0d`):
+  - **U70** — `startLayoutShiftObserver` records every un-input-driven
+    `layout-shift` entry with its live source nodes; `getLayoutShiftReport(page,
+    allowedRegionSelectors)` answers "are all sources within subtree X" by
+    returning `{ total, outOfRegion }` (the containment test runs in-page while
+    the source nodes are live).
+  - **U71** — `measureCommitToVisible` reads `performance.now()` in the page,
+    runs the commit, polls a `page.evaluate`d DOM read until the value appears,
+    reads `performance.now()` again, returns the delta.
+- verified against the production build on current HEAD (`c09b864`, all inner
+  units done): `pnpm build` then
+  `pnpm --filter @dtcg-editor/web-app exec playwright test editing-perf.spec.ts render-stability.spec.ts`
+  - **render-stability** (uses U70): A2, A4, A10/A11 **pass** — `getLayoutShiftReport`
+    returns `0` out-of-region shifts for type+commit, hub-commit and the full
+    tab-through.
+  - **editing-perf** (uses U71): A1 returns a real `324.5 ms` measurement
+    (`measureCommitToVisible` works; the value is over the `300 ms` CI-margin
+    budget — an A1 / T024 concern, not the helper's).
+- no red-green cycle: the profile has no vitest runner for a Playwright in-page
+  helper (Phase 1 "already covered / exercised" path). state -> DONE. T003 ticked.
