@@ -13,12 +13,14 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import { useResolvedPreview } from "../../hooks/useResolvedPreview.ts";
 import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
 import { useTokenSlice } from "../../hooks/useTokenSlice.ts";
 import { resolveBuiltInContract } from "../../lib/token-editors/built-in.ts";
 import { resolveEditorForType } from "../../lib/token-editors/resolve-editor.ts";
 import dtcgEditorConfig from "../../lib/token-editors/user-config.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
+import type { ResolvedReference } from "../../lib/tokens/reference-index.ts";
 import type { EditableFields } from "../../lib/tokens/staged-edits-store.ts";
 import { DefaultValidationErrorHandler } from "../DefaultValidationErrorHandler/DefaultValidationErrorHandler.tsx";
 import { FallbackValueEditor } from "../FallbackValueEditor/FallbackValueEditor.tsx";
@@ -38,6 +40,29 @@ function pathKey(path: readonly string[]): string {
 }
 
 type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
+
+/**
+ * The reference row's resolved-value display. Its own component so
+ * `useResolvedPreview` is called **only** by reference rows (data-model §7) —
+ * a literal row never mounts it. The store's live resolution supersedes the
+ * server-baked outcome literal (C-LR-1); the navigation structure stays
+ * server-computed.
+ */
+function ReferenceValueDisplay({
+	tokenKey,
+	resolved,
+	rawRef,
+}: {
+	readonly tokenKey: string;
+	readonly resolved: ResolvedReference | undefined;
+	readonly rawRef: string;
+}) {
+	const liveValue = useResolvedPreview(tokenKey);
+	if (resolved === undefined) {
+		return <span className={styles.value}>{rawRef}</span>;
+	}
+	return <TokenReferenceValue resolved={resolved} liveValue={liveValue} />;
+}
 
 /**
  * The editable/read-only dispatch for a single token — plan.md's
@@ -193,11 +218,11 @@ export function TreeTokenNode({
 			>
 				<span className={styles.field}>
 					<span className={styles.fieldLabel}>Value</span>
-					{resolved !== undefined ? (
-						<TokenReferenceValue resolved={resolved} />
-					) : (
-						<span className={styles.value}>{dispatch.reference.raw}</span>
-					)}
+					<ReferenceValueDisplay
+						tokenKey={key}
+						resolved={resolved}
+						rawRef={dispatch.reference.raw}
+					/>
 				</span>
 				{error?.name !== undefined && <span role="alert">{error.name}</span>}
 			</TokenBlock>

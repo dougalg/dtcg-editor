@@ -1089,3 +1089,28 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   render-isolation holds without it; a dedicated `TreeTokenNode` memo would be
   implementation without a driving behaviour.
 - commit: this entry's commit
+
+## Cycle 62: U47 — the reference row's resolved value is live (option A)
+
+- design: the user chose option **A** — thread a live `liveValue: ResolvedValue`
+  into `TokenReferenceValue`; the server-computed navigation / per-mode structure
+  stays static, only the displayed literal goes live.
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::committing an edit to a referenced token updates the referencing row's live preview (U47)` (new; `small` literal + `alias = "{small}"` reference with a server `references[0]`; render both rows, commit `small` to `{value:12,unit:"px"}`, assert `alias`'s row now shows `12`)
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "referencing row's live preview"`
+  -> `expect(within(bRow).getByText(/12/)).toBeTruthy()` fails at
+  `components/TreeTokenNode/TreeTokenNode.draft.test.tsx:297` — the reference row
+  rendered only the static `node.references[0]`, so a commit to the target left
+  it showing the server value.
+- green: new `ReferenceValueDisplay` sub-component (own component so
+  `useResolvedPreview` is called only by reference rows, data-model §7) — calls
+  `useResolvedPreview(key)` and passes it as `liveValue` to `TokenReferenceValue`.
+  `OutcomeRow`: when `liveValue.kind === "value"` (single-outcome reference) it
+  supersedes the server outcome literal; `unresolved` / `cycle` fall back to the
+  server outcome. Full suite `pnpm exec vitest run` -> 117 files, 552 passed
+  (~24s); `pnpm build` tsc clean. The existing reference tests (no `referenceView`
+  wired) stay green via that fallback.
+- refactor: none needed.
+- notes: the "non-dependent rows do not re-render" half of U47 rides U19 (store
+  scopes `#previewCache` invalidation to `key ∪ reverseDeps(key)`) + U37
+  (`useResolvedPreview` snapshot stability). T043/T044 stay open (U48).
+- commit: this entry's commit

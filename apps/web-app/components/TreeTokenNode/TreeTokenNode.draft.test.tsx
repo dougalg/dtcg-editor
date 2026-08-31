@@ -231,3 +231,68 @@ test("the fallback editor calls store.reportError on a parse failure, not on a v
 	expect(commitSpy).toHaveBeenCalledWith("d", { value: "300ms" });
 	expect(reportErrorSpy).toHaveBeenCalledTimes(1);
 });
+
+test("committing an edit to a referenced token updates the referencing row's live preview (U47)", () => {
+	const a = smallToken(); // "small" — {value:4,unit:"px"}
+	const b: TokenNode = {
+		kind: "token",
+		name: "alias",
+		path: ["alias"],
+		value: "{small}",
+		declaredType: "dimension",
+		effectiveType: "dimension",
+		inferredType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		references: [
+			{
+				reference: { targetPath: ["small"], at: [], raw: "{small}" },
+				outcomes: [
+					{
+						mode: undefined,
+						chain: {
+							steps: [{ path: ["small"], file: "a.json", mode: undefined }],
+							outcome: {
+								kind: "resolved",
+								value: { value: 4, unit: "px" },
+								type: "dimension",
+							},
+						},
+						targetFile: "a.json",
+					},
+				],
+			},
+		],
+	};
+	const store = new StagedEditsStore({
+		initialTree: {
+			kind: "group",
+			name: "",
+			path: [],
+			declaredType: undefined,
+			effectiveType: undefined,
+			description: undefined,
+			deprecated: undefined,
+			children: [a, b],
+		},
+		referenceView: undefined,
+		save: async () => true,
+	});
+	render(
+		<StagedEditsContext.Provider value={store}>
+			<ul>
+				<TreeTokenNode node={a} relativePath="a.json" />
+				<TreeTokenNode node={b} relativePath="a.json" />
+			</ul>
+		</StagedEditsContext.Provider>,
+	);
+
+	const bRow = screen.getByTestId("token-alias");
+	expect(within(bRow).queryByText(/12/)).toBeNull();
+
+	act(() => {
+		store.commit("small", { value: { value: 12, unit: "px" } });
+	});
+
+	expect(within(bRow).getByText(/12/)).toBeTruthy();
+});

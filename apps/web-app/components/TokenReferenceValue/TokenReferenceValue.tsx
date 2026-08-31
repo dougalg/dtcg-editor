@@ -5,6 +5,7 @@ import type {
 	ResolvedOutcome,
 	ResolvedReference,
 } from "../../lib/tokens/reference-index.ts";
+import type { ResolvedValue } from "../../lib/tokens/staged-edits-store.ts";
 import { tokenHref } from "../../lib/tokens/token-fragment.ts";
 import { ReferenceWarning } from "../ReferenceWarning/ReferenceWarning.tsx";
 import styles from "./TokenReferenceValue.module.css";
@@ -70,27 +71,42 @@ function pathText(path: readonly string[]): string {
 function OutcomeRow({
 	outcome,
 	targetPath,
+	liveValue,
 }: {
 	readonly outcome: ResolvedOutcome;
 	readonly targetPath: readonly string[];
+	/** The store's live resolution of this reference (present only for a
+	 * single-outcome reference). When it is a `"value"` it supersedes the
+	 * server outcome's literal so an in-session edit to the target shows
+	 * immediately (C-LR-1); `"unresolved"` / `"cycle"` fall back to the
+	 * server outcome, which the server is still the authority on. */
+	readonly liveValue?: ResolvedValue | undefined;
 }) {
 	const modeLabel =
 		outcome.mode !== undefined ? (
 			<span className={styles.modeLabel}>{outcome.mode}:</span>
 		) : null;
 
+	const resolvedLiteral =
+		liveValue?.kind === "value"
+			? formatLiteralValue(
+					liveValue.value,
+					outcome.chain.outcome.kind === "resolved"
+						? outcome.chain.outcome.type
+						: undefined,
+				)
+			: outcome.chain.outcome.kind === "resolved"
+				? formatLiteralValue(
+						outcome.chain.outcome.value,
+						outcome.chain.outcome.type,
+					)
+				: undefined;
+
 	const content = (
 		<>
 			<LinkGlyph />
 			{modeLabel}
-			{outcome.chain.outcome.kind === "resolved" ? (
-				formatLiteralValue(
-					outcome.chain.outcome.value,
-					outcome.chain.outcome.type,
-				)
-			) : (
-				<ReferenceWarning chain={outcome.chain} />
-			)}
+			{resolvedLiteral ?? <ReferenceWarning chain={outcome.chain} />}
 		</>
 	);
 
@@ -129,9 +145,15 @@ function OutcomeRow({
  */
 export function TokenReferenceValue({
 	resolved,
+	liveValue,
 }: {
 	readonly resolved: ResolvedReference;
+	/** The store's live resolution (`useResolvedPreview`) — applied only when
+	 * the reference has a single outcome, since the store's resolution is not
+	 * mode-aware. */
+	readonly liveValue?: ResolvedValue;
 }) {
+	const singleOutcome = resolved.outcomes.length === 1;
 	return (
 		<span className={styles.reference}>
 			<span className={styles.raw}>{resolved.reference.raw}</span>
@@ -141,6 +163,7 @@ export function TokenReferenceValue({
 						key={outcome.mode ?? index}
 						outcome={outcome}
 						targetPath={resolved.reference.targetPath}
+						liveValue={singleOutcome ? liveValue : undefined}
 					/>
 				))}
 			</ul>
