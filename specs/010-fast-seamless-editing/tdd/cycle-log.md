@@ -1179,3 +1179,23 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - notes: T023 also carries `[U53]` (TreeGroupNode a11y, still PENDING) so it is
   not ticked yet.
 - commit: this entry's commit
+
+## Cycle 66: U51 — the group-name field buffers to a draft, commits on blur
+
+- test: `apps/web-app/components/TreeGroupNode/TreeGroupNode.draft.test.tsx::a keystroke in the group-name field updates only local draft — no store.commit until blur (U51)` (new file; a real store with `commit` spied, `TreeGroupNode` rendered directly under `StagedEditsContext`)
+- red: `pnpm exec vitest run apps/web-app/components/TreeGroupNode/TreeGroupNode.draft.test.tsx`
+  -> `expect(commitSpy).not.toHaveBeenCalled()` fails at
+  `components/TreeGroupNode/TreeGroupNode.draft.test.tsx:73` — the group name
+  committed on change.
+- green: `TreeGroupNode` gains `draftName: string | undefined`;
+  `handleGroupNameChange` -> `setDraftName`; a new `commitGroupName()` (empty
+  check -> `reportError`, else `commit({ name })`, clear only on success) is
+  wired to the `<Input>`'s blur — mirrors `TreeTokenNode`'s U41/U42 pattern
+  (INV-9 / INV-10). Full suite `pnpm exec vitest run` -> 118 files, 557 passed
+  (~23s); `pnpm build` tsc clean.
+- refactor: none needed — a `string | undefined` draft is enough for a group
+  (name is its only editable field).
+- notes: the existing `TreeGroupNode.test.tsx` collision / staged-edit tests
+  already had `fireEvent.blur` added in the INV-9 prep (`3f5d0c7`), so they pass
+  against the draft-on-blur model. T019/T022 stay open (U52).
+- commit: this entry's commit

@@ -2,7 +2,7 @@
 
 import { Input } from "@dtcg-editor/design-system/components/Input/Input.tsx";
 import { Label } from "@dtcg-editor/design-system/components/Label/Label.tsx";
-import { type ChangeEvent, useContext } from "react";
+import { type ChangeEvent, useContext, useState } from "react";
 import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
 import { useTokenSlice } from "../../hooks/useTokenSlice.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
@@ -69,18 +69,29 @@ export function TreeGroupNode({
 	const groupKey = pathKey(node.path);
 	const store = useContext(StagedEditsContext);
 	const { fields, error, commit } = useTokenSlice(groupKey);
-	const currentGroupName = fields.name;
+	// A keystroke updates only this buffer (INV-9); the rename is staged on
+	// blur by `commitGroupName`. Same pattern as `TreeTokenNode`'s `draft`.
+	const [draftName, setDraftName] = useState<string | undefined>(undefined);
+	const currentGroupName = draftName ?? fields.name;
 
 	function handleGroupNameChange(event: ChangeEvent<HTMLInputElement>) {
-		const nextName = event.target.value;
-		if (nextName.trim().length === 0) {
+		setDraftName(event.target.value);
+	}
+
+	function commitGroupName() {
+		if (draftName === undefined) {
+			return;
+		}
+		if (draftName.trim().length === 0) {
 			store?.reportError(node.path.join("."), {
 				name: "Name cannot be empty",
 				value: undefined,
 			});
 			return;
 		}
-		commit({ name: nextName });
+		if (commit({ name: draftName })) {
+			setDraftName(undefined);
+		}
 	}
 
 	if (isRoot) {
@@ -105,6 +116,7 @@ export function TreeGroupNode({
 					type="text"
 					value={currentGroupName}
 					onChange={handleGroupNameChange}
+					onBlur={commitGroupName}
 					data-inline
 				/>
 			</Label>

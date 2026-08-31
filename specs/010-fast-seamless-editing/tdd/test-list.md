@@ -153,7 +153,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U51 | The group-name field uses the same local-`draft` + commit-on-blur pattern: a keystroke touches only `draft`; commit calls `store.commit` | INV-9, INV-10 | example | PENDING | `TreeGroupNode.test.tsx` |
+| U51 | The group-name field uses the same local-`draft` + commit-on-blur pattern: a keystroke touches only `draft`; commit calls `store.commit` | INV-9, INV-10 | example | DONE | `apps/web-app/components/TreeGroupNode/TreeGroupNode.draft.test.tsx::a keystroke in the group-name field updates only local draft — no store.commit until blur (U51)` |
 | U52 | A colliding group rename surfaces through `getError` and stages nothing; a non-colliding rename stages | C-KL-4, INV-6 | example | PENDING | `TreeGroupNode.test.tsx` |
 | U53 | `axe` clean with the draft/commit name field | Principle X | example | PENDING | `TreeGroupNode.a11y.test.tsx` |
 
