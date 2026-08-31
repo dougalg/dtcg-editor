@@ -200,7 +200,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | U75 | Every non-showcase generated token holds a value that is valid for its declared `$type` (so the bulk fixture rows drive the real editors, not the error path) — the `_showcase` group's deliberate `exotic`/`broken` tokens are exempt | C-MB-7, SC-001, SC-003 | example | DONE | `apps/web-app/scripts/generate-large-fixture.test.ts::every non-showcase generated token holds a value valid for its declared $type` |
 | U76 | The store calls every registered subscriber after a `commit` and after a successful `save()` (so `useSyncExternalStore` re-reads); `subscribe` returns a working unsubscribe | INV-2 | example | DONE | `apps/web-app/lib/tokens/staged-edits-store.test.ts::the store notifies subscribers after a state-changing commit and after save` |
 | U77 | `discard(P)` and `reportError(P, …)` also notify subscribers | INV-2 | example | DONE | `apps/web-app/lib/tokens/staged-edits-store.test.ts::discard and reportError also notify subscribers` |
-| U78 | The store converts the constructor's `TokenReferenceView` into `#serverPreview: Map<PathKey, ResolvedValue>` so a cross-file chain hop resolves to the server-computed value | INV-18, C-LR-7 | example | PENDING | `staged-edits-store.test.ts` |
+| U78 | The store converts the constructor's `TokenReferenceView` into `#serverPreview: Map<PathKey, ResolvedValue>` so a cross-file chain hop resolves to the server-computed value | INV-18, C-LR-7 | example | DONE | `apps/web-app/lib/tokens/staged-edits-store.test.ts::resolves a cross-file reference hop through the server-computed preview (U78)` |
 
 ### `apps/web-app/e2e/support/stability.ts` (NEW)
 

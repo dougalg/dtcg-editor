@@ -769,3 +769,22 @@ before Cycle 42 so the baseline is genuinely green (`pnpm build` 7/7 + vitest).
 - refactor: none needed.
 - notes: **U37 + U38 done — `useResolvedPreview` is complete.** T042 ticked.
 - commit: this entry's commit
+
+## Cycle 48: U78 store — TokenReferenceView -> #serverPreview conversion
+
+- test: `apps/web-app/lib/tokens/staged-edits-store.test.ts::resolves a cross-file reference hop through the server-computed preview (U78)` (new) — an in-file token `g.a` valued `{ext.x}` with `ext.x` outside the tree; a `TokenReferenceView` whose one outcome chain resolves to `{value:12,unit:"px"}`.
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/staged-edits-store.test.ts -t "cross-file reference hop"`
+  -> `assert.deepEqual` at `lib/tokens/staged-edits-store.test.ts:489:9` — expected
+  `{ kind: "value", value: { value: 12, unit: "px" }, via: [] }`, got
+  `{ kind: "unresolved", ref: "{ext.x}" }` (`#serverPreview` was always empty).
+- green: `staged-edits-store.ts` — new module fn `buildServerPreview(view)` walks
+  `view.references`, keys each `reference.targetPath.join(".")` to a `ResolvedValue`
+  from `outcomes[0].chain.outcome` (`resolved` -> value, `circular` -> cycle, else
+  unresolved); constructor sets `this.#serverPreview = buildServerPreview(options.referenceView)`
+  before `#rebuildIndex()`. Full suite `pnpm exec vitest run` -> 113 files, 539
+  passed (~24s); `pnpm build` tsc clean.
+- refactor: none needed — standalone pure fn, no duplication.
+- notes: U78 carries **no `tasks.md` marker** (T040 covered U18–U20 only), so nothing
+  to tick. `#serverPreview` is derived purely from the constructor's `referenceView`
+  and never changes on `save()`, so it is built once.
+- commit: this entry's commit

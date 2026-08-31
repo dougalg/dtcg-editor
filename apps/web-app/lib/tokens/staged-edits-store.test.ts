@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { parseReference } from "@dtcg-editor/token-core";
 import { test } from "vitest";
 import type { ClientEdit } from "./edit-state.ts";
 import type { PlainDtcgNode } from "./plain-node.ts";
+import type { TokenReferenceView } from "./reference-index.ts";
 import { StagedEditsStore } from "./staged-edits-store.ts";
 
 function group(name: string, children: PlainDtcgNode[]): PlainDtcgNode {
@@ -441,4 +443,56 @@ test("commit to one token leaves getFields identity unchanged for an untouched t
 	store.commit("space.sm", { value: { value: 8, unit: "px" } });
 
 	assert.equal(store.getFields("space.lg"), untouchedBefore);
+});
+
+test("resolves a cross-file reference hop through the server-computed preview (U78)", () => {
+	const ref = parseReference("{ext.x}");
+	assert.ok(ref);
+	const referenceView: TokenReferenceView = {
+		references: new Map([
+			[
+				"g.a",
+				[
+					{
+						reference: ref,
+						outcomes: [
+							{
+								mode: undefined,
+								chain: {
+									steps: [
+										{
+											path: ["ext", "x"],
+											file: "ext.tokens.json",
+											mode: undefined,
+										},
+									],
+									outcome: {
+										kind: "resolved",
+										value: { value: 12, unit: "px" },
+										type: "dimension",
+									},
+								},
+								targetFile: "ext.tokens.json",
+							},
+						],
+					},
+				],
+			],
+		]),
+		referencedBy: new Map(),
+	};
+
+	const store = new StagedEditsStore({
+		initialTree: group("", [
+			group("g", [dimensionToken(["g", "a"], "{ext.x}")]),
+		]),
+		referenceView,
+		save: async () => true,
+	});
+
+	assert.deepEqual(store.getResolvedPreview("g.a"), {
+		kind: "value",
+		value: { value: 12, unit: "px" },
+		via: [],
+	});
 });

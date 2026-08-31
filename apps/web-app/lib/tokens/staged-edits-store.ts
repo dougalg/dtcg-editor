@@ -92,6 +92,43 @@ function mergeFields(
 	};
 }
 
+/**
+ * The server-resolved value of every reference target named in the file's
+ * `TokenReferenceView`, keyed by the target's `PathKey`. `resolvePreview`
+ * consults this only for a chain hop whose key is **not** in the local tree
+ * index (INV-18, C-LR-7) — an in-file key is walked live instead, so an entry
+ * here for an in-file target is simply never read.
+ */
+function buildServerPreview(
+	view: TokenReferenceView | undefined,
+): Map<PathKey, ResolvedValue> {
+	const serverPreview = new Map<PathKey, ResolvedValue>();
+	if (view === undefined) {
+		return serverPreview;
+	}
+	for (const refs of view.references.values()) {
+		for (const { reference, outcomes } of refs) {
+			const outcome = outcomes[0]?.chain.outcome;
+			if (outcome === undefined) {
+				continue;
+			}
+			const key = reference.targetPath.join(".");
+			if (outcome.kind === "resolved") {
+				serverPreview.set(key, {
+					kind: "value",
+					value: outcome.value,
+					via: [],
+				});
+			} else if (outcome.kind === "circular") {
+				serverPreview.set(key, { kind: "cycle", ref: reference.raw });
+			} else {
+				serverPreview.set(key, { kind: "unresolved", ref: reference.raw });
+			}
+		}
+	}
+	return serverPreview;
+}
+
 function indexByPath(
 	node: PlainDtcgNode,
 	into: Map<PathKey, PlainDtcgNode>,
@@ -128,6 +165,7 @@ export class StagedEditsStore {
 	constructor(options: StagedEditsStoreOptions) {
 		this.#tree = options.initialTree;
 		this.#save = options.save;
+		this.#serverPreview = buildServerPreview(options.referenceView);
 		this.#index = new Map();
 		this.#rebuildIndex();
 	}
