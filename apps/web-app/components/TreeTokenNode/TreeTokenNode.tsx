@@ -208,7 +208,7 @@ export function TreeTokenNode({
 	}
 
 	const currentRawValue = fields.value;
-	const currentDescription = fields.description;
+	const currentDescription = shown.description;
 
 	// The store's `commit` validates the next value against the resolved
 	// built-in contract before staging — an invalid value sets the field
@@ -232,7 +232,8 @@ export function TreeTokenNode({
 	}
 
 	function handleDescriptionChange(event: ChangeEvent<HTMLTextAreaElement>) {
-		commit({ description: event.target.value });
+		const nextDescription = event.target.value;
+		setDraft((current) => ({ ...current, description: nextDescription }));
 	}
 
 	// Present only when this token's type came from shape inference, not a
@@ -291,6 +292,7 @@ export function TreeTokenNode({
 					rows={1}
 					value={currentDescription}
 					onChange={handleDescriptionChange}
+					onBlur={commitDraft}
 				/>
 			</label>
 			{error?.name !== undefined && <span role="alert">{error.name}</span>}

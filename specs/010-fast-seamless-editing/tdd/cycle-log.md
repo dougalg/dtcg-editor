@@ -926,3 +926,20 @@ No state transitions, no commit — this was a read-only status run. Nothing to
 gain their `baseline.md` ceiling in T024/T025. A1–A12 stay `PENDING`. The
 skeletons passing early is a strong signal the render-isolation approach is
 sound; A1 formally closes once U41–U47 land + T024 tightens it.
+
+## Cycle 54: U41b — description field buffers to local draft, commit on blur
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the description field updates only local draft — no store.commit until blur` (new, mirrors the U41 name-field test)
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "description field"`
+  -> `expect(commitSpy).not.toHaveBeenCalled()` fails at
+  `components/TreeTokenNode/TreeTokenNode.draft.test.tsx:76` ("Number of calls: 1"
+  — `handleDescriptionChange` committed on change).
+- green: `handleDescriptionChange` -> `setDraft((c) => ({ ...c, description }))`;
+  `currentDescription = shown.description`; `onBlur={commitDraft}` on the
+  `<textarea>`. Full suite `pnpm exec vitest run` -> 116 files, 544 passed
+  (~21s); `pnpm build` tsc clean. (One earlier full run reported a transient
+  1-file error from overlapping vitest processes in the same shell command; a
+  clean re-run is 544/544.)
+- refactor: none needed — reuses `commitDraft` / `setDraft` from U41.
+- notes: T018/T021 stay open (U41c, U41d, U42 pending).
+- commit: this entry's commit

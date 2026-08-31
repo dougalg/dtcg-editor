@@ -63,3 +63,18 @@ test("a keystroke in the name field updates only local draft — no store.commit
 	fireEvent.blur(nameInput);
 	expect(commitSpy).toHaveBeenCalledWith("small", { name: "tiny" });
 });
+
+test("a keystroke in the description field updates only local draft — no store.commit until blur", () => {
+	const { commitSpy } = renderRow();
+	const descriptionInput = screen.getByRole("textbox", {
+		name: /description/i,
+	}) as HTMLTextAreaElement;
+
+	fireEvent.change(descriptionInput, { target: { value: "a note" } });
+
+	expect(descriptionInput.value).toBe("a note");
+	expect(commitSpy).not.toHaveBeenCalled();
+
+	fireEvent.blur(descriptionInput);
+	expect(commitSpy).toHaveBeenCalledWith("small", { description: "a note" });
+});
