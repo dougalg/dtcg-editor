@@ -1199,3 +1199,23 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   already had `fireEvent.blur` added in the INV-9 prep (`3f5d0c7`), so they pass
   against the draft-on-blur model. T019/T022 stay open (U52).
 - commit: this entry's commit
+
+## Cycle 67: U52 — a colliding group rename surfaces via getError and stages nothing
+
+- test: `apps/web-app/components/TreeGroupNode/TreeGroupNode.draft.test.tsx::a colliding group rename surfaces via getError and stages nothing; a non-colliding one stages (U52)` (new; `tree()` grew a sibling group `h`; rename `g`->`h` (reject) then `g`->`grid` (stage))
+- red: passes first run — the store's `commit` validates a group rename with the
+  same `#validateDraftName` (findSiblings + checkRenameAvailable) it uses for
+  tokens, and U51's `commitGroupName` already surfaces the `false` result +
+  keeps the draft. Deliberate-mutant: `commitGroupName`'s
+  `if (commit(...)) setDraftName(undefined)` -> clear unconditionally ->
+  `pnpm exec vitest run apps/web-app/components/TreeGroupNode/TreeGroupNode.draft.test.tsx -t "colliding group rename"`
+  -> `AssertionError: expected 'g' to be 'h'` (the rejected draft was dropped).
+  Restored via `git checkout`.
+- green: no production change. Full suite `pnpm exec vitest run` -> 118 files,
+  558 passed (~23s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: **U51 + U52 done — T019 and T022 ticked.** T019's recipe also mentions
+  `memo()` on `TreeGroupNode`; not added — `TreeNode` (its only parent) is
+  memo'd, so no unrelated emit re-renders it (same reasoning as U39). The
+  `TreeGroupNode.a11y.test.tsx` update for the draft/commit field is U53's cycle.
+- commit: this entry's commit

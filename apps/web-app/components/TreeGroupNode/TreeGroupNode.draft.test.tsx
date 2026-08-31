@@ -38,6 +38,16 @@ function tree(): PlainDtcgNode {
 					},
 				],
 			},
+			{
+				kind: "group",
+				name: "h",
+				path: ["h"],
+				declaredType: undefined,
+				effectiveType: undefined,
+				description: undefined,
+				deprecated: undefined,
+				children: [],
+			},
 		],
 	};
 }
@@ -74,4 +84,28 @@ test("a keystroke in the group-name field updates only local draft — no store.
 
 	fireEvent.blur(nameInput);
 	expect(commitSpy).toHaveBeenCalledWith("g", { name: "grid" });
+});
+
+test("a colliding group rename surfaces via getError and stages nothing; a non-colliding one stages (U52)", () => {
+	const { commitSpy } = renderGroup();
+	const nameInput = screen.getByDisplayValue("g") as HTMLInputElement;
+
+	// collide with sibling group "h"
+	fireEvent.change(nameInput, { target: { value: "h" } });
+	fireEvent.blur(nameInput);
+
+	expect(commitSpy).toHaveReturnedWith(false);
+	expect(screen.getByRole("alert").textContent).toMatch(
+		/already used by a sibling/,
+	);
+	// the draft is retained on the rejected rename
+	expect(nameInput.value).toBe("h");
+
+	// now a free name — it stages
+	fireEvent.change(nameInput, { target: { value: "grid" } });
+	fireEvent.blur(nameInput);
+
+	expect(commitSpy).toHaveBeenLastCalledWith("g", { name: "grid" });
+	expect(commitSpy).toHaveLastReturnedWith(true);
+	expect(screen.queryByRole("alert")).toBeNull();
 });
