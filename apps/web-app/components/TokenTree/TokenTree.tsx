@@ -6,20 +6,19 @@ import {
 	DialogDescription,
 	DialogTitle,
 } from "@dtcg-editor/design-system/components/Dialog/Dialog.tsx";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useSaveTokenEdits } from "../../hooks/useSaveTokenEdits.ts";
+import {
+	StagedEditsContext,
+	useStagedEdits,
+} from "../../hooks/useStagedEdits.ts";
 import { useTokenArrival } from "../../hooks/useTokenArrival.ts";
-import type { ClientEdit } from "../../lib/tokens/edit-state.ts";
-import { applyEditsToPlainNode } from "../../lib/tokens/edit-state.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
+import type { TokenReferenceView } from "../../lib/tokens/reference-index.ts";
 import type { SaveError } from "../../lib/tokens/save-error.ts";
 import { isSameFileHref } from "../../lib/tokens/token-fragment.ts";
 import { SaveButton } from "../SaveButton/SaveButton.tsx";
-import {
-	type EditablePatch,
-	type FieldErrors,
-	TreeNode,
-} from "../TreeNode/TreeNode.tsx";
+import { TreeNode } from "../TreeNode/TreeNode.tsx";
 import styles from "./TokenTree.module.css";
 
 /** Renders a `SaveError` (see `hooks/useSaveTokenEdits.ts`) as a single display string. */
@@ -35,32 +34,28 @@ function describeSaveError(error: SaveError): string {
 	}
 }
 
-function pathKey(path: readonly string[]): string {
-	return path.join(".");
-}
-
 export function TokenTree({
 	node,
 	relativePath,
+	referenceView,
 	navigate = (href: string) => {
 		window.location.assign(href);
 	},
 }: {
 	node: PlainDtcgNode;
 	relativePath: string;
+	/** The per-file resolved-reference slice from the Server Component, so a
+	 * cross-file reference chain can still resolve to its server-computed
+	 * value while editing (INV-18). Optional: the page wires it in a later
+	 * step; without it, only same-file references resolve live. */
+	referenceView?: TokenReferenceView;
 	/** Injected per Principle VI: `window.location.assign` is non-configurable
 	 * in jsdom, so a real default plus this parameter is what lets tests
 	 * observe a guarded navigation without fighting the platform. */
 	navigate?: (href: string) => void;
 }) {
-	const [treeState, setTreeState] = useState(node);
-	const [pendingEdits, setPendingEdits] = useState<Map<string, ClientEdit>>(
-		new Map(),
-	);
-	const [fieldErrors, setFieldErrors] = useState<Map<string, FieldErrors>>(
-		new Map(),
-	);
 	const { saveState, saveError, save } = useSaveTokenEdits(relativePath);
+	const store = useStagedEdits({ initialTree: node, referenceView, save });
 	useTokenArrival();
 	const containerRef = useRef<HTMLDivElement>(null);
 	// The href of a cross-file navigation the user just attempted, held
@@ -69,40 +64,22 @@ export function TokenTree({
 	// dialog is closed".
 	const [guardedHref, setGuardedHref] = useState<string | undefined>(undefined);
 
-	function stageEdit(path: readonly string[], patch: EditablePatch) {
-		const key = pathKey(path);
-		setPendingEdits((prev) => {
-			const next = new Map(prev);
-			const existing = next.get(key) ?? { path };
-			next.set(key, { ...existing, ...patch });
-			return next;
-		});
-	}
+	const tree = useSyncExternalStore(
+		store.subscribe,
+		store.getTree,
+		store.getTree,
+	);
+	const hasPendingEdits = useSyncExternalStore(
+		store.subscribe,
+		store.getHasPending,
+		store.getHasPending,
+	);
 
-	function setFieldError(path: readonly string[], errors: FieldErrors) {
-		const key = pathKey(path);
-		setFieldErrors((prev) => {
-			const next = new Map(prev);
-			if (errors.name !== undefined || errors.value !== undefined) {
-				next.set(key, errors);
-			} else {
-				next.delete(key);
-			}
-			return next;
-		});
-	}
-
-	async function handleSave() {
-		const edits = Array.from(pendingEdits.values());
-		const succeeded = await save(edits);
-		if (succeeded) {
-			setTreeState((current) => applyEditsToPlainNode(current, edits));
-			setPendingEdits(new Map());
+	function discardAll() {
+		for (const edit of store.getEdits()) {
+			store.discard(edit.path.join("."));
 		}
-		return succeeded;
 	}
-
-	const hasPendingEdits = pendingEdits.size > 0;
 
 	// Intercepts a click on any cross-file navigation control (a reference
 	// link, a definition-picker entry, a referrer link — anything rendered
@@ -150,7 +127,7 @@ export function TokenTree({
 		if (guardedHref === undefined) {
 			return;
 		}
-		const succeeded = await handleSave();
+		const succeeded = await store.save();
 		if (succeeded) {
 			const href = guardedHref;
 			setGuardedHref(undefined);
@@ -170,7 +147,7 @@ export function TokenTree({
 			return;
 		}
 		const href = guardedHref;
-		setPendingEdits(new Map());
+		discardAll();
 		setGuardedHref(undefined);
 		navigate(href);
 	}
@@ -181,17 +158,11 @@ export function TokenTree({
 
 	return (
 		<div ref={containerRef}>
-			<TreeNode
-				node={treeState}
-				root={treeState}
-				relativePath={relativePath}
-				pendingEdits={pendingEdits}
-				fieldErrors={fieldErrors}
-				onStageEdit={stageEdit}
-				onFieldError={setFieldError}
-			/>
+			<StagedEditsContext.Provider value={store}>
+				<TreeNode node={tree} relativePath={relativePath} />
+			</StagedEditsContext.Provider>
 			<SaveButton
-				onClick={handleSave}
+				onClick={store.save}
 				disabled={!hasPendingEdits || saveState === "pending"}
 				pending={saveState === "pending"}
 			/>

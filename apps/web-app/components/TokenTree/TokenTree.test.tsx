@@ -321,7 +321,7 @@ test("rejects a rename that collides with a sibling and does not stage it (AC-03
 	const nameInput = getNameInput("small");
 	fireEvent.change(nameInput, { target: { value: "large" } });
 
-	expect(screen.getByText(/already exists/)).toBeTruthy();
+	expect(screen.getByText(/already used by a sibling/)).toBeTruthy();
 	const saveButton = screen.getByRole("button", {
 		name: /save/i,
 	}) as HTMLButtonElement;
@@ -408,7 +408,7 @@ test("rejects a group rename that collides with a sibling group and does not sta
 		target: { value: "colors" },
 	});
 
-	expect(screen.getByText(/already exists/)).toBeTruthy();
+	expect(screen.getByText(/already used by a sibling/)).toBeTruthy();
 	const saveButton = screen.getByRole("button", {
 		name: /save/i,
 	}) as HTMLButtonElement;

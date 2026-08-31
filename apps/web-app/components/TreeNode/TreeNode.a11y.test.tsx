@@ -1,9 +1,10 @@
 import { render } from "@testing-library/react";
 import axe from "axe-core";
 import { expect, test } from "vitest";
+import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
 import { WCAG_22_AA_TAGS } from "../../lib/a11y/wcag-tags.ts";
-import type { ClientEdit } from "../../lib/tokens/edit-state.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
+import { StagedEditsStore } from "../../lib/tokens/staged-edits-store.ts";
 import { TreeNode } from "./TreeNode.tsx";
 
 async function expectNoViolations(container: Element) {
@@ -13,27 +14,18 @@ async function expectNoViolations(container: Element) {
 	expect(results.violations).toEqual([]);
 }
 
-const noopEdits: ReadonlyMap<string, ClientEdit> = new Map();
-const noopErrors: ReadonlyMap<
-	string,
-	{ name: string | undefined; value: string | undefined }
-> = new Map();
-function noopStage() {}
-function noopFieldError() {}
-
 function renderNode(node: PlainDtcgNode) {
+	const store = new StagedEditsStore({
+		initialTree: node,
+		referenceView: undefined,
+		save: async () => true,
+	});
 	return render(
-		<ul>
-			<TreeNode
-				node={node}
-				root={node}
-				relativePath="a.json"
-				pendingEdits={noopEdits}
-				fieldErrors={noopErrors}
-				onStageEdit={noopStage}
-				onFieldError={noopFieldError}
-			/>
-		</ul>,
+		<StagedEditsContext.Provider value={store}>
+			<ul>
+				<TreeNode node={node} relativePath="a.json" />
+			</ul>
+		</StagedEditsContext.Provider>,
 	);
 }
 

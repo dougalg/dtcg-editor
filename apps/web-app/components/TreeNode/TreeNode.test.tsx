@@ -1,35 +1,27 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
-import type { ClientEdit } from "../../lib/tokens/edit-state.ts";
+import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import type { ResolvedReference } from "../../lib/tokens/reference-index.ts";
+import { StagedEditsStore } from "../../lib/tokens/staged-edits-store.ts";
 import { TreeNode } from "./TreeNode.tsx";
 
 afterEach(() => {
 	document.body.innerHTML = "";
 });
 
-const noopEdits: ReadonlyMap<string, ClientEdit> = new Map();
-const noopErrors: ReadonlyMap<
-	string,
-	{ name: string | undefined; value: string | undefined }
-> = new Map();
-function noopStage() {}
-function noopFieldError() {}
-
 function renderNode(node: PlainDtcgNode) {
+	const store = new StagedEditsStore({
+		initialTree: node,
+		referenceView: undefined,
+		save: async () => true,
+	});
 	return render(
-		<ul>
-			<TreeNode
-				node={node}
-				root={node}
-				relativePath="a.json"
-				pendingEdits={noopEdits}
-				fieldErrors={noopErrors}
-				onStageEdit={noopStage}
-				onFieldError={noopFieldError}
-			/>
-		</ul>,
+		<StagedEditsContext.Provider value={store}>
+			<ul>
+				<TreeNode node={node} relativePath="a.json" />
+			</ul>
+		</StagedEditsContext.Provider>,
 	);
 }
 

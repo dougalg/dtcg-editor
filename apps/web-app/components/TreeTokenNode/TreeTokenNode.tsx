@@ -5,15 +5,12 @@ import {
 	type TokenTypeEditorProps,
 	validateTokenValue,
 } from "@dtcg-editor/token-editor-contract";
-import type { ChangeEvent, ReactElement } from "react";
+import { type ChangeEvent, type ReactElement, useContext } from "react";
+import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
+import { useTokenSlice } from "../../hooks/useTokenSlice.ts";
 import { resolveBuiltInContract } from "../../lib/token-editors/built-in.ts";
 import { resolveEditorForType } from "../../lib/token-editors/resolve-editor.ts";
 import dtcgEditorConfig from "../../lib/token-editors/user-config.ts";
-import {
-	applyEditsToPlainNode,
-	checkRenameAvailable,
-	findSiblings,
-} from "../../lib/tokens/edit-state.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import { DefaultValidationErrorHandler } from "../DefaultValidationErrorHandler/DefaultValidationErrorHandler.tsx";
 import { FallbackValueEditor } from "../FallbackValueEditor/FallbackValueEditor.tsx";
@@ -49,25 +46,18 @@ type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
  * 5. Recognized type, invalid value, no package handler -> `DefaultValidationErrorHandler` (with `error`).
  * 6. No usable type -> `DefaultValidationErrorHandler` (without `error`).
  *
- * A token whose type was shape-inferred rather than declared
- * (`node.inferredType`) already has a usable `effectiveType` by
- * construction (`resolveEffectiveDocument` only sets `inferredType` to a
- * value `classifyValue` actually matched, which is always a recognized
- * `DtcgTokenType`) — it flows through path 2/3 exactly like an
- * explicitly-typed token (FR-006), with a `TypeSuggestion` prompt layered
- * on top offering to make the inferred type an explicit declaration
- * (FR-003b).
+ * Edit state is the `StagedEditsStore`'s: `useTokenSlice(key)` gives this row
+ * its merged `fields`, its `error`, and a `commit` bound to `key`. Every field
+ * change commits straight through (the local-`draft` buffering that INV-9..12
+ * calls for lands in a later step).
  */
 export function TreeTokenNode({
 	node,
-	root,
 	relativePath,
-	pendingEdits,
-	fieldErrors,
-	onStageEdit,
-	onFieldError,
 }: TreeNodeProps<TokenNode>) {
 	const key = pathKey(node.path);
+	const store = useContext(StagedEditsContext);
+	const { fields, error, commit } = useTokenSlice(key);
 	// Rendered in every dispatch path below via `TokenBlock`'s `headerExtra`
 	// — `ReferencedByBadge` itself renders nothing at zero referrers, so no
 	// conditional is needed here (spec FR-021).
@@ -84,49 +74,27 @@ export function TreeTokenNode({
 	// the heading text itself is no longer stable once it's editable.
 	const headingId = `token-${key}-heading`;
 	const rowTestId = `token-${key}`;
-	const pending = pendingEdits.get(key);
-	const errors = fieldErrors.get(key);
 	const effectiveType = node.effectiveType;
 
-	const currentName = pending?.name ?? node.name;
+	const currentName = fields.name;
 
 	// Renaming is independent of the token's value/type validity, so this is
 	// shared by both the valid/editable and invalid/read-only paths below —
-	// a token with a broken value can still be renamed.
+	// a token with a broken value can still be renamed. Collision validation
+	// (against other pending renames too) is the store's `commit`.
 	function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
-		const nextName = event.target.value;
-		// Reflects other tokens' staged-but-unsaved renames too, so freeing up
-		// a name via one pending edit lets another pending edit claim it in
-		// the same session, without waiting for a save round-trip.
-		const effectiveRoot = applyEditsToPlainNode(
-			root,
-			Array.from(pendingEdits.values()),
-		);
-		const siblings = findSiblings(effectiveRoot, node.path);
-		if (!checkRenameAvailable(siblings, nextName, node.name)) {
-			onFieldError(node.path, {
-				name: `"${nextName}" already exists here`,
-				value: errors?.value,
-			});
-			return;
-		}
-		onFieldError(node.path, { name: undefined, value: errors?.value });
-		onStageEdit(node.path, { name: nextName });
+		commit({ name: event.target.value });
 	}
 
 	// Path 1: the value is a reference. Checked before any per-type
 	// validation runs — a reference is valid for every `$type` (per the
 	// DTCG spec, an aliasing token's type is its target's resolved type),
 	// so `validateTokenValue` is never called for it at all, not merely
-	// ignored. This fixes a live bug: a color token holding a reference was
-	// previously told its value "must be a 6-digit hex string" (FR-009).
-	// `node.references[0]` is this specific whole-value reference's own
-	// resolution — `at: []` — computed once, server-side, in
-	// `buildReferenceView`. It's `undefined` only if the page's
-	// whole-directory index build itself failed (page.tsx degrades to no
-	// reference view rather than blocking the page), in which case the raw
-	// reference text is shown instead of nothing.
-	const reference = parseReference(node.value);
+	// ignored. `node.references[0]` is this specific whole-value
+	// reference's own resolution — `at: []` — computed once, server-side,
+	// in `buildReferenceView` (the live `useResolvedPreview` swap is a
+	// later step).
+	const reference = parseReference(fields.value);
 	if (reference !== undefined) {
 		const resolved = node.references?.[0];
 		return (
@@ -148,7 +116,7 @@ export function TreeTokenNode({
 						<span className={styles.value}>{reference.raw}</span>
 					)}
 				</span>
-				{errors?.name !== undefined && <span role="alert">{errors.name}</span>}
+				{error?.name !== undefined && <span role="alert">{error.name}</span>}
 			</TokenBlock>
 		);
 	}
@@ -162,7 +130,7 @@ export function TreeTokenNode({
 		? resolveBuiltInContract(effectiveType)
 		: undefined;
 	const validation = contract
-		? validateTokenValue(contract, node.value)
+		? validateTokenValue(contract, fields.value)
 		: undefined;
 	// A standard type with no built-in contract has nothing to validate
 	// against, so it's trusted as-is.
@@ -187,11 +155,11 @@ export function TreeTokenNode({
 			contract?.ValidationErrorHandler !== undefined &&
 			errorForHandler !== undefined
 				? contract.ValidationErrorHandler({
-						value: node.value,
+						value: fields.value,
 						error: errorForHandler,
 					})
 				: DefaultValidationErrorHandler({
-						value: node.value,
+						value: fields.value,
 						error: errorForHandler,
 					});
 
@@ -208,66 +176,50 @@ export function TreeTokenNode({
 			>
 				<span className={styles.field}>
 					<span className={styles.fieldLabel}>Value</span>
-					<span className={styles.value}>{formatValue(node.value)}</span>
+					<span className={styles.value}>{formatValue(fields.value)}</span>
 				</span>
 				{extraContent}
-				{errors?.name !== undefined && <span role="alert">{errors.name}</span>}
+				{error?.name !== undefined && <span role="alert">{error.name}</span>}
 			</TokenBlock>
 		);
 	}
 
-	const currentRawValue = pending?.value ?? node.value;
-	const currentDescription = pending?.description ?? node.description ?? "";
+	const currentRawValue = fields.value;
+	const currentDescription = fields.description;
 
-	// Validates the next value against the resolved built-in contract (if
-	// any) before staging, blocking the stage and calling `onFieldError`
-	// on failure — applies uniformly to every standard type with a
-	// built-in contract (dimension, color, ...). A standard type with no
-	// built-in contract, or a non-standard type, has nothing to validate
-	// against, so the value is trusted as-is, matching the existing
-	// generic-editor design.
+	// The store's `commit` validates the next value against the resolved
+	// built-in contract before staging — an invalid value sets the field
+	// error and stages nothing, exactly as the inline check here used to.
 	function handleValueChange(next: unknown) {
-		if (contract) {
-			const nextValidation = validateTokenValue(contract, next);
-			if (nextValidation.isErr()) {
-				onFieldError(node.path, {
-					name: errors?.name,
-					value: nextValidation.error.message,
-				});
-				return;
-			}
-		}
-		onFieldError(node.path, { name: errors?.name, value: undefined });
-		onStageEdit(node.path, { value: next });
+		commit({ value: next });
 	}
 
 	function handleFallbackValueChange(nextText: string) {
 		let parsed: unknown;
 		try {
 			parsed = JSON.parse(nextText);
-		} catch (error) {
-			onFieldError(node.path, {
-				name: errors?.name,
-				value: `Invalid JSON: ${error instanceof Error ? error.message : "could not parse"}`,
+		} catch (parseError) {
+			store?.reportError(node.path.join("."), {
+				name: error?.name,
+				value: `Invalid JSON: ${parseError instanceof Error ? parseError.message : "could not parse"}`,
 			});
 			return;
 		}
-		onFieldError(node.path, { name: errors?.name, value: undefined });
-		onStageEdit(node.path, { value: parsed });
+		commit({ value: parsed });
 	}
 
 	function handleDescriptionChange(event: ChangeEvent<HTMLTextAreaElement>) {
-		onStageEdit(node.path, { description: event.target.value });
+		commit({ description: event.target.value });
 	}
 
 	// Present only when this token's type came from shape inference, not a
 	// declaration (node.inferredType, per plain-node.ts) — accepting it is
 	// the only thing that ever writes an inferred type into the document
-	// (FR-003b), and only via this same ordinary staged-edit mechanism used
-	// for every other field. Hidden once already staged this session so the
-	// suggestion doesn't linger after the user has acted on it.
+	// (FR-003b), via the same staged-edit mechanism. Hidden once a type
+	// edit is staged (`fields.type` is then set) so the suggestion doesn't
+	// linger after the user has acted on it.
 	function handleAcceptInferredType(type: string) {
-		onStageEdit(node.path, { type });
+		commit({ type });
 	}
 
 	const ResolvedEditor = resolvedEditor as
@@ -287,7 +239,7 @@ export function TreeTokenNode({
 			isNonStandardType={false}
 			headerExtra={referencedByBadge}
 		>
-			{node.inferredType !== undefined && pending?.type === undefined && (
+			{node.inferredType !== undefined && fields.type === undefined && (
 				<TypeSuggestion
 					inferredType={node.inferredType}
 					onAccept={handleAcceptInferredType}
@@ -317,8 +269,8 @@ export function TreeTokenNode({
 					onChange={handleDescriptionChange}
 				/>
 			</label>
-			{errors?.name !== undefined && <span role="alert">{errors.name}</span>}
-			{errors?.value !== undefined && <span role="alert">{errors.value}</span>}
+			{error?.name !== undefined && <span role="alert">{error.name}</span>}
+			{error?.value !== undefined && <span role="alert">{error.value}</span>}
 		</TokenBlock>
 	);
 }

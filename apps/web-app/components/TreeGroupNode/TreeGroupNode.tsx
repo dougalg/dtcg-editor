@@ -2,12 +2,9 @@
 
 import { Input } from "@dtcg-editor/design-system/components/Input/Input.tsx";
 import { Label } from "@dtcg-editor/design-system/components/Label/Label.tsx";
-import type { ChangeEvent } from "react";
-import {
-	applyEditsToPlainNode,
-	checkRenameAvailable,
-	findSiblings,
-} from "../../lib/tokens/edit-state.ts";
+import { type ChangeEvent, useContext } from "react";
+import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
+import { useTokenSlice } from "../../hooks/useTokenSlice.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
 import { TreeNode, type TreeNodeProps } from "../TreeNode/TreeNode.tsx";
 import styles from "./TreeGroupNode.module.css";
@@ -66,46 +63,24 @@ type GroupNode = Extract<PlainDtcgNode, { kind: "group" }>;
  */
 export function TreeGroupNode({
 	node,
-	root,
 	relativePath,
-	pendingEdits,
-	fieldErrors,
-	onStageEdit,
-	onFieldError,
 }: TreeNodeProps<GroupNode>) {
 	const isRoot = node.path.length === 0;
 	const groupKey = pathKey(node.path);
-	const groupPending = pendingEdits.get(groupKey);
-	const groupErrors = fieldErrors.get(groupKey);
-	const currentGroupName = groupPending?.name ?? node.name;
+	const store = useContext(StagedEditsContext);
+	const { fields, error, commit } = useTokenSlice(groupKey);
+	const currentGroupName = fields.name;
 
 	function handleGroupNameChange(event: ChangeEvent<HTMLInputElement>) {
 		const nextName = event.target.value;
 		if (nextName.trim().length === 0) {
-			onFieldError(node.path, {
+			store?.reportError(node.path.join("."), {
 				name: "Name cannot be empty",
 				value: undefined,
 			});
 			return;
 		}
-		// Reflects other groups'/tokens' staged-but-unsaved renames too, so
-		// freeing up a name via one pending edit lets another pending edit
-		// claim it in the same session — mirrors `TreeTokenNode`'s
-		// `handleNameChange`.
-		const effectiveRoot = applyEditsToPlainNode(
-			root,
-			Array.from(pendingEdits.values()),
-		);
-		const siblings = findSiblings(effectiveRoot, node.path);
-		if (!checkRenameAvailable(siblings, nextName, node.name)) {
-			onFieldError(node.path, {
-				name: `"${nextName}" already exists here`,
-				value: undefined,
-			});
-			return;
-		}
-		onFieldError(node.path, { name: undefined, value: undefined });
-		onStageEdit(node.path, { name: nextName });
+		commit({ name: nextName });
 	}
 
 	if (isRoot) {
@@ -115,12 +90,7 @@ export function TreeGroupNode({
 					<TreeNode
 						key={child.path.join(".")}
 						node={child}
-						root={root}
 						relativePath={relativePath}
-						pendingEdits={pendingEdits}
-						fieldErrors={fieldErrors}
-						onStageEdit={onStageEdit}
-						onFieldError={onFieldError}
 					/>
 				))}
 			</ul>
@@ -138,9 +108,7 @@ export function TreeGroupNode({
 					data-inline
 				/>
 			</Label>
-			{groupErrors?.name !== undefined && (
-				<span role="alert">{groupErrors.name}</span>
-			)}
+			{error?.name !== undefined && <span role="alert">{error.name}</span>}
 			<details open>
 				<summary
 					className={styles.summary}
@@ -154,12 +122,7 @@ export function TreeGroupNode({
 						<TreeNode
 							key={child.path.join(".")}
 							node={child}
-							root={root}
 							relativePath={relativePath}
-							pendingEdits={pendingEdits}
-							fieldErrors={fieldErrors}
-							onStageEdit={onStageEdit}
-							onFieldError={onFieldError}
 						/>
 					))}
 				</ul>

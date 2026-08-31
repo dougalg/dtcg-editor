@@ -97,7 +97,9 @@ test("rejects a rename that collides with a sibling group's name", () => {
 	render(<TokenTree node={twoGroupTree()} relativePath="a.json" />);
 	const nameInput = screen.getByDisplayValue("spacing");
 	fireEvent.change(nameInput, { target: { value: "color" } });
-	expect(screen.getByRole("alert").textContent).toMatch(/already exists/);
+	expect(screen.getByRole("alert").textContent).toMatch(
+		/already used by a sibling/,
+	);
 });
 
 test("the disclosure control has an accessible name describing the group", () => {
