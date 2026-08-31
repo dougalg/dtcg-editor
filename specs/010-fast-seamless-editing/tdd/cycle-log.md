@@ -828,3 +828,17 @@ vitest stayed 539; `pnpm build` 7/7. The behaviour cycles below build on this.
 - notes: T017 also carries `[U55]` (still PENDING — "renders the structure
   after the prop-surface reduction"), so it is not ticked yet.
 - commit: this entry's commit
+
+## Cycle 50: U55 TreeNode still renders the structure (covered by existing tests)
+
+- Already covered by `apps/web-app/components/TreeNode/TreeNode.test.tsx` —
+  `dispatches a token node to TreeTokenNode`, `dispatches a group node to
+  TreeGroupNode`, `the reference path reaches TokenReferenceValue's resolved
+  rendering` — all three pass against the prop-reduced + memoised `TreeNode`
+  (their setup was rewired to a real store + provider in refactor `7d140ae`,
+  assertions unchanged).
+- Verified with a deliberate mutant: make the `kind === "token"` branch render
+  `TreeGroupNode` -> `pnpm exec vitest run apps/web-app/components/TreeNode/TreeNode.test.tsx`
+  -> 2 of 3 fail (token + reference cases). Restored.
+- No red-green cycle: Phase 1 "already covered by an existing passing test" path.
+  state -> DONE. With U54 + U55 both DONE, T017 is ticked.
