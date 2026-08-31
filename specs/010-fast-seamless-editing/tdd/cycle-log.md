@@ -1219,3 +1219,19 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   memo'd, so no unrelated emit re-renders it (same reasoning as U39). The
   `TreeGroupNode.a11y.test.tsx` update for the draft/commit field is U53's cycle.
 - commit: this entry's commit
+
+## Cycle 68: U53 — axe clean with the group draft/commit name field
+
+- test: `apps/web-app/components/TreeGroupNode/TreeGroupNode.a11y.test.tsx::has no WCAG 2.2 AA violations with the draft/commit name field, including its error (U53)` (new; two sibling groups, draft a colliding rename, axe mid-draft, blur to surface the `role="alert"`, axe again)
+- red: passes first run — the migrated `TreeGroupNode` is a11y-clean while
+  editing the name and with the error alert shown. Deliberate-mutant: strip the
+  "Group Name:" text from the wrapping `<Label>` ->
+  `pnpm exec vitest run apps/web-app/components/TreeGroupNode/TreeGroupNode.a11y.test.tsx -t "draft/commit name field"`
+  -> `FAIL |apps/web-app:a11y (chromium)|` (axe flags the unlabelled input).
+  Restored via `git checkout`.
+- green: no production change. Full suite `pnpm exec vitest run` -> 118 files,
+  559 passed (~25s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: **U51 + U52 + U53 done — the `TreeGroupNode` cluster is complete.**
+  T023 ticked (`[U50]` + `[U53]` both done).
+- commit: this entry's commit

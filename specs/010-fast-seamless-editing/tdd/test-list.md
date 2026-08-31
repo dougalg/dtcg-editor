@@ -155,7 +155,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | --- | --- | --- | --- | --- | --- |
 | U51 | The group-name field uses the same local-`draft` + commit-on-blur pattern: a keystroke touches only `draft`; commit calls `store.commit` | INV-9, INV-10 | example | DONE | `apps/web-app/components/TreeGroupNode/TreeGroupNode.draft.test.tsx::a keystroke in the group-name field updates only local draft — no store.commit until blur (U51)` |
 | U52 | A colliding group rename surfaces through `getError` and stages nothing; a non-colliding rename stages | C-KL-4, INV-6 | example | DONE | `apps/web-app/components/TreeGroupNode/TreeGroupNode.draft.test.tsx::a colliding group rename surfaces via getError and stages nothing; a non-colliding one stages (U52)` |
-| U53 | `axe` clean with the draft/commit name field | Principle X | example | PENDING | `TreeGroupNode.a11y.test.tsx` |
+| U53 | `axe` clean with the draft/commit name field | Principle X | example | DONE | `apps/web-app/components/TreeGroupNode/TreeGroupNode.a11y.test.tsx::has no WCAG 2.2 AA violations with the draft/commit name field, including its error (U53)` |
 
 ### `apps/web-app/components/TreeNode/TreeNode.tsx` (CHANGED)
 

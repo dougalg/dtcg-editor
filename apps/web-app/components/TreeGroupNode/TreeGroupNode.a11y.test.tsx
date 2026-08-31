@@ -96,3 +96,44 @@ test("the disclosure control has an accessible name and its native open state ch
 
 	expect(details.open).toBe(false);
 });
+
+function twoGroupTree(): PlainDtcgNode {
+	const g = (name: string): PlainDtcgNode => ({
+		kind: "group",
+		name,
+		path: [name],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [],
+	});
+	return {
+		kind: "group",
+		name: "",
+		path: [],
+		declaredType: undefined,
+		effectiveType: undefined,
+		description: undefined,
+		deprecated: undefined,
+		children: [g("spacing"), g("colour")],
+	};
+}
+
+test("has no WCAG 2.2 AA violations with the draft/commit name field, including its error (U53)", async () => {
+	const { container } = render(
+		<TokenTree node={twoGroupTree()} relativePath="a.json" />,
+	);
+	const nameInput = screen.getAllByLabelText("Group Name:")[0] as HTMLElement;
+
+	// mid-edit draft
+	fireEvent.change(nameInput, { target: { value: "colour" } });
+	await expectNoViolations(container);
+
+	// commit the colliding rename — a role="alert" error appears
+	fireEvent.blur(nameInput);
+	expect(screen.getByRole("alert").textContent).toMatch(
+		/already used by a sibling/,
+	);
+	await expectNoViolations(container);
+});
