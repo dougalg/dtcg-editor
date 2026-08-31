@@ -1316,3 +1316,30 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   box is unconditional markup with a reserved `min-height`). T026/T027 stay open
   (U61, U62, U63).
 - commit: this entry's commit
+
+## Cycle 74: U61 — each set error renders role=alert inside the reserved box
+
+- test: `apps/web-app/components/FieldErrorSlot/FieldErrorSlot.test.tsx::renders each set error as a role=alert message inside the reserved box (U61)` (new; both name + value errors set -> two `[role="alert"]` in order, each a descendant of `[data-testid="field-error-slot"]`)
+- red: passes first run — U60's green already renders both alerts inside the box.
+  Deliberate-mutant: drop `role="alert"` from the value message ->
+  `pnpm exec vitest run apps/web-app/components/FieldErrorSlot/FieldErrorSlot.test.tsx -t "role=alert message inside"`
+  -> `expect(alerts.map(textContent)).toEqual(["Name taken.", "Bad value."])`
+  fails (only one alert found). Restored.
+- green: no production change. Full suite -> 564 passed; tsc clean.
+- refactor: none needed.
+- commit: shared with U62 (both delivered by U60's green).
+
+## Cycle 75: U62 — a long message grows the box downward only
+
+- test: `apps/web-app/components/FieldErrorSlot/FieldErrorSlot.test.tsx::a long multi-line message is added inside the box without changing the box itself (U62)` (new; a short vs a long name error — the box's own class is unchanged, the long text is rendered whole *inside* the box)
+- red: passes first run. Deliberate-mutant: render the name alert as a sibling
+  *after* the reserving box -> `expect(boxB?.contains(alertB)).toBe(true)` fails
+  (and U61 with it). Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 564 passed
+  (~23s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: per the user's call, the pixel-level "no upward shift when the message
+  wraps" is A2 / `render-stability.spec.ts`. This cycle pins the structural
+  guarantee — content is added *inside* the box (normal block flow), the box's
+  own box-model markup is message-independent. T026/T027 stay open (U63).
+- commit: this entry's commit

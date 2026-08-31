@@ -178,8 +178,8 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
 | U60 | The slot's outer box has the same measured height whether or not a message is present (reserved `min-height`) | INV-14, C-KL-4, FR-012, SC-002 | example | DONE | `apps/web-app/components/FieldErrorSlot/FieldErrorSlot.test.tsx::always renders its reserving box, whether or not a message is present (U60)` (structural; measured pixel-height equality rides A2) |
-| U61 | When `errors.name` and/or `errors.value` are set, each renders as a `role="alert"` message **inside** the reserved box | INV-14, FR-012 | example | PENDING | `FieldErrorSlot.test.tsx` |
-| U62 | A message longer than one line grows the box **downward only** (never shifts content above it) | INV-14 | example | PENDING | `FieldErrorSlot.test.tsx` |
+| U61 | When `errors.name` and/or `errors.value` are set, each renders as a `role="alert"` message **inside** the reserved box | INV-14, FR-012 | example | DONE | `apps/web-app/components/FieldErrorSlot/FieldErrorSlot.test.tsx::renders each set error as a role=alert message inside the reserved box (U61)` |
+| U62 | A message longer than one line grows the box **downward only** (never shifts content above it) | INV-14 | example | DONE | `apps/web-app/components/FieldErrorSlot/FieldErrorSlot.test.tsx::a long multi-line message is added inside the box without changing the box itself (U62)` (structural; pixel no-upward-shift rides A2) |
 | U63 | `axe` clean both with and without a message shown | Principle X, C-KL-9 | example | PENDING | `FieldErrorSlot.a11y.test.tsx` |
 
 ### `apps/web-app/components/TokenBlock/TokenBlock.tsx` (CHANGED)
