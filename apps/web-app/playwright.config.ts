@@ -38,6 +38,11 @@ export default defineConfig({
 	// no other change to how existing specs run (no device emulation added).
 	projects: [
 		{
+			// `editing-perf.spec.ts` / `render-stability.spec.ts` (feature 010)
+			// run here: the `default` server's `DTCG_EDITOR_TOKENS_DIR` is
+			// `./e2e/fixtures/tokens`, which holds the committed
+			// `large_scale.tokens.json` (T002) — no dedicated project/server
+			// needed (T006).
 			name: "default",
 			testIgnore: ["token-references.spec.ts", "inferred-type.spec.ts"],
 			use: { baseURL: `http://localhost:${E2E_PORT}` },

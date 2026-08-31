@@ -55,7 +55,7 @@ See `.specify/memory/tdd-profile.md`.
 - [ ] T003 [P] [U70] [U71] Add `apps/web-app/e2e/support/stability.ts` — an in-page `PerformanceObserver('layout-shift')` collector that keeps each entry's `sources` (node + prev/current rect) scoped to a subtree (U70), plus a `commit → value visible` timing helper using `performance.now()` around `page.evaluate` DOM reads (U71) (C-MB-3, pattern from `e2e/color-editor-perf.spec.ts`)
 - [ ] T004 [P] [A1] [A5] [A6] [A8] Add `apps/web-app/e2e/editing-perf.spec.ts` (skeleton) — navigate the large fixture; measure commit→visible, a 5 s / ~10 cps typing burst, and a ≥ 100-referrer commit; push `testInfo.annotations` `type: "perf"`; assert `< 100 ms` / `≤ 1 frame` with a CI margin. Expected to FAIL pre-implementation — this is the outer-loop red for A1/A5/A6 (C-MB-1, C-MB-2)
 - [ ] T005 [P] [A2] [A4] [A7] [A8] [A10] [A11] Add `apps/web-app/e2e/render-stability.spec.ts` (skeleton) — three interactions on the large fixture (type+commit an edit; full tab-through; commit an edit to the widely-referenced token); assert every observed `layout-shift` source is confined to the edited field + its error slot. Expected to FAIL pre-implementation — outer-loop red for A2/A4/A10/A11 (C-MB-3)
-- [ ] T006 Register a Playwright project/server for `large_scale.tokens.json` in `apps/web-app/playwright.config.ts` (or confirm the `default` server serves `e2e/fixtures/tokens/`)
+- [X] T006 Register a Playwright project/server for `large_scale.tokens.json` in `apps/web-app/playwright.config.ts` (or confirm the `default` server serves `e2e/fixtures/tokens/`)
 
 ---
 
