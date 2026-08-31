@@ -1006,3 +1006,27 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   U44 (no spinner), U45 (dispatch memo), U46 (fallback reportError path) remain
   before T018/T021 close.
 - commit: this entry's commit
+
+## Cycle 58: U43 — the focused field's caret survives an unrelated row edit
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::editing another row does not move the caret in the focused field (U43)` (new; two `TreeTokenNode`s — `small` + `big` — under one store; focus `small`'s name, draft "smalll", caret at 3, then `store.commit("big", …)`)
+- red: first assertion used `expect(aName).toHaveFocus()` -> `Invalid Chai
+  property: toHaveFocus` (this repo's vitest has no jest-dom matchers — not a
+  valid red). Switched to `document.activeElement` / `.value` / `.selectionStart`.
+  Passes first run. Deliberate-mutant: `currentName = shown.name` ->
+  `currentName = fields.name` (name input ignores the draft) ->
+  `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "does not move the caret"`
+  -> `AssertionError: expected 'small' to be 'smalll'` (the controlled input
+  forced the value back, which also resets the caret). Restored.
+- green: no production change — `shown = { ...fields, ...draft }` (U41) already
+  means no store update changes the focused input's value underneath the user,
+  so React never touches the DOM node and the caret/selection is preserved
+  (INV-11). A sibling commit doesn't even re-render row `small` (its
+  `useTokenSlice` snapshot is unchanged). Full suite `pnpm exec vitest run`
+  -> 116 files, 548 passed (~23s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: this unit covers the "unrelated row edited" half of U43. The "deferred
+  ripple recompute" half is an e2e concern (the editing row holds a literal
+  value and a draft, so it isn't subscribed to `useResolvedPreview` at all) —
+  it rides A2 / A3. T018/T021 stay open (U44, U45, U46).
+- commit: this entry's commit

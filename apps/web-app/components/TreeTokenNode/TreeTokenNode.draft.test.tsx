@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
@@ -145,4 +145,44 @@ test("a rejected commit keeps the draft on screen and surfaces the error (U42)",
 	expect(screen.getByRole("alert").textContent).toMatch(
 		/already used by a sibling/,
 	);
+});
+
+test("editing another row does not move the caret in the focused field (U43)", () => {
+	const a = smallToken();
+	const b: TokenNode = { ...smallToken(), name: "big", path: ["big"] };
+	const store = new StagedEditsStore({
+		initialTree: {
+			kind: "group",
+			name: "",
+			path: [],
+			declaredType: undefined,
+			effectiveType: undefined,
+			description: undefined,
+			deprecated: undefined,
+			children: [a, b],
+		},
+		referenceView: undefined,
+		save: async () => true,
+	});
+	render(
+		<StagedEditsContext.Provider value={store}>
+			<ul>
+				<TreeTokenNode node={a} relativePath="a.json" />
+				<TreeTokenNode node={b} relativePath="a.json" />
+			</ul>
+		</StagedEditsContext.Provider>,
+	);
+
+	const aName = screen.getByLabelText("small name") as HTMLInputElement;
+	aName.focus();
+	fireEvent.change(aName, { target: { value: "smalll" } });
+	aName.setSelectionRange(3, 3);
+
+	act(() => {
+		store.commit("big", { name: "bigger" });
+	});
+
+	expect(document.activeElement).toBe(aName);
+	expect(aName.value).toBe("smalll");
+	expect(aName.selectionStart).toBe(3);
 });
