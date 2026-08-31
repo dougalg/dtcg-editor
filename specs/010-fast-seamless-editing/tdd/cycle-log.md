@@ -1294,3 +1294,25 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: none needed.
 - notes: **U56–U59 done — the `TokenTree` cluster is complete. T016 ticked.**
 - commit: this entry's commit
+
+## Cycle 73: U60 — FieldErrorSlot always renders its reserving box
+
+- test: `apps/web-app/components/FieldErrorSlot/FieldErrorSlot.test.tsx::always renders its reserving box, whether or not a message is present (U60)` (new; renders the slot with no errors and with a name error, asserts the `[data-testid="field-error-slot"]` box + its class are unconditional)
+- red: `pnpm exec vitest run apps/web-app/components/FieldErrorSlot/FieldErrorSlot.test.tsx`
+  -> `expect(slot(empty)).not.toBeNull()` fails at
+  `components/FieldErrorSlot/FieldErrorSlot.test.tsx:22` — the hollow stub only
+  rendered a conditional `<span role="alert">`, no reserving box.
+- green: `FieldErrorSlot.tsx` (new) always renders `<span className={styles.slot}
+  data-testid="field-error-slot">` with the name/value alerts inside it;
+  `FieldErrorSlot.module.css` (new) reserves `min-height: var(--dtcg-ed-space-lg)`
+  on `.slot` and styles `.message` in normal block flow (grows downward only).
+  Full suite `pnpm exec vitest run` -> 119 files, 563 passed (~23s); `pnpm build`
+  tsc clean.
+- refactor: none needed.
+- notes: per the user's call, the **measured** height-equality (U60) and
+  "grows downward only" (U62) pixel checks ride **A2 / `render-stability.spec.ts`**
+  — vitest has one real-browser project and it is a11y-globbed; a jsdom
+  `.test.tsx` cannot measure. This cycle pins the *structural* reservation (the
+  box is unconditional markup with a reserved `min-height`). T026/T027 stay open
+  (U61, U62, U63).
+- commit: this entry's commit

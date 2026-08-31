@@ -1,0 +1,17 @@
+/*
+ * INV-14 / SC-002 / FR-012: the slot's box occupies a reserved `min-height`
+ * whether or not a message is present, so a validation message appearing or
+ * clearing never shifts surrounding controls. A longer message grows the box
+ * downward only (normal block flow) — it is never absolutely positioned and
+ * never pushes content above it. T029 tunes the reserved value against a
+ * design token if `--dtcg-ed-space-lg` proves wrong.
+ */
+.slot {
+	display: block;
+	min-height: var(--dtcg-ed-space-lg);
+}
+
+.message {
+	display: block;
+	color: var(--dtcg-ed-color-error-on-normal);
+}
