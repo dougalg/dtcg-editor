@@ -1030,3 +1030,21 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   value and a draft, so it isn't subscribed to `useResolvedPreview` at all) —
   it rides A2 / A3. T018/T021 stay open (U44, U45, U46).
 - commit: this entry's commit
+
+## Cycle 59: U44 — a commit renders no spinner / skeleton / disabled state in the row
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::committing an edit shows no spinner / skeleton / disabled state in the row (U44)` (new; edits + blurs the value field, then asserts the row `<li>` and its descendants have no `role="progressbar"`, no `aria-busy="true"`, nothing `:disabled` — scoped to the row so the Save button enabling, outside it, does not count)
+- red: passes first run — `commit` is synchronous and `TreeTokenNode` has no
+  loading / busy / disabled state by design. Deliberate-mutant: add
+  `aria-busy="true"` to `TokenBlock`'s row `<li>`. First test draft only queried
+  `row.querySelectorAll` (descendants) so the mutant slipped through; tightened
+  to include the row element itself
+  (`[row, ...row.querySelectorAll("*")].some(...)` + `row.matches(":disabled")`),
+  then the mutant fails: `AssertionError: expected true to be false`. Restored.
+- green: no production change. Full suite `pnpm exec vitest run` -> 116 files,
+  549 passed (~23s); `pnpm build` tsc clean.
+- refactor: none needed.
+- notes: guard test — the row has no commit-time loading state and this pins
+  that. The "at any point during the ripple" half is e2e (A1). T018/T021 stay
+  open (U45, U46).
+- commit: this entry's commit

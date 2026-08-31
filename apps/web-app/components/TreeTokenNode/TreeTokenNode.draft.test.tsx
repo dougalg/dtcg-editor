@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
@@ -185,4 +185,27 @@ test("editing another row does not move the caret in the focused field (U43)", (
 	expect(document.activeElement).toBe(aName);
 	expect(aName.value).toBe("smalll");
 	expect(aName.selectionStart).toBe(3);
+});
+
+test("committing an edit shows no spinner / skeleton / disabled state in the row (U44)", () => {
+	const { commitSpy } = renderRow();
+	const row = screen.getByTestId("token-small");
+	const valueInput = screen.getByRole("spinbutton", {
+		name: "Value",
+	}) as HTMLInputElement;
+
+	fireEvent.change(valueInput, { target: { value: "9" } });
+	fireEvent.blur(valueInput);
+
+	expect(commitSpy).toHaveBeenCalledTimes(1);
+	// nothing in the row goes busy / disabled for the edit (the Save button
+	// enabling — outside the row — does not count).
+	expect(within(row).queryByRole("progressbar")).toBeNull();
+	const rowAndDescendants = [row, ...row.querySelectorAll("*")];
+	expect(
+		rowAndDescendants.some((el) => el.getAttribute("aria-busy") === "true"),
+	).toBe(false);
+	expect(row.querySelector(":disabled")).toBeNull();
+	expect(row.matches(":disabled")).toBe(false);
+	expect(valueInput.disabled).toBe(false);
 });
