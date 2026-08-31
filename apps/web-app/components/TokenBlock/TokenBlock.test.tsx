@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { TokenBlock } from "./TokenBlock.tsx";
 
@@ -137,4 +137,21 @@ test("the arrival highlight changes a non-color property, not color alone (T043)
 
 	expect(hasColorChange).toBe(true);
 	expect(hasNonColorChange).toBe(true);
+});
+
+test("always renders a FieldErrorSlot and shows the threaded error inside it (U64)", () => {
+	const { container: noError } = renderBlock({});
+	expect(
+		noError.querySelector("[data-testid='field-error-slot']"),
+	).not.toBeNull();
+	cleanup();
+
+	const { container: withError } = renderBlock({
+		error: { name: "The name is taken.", value: undefined },
+	});
+	const slot = withError.querySelector("[data-testid='field-error-slot']");
+	expect(slot).not.toBeNull();
+	expect(within(slot as HTMLElement).getByRole("alert").textContent).toBe(
+		"The name is taken.",
+	);
 });

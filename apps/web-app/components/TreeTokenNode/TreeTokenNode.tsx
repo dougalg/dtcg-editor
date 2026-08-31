@@ -223,6 +223,7 @@ export function TreeTokenNode({
 				name={currentName}
 				onNameChange={handleNameChange}
 				onNameBlur={commitDraft}
+				error={error}
 				nameAriaLabel={`${node.name} name`}
 				headingId={headingId}
 				rowTestId={rowTestId}
@@ -239,7 +240,6 @@ export function TreeTokenNode({
 						rawRef={dispatch.reference.raw}
 					/>
 				</span>
-				{error?.name !== undefined && <span role="alert">{error.name}</span>}
 			</TokenBlock>
 		);
 	}
@@ -272,6 +272,7 @@ export function TreeTokenNode({
 				name={currentName}
 				onNameChange={handleNameChange}
 				onNameBlur={commitDraft}
+				error={error}
 				nameAriaLabel={`${node.name} name`}
 				headingId={headingId}
 				rowTestId={rowTestId}
@@ -284,7 +285,6 @@ export function TreeTokenNode({
 					<span className={styles.value}>{formatValue(shown.value)}</span>
 				</span>
 				{extraContent}
-				{error?.name !== undefined && <span role="alert">{error.name}</span>}
 			</TokenBlock>
 		);
 	}
@@ -339,6 +339,7 @@ export function TreeTokenNode({
 			name={currentName}
 			onNameChange={handleNameChange}
 			onNameBlur={commitDraft}
+			error={error}
 			nameAriaLabel={`${node.name} name`}
 			headingId={headingId}
 			rowTestId={rowTestId}
@@ -381,8 +382,6 @@ export function TreeTokenNode({
 					onBlur={commitDraft}
 				/>
 			</label>
-			{error?.name !== undefined && <span role="alert">{error.name}</span>}
-			{error?.value !== undefined && <span role="alert">{error.value}</span>}
 		</TokenBlock>
 	);
 }

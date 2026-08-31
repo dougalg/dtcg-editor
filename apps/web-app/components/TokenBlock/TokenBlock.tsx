@@ -2,7 +2,11 @@ import { Badge } from "@dtcg-editor/design-system/components/Badge/Badge.tsx";
 import type { DtcgTokenType } from "@dtcg-editor/token-core";
 import type { ChangeEvent, ReactNode } from "react";
 import { resolveTokenTypeIconId } from "../../assets/resolve-token-type-icon-id.ts";
+import type { FieldErrors } from "../../lib/tokens/staged-edits-store.ts";
+import { FieldErrorSlot } from "../FieldErrorSlot/FieldErrorSlot.tsx";
 import styles from "./TokenBlock.module.css";
+
+const NO_ERRORS: FieldErrors = { name: undefined, value: undefined };
 
 function noop() {}
 
@@ -42,6 +46,10 @@ export interface TokenBlockProps {
 	/** Rendered in the heading row, after the type badge — e.g.
 	 * `ReferencedByBadge`. This block doesn't know or care what's inside. */
 	readonly headerExtra?: ReactNode;
+	/** This row's field-validation errors, from `useTokenSlice(key)`. Always
+	 * rendered through a reserved-height `FieldErrorSlot` (INV-14 / FR-012) —
+	 * the caller no longer renders its own `role="alert"` spans. */
+	readonly error?: FieldErrors | undefined;
 	readonly className?: string;
 }
 
@@ -63,6 +71,7 @@ export function TokenBlock({
 	isNonStandardType,
 	children,
 	headerExtra,
+	error,
 	className,
 }: TokenBlockProps) {
 	const iconId = resolveTokenTypeIconId(type);
@@ -100,6 +109,7 @@ export function TokenBlock({
 				{headerExtra}
 			</div>
 			{children}
+			<FieldErrorSlot errors={error ?? NO_ERRORS} />
 		</li>
 	);
 }

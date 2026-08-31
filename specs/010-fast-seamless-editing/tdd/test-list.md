@@ -186,7 +186,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U64 | `TokenBlock` always renders `FieldErrorSlot` (not the old `{errors?.name && <span role="alert">}` conditional spans) and threads `error` from `useTokenSlice` through | data-model §4, FR-012 | example | PENDING | `TokenBlock.test.tsx` |
+| U64 | `TokenBlock` always renders `FieldErrorSlot` (not the old `{errors?.name && <span role="alert">}` conditional spans) and threads `error` from `useTokenSlice` through | data-model §4, FR-012 | example | DONE | `apps/web-app/components/TokenBlock/TokenBlock.test.tsx::always renders a FieldErrorSlot and shows the threaded error inside it (U64)` |
 | U65 | `TokenBlock`'s layout does not depend on whether an error message is present | SC-002, FR-012 | example | PENDING | `TokenBlock.test.tsx` |
 | U66 | `axe` clean with the `FieldErrorSlot` integration | Principle X | example | PENDING | `TokenBlock.a11y.test.tsx` |
 

@@ -1343,3 +1343,23 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   guarantee — content is added *inside* the box (normal block flow), the box's
   own box-model markup is message-independent. T026/T027 stay open (U63).
 - commit: this entry's commit
+
+## Cycle 77: U64 — TokenBlock always renders FieldErrorSlot, threading `error`
+
+- test: `apps/web-app/components/TokenBlock/TokenBlock.test.tsx::always renders a FieldErrorSlot and shows the threaded error inside it (U64)` (new; renders `TokenBlock` with no `error` -> the `[data-testid="field-error-slot"]` box is present; with an `error` -> the message renders as `role="alert"` inside it)
+- red: `pnpm exec vitest run apps/web-app/components/TokenBlock/TokenBlock.test.tsx -t "always renders a FieldErrorSlot"`
+  -> `AssertionError: expected null not to be null` at
+  `components/TokenBlock/TokenBlock.test.tsx:146` — `TokenBlock` rendered no slot.
+- green: `TokenBlock` gains `error?: FieldErrors`, renders
+  `<FieldErrorSlot errors={error ?? NO_ERRORS} />` after `{children}`;
+  `TreeTokenNode` passes `error={error}` to all three `<TokenBlock>` sites and
+  deletes its ad-hoc `{error?.name && <span role="alert">}` /
+  `{error?.value && …}` spans. Full suite `pnpm exec vitest run` -> 120 files,
+  568 passed (~25s); `pnpm build` tsc clean. Every existing test that finds
+  `role="alert"` for a token error still does — the alert now lives inside the
+  slot.
+- refactor: none needed.
+- notes: `TreeGroupNode` renders its own `<li>` (not a `TokenBlock`), so its
+  error span is untouched by this cycle (T028's scope is TokenBlock +
+  TreeTokenNode). T028/T036 stay open (U65, U66).
+- commit: this entry's commit
