@@ -1048,3 +1048,25 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   that. The "at any point during the ripple" half is e2e (A1). T018/T021 stay
   open (U45, U46).
 - commit: this entry's commit
+
+## Cycle 60: U45 — the parseReference -> contract -> editor-resolution dispatch is memoised
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.dispatch-memo.test.tsx::the editor-resolution dispatch is memoised — a name keystroke does not re-resolve it (U45)` (new; dedicated `vi.mock` file — `resolveEditorForType` from `lib/token-editors/resolve-editor.ts` wrapped by a `vi.hoisted` spy that delegates to the real impl)
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.dispatch-memo.test.tsx`
+  -> `expect(resolveEditorSpy.mock.calls.length).toBe(callsAfterMount)` fails at
+  `components/TreeTokenNode/TreeTokenNode.dispatch-memo.test.tsx:82` ("+ 2" vs 1 —
+  a name keystroke re-rendered the row and re-walked the inline dispatch chain).
+- green: hoisted `parseReference` / `isDtcgTokenType` / `resolveBuiltInContract` /
+  `validateTokenValue` / `resolveEditorForType` into one `useMemo` keyed on
+  `[shown.value, effectiveType, node.inferredType]` (INV-13), returning
+  `{ reference, isUsableType, contract, validation, isValid, resolvedEditor,
+  resolvedEditorOptions }`; the three render branches read from `dispatch.*`.
+  The chain and the invalid-path value display now read `shown.value` (the memo
+  key) rather than `fields.value`. Full suite `pnpm exec vitest run` -> 117
+  files, 550 passed (~23s); `pnpm build` tsc clean.
+- refactor: none needed. "Behaviourally identical to recomputing" (INV-13) is
+  evidenced by the full existing suite — reference-path, invalid-path,
+  generic-editor and inferred-type tests — staying green over the memoised
+  dispatch.
+- notes: T018/T021 stay open (U46 — fallback JSON-parse error path).
+- commit: this entry's commit

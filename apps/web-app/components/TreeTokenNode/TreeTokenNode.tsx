@@ -10,6 +10,7 @@ import {
 	type FocusEvent,
 	type ReactElement,
 	useContext,
+	useMemo,
 	useState,
 } from "react";
 import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
@@ -137,16 +138,46 @@ export function TreeTokenNode({
 		setDraft((current) => ({ ...current, name: nextName }));
 	}
 
-	// Path 1: the value is a reference. Checked before any per-type
-	// validation runs — a reference is valid for every `$type` (per the
-	// DTCG spec, an aliasing token's type is its target's resolved type),
-	// so `validateTokenValue` is never called for it at all, not merely
-	// ignored. `node.references[0]` is this specific whole-value
-	// reference's own resolution — `at: []` — computed once, server-side,
-	// in `buildReferenceView` (the live `useResolvedPreview` swap is a
-	// later step).
-	const reference = parseReference(fields.value);
-	if (reference !== undefined) {
+	// The `parseReference -> contract -> editor-resolution` dispatch, memoised
+	// on the shown value + the two type inputs (INV-13). A render that changes
+	// none of those — a name / description keystroke, an unrelated store emit
+	// — reuses the previous result rather than re-walking the chain.
+	//
+	// Path 1 (a reference value): a reference is valid for every `$type` (an
+	// aliasing token's type is its target's), so `validateTokenValue` is never
+	// called for it. `node.references[0]` is this whole-value reference's own
+	// server-computed resolution (the live `useResolvedPreview` swap is later).
+	const dispatch = useMemo(() => {
+		const reference = parseReference(shown.value);
+		const isUsableType =
+			effectiveType !== undefined && isDtcgTokenType(effectiveType);
+		const contract = isUsableType
+			? resolveBuiltInContract(effectiveType)
+			: undefined;
+		const validation = contract
+			? validateTokenValue(contract, shown.value)
+			: undefined;
+		const isValid =
+			isUsableType && (contract === undefined || validation?.isOk());
+		const { editor, editorOptions } =
+			(isUsableType
+				? resolveEditorForType(dtcgEditorConfig.extensions, effectiveType)
+				: undefined) ?? {};
+		return {
+			reference,
+			isUsableType,
+			contract,
+			validation,
+			isValid,
+			resolvedEditor: editor,
+			resolvedEditorOptions: editorOptions,
+			// Carried through as part of the INV-13 key so the `TypeSuggestion`
+			// prompt is recomputed in lockstep with the dispatch.
+			inferredType: node.inferredType,
+		};
+	}, [shown.value, effectiveType, node.inferredType]);
+
+	if (dispatch.reference !== undefined) {
 		const resolved = node.references?.[0];
 		return (
 			<TokenBlock
@@ -165,7 +196,7 @@ export function TreeTokenNode({
 					{resolved !== undefined ? (
 						<TokenReferenceValue resolved={resolved} />
 					) : (
-						<span className={styles.value}>{reference.raw}</span>
+						<span className={styles.value}>{dispatch.reference.raw}</span>
 					)}
 				</span>
 				{error?.name !== undefined && <span role="alert">{error.name}</span>}
@@ -173,27 +204,8 @@ export function TreeTokenNode({
 		);
 	}
 
-	// A type is only "usable" for validation purposes when it's both present
-	// and a recognized standard DTCG type — a declared-but-unrecognized type
-	// and an entirely absent effectiveType are treated identically (path 6).
-	const isUsableType =
-		effectiveType !== undefined && isDtcgTokenType(effectiveType);
-	const contract = isUsableType
-		? resolveBuiltInContract(effectiveType)
-		: undefined;
-	const validation = contract
-		? validateTokenValue(contract, fields.value)
-		: undefined;
-	// A standard type with no built-in contract has nothing to validate
-	// against, so it's trusted as-is.
-	const isValid =
-		isUsableType && (contract === undefined || validation?.isOk());
-	const { editor: resolvedEditor, editorOptions: resolvedEditorOptions } =
-		(isUsableType
-			? resolveEditorForType(dtcgEditorConfig.extensions, effectiveType)
-			: undefined) ?? {};
-
-	if (!isValid) {
+	if (!dispatch.isValid) {
+		const { contract, validation, isUsableType } = dispatch;
 		const errorForHandler =
 			validation?.isErr() === true ? validation.error : undefined;
 		// `errorForHandler` is guaranteed defined whenever `contract` is
@@ -207,11 +219,11 @@ export function TreeTokenNode({
 			contract?.ValidationErrorHandler !== undefined &&
 			errorForHandler !== undefined
 				? contract.ValidationErrorHandler({
-						value: fields.value,
+						value: shown.value,
 						error: errorForHandler,
 					})
 				: DefaultValidationErrorHandler({
-						value: fields.value,
+						value: shown.value,
 						error: errorForHandler,
 					});
 
@@ -229,7 +241,7 @@ export function TreeTokenNode({
 			>
 				<span className={styles.field}>
 					<span className={styles.fieldLabel}>Value</span>
-					<span className={styles.value}>{formatValue(fields.value)}</span>
+					<span className={styles.value}>{formatValue(shown.value)}</span>
 				</span>
 				{extraContent}
 				{error?.name !== undefined && <span role="alert">{error.name}</span>}
@@ -276,7 +288,7 @@ export function TreeTokenNode({
 		commit({ type });
 	}
 
-	const ResolvedEditor = resolvedEditor as
+	const ResolvedEditor = dispatch.resolvedEditor as
 		| ((props: TokenTypeEditorProps<unknown>) => ReactElement)
 		| undefined;
 
@@ -294,9 +306,9 @@ export function TreeTokenNode({
 			isNonStandardType={false}
 			headerExtra={referencedByBadge}
 		>
-			{node.inferredType !== undefined && fields.type === undefined && (
+			{dispatch.inferredType !== undefined && fields.type === undefined && (
 				<TypeSuggestion
-					inferredType={node.inferredType}
+					inferredType={dispatch.inferredType}
 					onAccept={handleAcceptInferredType}
 				/>
 			)}
@@ -306,7 +318,7 @@ export function TreeTokenNode({
 					<ResolvedEditor
 						value={currentRawValue}
 						onChange={handleValueChange}
-						options={resolvedEditorOptions}
+						options={dispatch.resolvedEditorOptions}
 					/>
 				</span>
 			) : (
