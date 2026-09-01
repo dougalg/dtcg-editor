@@ -11,10 +11,9 @@ import {
  * build on the `default` server, which serves `e2e/fixtures/tokens/` — where
  * `large_scale.tokens.json` (T002) lives.
  *
- * SKELETON (T004): the interactions, the `measureCommitToVisible` wiring and
- * the `perf` annotations are in place; the assertions use the 100ms budget
- * with a CI margin now, and gain the `baseline.md` ceiling in T024. Expected
- * to FAIL until the feature is finished (A1 / A5 / A6) — outer-loop red.
+ * A1 / A5 / A6 are green (cycles 85–87); A7 asserts they run at the SC-007
+ * ceiling — this file navigates `large_scale.tokens.json`, which must be a
+ * ≥2,000-token document.
  *
  * Fixture landmarks (see `scripts/generate-large-fixture.ts`):
  * - `_showcase.dimension` — a plain, editable dimension token.
@@ -182,5 +181,21 @@ test.describe("editing-perf — large fixture", () => {
 		// displayed text never trailed the input by more than a frame — no
 		// keystroke blocked the main thread past the budget
 		expect(Math.max(0, ...longTasks)).toBeLessThanOrEqual(ECHO_BUDGET_MS);
+	});
+
+	test("the SC-001..SC-006 guards run at the 2,000-token ceiling (A7)", async ({
+		page,
+	}, testInfo) => {
+		// SC-007: SC-001–SC-006 hold for documents *up to 2,000 tokens*. Every A1
+		// / A2 / A4 / A5 / A6 test navigates this one fixture, so the guarantee
+		// is only as strong as the fixture is large. U68 guards the generator's
+		// output size; this guards the committed file the acceptance suite loads.
+		await page.goto("/tokens/large_scale.tokens.json");
+		const rows = await page.locator('li[data-testid^="token-"]').count();
+		testInfo.annotations.push({
+			type: "perf",
+			description: `A7 large_scale.tokens.json renders ${rows} token rows (SC-007 ceiling ≥ 2,000)`,
+		});
+		expect(rows).toBeGreaterThanOrEqual(2000);
 	});
 });

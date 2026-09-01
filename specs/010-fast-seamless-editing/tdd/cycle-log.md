@@ -1567,3 +1567,14 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: none — A4's inline `snapshot()` is single-use; the `elementHandle` node-survival check overlaps A5's but lives in a different spec file and is ~3 lines.
 - tasks: none ticked — T005 (`[A2] [A4] [A7] [A8] [A10] [A11]`) and T046 (`[A4] [A7]`) both still carry PENDING behaviors. A4 (T046's ripple deliverable) is done.
 - commit: this entry's commit
+
+## Cycle 92: A7 — the SC-001..SC-006 guards run at the 2,000-token ceiling
+
+- test: `apps/web-app/e2e/editing-perf.spec.ts::the SC-001..SC-006 guards run at the 2,000-token ceiling (A7)` (new) — navigates `large_scale.tokens.json` and asserts it renders **≥ 2,000** `li[data-testid^="token-"]` rows.
+- rationale: there is no separate 1,000-token fixture — every A1 / A2 / A4 / A5 / A6 test already navigates `large_scale.tokens.json`, so SC-007 ("SC-001–SC-006 hold for documents up to 2,000 tokens") is satisfied *by those tests* provided the fixture is at the ceiling. T047's re-measurement happened in cycles 85–87 (A1 0 long tasks, A5 ~32 ms, A6 0 dropped / 0 long tasks — all on the 2,005-token fixture); no budget was missed, so the virtualization decision (research §7) does not open. A7 is the guard that keeps the fixture at the ceiling; U68 guards the generator, this guards the committed file.
+- red: passed on first run — `2005 token rows (SC-007 ceiling ≥ 2,000)`.
+- deliberate-mutant: point the `page.goto` at `spacing_scale.tokens.json` -> `32 token rows`, `expect(received).toBeGreaterThanOrEqual(2000)` -> **FAIL**. Reverted (`git checkout` wiped the whole file — re-applied the A7 test + the stale-`SKELETON`-docblock fix).
+- green: no production change. Full `editing-perf.spec.ts`: **A1 ✓ A5 ✓ A6 ✓ A7 ✓**. `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) + biome clean.
+- refactor: also replaced this file's stale "SKELETON (T004) … Expected to FAIL" docblock (flagged in cycle 87) with the current state.
+- tasks: **T047, T048 ticked** (`[A7]` — re-measurement done, no budget missed, so no `content-visibility` trial needed). T005 / T045 / T046 also carry `[A7]` but hold other PENDING behaviors.
+- commit: this entry's commit

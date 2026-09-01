@@ -181,8 +181,8 @@ visual diff is confined to the previews (plus the edited field).
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T047 [A7] Re-measure SC-001 / SC-006 / SC-007 on the finished branch at 2,000 tokens; if any budget is missed, open the virtualization decision per `research.md` §7 (a `speckit-constitution` amendment to Approved Dependencies) before continuing — otherwise proceed
-- [ ] T048 [P] [A7] If the gap is initial-mount cost (not re-render cost), trial `content-visibility: auto` on tree rows in `apps/web-app/components/TokenBlock/TokenBlock.module.css` behind the same measurement guards (research.md §7)
+- [X] T047 [A7] Re-measure SC-001 / SC-006 / SC-007 on the finished branch at 2,000 tokens; if any budget is missed, open the virtualization decision per `research.md` §7 (a `speckit-constitution` amendment to Approved Dependencies) before continuing — otherwise proceed
+- [X] T048 [P] [A7] If the gap is initial-mount cost (not re-render cost), trial `content-visibility: auto` on tree rows in `apps/web-app/components/TokenBlock/TokenBlock.module.css` behind the same measurement guards (research.md §7)
 - [ ] T049 [A8] Fill the "after" column of `specs/010-fast-seamless-editing/baseline.md` and make `editing-perf.spec.ts` / `render-stability.spec.ts` assert "meets budget AND not worse than baseline" on every measured interaction (C-MB-6, SC-008). Makes A7, A8 green
 - [ ] T050 Run `pnpm lint` + `pnpm test` + `pnpm --filter @dtcg-editor/web-app run test:a11y` at the repo root; fix fallout; confirm all pre-existing e2e specs (save flow, references, theme, inferred-type) still pass — no regression (C-RI-6)
 - [ ] T051 [P] Execute `specs/010-fast-seamless-editing/quickstart.md` checks 1 and 3 end to end and tick `specs/010-fast-seamless-editing/checklists/requirements.md`
