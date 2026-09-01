@@ -4,7 +4,7 @@ loop: outside-in
 profile: .specify/memory/tdd-profile.md
 spec_criteria: 8 # Success Criteria SC-001..SC-008 in spec.md; see "Mapping" note
 planned_at: b55f969
-updated_at: 4049050
+updated_at: 4bd5aeb
 suite_baseline: green
 ---
 
@@ -58,7 +58,7 @@ point — a `/tokens/<file>` page driven by Playwright against the production bu
 | A8  | `baseline.md` holds before/after numbers for every measured interaction, and the perf/stability specs fail if a measured value exceeds its budget **or** the recorded baseline | SC-008, FR-015, NFR-001, C-MB-6 | example | DONE | `specs/010-fast-seamless-editing/baseline.md` (re-cast, cycle 93) + `apps/web-app/e2e/editing-perf.spec.ts` A5 `≤ BASELINE_A5_MS` (deliberate 150 ms commit block -> 236 ms -> fails, though it would pass the old ×3 budget). A1/A2/A4/A6/A10/A11 already assert *at* their "after" value. |
 | A9  | Across a committed edit, keyboard focus stays on the same control (never `<body>`) and the text caret / selection offset within it is preserved; committing with Enter leaves focus on a visible control | FR-002, US1-S1, Edge "Focus after commit via Enter", C-RI-7, C-KL-2 | example | DONE | `apps/web-app/e2e/keyboard-navigation.spec.ts::committing a value edit with Enter keeps focus on that control, caret preserved (A9)` (cycle 94; colour `ChannelInput` — the one field with an Enter-commit path; deliberate blur-on-Enter -> not focused -> fails) |
 | A10 | Committing an edit changes neither the token tree's nor the window's scroll position; the same set of rows stays visible | FR-003, US1-S2, C-RI-5 | example | DONE | `apps/web-app/e2e/render-stability.spec.ts::committing an edit partway down the tree does not move the scroll position (A10)` (cycle 95; edits the hub description ~1,255 px down; deliberate scrollIntoView -> scrollY jumps -> fails) |
-| A11 | When a control that reveals supplementary UI on focus (e.g. `TypeSuggestion`, a hint/affordance) receives focus, that UI occupies pre-reserved space and no surrounding control moves | FR-008, US2-S3, C-KL-5 | example | PENDING | `apps/web-app/e2e/render-stability.spec.ts` |
+| A11 | On the inferred-type fixture (`swatch.tokens.json`), `TypeSuggestion` — the editor's one supplementary type-affordance — **appearing** (on load) and **disappearing** (on "Use this type") moves no surrounding control: the token row's name / value editor / description hold position and the rows below do not shift; and accepting it by keyboard leaves focus on a visible control, never `<body>`. **Refined (cycle 96 refresh)**: the editor has no UI that *appears on focus* — `TypeSuggestion` is condition-mounted on an inferred `$type`, always visible while relevant — so FR-008's "reveals on focus" wording is realised here as "the affordance's mount/unmount does not reflow neighbours, and its accept does not strand focus". | FR-008, US2-S3, C-KL-5, Edge "Focus after commit via Enter" | example | PENDING | `apps/web-app/e2e/inferred-type.spec.ts` (the sole spec matched to the `inferred-type` Playwright project) |
 | A12 | Toggling colour theme or switching resolver mode while a field holds an uncommitted draft keeps the draft and keeps focus on that field (never `<body>`) | FR-014, Edge "Mode / theme change mid-edit", C-KL-8 | example | PENDING | `apps/web-app/e2e/keyboard-navigation.spec.ts` |
 
 ## Inner loop: unit behaviors
@@ -279,6 +279,12 @@ stay controlled (short inputs, no measured lag).
   the box, A2 end to end; no separate churn-loop test yet.
 - **`content-visibility: auto` trial** (research §7, task T048): only if
   initial-mount cost is shown to matter. No behavior on the list until measured.
+- **FR-008 "supplementary UI revealed on focus"** (cycle 96 finding): the editor
+  ships no such UI. `TypeSuggestion` is the only supplementary type-affordance and
+  it is condition-mounted on an inferred `$type`, not focus-triggered; no
+  hint/helper-text appears on focus in any field. A11 is refined to the one real
+  surface (the affordance's mount/unmount stability + focus-on-accept). If a
+  genuinely focus-revealed hint is ever added, FR-008 needs its own behavior then.
 
 ## Out of scope
 
