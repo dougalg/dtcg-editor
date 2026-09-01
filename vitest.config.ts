@@ -70,6 +70,10 @@ function a11yProject(pkgRoot: string) {
 	return {
 		root: pkgRoot,
 		plugins: [react()],
+		// cmdk (Command/Combobox) pulls its own React copy in browser mode
+		// unless React is deduped here, surfacing as `useRef` of null at mount.
+		resolve: { dedupe: ["react", "react-dom"] },
+		optimizeDeps: { include: ["cmdk"] },
 		// See apps/web-app's prior standalone config: next/link reads
 		// `process.env.__NEXT_ROUTER_BASEPATH` at module scope, which needs a
 		// defined (if empty) `process.env` when running in a real browser with
