@@ -276,7 +276,7 @@ export interface TokenReferenceView {
  * `resolveReference` never carries a group hit's file/mode into a chain
  * step — it returns `group-target` immediately instead).
  */
-function lookupForMode(
+export function lookupForMode(
 	index: ReferenceIndex,
 	mode: string | undefined,
 ): ReferenceLookup {
