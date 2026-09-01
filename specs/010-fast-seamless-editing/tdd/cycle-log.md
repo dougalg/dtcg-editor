@@ -1509,3 +1509,15 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: none.
 - tasks: none ticked — T045 (`[A5] [A7]`) and T004 (`[A1] [A5] [A6] [A8]`) both still carry PENDING behaviors. A5 (T045's deliverable) is done.
 - commit: this entry's commit
+
+## Cycle 87: A6 — sustained typing in a value field drops nothing and never lags
+
+- test: `apps/web-app/e2e/editing-perf.spec.ts::sustained typing in a value field drops no characters and never lags (A6)` — the T004 skeleton, retargeted.
+- red (pre-fix): `pnpm exec playwright test editing-perf.spec.ts -g "typing burst drops no characters"` -> `expect(received).toBe(expected)`, `Expected: "dimension-the-quick-…"` / `Received: "-the-quick-…-dogdimension"` — the skeleton typed into the *name* field and `focus()` + `keyboard.press("End")` didn't seat the caret, so text landed at offset 0.
+- fix (own step, stated reason — SC-006 says a *value* field and the caret seating was broken): target `_showcase.exotic`'s fallback raw-text value `<textarea>` (`getByLabel("Value (JSON)")`), `fill("")` then `pressSequentially(BURST, {delay: 100})` (~56 chars ≈ 5.5 s at ~10 cps) from the now-empty field so `inputValue()` == the burst exactly. Assert **0 dropped chars** (`shown === BURST`) and **no keystroke blocked the main thread** past 100 ms (`PerformanceObserver('longtask')` during the burst, like A1).
+- green: **A6 PASS** — 56 chars, 0 dropped, 0 long tasks. No production change — U43a already proved controlled-field caret stability; the fallback editor buffers keystrokes in local `fallbackDraft` (INV-9).
+- deliberate-mutant: a 120 ms `while` block in `TreeTokenNode.handleFallbackValueChange` -> `A6 burst: 56 chars, 0 dropped, 56 long task(s) (longest 137ms)`, `Expected: <= 100 / Received: 137` -> **FAIL**. Reverted, rebuilt.
+- suite: `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) clean; biome clean. `editing-perf.spec.ts`: **A1 ✓ A5 ✓ A6 ✓** (all three).
+- refactor: the `longtask` observer is now duplicated inline in A1 and A6 — extracted to `e2e/support/stability.ts` in the following `refactor:` commit (mirrors U70's `startLayoutShiftObserver`).
+- tasks: **T024 ticked** (`[A1] [A6]` — both DONE). T004 (`[A1] [A5] [A6] [A8]`) still open on A8.
+- commit: this entry's commit (+ a `refactor:` commit for the observer extraction)

@@ -148,32 +148,55 @@ test.describe("editing-perf — large fixture", () => {
 		expect(distantSurvived).toBe(true);
 	});
 
-	test("a typing burst drops no characters (A6)", async ({
+	test("sustained typing in a value field drops no characters and never lags (A6)", async ({
 		page,
 	}, testInfo) => {
 		await page.goto("/tokens/large_scale.tokens.json");
 
-		const nameInput = page
-			.getByTestId(PLAIN)
-			.getByRole("textbox", { name: /name$/i });
-		await expect(nameInput).toBeVisible();
-		const original = await nameInput.inputValue();
-		await nameInput.focus();
-		await page.keyboard.press("End");
+		// SC-006 says a *value* field. `_showcase.exotic` has a `$type` with no
+		// registered editor, so its value editor is the fallback raw-text
+		// `<textarea>` — a plain controlled input that buffers keystrokes with no
+		// per-keystroke parsing (INV-9). Clear it, then type the burst from an
+		// empty field so `inputValue()` afterwards is exactly what was typed.
+		const valueField = page
+			.getByTestId("token-_showcase.exotic")
+			.getByLabel("Value (JSON)");
+		await expect(valueField).toBeVisible();
+		await valueField.fill("");
 
-		const typed = "-the-quick-brown-fox-0123456789-jumps-over-the-lazy-dog";
-		const start = await page.evaluate(() => performance.now());
-		for (const char of typed) {
-			await page.keyboard.type(char, { delay: 100 }); // ~10 cps
-		}
-		const elapsedMs = (await page.evaluate(() => performance.now())) - start;
+		// ~54 chars at ~10 cps ≈ 5 s of sustained typing (SC-006).
+		const BURST = "the quick brown fox 0123456789 jumps over the lazy dog!!";
 
-		const shown = await nameInput.inputValue();
-		const dropped = original.length + typed.length - shown.length;
+		// Watch for main-thread blocks during the burst — a per-keystroke
+		// full-tree re-render (the pre-change behaviour) would show up as long
+		// tasks and the displayed text would trail the input.
+		await page.evaluate(() => {
+			const w = window as unknown as { __longTasks: number[] };
+			w.__longTasks = [];
+			new PerformanceObserver((list) => {
+				for (const entry of list.getEntries()) {
+					w.__longTasks.push(entry.duration);
+				}
+			}).observe({ type: "longtask", buffered: false });
+		});
+
+		await valueField.pressSequentially(BURST, { delay: 100 });
+
+		const longTasks = await page.evaluate(
+			() => (window as unknown as { __longTasks: number[] }).__longTasks,
+		);
+		const shown = await valueField.inputValue();
+		const dropped = BURST.length - shown.length;
+
 		testInfo.annotations.push({
 			type: "perf",
-			description: `A6 typing burst: ${typed.length} chars over ${Math.round(elapsedMs)}ms, ${dropped} dropped`,
+			description: `A6 burst: ${BURST.length} chars, ${dropped} dropped, ${longTasks.length} long task(s) (longest ${Math.round(Math.max(0, ...longTasks))}ms)`,
 		});
-		expect(shown).toBe(original + typed);
+
+		// zero characters dropped, in order (SC-006 / C-RI-2)
+		expect(shown).toBe(BURST);
+		// displayed text never trailed the input by more than a frame — no
+		// keystroke blocked the main thread past the budget
+		expect(Math.max(0, ...longTasks)).toBeLessThanOrEqual(ECHO_BUDGET_MS);
 	});
 });
