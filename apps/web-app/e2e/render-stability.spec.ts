@@ -78,7 +78,7 @@ test.describe("render-stability — large fixture", () => {
 		expect(Math.abs(heightWithError - heightNoError)).toBeLessThanOrEqual(1);
 	});
 
-	test("a full Tab / Shift+Tab pass causes no layout shift at all (A10/A11)", async ({
+	test("a full Tab / Shift+Tab pass causes no layout shift at all (supports A3 / SC-003)", async ({
 		page,
 	}, testInfo) => {
 		await page.goto("/tokens/large_scale.tokens.json");
@@ -96,9 +96,53 @@ test.describe("render-stability — large fixture", () => {
 		const report = await getLayoutShiftReport(page, []);
 		testInfo.annotations.push({
 			type: "perf",
-			description: `A10/A11 tab-through ${summarize(report)}`,
+			description: `tab-through ${summarize(report)}`,
 		});
 		expect(report.total, summarize(report)).toBe(0);
+	});
+
+	test("committing an edit partway down the tree does not move the scroll position (A10)", async ({
+		page,
+	}, testInfo) => {
+		await page.goto("/tokens/large_scale.tokens.json");
+
+		// Scroll ~1,500 px past the fold, edit the hub row's *description*
+		// (uncontrolled, no reference/collision side effects), commit it, and
+		// confirm neither the window scroll nor the visible rows moved
+		// (FR-003 / C-RI-5). The hub (`token-0`) is one of the few non-reference
+		// rows in `sub-0`, so it has a description field.
+		const ROW = "token-group-0.sub-0.token-0";
+		const row = page.getByTestId(ROW);
+		await row.scrollIntoViewIfNeeded();
+		await page.waitForTimeout(SETTLE_MS);
+
+		const description = row.getByRole("textbox", { name: /description/i });
+		await description.focus();
+
+		const measure = () =>
+			page.evaluate((id) => {
+				const el = document.querySelector(`[data-testid="${id}"]`);
+				return {
+					scrollY: window.scrollY,
+					rowTop: Math.round(el?.getBoundingClientRect().top ?? Number.NaN),
+				};
+			}, ROW);
+
+		const before = await measure();
+
+		await description.fill("A10 scroll-stability note");
+		await description.blur();
+		await page.waitForTimeout(SETTLE_MS * 2);
+
+		const after = await measure();
+
+		testInfo.annotations.push({
+			type: "perf",
+			description: `A10 scrollY ${before.scrollY}->${after.scrollY}, row top ${before.rowTop}->${after.rowTop}`,
+		});
+
+		expect(after.scrollY).toBe(before.scrollY);
+		expect(Math.abs(after.rowTop - before.rowTop)).toBeLessThanOrEqual(1);
 	});
 
 	test("committing an edit in a ≥1,000-token doc changes only the edited row and its referrers (A4)", async ({

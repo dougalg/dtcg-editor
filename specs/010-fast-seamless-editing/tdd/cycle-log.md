@@ -1601,3 +1601,15 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - note: only the colour editor's `ChannelInput` handles Enter — the name `<input>` and the dimension `spinbutton` have no Enter handler and no form, so Enter is a no-op there (commit stays on blur). A9 exercises the one field where "commit via Enter" is a real path.
 - tasks: **T025a ticked** (`[A9]` — the commit focus/caret e2e case).
 - commit: this entry's commit
+
+## Cycle 95: A10 — committing an edit partway down the tree does not move the scroll position
+
+- test: `apps/web-app/e2e/render-stability.spec.ts::committing an edit partway down the tree does not move the scroll position (A10)` (new). Scrolls the hub row (`token-group-0.sub-0.token-0`, ~1,255 px down) into view, edits its description (uncontrolled, no reference/collision side effects), blurs to commit, and re-reads `window.scrollY` + the row's viewport `top`.
+- red (first attempt): `locator.focus: Test timeout` — the original target `token-group-0.sub-0.token-9` is a **reference row** and reference rows render no description `<textarea>` (see finding). Re-targeted at the hub (`token-0`), the one non-reference row in `sub-0`.
+- red (real): passed on first run — `scrollY 1255->1255, row top 256->256`.
+- deliberate-mutant: `descriptionRef.current?.scrollIntoView()` after `commit({ description })` in `TreeTokenNode.commitDescription` -> `scrollY 1255->1631, row top 256->-120`, `expect(received).toBe(expected) / Expected: 1255` -> **FAIL**. Reverted, `TreeTokenNode.tsx` byte-restored, rebuilt.
+- green: no production change — nothing in the commit path touches scroll (`useTokenArrival` only runs on navigation). Full `render-stability.spec.ts`: A2 ✓ tab-through ✓ A10 ✓ A4 ✓. `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) + biome clean.
+- refactor: renamed the skeleton's `"a full Tab / Shift+Tab pass causes no layout shift at all (A10/A11)"` -> `"(supports A3 / SC-003)"` — it tests neither A10's commit-scroll nor A11's reserved-space claim; it is a broad SC-003 keyboard-nav no-shift guard.
+- **unrelated finding (reported, not fixed — Hard Rule 6)**: a reference-value row (`TreeTokenNode`'s reference dispatch path) renders **no description editor** — `token-group-0.sub-0.token-1..19` each have 0 `<textarea>` elements, only the hub does. A DTCG token with a `{ref}` value can still carry `$description`; whether that is an intentional omission or a gap predates this feature.
+- tasks: **T025 ticked** (`[A2] [A10]` — both DONE). T005 (`[A2] [A4] [A7] [A8] [A10] [A11]`) still carries PENDING A11.
+- commit: this entry's commit
