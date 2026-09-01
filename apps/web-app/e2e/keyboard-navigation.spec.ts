@@ -556,3 +556,81 @@ test.describe("commit focus + caret (A9)", () => {
 		expect(landed.visible).toBe(true);
 	});
 });
+
+// A12 (FR-014 / C-KL-8 / Edge "Mode / theme change mid-edit") — changing the
+// colour theme while a row holds an uncommitted draft must not discard the
+// draft or move focus off that field. Two triggers:
+//   (1) a non-focus-moving theme change (OS / another-tab style, via
+//       `emulateMedia({ colorScheme })`) leaves the draft, the focus and the
+//       caret exactly where they were;
+//   (2) clicking the `ThemeToggle` (which re-resolves the tree and legitimately
+//       moves focus to the button) still preserves the draft and never strands
+//       focus on `<body>`.
+// The row's *name* field is the target: it stages a plain uncommitted draft
+// with no live-preview re-resolution of its own (unlike a colour value field),
+// so any draft loss here is attributable to the context change alone.
+// There is no client-side resolver-mode switcher — modes are baked in
+// server-side (`app/tokens/[...path]/page.tsx`) — so the resolver-mode half of
+// FR-014 has no e2e surface; U49
+// (`TreeTokenNode.draft.test.tsx::an external context re-render (theme /
+// resolver mode) keeps the draft and focus`) is its unit-level guarantee,
+// driving a fresh-but-equal node prop into the row exactly as a mode re-resolve
+// would.
+test.describe("theme change mid-edit (A12)", () => {
+	// biome-ignore lint/correctness/noEmptyPattern: Playwright's testInfo-only fixture convention
+	test.beforeEach(({}, testInfo) => {
+		test.skip(
+			testInfo.project.name !== "default",
+			"runs only against the default fixture server",
+		);
+	});
+
+	test("a theme change while a field holds an uncommitted draft keeps the draft, focus and caret (A12)", async ({
+		page,
+	}) => {
+		await page.emulateMedia({ colorScheme: "light" });
+		await page.goto("/tokens/large_scale.tokens.json");
+
+		const nameInput = page
+			.getByTestId("token-group-0.sub-0.token-0")
+			.getByRole("textbox", { name: "token-0 name" });
+		await nameInput.focus();
+		const DRAFT = "token-0-draft-xyz"; // uncommitted: no blur / Enter
+		await nameInput.fill(DRAFT);
+		const CARET = 7;
+		await nameInput.evaluate(
+			(el, caret) => (el as HTMLInputElement).setSelectionRange(caret, caret),
+			CARET,
+		);
+
+		// (1) OS / another-tab style change — no user focus move. `useTheme`
+		// holds no React state, so this must be a pure repaint.
+		await page.emulateMedia({ colorScheme: "dark" });
+		await page.waitForTimeout(200);
+
+		await expect(nameInput).toHaveValue(DRAFT); // draft not discarded
+		await expect(nameInput).toBeFocused(); // focus stayed on the field
+		expect(
+			await nameInput.evaluate((el) => (el as HTMLInputElement).selectionStart),
+		).toBe(CARET); // caret not reset
+		expect(
+			await page.evaluate(() => document.activeElement === document.body),
+		).toBe(false);
+
+		// (2) clicking the theme toggle: focus legitimately moves to the button,
+		// but the row's draft must survive the re-resolve and focus must not
+		// fall to <body>.
+		await page
+			.getByRole("button", { name: /switch to (light|dark) theme/i })
+			.click();
+		await expect(nameInput).toHaveValue(DRAFT);
+		const afterClick = await page.evaluate(() => {
+			const el = document.activeElement;
+			return {
+				isBody: el === document.body || el === null,
+				tag: el?.tagName.toLowerCase() ?? "null",
+			};
+		});
+		expect(afterClick.isBody, `focus on <${afterClick.tag}>`).toBe(false);
+	});
+});
