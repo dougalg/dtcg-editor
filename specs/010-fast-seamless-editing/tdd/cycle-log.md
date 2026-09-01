@@ -1521,3 +1521,17 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: the `longtask` observer is now duplicated inline in A1 and A6 — extracted to `e2e/support/stability.ts` in the following `refactor:` commit (mirrors U70's `startLayoutShiftObserver`).
 - tasks: **T024 ticked** (`[A1] [A6]` — both DONE). T004 (`[A1] [A5] [A6] [A8]`) still open on A8.
 - commit: this entry's commit (+ a `refactor:` commit for the observer extraction)
+
+## Cycle 88: A2 — a validation error message appearing moves nothing around it
+
+- test: `apps/web-app/e2e/render-stability.spec.ts::a validation error message appearing does not move the rows below it (A2)` — the T005 skeleton, reworked.
+- context: the skeleton edited a *valid* dimension value (no error), so it never exercised FR-012 / C-KL-4 (the reserved-height `FieldErrorSlot`). Reworked to rename `token-1` onto sibling `token-2` — the store rejects it (U8) and the slot renders "already used by a sibling".
+- test-approach change (stated reason): `startLayoutShiftObserver` filters `hadRecentInput` (any shift within 500 ms of the commit-on-blur), so it is blind to the error-render shift. Switched to a direct, scroll-independent measure: the edited row's height (`nextRow.top − row.top`) before vs. with the error shown.
+- red: passed on first run (`162px -> 162px` — the slot's `min-height` reserves the space).
+- deliberate-mutant: `min-height: var(--dtcg-ed-space-lg)` -> `min-height: 0` in `FieldErrorSlot.module.css` -> `130px (no error) -> 151px (error shown)`, `expect(received).toBeLessThanOrEqual(1) / Received: 21` -> **FAIL**. Reverted, rebuilt.
+- green: no production change — `FieldErrorSlot`'s reservation (U60) works end to end. Full `render-stability.spec.ts`: **A2 ✓ A10/A11 ✓ A4 ✓**. `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) + biome clean.
+- refactor: none — A2 no longer uses the layout-shift helpers but A4 / A10/A11 still do; no new duplication.
+- **unrelated finding (reported, not fixed — Hard Rule 6)**: renaming a referrer token (`token-1`, value `{token-0}`) to a new valid name makes its **own resolved-value preview disappear** (`{"value":42,"unit":"px"}` → gone; row shrinks ~7 px) — `useResolvedPreview(newKey)` finds nothing in the server-baked reference index for the pending-renamed key. The A2 test was trimmed to the "error appears" half to avoid conflating this with the slot-reservation check. Mirror of U48 (renaming a *referenced* token); not on the list — needs a `/speckit-tdd-plan` decision on whether it's a bug or acceptable-until-save.
+- **note**: `startLayoutShiftObserver`'s `hadRecentInput` filter (correct for the tab-through A10/A11) makes it unsuitable for edit-adjacent shift detection; A4's real cycle should check whether its deferred-preview shifts land outside the 500 ms window or also need a direct measure.
+- tasks: none ticked — T025 (`[A2] [A10]`) and T005 (`[A2] [A4] [A7] [A8] [A10] [A11]`) both still carry PENDING behaviors.
+- commit: this entry's commit

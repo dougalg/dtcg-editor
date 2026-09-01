@@ -20,7 +20,7 @@ import {
  */
 
 const HUB = "token-group-0.sub-0.token-0";
-const PLAIN = "token-_showcase.dimension";
+const REFERRER = "token-group-0.sub-0.token-1";
 const SETTLE_MS = 250;
 
 function summarize(report: {
@@ -34,28 +34,48 @@ function summarize(report: {
 }
 
 test.describe("render-stability — large fixture", () => {
-	test("typing + committing an edit shifts nothing outside the edited row (A2)", async ({
+	test("a validation error message appearing does not move the rows below it (A2)", async ({
 		page,
 	}, testInfo) => {
 		await page.goto("/tokens/large_scale.tokens.json");
-		const valueInput = page
-			.getByTestId(PLAIN)
-			.getByRole("spinbutton", { name: "Value" });
-		await expect(valueInput).toBeVisible();
 
-		await startLayoutShiftObserver(page);
-		await valueInput.fill("321");
-		await valueInput.blur();
+		// A2 / FR-012 / C-KL-4: a validation *message* must render inside the
+		// row's reserved-height `FieldErrorSlot`, moving nothing around it.
+		// Rename a token onto a sibling's name — the store rejects it (U8) and
+		// the slot renders the error. The `layout-shift` API filters shifts
+		// within 500 ms of a discrete input (a commit-on-blur error render always
+		// is), so the direct, scroll-independent observable is the **edited row's
+		// height** (`nextRow.top − row.top`): if the slot reserves its space,
+		// that gap does not change when the message appears.
+		const row = page.getByTestId(REFERRER);
+		const nameInput = row.getByRole("textbox", { name: "token-1 name" });
+		const nextRow = page.getByTestId("token-group-0.sub-0.token-2");
+		await expect(nameInput).toBeVisible();
+		const rowHeight = async () => {
+			const top = await row.evaluate((el) => el.getBoundingClientRect().top);
+			const nextTop = await nextRow.evaluate(
+				(el) => el.getBoundingClientRect().top,
+			);
+			return Math.round(nextTop - top);
+		};
+
+		await page.waitForTimeout(1000); // let hydration + preview settle
+		const heightNoError = await rowHeight();
+
+		await nameInput.fill("token-2"); // collides with a sibling
+		await nameInput.blur();
+		await expect(row.getByRole("alert")).toBeVisible();
 		await page.waitForTimeout(SETTLE_MS);
+		const heightWithError = await rowHeight();
 
-		const report = await getLayoutShiftReport(page, [
-			`[data-testid="${PLAIN}"]`,
-		]);
 		testInfo.annotations.push({
 			type: "perf",
-			description: `A2 ${summarize(report)}`,
+			description: `A2 edited-row height: ${heightNoError}px (no error) -> ${heightWithError}px (error shown)`,
 		});
-		expect(report.outOfRegion, summarize(report)).toEqual([]);
+
+		// FR-012 / SC-002: the message renders inside the pre-reserved slot, so
+		// the edited row's height — and every row below it — does not move.
+		expect(Math.abs(heightWithError - heightNoError)).toBeLessThanOrEqual(1);
 	});
 
 	test("a full Tab / Shift+Tab pass causes no layout shift at all (A10/A11)", async ({
