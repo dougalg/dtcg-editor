@@ -18,3 +18,11 @@ existed and failed before the implementation.
 - green: `packages/design-system/src/components/Command/Command.tsx:12` — the `@/registry/components/dialog/react/dialog` import path corrected to `../Dialog/Dialog.tsx` (the stub's only unresolvable import). Test passed on re-run; deliberate mutant (`Command` returns `null`) confirmed the test fails, then restored. Suite `pnpm exec vitest run` -> 573 passed / 121 files
 - refactor: none needed (one import-path line + new test file)
 - commit: (this commit)
+
+## Cycle 2: U2 Command shows the empty-slot content when the query matches no item
+
+- test: `packages/design-system/src/components/Command/Command.test.tsx::shows the empty-slot content when the query matches no item` (new)
+- red: `pnpm exec vitest run …Command.test.tsx -t "shows the empty-slot content"` — passed on first run (Command is a thin cmdk wrapper already correct after cycle 1's import fix). Deliberate mutant (`CommandEmpty` returns `null`) -> `1 failed` — test has teeth. Restored.
+- green: no implementation change needed. Suite `pnpm exec vitest run` -> 574 passed / 121 files
+- refactor: none needed
+- commit: (this commit)
