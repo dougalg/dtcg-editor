@@ -81,3 +81,48 @@ test("an inferred-but-undeclared-type token loads editable with a suggestion, an
 	await expect(page.getByText("Suggested type: color")).toHaveCount(0);
 	await expect(page.getByText(/Only standard DTCG token types/)).toHaveCount(0);
 });
+
+// A11 (FR-002 / Edge "Focus after commit via Enter" / C-KL-5 / US2-S3) —
+// `TypeSuggestion` is the editor's only supplementary type-affordance. It is
+// not revealed on focus (it is condition-mounted on an inferred `$type`), so
+// FR-008's "reveals on focus in reserved space" has no surface here; the real,
+// spec-grounded requirement is that **accepting it — which unmounts the focused
+// button — must not strand keyboard focus on `<body>`**. The row shrinking as
+// the affordance goes away is a user-initiated, expected reflow (spec
+// §Assumptions), not an FR-008 violation, so it is only annotated.
+test("accepting the TypeSuggestion by keyboard leaves focus on a visible control, never <body> (A11)", async ({
+	page,
+}, testInfo) => {
+	await page.goto("/tokens/swatch.tokens.json");
+	await expect(page.getByText("Suggested type: color")).toBeVisible();
+
+	const description = page.getByRole("textbox", { name: /description/i });
+	const docY = (loc: Locator) =>
+		loc.evaluate((el) =>
+			Math.round(el.getBoundingClientRect().top + window.scrollY),
+		);
+	const descBefore = await docY(description);
+
+	await page.getByRole("button", { name: "Use this type" }).focus();
+	await page.keyboard.press("Enter");
+	await expect(page.getByText("Suggested type: color")).toHaveCount(0);
+	await page.waitForTimeout(250);
+
+	const focus = await page.evaluate(() => {
+		const el = document.activeElement;
+		return {
+			isBody: el === document.body || el === null,
+			tag: el?.tagName.toLowerCase() ?? "null",
+			visible:
+				el instanceof HTMLElement && el.getBoundingClientRect().width > 0,
+		};
+	});
+	testInfo.annotations.push({
+		type: "perf",
+		description: `A11 focus after accept: <${focus.tag}> (body=${focus.isBody}); description moved ${(await docY(description)) - descBefore}px (expected reflow)`,
+	});
+
+	// FR-002 / Edge "Focus after commit via Enter": never on the document body.
+	expect(focus.isBody, `focus stranded on <${focus.tag}>`).toBe(false);
+	expect(focus.visible).toBe(true);
+});

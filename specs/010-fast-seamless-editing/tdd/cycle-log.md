@@ -1613,3 +1613,14 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - **unrelated finding (reported, not fixed — Hard Rule 6)**: a reference-value row (`TreeTokenNode`'s reference dispatch path) renders **no description editor** — `token-group-0.sub-0.token-1..19` each have 0 `<textarea>` elements, only the hub does. A DTCG token with a `{ref}` value can still carry `$description`; whether that is an intentional omission or a gap predates this feature.
 - tasks: **T025 ticked** (`[A2] [A10]` — both DONE). T005 (`[A2] [A4] [A7] [A8] [A10] [A11]`) still carries PENDING A11.
 - commit: this entry's commit
+
+## Cycle 96: A11 — accepting the TypeSuggestion by keyboard does not strand focus on <body>
+
+- test: `apps/web-app/e2e/inferred-type.spec.ts::accepting the TypeSuggestion by keyboard leaves focus on a visible control, never <body> (A11)` (new; `inferred-type` project, `swatch.tokens.json`). Focuses the "Use this type" button, presses Enter, reads `document.activeElement`.
+- scope decision: A11 was refreshed to "TypeSuggestion mount/unmount + focus stability". FR-008 / C-KL-5 apply to supplementary UI *revealed on focus*; `TypeSuggestion` is condition-mounted on an inferred `$type` and the accept is a user-initiated *dismiss*, so the ~37 px row-shrink on accept is an **expected reflow** (spec §Assumptions), annotated not asserted. The spec-grounded requirement that remains is FR-002 / Edge "Focus after commit via Enter": never `<body>`.
+- red: `pnpm exec playwright test inferred-type.spec.ts -g "leaves focus on a visible control"` -> `A11 focus after accept: <body> (body=true)`, `expect(received).toBe(expected) / Expected: false / Received: true` — the focused "Use this type" button unmounts and focus falls to `<body>`.
+- green: `apps/web-app/components/TreeTokenNode/TreeTokenNode.tsx` — `handleAcceptInferredType` now calls `document.getElementById(headingId)?.focus()` after `commit({ type })`, moving focus to the row's name input. Annotation: `focus after accept: <input> (body=false)`.
+- full suite: `pnpm exec vitest run` -> 120 files, 572 passed. `inferred-type.spec.ts` 2/2. `pnpm build` (tsc) + biome clean. `handleAcceptInferredType` only fires on the type-suggestion button, absent from every other fixture.
+- refactor: none.
+- tasks: **T059 ticked** (`[A11]` test task). **T031** (`[A11]` impl) left OPEN — its "must not reflow the row" clause was assessed as an expected user-initiated reflow (§Assumptions); only the focus half was implemented. Whether to also reserve the affordance's space is a won't-fix/design call for `/speckit-implement` or the user.
+- commit: this entry's commit

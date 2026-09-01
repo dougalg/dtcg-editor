@@ -336,6 +336,11 @@ export function TreeTokenNode({
 	// linger after the user has acted on it.
 	function handleAcceptInferredType(type: string) {
 		commit({ type });
+		// Accepting the suggestion unmounts `TypeSuggestion` (and its focused
+		// button), so move focus to a visible control in the same row rather
+		// than let it fall to `<body>` (FR-002, Edge "Focus after commit via
+		// Enter").
+		document.getElementById(headingId)?.focus();
 	}
 
 	const ResolvedEditor = dispatch.resolvedEditor as
