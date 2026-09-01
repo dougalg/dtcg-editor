@@ -98,7 +98,10 @@
 			}
 		},
 		{
-			"includes": ["apps/web-app/hooks/useSaveTokenEdits.ts"],
+			"includes": [
+				"apps/web-app/hooks/useSaveTokenEdits.ts",
+				"apps/web-app/hooks/useReferenceCatalogue.ts"
+			],
 			"linter": {
 				"rules": {
 					"style": {

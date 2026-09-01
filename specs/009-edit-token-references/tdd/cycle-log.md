@@ -126,3 +126,20 @@ Post-rebase onto local main (`0dbde43`); baseline re-verified `pnpm exec vitest 
 - suite: `pnpm exec vitest run` -> 605 passed / 126 files
 - refactor: none
 - commit: (this commit — bundles cycles 29-32, the catalogue GET route)
+
+## Cycles 33-37: useReferenceCatalogue hook U33-U37
+
+`useReferenceCatalogue(fetchImpl = fetch)` — auto-fetches `/api/tokens/references` on mount, module-scope session cache, `AbortController` on unmount, never throws. `resetReferenceCatalogueCache()` exported (for a real token-set change, and between tests). `renderHook` + `act` per the `useSaveTokenEdits.test.tsx` exemplar.
+
+- U33 (`idle -> loading -> ready` with payload): red `Failed to resolve import "./useReferenceCatalogue.ts"`. Green: hook built (larger-than-minimal — cache + abort included, cohesive). Mutant (success handler sets `"loading"`) -> `1 failed`. Restored.
+- U34 (2nd consumer / re-open -> no 2nd fetch): passed. Two independent mechanisms (`inflight` promise dedup + `cachedCatalogue` sync-ready-on-reopen); single-mechanism mutants each still passed (defence in depth), **combined mutant** (remove `cachedCatalogue = parsed` AND `if (inflight === undefined)` -> `if (true)`) -> `1 failed`. Both kept.
+- U35 (rejected fetch -> `status: "error"` + `SaveError` shape, no throw): passed. Mutant (rejection handler sets `"ready"`) -> `1 failed`. Restored.
+- U36 (abort before resolve doesn't reject; a completed response still fills the cache): passed. Covered by the same combined mutant as U34. Restored.
+- U37 (fetch reached only via injected `fetchImpl`): passed. Mutant (call global `fetch` instead) -> `1 failed`. Restored.
+- suite: `pnpm exec vitest run` -> 610 passed / 127 files
+- refactor: none
+- commit: (this commit)
+
+## Phase 2 (Foundational) complete — U1-U37 all DONE
+
+Checkpoint met: `Command` + `Combobox` design-system primitives, the reference-catalogue wire schema + transform, `GET /api/tokens/references`, and `useReferenceCatalogue` are built and covered. Suite 610 passed / 127 files at this point.

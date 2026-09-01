@@ -127,11 +127,11 @@ sorts — the caller passes `items` ready.
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U33 | First use transitions `idle → loading → ready` and exposes the payload | FR-023 | example | PENDING | `apps/web-app/hooks/useReferenceCatalogue.test.ts` |
-| U34 | A second consumer, or a re-open, does not trigger a second fetch (session cache) | FR-023 | example | PENDING | `apps/web-app/hooks/useReferenceCatalogue.test.ts` |
-| U35 | A rejected fetch → status `"error"` with a `SaveError`-shaped error, and does not throw | FR-021 | example | PENDING | `apps/web-app/hooks/useReferenceCatalogue.test.ts` |
-| U36 | An abort before the response resolves does not reject; a response that completes still populates the cache | FR-023 | example | PENDING | `apps/web-app/hooks/useReferenceCatalogue.test.ts` |
-| U37 | `fetch` is reached only through the injected `fetchImpl` | Principle VI | example | PENDING | `apps/web-app/hooks/useReferenceCatalogue.test.ts` |
+| U33 | First use transitions `idle → loading → ready` and exposes the payload | FR-023 | example | DONE | `useReferenceCatalogue.test.tsx` |
+| U34 | A second consumer, or a re-open, does not trigger a second fetch (session cache) | FR-023 | example | DONE | `useReferenceCatalogue.test.tsx` |
+| U35 | A rejected fetch → status `"error"` with a `SaveError`-shaped error, and does not throw | FR-021 | example | DONE | `useReferenceCatalogue.test.tsx` |
+| U36 | An abort before the response resolves does not reject; a response that completes still populates the cache | FR-023 | example | DONE | `useReferenceCatalogue.test.tsx` |
+| U37 | `fetch` is reached only through the injected `fetchImpl` | Principle VI | example | DONE | `useReferenceCatalogue.test.tsx` |
 
 ### `apps/web-app/lib/tokens/candidate-filter.ts`
 
