@@ -68,6 +68,32 @@ export async function startLayoutShiftObserver(page: Page): Promise<void> {
 }
 
 /**
+ * Starts an in-page `PerformanceObserver('longtask')` that records the
+ * `duration` of every main-thread block > 50 ms. Call once after `page.goto`,
+ * before the interaction under test. Mirrors `startLayoutShiftObserver`; used by
+ * the A1 (commit) and A6 (typing burst) guards to catch a per-keystroke or
+ * per-commit full-tree re-render regression.
+ */
+export async function startLongTaskObserver(page: Page): Promise<void> {
+	await page.evaluate(() => {
+		const store = window as unknown as { __longTasks?: number[] };
+		store.__longTasks = [];
+		new PerformanceObserver((list) => {
+			for (const entry of list.getEntries()) {
+				store.__longTasks?.push(entry.duration);
+			}
+		}).observe({ type: "longtask", buffered: false });
+	});
+}
+
+/** Reads back the long-task durations (ms) collected since `startLongTaskObserver`. */
+export async function getLongTasks(page: Page): Promise<number[]> {
+	return page.evaluate(
+		() => (window as unknown as { __longTasks?: number[] }).__longTasks ?? [],
+	);
+}
+
+/**
  * U70 — reads back the collected shifts and, for each, checks whether every
  * source node is contained within one of `allowedRegionSelectors` (the edited
  * field and its own error slot). The containment test runs in-page while the

@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { measureCommitToVisible } from "./support/stability.ts";
+import {
+	getLongTasks,
+	measureCommitToVisible,
+	startLongTaskObserver,
+} from "./support/stability.ts";
 
 /**
  * Edit-echo latency + typing-lag guards for the large fixture (contract
@@ -56,15 +60,7 @@ test.describe("editing-perf — large fixture", () => {
 		await valueInput.blur();
 		await expect(valueInput).toHaveValue("199");
 
-		await page.evaluate(() => {
-			const w = window as unknown as { __longTasks: number[] };
-			w.__longTasks = [];
-			new PerformanceObserver((list) => {
-				for (const entry of list.getEntries()) {
-					w.__longTasks.push(entry.duration);
-				}
-			}).observe({ type: "longtask", buffered: false });
-		});
+		await startLongTaskObserver(page);
 
 		for (let i = 0; i < A1_COMMITS; i++) {
 			const next = String(200 + i);
@@ -74,9 +70,7 @@ test.describe("editing-perf — large fixture", () => {
 		}
 		await page.waitForTimeout(300); // let any trailing long task surface
 
-		const longTasks = await page.evaluate(
-			() => (window as unknown as { __longTasks: number[] }).__longTasks,
-		);
+		const longTasks = await getLongTasks(page);
 		const longestBlockMs = longTasks.length > 0 ? Math.max(...longTasks) : 0;
 
 		testInfo.annotations.push({
@@ -170,21 +164,11 @@ test.describe("editing-perf — large fixture", () => {
 		// Watch for main-thread blocks during the burst — a per-keystroke
 		// full-tree re-render (the pre-change behaviour) would show up as long
 		// tasks and the displayed text would trail the input.
-		await page.evaluate(() => {
-			const w = window as unknown as { __longTasks: number[] };
-			w.__longTasks = [];
-			new PerformanceObserver((list) => {
-				for (const entry of list.getEntries()) {
-					w.__longTasks.push(entry.duration);
-				}
-			}).observe({ type: "longtask", buffered: false });
-		});
+		await startLongTaskObserver(page);
 
 		await valueField.pressSequentially(BURST, { delay: 100 });
 
-		const longTasks = await page.evaluate(
-			() => (window as unknown as { __longTasks: number[] }).__longTasks,
-		);
+		const longTasks = await getLongTasks(page);
 		const shown = await valueField.inputValue();
 		const dropped = BURST.length - shown.length;
 
