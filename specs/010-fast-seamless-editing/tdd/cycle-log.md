@@ -1535,3 +1535,14 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - **note**: `startLayoutShiftObserver`'s `hadRecentInput` filter (correct for the tab-through A10/A11) makes it unsuitable for edit-adjacent shift detection; A4's real cycle should check whether its deferred-preview shifts land outside the 500 ms window or also need a direct measure.
 - tasks: none ticked — T025 (`[A2] [A10]`) and T005 (`[A2] [A4] [A7] [A8] [A10] [A11]`) both still carry PENDING behaviors.
 - commit: this entry's commit
+
+## Cycle 89: A3 — a Tab / Shift+Tab pass lands on a control with a visible indicator, in visual order
+
+- test: `apps/web-app/e2e/keyboard-navigation.spec.ts::a Tab / Shift+Tab pass lands on a control with a visible indicator at every stop, in visual order (A3)` (new; `default` project, `large_scale.tokens.json`). 40 Tab stops then 40 Shift+Tab, covering the 5 editable dispatch-path tokens U73 places up top. New `focusedInfo(page)` helper reports the focused element's tag / is-a-control / document-relative Y.
+- red: passed on first run — `fwd 40/40 control 40/40 indicator, 0 order regressions; back 40/40 control 40/40 indicator; header 35->35`.
+- deliberate-mutant: appended `a:focus, button:focus, input:focus, select:focus, textarea:focus, summary:focus { outline: none !important; box-shadow: none !important; }` to `apps/web-app/app/globals.css` -> `fwd 0/40 indicator`, `expect(received).toBe(expected) / Expected: 40 / Received: 0` -> **FAIL** (the control / order / header assertions stayed correct). Reverted, `globals.css` byte-restored, rebuilt.
+- green: no production change — the existing focus styling already meets C-KL-2/3. Full `keyboard-navigation.spec.ts`: 6/6 pass (3 pre-existing + T058's 3 + A3). `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) + biome clean.
+- refactor: none.
+- **behavior added mid-loop — A3a** (Hard Rule 1): A3's row asks the indicator be *"unclipped by any `overflow` ancestor"* (C-KL-2), which this test does not verify — it checks the indicator is *rendered*, not that a scroll/`overflow:hidden` ancestor doesn't crop it. Appended `A3a` (PENDING) for that; it is what task **T030** (the `overflow` audit) makes green.
+- tasks: **T034 ticked** (`[A3]` — "full Tab-through … Makes A3 green"). T029 / T030 / T032 / T033 also carry `[A3]` but are separate audits/tests the loop did not perform (overflow clipping → A3a; scroll+open-state → C-KL-6; `useTokenArrival` regression) — left open.
+- commit: this entry's commit

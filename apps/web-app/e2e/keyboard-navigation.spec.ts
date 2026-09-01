@@ -43,6 +43,40 @@ async function hasVisibleFocusIndicator(locator: Locator): Promise<boolean> {
 	});
 }
 
+/** What the currently focused element is, for the A3 tab-through assertions. */
+async function focusedInfo(page: Page): Promise<{
+	tag: string;
+	isControl: boolean;
+	/** document-relative Y (scroll-independent), for the visual-order check */
+	docY: number;
+	label: string;
+}> {
+	return page.evaluate(() => {
+		const el = document.activeElement;
+		if (el === null || el === document.body || el.tagName === "HTML") {
+			return {
+				tag: el ? el.tagName.toLowerCase() : "null",
+				isControl: false,
+				docY: -1,
+				label: "(body)",
+			};
+		}
+		const r = el.getBoundingClientRect();
+		return {
+			tag: el.tagName.toLowerCase(),
+			isControl: el.matches(
+				"a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])",
+			),
+			docY: Math.round(r.top + window.scrollY),
+			label:
+				el.getAttribute("aria-label") ??
+				el.id ??
+				el.textContent?.trim().slice(0, 30) ??
+				el.tagName.toLowerCase(),
+		};
+	});
+}
+
 // These two pre-existing tests use the general fixture set and run only
 // under the "default" project — see the T058 describe block below for
 // this feature's own controls, gated the same way in the other direction.
@@ -255,5 +289,102 @@ test.describe("this feature's navigation controls (T058)", () => {
 		await expect(
 			page.locator("#token-color\\.text\\.primary-heading"),
 		).toBeFocused();
+	});
+});
+
+// A3 (SC-003 / C-KL-2 / C-KL-3 / C-KL-7 / C-MB-5) — a Tab / Shift+Tab pass over
+// the large fixture: at every stop focus is on a real control (never <body>)
+// with a fully-visible focus indicator, focus order matches top-to-bottom
+// visual order, and the page header does not move. Runs under "default", which
+// serves large_scale.tokens.json.
+test.describe("large fixture keyboard flow (A3)", () => {
+	// biome-ignore lint/correctness/noEmptyPattern: Playwright's testInfo-only fixture convention
+	test.beforeEach(({}, testInfo) => {
+		test.skip(
+			testInfo.project.name !== "default",
+			"runs only against the default fixture server",
+		);
+	});
+
+	test("a Tab / Shift+Tab pass lands on a control with a visible indicator at every stop, in visual order (A3)", async ({
+		page,
+	}, testInfo) => {
+		await page.goto("/tokens/large_scale.tokens.json");
+		// U73 puts one token of every editable dispatch path (valid colour, valid
+		// dimension, {reference}, no registered editor, invalid value) in the
+		// first ~20 tokens; ~40 stops covers all of them plus the page chrome.
+		const STOPS = 40;
+		const backLink = page.getByRole("link", {
+			name: /back to folder overview/i,
+		});
+		await expect(backLink).toBeVisible();
+		const backLinkDocY = () =>
+			backLink.evaluate((el) =>
+				Math.round(el.getBoundingClientRect().top + window.scrollY),
+			);
+		const headerYBefore = await backLinkDocY();
+
+		await page.locator("body").click();
+
+		let fwdOnControl = 0;
+		let fwdIndicator = 0;
+		let orderRegressions = 0;
+		let prevDocY = -1;
+		const strays: string[] = [];
+
+		for (let i = 0; i < STOPS; i++) {
+			await page.keyboard.press("Tab");
+			const info = await focusedInfo(page);
+			if (info.isControl) {
+				fwdOnControl++;
+				if (await hasVisibleFocusIndicator(page.locator(":focus"))) {
+					fwdIndicator++;
+				}
+			} else {
+				strays.push(`fwd#${i} <${info.tag}> ${info.label}`);
+			}
+			// visual order: forward tabbing must not jump the focus *up* the page
+			// by more than a hair (same-row controls share a docY; a new row is
+			// lower, never higher).
+			if (prevDocY >= 0 && info.docY >= 0 && info.docY < prevDocY - 4) {
+				orderRegressions++;
+			}
+			if (info.docY >= 0) {
+				prevDocY = info.docY;
+			}
+		}
+
+		let backOnControl = 0;
+		let backIndicator = 0;
+		for (let i = 0; i < STOPS; i++) {
+			await page.keyboard.press("Shift+Tab");
+			const info = await focusedInfo(page);
+			if (info.isControl) {
+				backOnControl++;
+				if (await hasVisibleFocusIndicator(page.locator(":focus"))) {
+					backIndicator++;
+				}
+			} else {
+				strays.push(`back#${i} <${info.tag}> ${info.label}`);
+			}
+		}
+
+		const headerYAfter = await backLinkDocY();
+
+		testInfo.annotations.push({
+			type: "perf",
+			description: `A3 fwd ${fwdOnControl}/${STOPS} control ${fwdIndicator}/${STOPS} indicator, ${orderRegressions} order regressions; back ${backOnControl}/${STOPS} control ${backIndicator}/${STOPS} indicator; header ${headerYBefore}->${headerYAfter}${strays.length ? ` | ${strays.slice(0, 6).join("; ")}` : ""}`,
+		});
+
+		// C-KL-2: 100% of stops (both directions) land on a real control…
+		expect(fwdOnControl, strays.join("; ")).toBe(STOPS);
+		expect(backOnControl, strays.join("; ")).toBe(STOPS);
+		// …each with a fully-visible focus indicator…
+		expect(fwdIndicator).toBe(STOPS);
+		expect(backIndicator).toBe(STOPS);
+		// C-KL-3: focus order matches top-to-bottom visual order…
+		expect(orderRegressions).toBe(0);
+		// C-KL-7 / SC-003: …and no element other than the focus ring moves.
+		expect(headerYAfter).toBe(headerYBefore);
 	});
 });
