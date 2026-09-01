@@ -51,3 +51,25 @@ existed and failed before the implementation.
 - green: no change. Suite -> 577 passed / 123 files
 - refactor: none
 - commit: (this commit — bundles cycles 4-5, the component's introduction + first two behaviors)
+
+## Cycle 6: U6 Combobox renders exactly the items given, in order, no internal filtering
+
+- test: `Combobox.test.tsx::renders exactly the items given, in the given order, with no internal filtering` (new)
+- red: passed first run (built cycle 4). Mutant (`[...items].reverse().map`) -> `1 failed`. Restored.
+- green: no change. Suite -> 580 passed / 123 files (bundled)
+- refactor: none
+
+## Cycle 7: U7 Combobox activating an enabled item calls onSelect then closes
+
+- test: `Combobox.test.tsx::activating an enabled item calls onSelect with it, then closes the popover` (new)
+- red: passed first run. Mutant (`handleSelect` drops `onOpenChange(false)`) -> `1 failed`. Restored.
+- green: no change.
+- refactor: none
+
+## Cycle 8: U8 Combobox pressing Escape requests close
+
+- test: `Combobox.test.tsx::pressing Escape requests close` (new)
+- red: passed first run. Mutant (`<Popover>` loses `onOpenChange`) -> `1 failed`. Restored.
+- green: no change. Suite -> 580 passed / 123 files
+- refactor: none
+- commit: (this commit — bundles cycles 6-8, all characterization-by-mutant of the Combobox built test-first in cycle 4)

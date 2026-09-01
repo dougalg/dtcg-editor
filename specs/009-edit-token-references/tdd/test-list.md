@@ -77,9 +77,9 @@ sorts — the caller passes `items` ready.
 | --- | -------- | ------ | ---- | ----- | ---- |
 | U4  | Clicking the trigger calls `onOpenChange(true)`; the trigger exposes `role="combobox"` with `aria-expanded` and `aria-controls` | FR-001, FR-005 | example | DONE | `Combobox.test.tsx::clicking the trigger requests open` |
 | U5  | Typing in the search field calls `onQueryChange`; the field's value is the controlled `query` | FR-004 | example | DONE | `Combobox.test.tsx::the search field shows the controlled query` |
-| U6  | Renders exactly the `items` given, in the given order — no internal filter or sort | FR-004 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
-| U7  | Activating an enabled item calls `onSelect` with that item and then `onOpenChange(false)` | FR-006 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
-| U8  | Pressing Escape calls `onOpenChange(false)` and returns focus to the trigger | FR-001 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
+| U6  | Renders exactly the `items` given, in the given order — no internal filter or sort | FR-004 | example | DONE | `Combobox.test.tsx::renders exactly the items given` |
+| U7  | Activating an enabled item calls `onSelect` with that item and then `onOpenChange(false)` | FR-006 | example | DONE | `Combobox.test.tsx::activating an enabled item` |
+| U8  | Pressing Escape calls `onOpenChange(false)` and returns focus to the trigger | FR-001 | example | DONE | `Combobox.test.tsx::pressing Escape requests close` |
 | U9  | An item where `isItemDisabled` returns true is still rendered | FR-024 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
 | U10 | Activating a disabled item never calls `onSelect` and does not close the popover | FR-024, SC-008 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
 | U11 | ArrowDown / ArrowUp move over enabled items and skip a disabled item | FR-024, FR-005 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |

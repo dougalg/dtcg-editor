@@ -71,3 +71,36 @@ test("the search field shows the controlled query and reports typing via onQuery
 	fireEvent.change(field, { target: { value: "alp" } });
 	expect(onQueryChange).toHaveBeenCalledWith("alp");
 });
+
+test("renders exactly the items given, in the given order, with no internal filtering", () => {
+	render(
+		<Combobox
+			{...props({ open: true, query: "zzz-no-match", items: ITEMS })}
+		/>,
+	);
+
+	const options = screen.getAllByRole("option");
+	expect(options.map((o) => o.textContent)).toEqual(["alpha", "beta", "gamma"]);
+});
+
+test("activating an enabled item calls onSelect with it, then closes the popover", () => {
+	const onSelect = vi.fn();
+	const onOpenChange = vi.fn();
+	render(<Combobox {...props({ open: true, onSelect, onOpenChange })} />);
+
+	fireEvent.click(screen.getByRole("option", { name: "beta" }));
+
+	expect(onSelect).toHaveBeenCalledWith(ITEMS[1]);
+	expect(onOpenChange).toHaveBeenCalledWith(false);
+});
+
+test("pressing Escape requests close", () => {
+	const onOpenChange = vi.fn();
+	render(<Combobox {...props({ open: true, onOpenChange })} />);
+
+	fireEvent.keyDown(screen.getByRole("combobox", { name: "Search items" }), {
+		key: "Escape",
+	});
+
+	expect(onOpenChange).toHaveBeenCalledWith(false);
+});
