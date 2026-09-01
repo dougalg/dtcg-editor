@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 /**
  * Measurement helpers for the perf / stability e2e specs (contract
@@ -123,10 +123,20 @@ export async function getLayoutShiftReport(
 }
 
 /**
- * U71 — measures `commit → value visible`: a `performance.now()` reading in
- * the page, then `runCommit()`, then polls `readDisplayedValue()` (a
- * `page.evaluate`d DOM read) until it returns `expectedValue`, then a second
- * `performance.now()`. Returns the delta in milliseconds.
+ * U71a — measures `commit → value visible` with the **whole timed span running
+ * in-page**: one `page.evaluate` that reads `performance.now()`, dispatches a
+ * real commit on `field` (native value setter + `input` / `change` / `blur`, so
+ * the app's own React handlers run), then `requestAnimationFrame`-polls the
+ * displayed value until it reflects the edit, then reads `performance.now()`
+ * again. The returned delta therefore excludes Playwright↔browser protocol
+ * round-trips — the wall-clock version (U71, superseded) folded `fill` / `blur`
+ * and every poll read, each a CDP round-trip, into its number.
+ *
+ * The displayed value is read from `readFrom` (default: `field` itself) as its
+ * `.value` (`readAs: "value"`, an input) or `.textContent` (`readAs: "text"`).
+ * Provide exactly one target: `becomes` (poll until the displayed value equals
+ * it) or `changesFrom` (poll until it differs from it — for a referrer row
+ * whose resolved text form isn't known up front).
  *
  * Returns `Number.POSITIVE_INFINITY` if the value has not appeared within
  * `timeoutMs` (rather than throwing) so a caller can still annotate the miss
@@ -135,28 +145,77 @@ export async function getLayoutShiftReport(
 export async function measureCommitToVisible(
 	page: Page,
 	options: {
-		runCommit: () => Promise<void>;
-		readDisplayedValue: () => Promise<string>;
-		expectedValue: string;
+		field: Locator;
+		newValue: string;
+		readFrom?: Locator;
+		readAs?: "value" | "text";
+		becomes?: string;
+		changesFrom?: string;
 		timeoutMs?: number;
 	},
 ): Promise<number> {
-	const {
-		runCommit,
-		readDisplayedValue,
-		expectedValue,
-		timeoutMs = 2000,
-	} = options;
-	const pollMs = 8;
-	const start = await page.evaluate(() => performance.now());
-	await runCommit();
-
-	for (let waited = 0; waited <= timeoutMs; waited += pollMs) {
-		if ((await readDisplayedValue()) === expectedValue) {
-			const end = await page.evaluate(() => performance.now());
-			return end - start;
-		}
-		await page.waitForTimeout(pollMs);
+	const fieldHandle = await options.field.elementHandle();
+	const readHandle = await (options.readFrom ?? options.field).elementHandle();
+	if (fieldHandle === null || readHandle === null) {
+		return Number.POSITIVE_INFINITY;
 	}
-	return Number.POSITIVE_INFINITY;
+	return page.evaluate(
+		async ({
+			field,
+			readEl,
+			newValue,
+			readAs,
+			becomes,
+			changesFrom,
+			timeoutMs,
+		}) => {
+			const readDisplayed = (): string =>
+				readAs === "text"
+					? (readEl.textContent ?? "")
+					: (readEl as HTMLInputElement).value;
+			const matches = (displayed: string): boolean =>
+				becomes !== undefined
+					? displayed === becomes
+					: displayed !== changesFrom;
+			const nextFrame = (): Promise<void> =>
+				new Promise((resolve) => {
+					requestAnimationFrame(() => resolve());
+				});
+
+			const input = field as HTMLInputElement | HTMLTextAreaElement;
+			const prototype =
+				input instanceof HTMLTextAreaElement
+					? HTMLTextAreaElement.prototype
+					: HTMLInputElement.prototype;
+			const valueSetter = Object.getOwnPropertyDescriptor(
+				prototype,
+				"value",
+			)?.set;
+
+			const start = performance.now();
+			input.focus();
+			valueSetter?.call(input, newValue);
+			input.dispatchEvent(new Event("input", { bubbles: true }));
+			input.dispatchEvent(new Event("change", { bubbles: true }));
+			input.blur();
+
+			const deadline = start + timeoutMs;
+			while (performance.now() < deadline) {
+				if (matches(readDisplayed())) {
+					return performance.now() - start;
+				}
+				await nextFrame();
+			}
+			return Number.POSITIVE_INFINITY;
+		},
+		{
+			field: fieldHandle,
+			readEl: readHandle,
+			newValue: options.newValue,
+			readAs: options.readAs ?? "value",
+			becomes: options.becomes,
+			changesFrom: options.changesFrom,
+			timeoutMs: options.timeoutMs ?? 2000,
+		},
+	);
 }

@@ -37,12 +37,9 @@ test.describe("editing-perf — large fixture", () => {
 		await expect(valueInput).toBeVisible();
 
 		const elapsed = await measureCommitToVisible(page, {
-			runCommit: async () => {
-				await valueInput.fill("321");
-				await valueInput.blur();
-			},
-			readDisplayedValue: () => valueInput.inputValue(),
-			expectedValue: "321",
+			field: valueInput,
+			newValue: "321",
+			becomes: "321",
 		});
 
 		testInfo.annotations.push({
@@ -63,18 +60,18 @@ test.describe("editing-perf — large fixture", () => {
 		await expect(hubValue).toBeVisible();
 
 		// The number that matters: how long until a *referencing* row's shown
-		// resolved value reflects the hub edit.
+		// resolved value reflects the hub edit. NOTE: the `/px$/` selector is
+		// wrong — a `dimension` has no `Preview`, so the referrer renders the
+		// resolved value as JSON text; T045 fixes this selector and the assertion.
 		const referrerValue = page.getByTestId(HUB_REFERRER).getByText(/px$/);
 		const before = (await referrerValue.textContent()) ?? "";
 
 		const elapsed = await measureCommitToVisible(page, {
-			runCommit: async () => {
-				await hubValue.fill("321");
-				await hubValue.blur();
-			},
-			readDisplayedValue: async () =>
-				((await referrerValue.textContent()) ?? "") === before ? "" : "changed",
-			expectedValue: "changed",
+			field: hubValue,
+			newValue: "321",
+			readFrom: referrerValue,
+			readAs: "text",
+			changesFrom: before,
 		});
 
 		testInfo.annotations.push({

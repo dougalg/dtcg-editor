@@ -1435,3 +1435,40 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - notes: U41e's assertions still hold with the key — a 6-keystroke burst leaves `fields.description` untouched (`undefined`), so no remount and 0 row renders; the post-blur `commit` then changes the key, which is not something U41e asserts on.
 - tasks: T054, T055 ticked (both [U41e] and [U41f] now DONE).
 - commit: this entry's commit
+
+## Cycle 83: U71a — `measureCommitToVisible` measures the commit→visible span in-page
+
+- `apps/web-app/e2e/support/stability.ts` + call-site updates in
+  `apps/web-app/e2e/editing-perf.spec.ts` (A1, A5). No vitest runner for an e2e
+  helper (profile), so — like U70/U71 — this is not a red-green cycle; the
+  evidence is a before/after measurement plus a deliberate-mutant check, run
+  through `editing-perf.spec.ts` on the **unchanged** production build.
+- **before** (wall-clock helper, U71): `pnpm exec playwright test editing-perf.spec.ts -g "within the 100ms budget"`
+  -> A1 `perf` annotation `~324 ms` isolated, `890–934 ms` over `--repeat-each=4`
+  (start/stop `performance.now()` in `page.evaluate`, but `fill`/`blur` and every
+  poll read run over CDP in between — protocol time folded into the number).
+- **change**: `measureCommitToVisible` now takes `{ field, newValue, readFrom?,
+  readAs?, becomes? | changesFrom?, timeoutMs? }` (Locators) and runs the whole
+  timed span in **one** `page.evaluate` — `performance.now()`, a real commit on
+  the field (native value setter + `input` / `change` / `blur`), then a
+  `requestAnimationFrame` poll of the displayed value, then `performance.now()`.
+  A1 -> `{ field: valueInput, newValue: "321", becomes: "321" }`; A5 ->
+  `{ field: hubValue, newValue: "321", readFrom: referrerValue, readAs: "text",
+  changesFrom: before }`.
+- **after**: A1 `perf` annotation **165 ms**, test **PASS** (`< 300 ms` CI-margin
+  assertion). The ~700 ms difference from the wall-clock number was Playwright
+  protocol round-trips, not app work. (165 ms is still over the raw 100 ms
+  budget — a T024 / SC-001 concern, folded into the outer A1 cycle, not U71a.)
+- **deliberate mutant**: a `while (performance.now() - m < 250) {}` block inserted
+  in the in-page measured span -> A1 annotation `414 ms`, `Received: 413.5`,
+  `Expected: < 300` -> **FAIL**. Confirms the helper times the in-page
+  commit→visible span. Block removed; A1 back to green.
+- tsc `-p apps/web-app/tsconfig.json` -> exit 0; biome clean (auto-formatted the
+  long destructure). Vitest suite unaffected — `e2e/**` is outside its glob
+  (last green: 120 files / 571 this session).
+- refactor: none needed.
+- A5 still FAILs (the `/px$/` referrer selector — `dimension` has no `Preview`,
+  so the referrer renders resolved JSON text); A6 still FAILs (caret at offset
+  0). T045 / U43a own those.
+- tasks: T056 ticked.
+- commit: this entry's commit
