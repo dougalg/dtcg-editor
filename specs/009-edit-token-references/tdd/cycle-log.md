@@ -26,3 +26,12 @@ existed and failed before the implementation.
 - green: no implementation change needed. Suite `pnpm exec vitest run` -> 574 passed / 121 files
 - refactor: none needed
 - commit: (this commit)
+
+## Cycle 3: U3 Command has zero axe-core WCAG 2.2 AA violations
+
+- test: `packages/design-system/src/components/Command/Command.a11y.test.tsx::has no WCAG 2.2 AA violations` (new)
+- red: `pnpm exec vitest run …Command.a11y.test.tsx -t "has no WCAG 2.2 AA violations"` -> `TypeError: Cannot read properties of null (reading 'useRef')` in cmdk — a browser-mode duplicate-React config gap, not an a11y defect (playbook: broken config, fix first).
+- config fix (separate commit 4925d54): `vitest.config.ts` a11y project gains `resolve.dedupe: ["react","react-dom"]` + `optimizeDeps.include: ["cmdk"]`. Re-run -> passed. Deliberate mutant (`CommandItem` renders a bare `<div>`, losing `role="option"`) -> `1 failed` — test has teeth. Restored.
+- green: no `Command` implementation change; the config fix made the existing wrapper testable. Suite `pnpm exec vitest run` -> 575 passed / 122 files
+- refactor: none needed
+- commit: f54e802 (behavior), 4925d54 (config)

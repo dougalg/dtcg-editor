@@ -37,8 +37,8 @@ Monorepo: `packages/design-system/src/…`, `apps/web-app/…`. `token-core` is 
 ### design-system: `Command` (repair)
 
 - [X] T005 [P] Write failing unit tests `packages/design-system/src/components/Command/Command.test.tsx` — [U1] renders input + list + one item per child; [U2] shows empty-slot content when the query matches nothing. Observe red.
-- [ ] T006 [P] Write failing a11y test `packages/design-system/src/components/Command/Command.a11y.test.tsx` — [U3] zero axe-core violations. Observe red.
-- [ ] T003 [P] Repair `packages/design-system/src/components/Command/Command.tsx` — replace the non-existent `@/registry/*` imports with real relative imports (`../Dialog/Dialog.tsx`) + the `cmdk` package; keep the exact export set; no behavioural additions. [U1] [U2] [U3]
+- [X] T006 [P] Write failing a11y test `packages/design-system/src/components/Command/Command.a11y.test.tsx` — [U3] zero axe-core violations. Observe red.
+- [X] T003 [P] Repair `packages/design-system/src/components/Command/Command.tsx` — replace the non-existent `@/registry/*` imports with real relative imports (`../Dialog/Dialog.tsx`) + the `cmdk` package; keep the exact export set; no behavioural additions. [U1] [U2] [U3]
 - [ ] T004 [P] Audit `packages/design-system/src/components/Command/Command.css` to `--dtcg-ed-*` only (Principle XII, `DESIGN.md`). No behavior.
 
 ### design-system: `Combobox` (generic controlled)

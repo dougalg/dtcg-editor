@@ -66,7 +66,7 @@ wrapper.
 | --- | -------- | ------ | ---- | ----- | ---- |
 | U1  | Renders the search input, the list region, and one item per child | FR-002 | example | DONE | `Command.test.tsx::renders the search input, the list, and one option per item` |
 | U2  | Shows the empty-slot content when the query matches no item | FR-017 | example | DONE | `Command.test.tsx::shows the empty-slot content when the query matches no item` |
-| U3  | The rendered `Command` has zero axe-core violations | FR-005 | example | PENDING | `packages/design-system/src/components/Command/Command.a11y.test.tsx` |
+| U3  | The rendered `Command` has zero axe-core violations | FR-005 | example | DONE | `Command.a11y.test.tsx::has no WCAG 2.2 AA violations` |
 
 ### `packages/design-system/src/components/Combobox/Combobox.tsx`
 
