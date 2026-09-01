@@ -4,7 +4,7 @@ loop: outside-in
 profile: .specify/memory/tdd-profile.md
 spec_criteria: 8 # Success Criteria SC-001..SC-008 in spec.md; see "Mapping" note
 planned_at: b55f969
-updated_at: 20d5d83
+updated_at: 4049050
 suite_baseline: green
 ---
 
@@ -47,14 +47,14 @@ point — a `/tokens/<file>` page driven by Playwright against the production bu
 
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| A1  | On the large fixture, in ≥95% of value-edit commits the updated value is visible within 100 ms of commit, and no spinner / skeleton / disabled-greyed state appears for the edit at any point | SC-001, FR-001, US1-S1, C-RI-3, C-MB-1 | example | DONE | `apps/web-app/e2e/editing-perf.spec.ts` |
+| A1  | On the large fixture, committing a value edit does not block the main thread past the 100 ms budget, and no spinner / skeleton / disabled-greyed state appears in the edited row. **Observed as** (cycle 85): with the local-draft architecture the typed value is on screen continuously, so SC-001's literal "visible within 100 ms" has no latency to time — the guarded quantity is instead a `PerformanceObserver('longtask')` count across a run of real commits, which must be 0 over budget. One un-observed warm-up commit precedes the measured run (the first commit of a session costs a one-time ~160 ms — JIT + `buildReverseDeps` / preview-cache over ~2,000 tokens — amortised, outside "≥95% of commits"). | SC-001, FR-001, US1-S1, C-RI-3, C-MB-1 | example | DONE | `apps/web-app/e2e/editing-perf.spec.ts::committing a value edit never blocks the main thread past the 100ms budget, with no spinner (A1)` (cycle 85; deliberate 150 ms `commitDraft` block → 12 long tasks → fails) |
 | A2  | During and after a committed edit, every observed `layout-shift` entry's `sources` lie inside the edited field and its own error slot — none attributed to another row, a group header, the Save button, or page chrome | SC-002, FR-004, FR-012, US1-S4, C-MB-3, C-KL-4 | example | PENDING | `apps/web-app/e2e/render-stability.spec.ts` |
 | A3  | A full Tab then Shift+Tab pass over the large fixture (visiting one row of every editable dispatch path) lands `document.activeElement` on a real control at 100% of stops, shows a fully-visible (unclipped, unobscured) focus indicator at 100% of stops, keeps focus order matching visual order, and moves no element other than the focus indicator | SC-003, FR-002, FR-005, FR-006, FR-007, US2-S1, US2-S2, US2-S4, C-KL-2, C-KL-3, C-MB-5 | example | PENDING | `apps/web-app/e2e/keyboard-navigation.spec.ts` |
 | A4  | Committing an edit in a ≥1,000-token document produces a rendered-page change confined to the edited row and the referencing tokens' resolved-value previews; all other tree rows, the group headers, and the page header are unchanged, and expanded groups stay expanded | SC-004, FR-009, FR-011, US3-S1, US3-S2, C-MB-3, C-RI-1 | example | PENDING | `apps/web-app/e2e/render-stability.spec.ts` |
-| A5  | Editing a token referenced by ≥100 other in-file tokens reflects on screen within the same 100 ms budget as A1, and the tree does not visibly rebuild or reorder | SC-005, FR-001a, FR-011, US3-S3, C-RI-4, C-LR-1, C-LR-8, C-MB-1 | example | PENDING | `apps/web-app/e2e/editing-perf.spec.ts` |
-| A6  | During 5 s of sustained typing at ~10 cps in a value field, zero characters are dropped and the displayed text never trails the input by more than one animation frame | SC-006, FR-013, US1-S3, C-RI-2, C-MB-2 | example | PENDING | `apps/web-app/e2e/editing-perf.spec.ts` |
+| A5  | Editing a token referenced by ≥100 other in-file tokens: every referrer row's shown resolved value reflects the edit within 100 ms of commit (measured via `measureCommitToVisible` cross-observe mode — a deferred downstream update, not synchronous work), and the tree does not visibly rebuild or reorder. **Blocked on T045**: the current skeleton's `getByText(/px$/)` referrer selector never matches — a `dimension` token has no `Preview`, so the referrer renders its resolved value as JSON text (`{"value":…}`); T045 retargets the selector and the assertion. | SC-005, FR-001a, FR-011, US3-S3, C-RI-4, C-LR-1, C-LR-8, C-MB-1 | example | PENDING | `apps/web-app/e2e/editing-perf.spec.ts` |
+| A6  | During 5 s of sustained typing at ~10 cps in a **value** field, zero characters are dropped and the displayed text never trails the input by more than one animation frame. **Skeleton is mis-targeted**: it types into the *name* field and its `focus()` + `keyboard.press("End")` does not seat the caret, so typed text lands at offset 0 (`"…dogdimension"`). U43a proved the controlled fields keep the caret under their own keystrokes — A6's fix is to target a value editor and seat the caret (`.pressSequentially` from the end, or `setSelectionRange`), not an app change. | SC-006, FR-013, US1-S3, C-RI-2, C-MB-2 | example | PENDING | `apps/web-app/e2e/editing-perf.spec.ts` |
 | A7  | A1–A6 all hold on the 2,000-token fixture, not only at 1,000 | SC-007, FR-015 | example | PENDING | `apps/web-app/e2e/editing-perf.spec.ts` + `apps/web-app/e2e/render-stability.spec.ts` |
-| A8  | `baseline.md` holds before/after numbers for every measured interaction, and `editing-perf` / `render-stability` fail if a measured value exceeds its budget **or** exceeds the recorded baseline | SC-008, FR-015, NFR-001, C-MB-6 | example | PENDING | `apps/web-app/e2e/editing-perf.spec.ts` + `apps/web-app/e2e/render-stability.spec.ts` |
+| A8  | `baseline.md` holds before/after numbers for every measured interaction, and `editing-perf` / `render-stability` fail if a measured value exceeds its budget **or** exceeds the recorded baseline. **Note (cycle 85)**: A1 no longer produces a `commit → value visible` millisecond figure — its guard is a long-task count (0 in steady state). `baseline.md`'s A1 "before ~354 ms" was captured with the protocol-laden wall-clock helper (U71, superseded) and is not comparable; T007 should re-cast the A1 row as "steady-state long tasks: before N / after 0" plus a note on the one-time ~160 ms cold start. A5's ms figure (referrer ripple) remains a real before/after once T045 lands. | SC-008, FR-015, NFR-001, C-MB-6 | example | PENDING | `apps/web-app/e2e/editing-perf.spec.ts` + `apps/web-app/e2e/render-stability.spec.ts` |
 | A9  | Across a committed edit, keyboard focus stays on the same control (never `<body>`) and the text caret / selection offset within it is preserved; committing with Enter leaves focus on a visible control | FR-002, US1-S1, Edge "Focus after commit via Enter", C-RI-7, C-KL-2 | example | PENDING | `apps/web-app/e2e/keyboard-navigation.spec.ts` |
 | A10 | Committing an edit changes neither the token tree's nor the window's scroll position; the same set of rows stays visible | FR-003, US1-S2, C-RI-5 | example | PENDING | `apps/web-app/e2e/render-stability.spec.ts` |
 | A11 | When a control that reveals supplementary UI on focus (e.g. `TypeSuggestion`, a hint/affordance) receives focus, that UI occupies pre-reserved space and no surrounding control moves | FR-008, US2-S3, C-KL-5 | example | PENDING | `apps/web-app/e2e/render-stability.spec.ts` |
@@ -240,7 +240,7 @@ stay controlled (short inputs, no measured lag).
 | --- | --- | --- | --- | --- | --- |
 | U70 | The `layout-shift` collector records each entry's `sources` (node + previous/current rect) and can answer "were all sources within subtree X" | C-MB-3 | example | DONE | `apps/web-app/e2e/support/stability.ts` — exercised green via `render-stability.spec.ts` (A2/A4/A10/A11) |
 | U71 | The `commit → value visible` timing helper measures the delta with `performance.now()` around `page.evaluate` DOM reads — **superseded in role by U71a** (the start/stop `performance.now()` sit in `page.evaluate` but the `fill`/`blur` and each poll read run over the Playwright↔browser protocol in between, so the returned number folds in round-trip time; kept recorded, not deleted) | C-MB-1 | example | DONE | `apps/web-app/e2e/support/stability.ts` — exercised via `editing-perf.spec.ts` (A1 returns a real measurement) |
-| U71a | `measureCommitToVisible` runs its **entire** timed section — the opening `performance.now()`, the commit dispatch (a real `input` + `change`/`blur` on the target element), and the poll of the displayed value — inside **one** `page.evaluate`, so the returned delta is in-page time only and excludes Playwright↔browser protocol round-trips. Checkable on an unchanged production build: A1's reported delta drops from the wall-clock helper's hundreds of ms to a small in-page figure; a deliberate ≥200 ms synchronous block injected into the in-page commit path pushes the number back over the 100 ms budget (deliberate-mutant equivalent, since the profile has no vitest runner for an e2e helper). | C-MB-1, SC-001, NFR-001 | example | DONE | `apps/web-app/e2e/support/stability.ts::measureCommitToVisible` — reworked to a single in-page `page.evaluate`; before/after + deliberate-mutant evidence via `editing-perf.spec.ts` A1 (cycle 83) |
+| U71a | `measureCommitToVisible` runs its **entire** timed section — the opening `performance.now()`, the commit dispatch (a real `input` + `change`/`blur` on the target element), and the poll of the displayed value — inside **one** `page.evaluate`, so the returned delta is in-page time only and excludes Playwright↔browser protocol round-trips. Checkable on an unchanged production build: the reported delta drops from the wall-clock helper's hundreds of ms to a small in-page figure; a deliberate ≥200 ms synchronous block injected into the in-page commit path pushes the number back over the 100 ms budget (deliberate-mutant equivalent, since the profile has no vitest runner for an e2e helper). **Post-cycle-85 note**: A1 no longer uses this helper — with the draft echo, "value visible" has no latency to time (a `perf.now()` self-echo was vacuous / mutant-insensitive), so A1 switched to a `PerformanceObserver('longtask')` guard. `measureCommitToVisible` now serves **A5** (cross-observe mode: commit, then poll a *deferred* downstream referrer update). | C-MB-1, SC-001, NFR-001 | example | DONE | `apps/web-app/e2e/support/stability.ts::measureCommitToVisible` — one in-page `page.evaluate`; before/after + deliberate-mutant evidence via `editing-perf.spec.ts` (cycle 83) |
 
 ## Invariants and edge cases still to place
 
@@ -262,11 +262,17 @@ stay controlled (short inputs, no measured lag).
   acceptance skeleton still types into the *name* field and sees the caret land at
   offset 0 — correcting the A6 target to a *value* field and seating the caret is
   `/speckit-tdd-run outer`'s job when it closes A6, on top of U43a.
-- **Edit-echo measurement fidelity** (C-MB-1 / SC-001): `measureCommitToVisible`
-  is being reworked to measure entirely in-page — **placed as U71a**. Until that
-  lands, A1's ~324–930 ms is the wall-clock helper's number (protocol round-trips
-  included) and is not a trustworthy SC-001 signal; whether virtualization (T047)
-  is actually needed can only be judged after U71a.
+- **Edit-echo measurement fidelity** (C-MB-1 / SC-001): **resolved** (cycles
+  83–85). U71a made the helper in-page-only; A1's old "~324–930 ms" was ~700 ms of
+  Playwright protocol overhead. Honest measurement shows steady-state commit cost
+  on 2,000 tokens is **0 long tasks** (< 50 ms). **Virtualization (T047 / research
+  §7) is not needed** — the missed-budget premise never materialised. T047 remains
+  only as a re-check point if A7 (2,000-token) or a future fixture shows regression.
+- **First-commit cold start** (~160 ms, one-time per session): JIT + `buildReverseDeps`
+  / preview-cache construction over ~2,000 tokens. A1 warms up past it before
+  measuring. Amortised, outside SC-001's "≥95% of commits"; no dedicated behavior.
+  If a future spec wants to guard it (e.g. keep it under ~300 ms), it belongs on
+  A7's series as a 2,000-token cold-start check.
 - **Validation state churn** (message appears on commit, clears on next
   successful commit / keystroke) must not bounce layout — covered by U60/U65 for
   the box, A2 end to end; no separate churn-loop test yet.
@@ -275,10 +281,12 @@ stay controlled (short inputs, no measured lag).
 
 ## Out of scope
 
-- **List virtualization / windowing**: deferred behind a post-implementation
-  measurement gate (research §7, plan Complexity Tracking). If T047 shows a missed
-  budget at 2,000 tokens it needs a `speckit-constitution` amendment first — not
-  part of this list.
+- **List virtualization / windowing**: was deferred behind a post-implementation
+  measurement gate (research §7, plan Complexity Tracking). Cycle 85's honest A1
+  measurement shows steady-state commit cost at 2,000 tokens is 0 long tasks, so
+  the gate's "missed budget" premise did not materialise — virtualization stays
+  out of scope, no `speckit-constitution` amendment needed. T047 survives only as
+  a re-check if A7 finds a 2,000-token regression.
 - **Documents larger than 2,000 tokens**: SC-007 ceiling; behavior explicitly
   undefined beyond it.
 - **Page-level Cumulative Layout Shift as a single number**: the per-region
