@@ -118,10 +118,10 @@ sorts — the caller passes `items` ready.
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U29 | A readable directory → `200` whose body validates `ReferenceCatalogueSchema` | FR-002, FR-023 | example | PENDING | `apps/web-app/app/api/tokens/references/route.test.ts` |
-| U30 | `loadTokenDirectory` returns `Err` → `500` with `kind: "unknown"` | FR-021 | example | PENDING | `apps/web-app/app/api/tokens/references/route.test.ts` |
-| U31 | A present-but-invalid resolver file → `200` with `modes: []` (degrade, not error) | FR-021, FR-011 | example | PENDING | `apps/web-app/app/api/tokens/references/route.test.ts` |
-| U32 | `listReferenceCatalogue` writes diagnostics through the injected logger (no console output under test) | Principle VI | example | PENDING | `apps/web-app/app/api/tokens/references/route.test.ts` |
+| U29 | A readable directory → `200` whose body validates `ReferenceCatalogueSchema` | FR-002, FR-023 | example | DONE | `route.test.ts` (references) |
+| U30 | `loadTokenDirectory` returns `Err` → `500` with `kind: "unknown"` | FR-021 | example | DONE | `route.test.ts` (references) |
+| U31 | A present-but-invalid resolver file → `200` with `modes: []` (degrade, not error) | FR-021, FR-011 | example | DONE | `route.test.ts` (references) |
+| U32 | `listReferenceCatalogue` writes diagnostics through the injected logger (no console output under test) | Principle VI | example | DONE | `route.test.ts` (references) |
 
 ### `apps/web-app/hooks/useReferenceCatalogue.ts`
 

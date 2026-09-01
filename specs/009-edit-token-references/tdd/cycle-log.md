@@ -115,3 +115,14 @@ Post-rebase onto local main (`0dbde43`); baseline re-verified `pnpm exec vitest 
 - suite: `pnpm exec vitest run` -> 602 passed / 125 files
 - refactor: `previewOutcome` extracted; `candidateFor` gained an `index` param. The `lookupForMode` export replaces what would have been a duplicated per-mode lookup.
 - commit: `lookupForMode` export (structural) separate from the catalogue behaviour commit.
+
+## Cycles 29-32: GET /api/tokens/references route U29-U32
+
+`route.ts` — `listReferenceCatalogue(logger)` inner fn + `GET` wrapper (pattern from `app/api/tokens/route.ts`). Real temp-dir fixtures + `setConfigCache`.
+
+- U29 (readable dir -> `200` body validates `ReferenceCatalogueSchema`): red `Failed to resolve import "./route.ts"`. Green: route runs `loadTokenDirectory` -> `loadResolverModes` -> `buildReferenceIndex` -> `buildReferenceCatalogue`. Mutant (route returns `{modes:[],candidates:[]}`) -> `1 failed`. Restored. Suite -> 603.
+- U30 (`loadTokenDirectory` Err -> `500` `kind:"unknown"`) + U32 (via injected logger, no console) — one test, `chmod 0o000` the dir: passed. Mutant `if (false)` on the Err branch -> `1 failed` (U30). Mutant dropping the `logger` arg to `loadTokenDirectory` -> `1 failed` (U32, `state.calls` stays 0). Restored.
+- U31 (present-but-invalid resolver file -> `200` `modes: []`): passed — `loadResolverModes` returns `ok(undefined)` on malformed JSON (feature 007), flows through to `modes: []`. First mutant (`_unsafeUnwrap()`) was equivalent (Ok(undefined)); decisive mutant (route hardcodes `modes: ["injected"]` instead of consulting `loadResolverModes`) -> `1 failed`. Restored.
+- suite: `pnpm exec vitest run` -> 605 passed / 126 files
+- refactor: none
+- commit: (this commit — bundles cycles 29-32, the catalogue GET route)
