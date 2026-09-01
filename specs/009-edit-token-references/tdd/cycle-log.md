@@ -35,3 +35,19 @@ existed and failed before the implementation.
 - green: no `Command` implementation change; the config fix made the existing wrapper testable. Suite `pnpm exec vitest run` -> 575 passed / 122 files
 - refactor: none needed
 - commit: f54e802 (behavior), 4925d54 (config)
+
+## Cycle 4: U4 Combobox trigger requests open; trigger is a combobox with aria-expanded/controls
+
+- test: `packages/design-system/src/components/Combobox/Combobox.test.tsx::clicking the trigger requests open; the trigger is a combobox with aria-expanded/controls` (new)
+- red: `pnpm exec vitest run …Combobox.test.tsx -t "clicking the trigger requests open"` -> `Error: Failed to resolve import "@/registry/components/command/react/command" from "…/Combobox/Combobox.tsx"` — the file was still the demo stub with no `ComboboxProps` export (1 failed suite, 0 tests).
+- green: replaced the demo with the generic controlled `Combobox<T>` per contracts/reference-picker-ui.md (`Popover` + `Button role="combobox"` trigger + `Command shouldFilter={false}` list). Larger-than-minimal step: the whole component skeleton, since the contract is fixed and U5-U15 exercise the same shape; kept because the suite stays green (U5-U15 will be mutant-verified against it). Suite -> 576 passed / 123 files
+- refactor: none
+- commit: (bundled with cycle 5)
+
+## Cycle 5: U5 Combobox search field shows the controlled query and reports typing
+
+- test: `packages/design-system/src/components/Combobox/Combobox.test.tsx::the search field shows the controlled query and reports typing via onQueryChange` (new)
+- red: passed on first run (implemented in cycle 4). Deliberate mutant (`CommandInput` loses its `value={query}` prop) -> `1 failed` — test has teeth. Restored.
+- green: no change. Suite -> 577 passed / 123 files
+- refactor: none
+- commit: (this commit — bundles cycles 4-5, the component's introduction + first two behaviors)
