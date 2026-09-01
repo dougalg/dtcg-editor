@@ -77,6 +77,84 @@ async function focusedInfo(page: Page): Promise<{
 	});
 }
 
+/**
+ * For the currently focused control: is its focus ring (border box grown by
+ * `outline-width` + `|outline-offset|`) cropped by any `overflow` ancestor, or
+ * is its centre covered by an unrelated element? (A3a — C-KL-1 / C-KL-7 / FR-007)
+ */
+async function focusRingClip(page: Page): Promise<{
+	clippedBy: string | null;
+	obscuredBy: string | null;
+	label: string;
+}> {
+	return page.evaluate(() => {
+		const el = document.activeElement as HTMLElement | null;
+		if (el === null || el === document.body) {
+			return {
+				clippedBy: "(no control focused)",
+				obscuredBy: null,
+				label: "(body)",
+			};
+		}
+		const name = (n: Element) =>
+			n.getAttribute("data-testid") ??
+			(n as HTMLElement).id ??
+			`${n.tagName.toLowerCase()}.${(n.className || "").toString().trim().split(/\s+/)[0] ?? ""}`;
+		const cs = getComputedStyle(el);
+		const grow =
+			(Number.parseFloat(cs.outlineWidth) || 0) +
+			Math.abs(Number.parseFloat(cs.outlineOffset) || 0);
+		const r = el.getBoundingClientRect();
+		const ring = {
+			top: r.top - grow,
+			bottom: r.bottom + grow,
+			left: r.left - grow,
+			right: r.right + grow,
+		};
+
+		let clippedBy: string | null = null;
+		for (
+			let a = el.parentElement;
+			a && clippedBy === null;
+			a = a.parentElement
+		) {
+			const s = getComputedStyle(a);
+			const clipX = /^(hidden|clip|auto|scroll)$/.test(s.overflowX);
+			const clipY = /^(hidden|clip|auto|scroll)$/.test(s.overflowY);
+			if (!clipX && !clipY) continue;
+			const ar = a.getBoundingClientRect();
+			const inner = {
+				top: ar.top + a.clientTop,
+				left: ar.left + a.clientLeft,
+				bottom: ar.top + a.clientTop + a.clientHeight,
+				right: ar.left + a.clientLeft + a.clientWidth,
+			};
+			if (
+				(clipY && ring.top < inner.top - 1) ||
+				(clipY && ring.bottom > inner.bottom + 1) ||
+				(clipX && ring.left < inner.left - 1) ||
+				(clipX && ring.right > inner.right + 1)
+			) {
+				clippedBy = name(a);
+			}
+		}
+
+		const cx = Math.round(r.left + r.width / 2);
+		const cy = Math.round(r.top + r.height / 2);
+		const hit = document.elementFromPoint(cx, cy);
+		const obscuredBy =
+			hit === null || el === hit || el.contains(hit) || hit.contains(el)
+				? null
+				: name(hit);
+
+		return {
+			clippedBy,
+			obscuredBy,
+			label: el.getAttribute("aria-label") ?? el.id ?? el.tagName.toLowerCase(),
+		};
+	});
+}
+
 // These two pre-existing tests use the general fixture set and run only
 // under the "default" project — see the T058 describe block below for
 // this feature's own controls, gated the same way in the other direction.
@@ -386,5 +464,35 @@ test.describe("large fixture keyboard flow (A3)", () => {
 		expect(orderRegressions).toBe(0);
 		// C-KL-7 / SC-003: …and no element other than the focus ring moves.
 		expect(headerYAfter).toBe(headerYBefore);
+	});
+
+	test("no tabbed-to control's focus ring is clipped by an overflow ancestor or obscured (A3a)", async ({
+		page,
+	}, testInfo) => {
+		await page.goto("/tokens/large_scale.tokens.json");
+		const STOPS = 40;
+		await page.locator("body").click();
+
+		const clipped: string[] = [];
+		const obscured: string[] = [];
+		for (let i = 0; i < STOPS; i++) {
+			await page.keyboard.press("Tab");
+			const v = await focusRingClip(page);
+			if (v.clippedBy)
+				clipped.push(`#${i} ${v.label} clipped by ${v.clippedBy}`);
+			if (v.obscuredBy) {
+				obscured.push(`#${i} ${v.label} under ${v.obscuredBy}`);
+			}
+		}
+
+		testInfo.annotations.push({
+			type: "perf",
+			description: `A3a ${STOPS} stops: ${clipped.length} clipped, ${obscured.length} obscured${clipped.length ? ` | ${clipped.slice(0, 4).join("; ")}` : ""}`,
+		});
+
+		// C-KL-1 / C-KL-7 / FR-007: the ring is never cropped by an `overflow`
+		// ancestor nor covered by an overlapping element.
+		expect(clipped, clipped.join("; ")).toEqual([]);
+		expect(obscured, obscured.join("; ")).toEqual([]);
 	});
 });
