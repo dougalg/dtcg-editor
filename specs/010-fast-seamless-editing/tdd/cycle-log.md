@@ -1485,3 +1485,15 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - finding: this means the **A6 acceptance caret-at-offset-0** symptom (`"…dogdimension"`) is **not** an app bug in the controlled field — it is the A6 Playwright test's `focus()` + `keyboard.press("End")` not seating the caret (and typing into the *name* field, not a value field). Correcting the A6 target + caret seating is `/speckit-tdd-run outer`'s job when it closes A6, on top of U43a.
 - tasks: T057, T058 ticked (U43a DONE; T058's "if it passes first run, record the deliberate-mutant check" branch taken).
 - commit: this entry's commit
+
+## Cycle 85: A1 — committing a value edit never blocks the main thread past 100 ms
+
+- test: `apps/web-app/e2e/editing-perf.spec.ts::committing a value edit never blocks the main thread past the 100ms budget, with no spinner (A1)` — the T004 skeleton, rewritten. With the local-draft architecture the typed value is on screen instantly (SC-001's literal "visible" is trivially met and unmeasurable as a `perf.now()` delta — the U71a helper's self-echo attempts were vacuous, mutant-insensitive). The real regression risk is the **commit** freezing the main thread (pre-change: ~354 ms full-tree re-render per edit). So A1 now watches the **Long Tasks API** (`PerformanceObserver({type:"longtask"})`, in-page — no Playwright protocol time) across a run of real `fill`+`blur` commits and requires no main-thread block over the 100 ms budget.
+- passed on first run (correct rewrite). Deliberate-mutant check: a `while (performance.now()-m < 150) {}` block in `TreeTokenNode.commitDraft` ->
+  `pnpm exec playwright test editing-perf.spec.ts -g "never blocks the main thread"`
+  -> `A1 12 steady-state commits: 12 long task(s), longest 158ms`, `expect(received).toBeLessThanOrEqual(expected) / Expected: <= 100` -> **FAIL**. Block reverted, `TreeTokenNode.tsx` byte-restored, rebuilt.
+- **finding — cold start.** The very first commit of a session costs **~155–168 ms** (consistent, exactly one per fresh page load across 6 runs) — one-time JIT + `buildReverseDeps` / preview-cache construction over ~2,000 tokens. A1 does one un-observed warm-up commit, then measures steady state: **0 long tasks** over 12 commits, every run. SC-001 is met; the cold-start cost is amortised and outside "≥95% of commits". T007 should record this in `baseline.md` as the A1 "after" (steady-state: 0 long tasks; first-commit warm-up: ~160 ms one-time).
+- suite: `pnpm exec vitest run` -> 120 files, 572 passed (unchanged — `e2e/**` outside its glob). `pnpm build` (tsc) clean; biome clean. `editing-perf.spec.ts` full run: **A1 PASS**, A5 FAIL (`/px$/` selector — T045), A6 FAIL (name-field target / caret — U43a done, A6 target fix pending).
+- refactor: none. The long-task observer is inline and A1-specific; extract into `e2e/support/stability.ts` if a second spec needs it.
+- tasks: none ticked — T024 (`[A1] [A6]`) and T004 (`[A1] [A5] [A6] [A8]`) both bundle behaviors still red.
+- commit: this entry's commit
