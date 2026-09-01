@@ -4,7 +4,7 @@ loop: outside-in
 profile: .specify/memory/tdd-profile.md
 spec_criteria: 8 # Success Criteria SC-001..SC-008 in spec.md; see "Mapping" note
 planned_at: b55f969
-updated_at: b55f969
+updated_at: d56ce1d
 suite_baseline: green
 ---
 
@@ -136,9 +136,11 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | U39 | Typing a character into any editable field of row A re-renders **only** row A — a per-component render spy shows zero re-renders of sibling rows, group headers, the Save button, and page chrome | C-RI-1, SC-004, US3-S1 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.render-isolation.test.tsx::a keystroke in one row re-renders only that row — siblings do not re-render` |
 | U40 | For a given keystroke-then-commit sequence, the staged payload handed to Save is byte-identical to the pre-change behaviour for the same input (explicit parity assertion over the existing characterization) | C-RI-6, INV-6 | example | DONE | `apps/web-app/components/TokenTree/TokenTree.test.tsx::the staged payload handed to Save keeps the pre-change ClientEdit shape (U40)` |
 | U41 | A keystroke updates only local `draft` state — no `store.commit`, no `store.validate`, no `useSyncExternalStore` resubscribe (name field; blur commits) | INV-9, C-RI-2 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the name field updates only local draft — no store.commit until blur` |
-| U41b | The **description** field uses the same draft/commit-on-blur pattern — a keystroke touches only `draft` | INV-9 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the description field updates only local draft — no store.commit until blur` |
+| U41b | The **description** field uses the same draft/commit-on-blur pattern — a keystroke touches only `draft` — **superseded by U41e** (the description field becomes uncontrolled; U41e's cycle re-writes this test, which is why U41b stays recorded rather than deleted) | INV-9 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the description field updates only local draft — no store.commit until blur` |
 | U41c | The fallback (no-registered-editor) editor buffers its text in `draft` and only `JSON.parse` + `commit` / `reportError` on blur | INV-9, research §3b | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the fallback JSON editor buffers text — no store call until blur` |
 | U41d | The typed value editor's `onChange` updates only `draft`; `commit` on blur | INV-9 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the typed value editor updates only local draft — no store.commit until blur` |
+| U41e | A keystroke in the **description** `<textarea>` causes **zero** re-renders of the row — the field is uncontrolled (`defaultValue` + a `ref`), so typing is native and the row's `useState`/`useMemo`/`useResolvedPreview` subtree is not reconciled per character (per-component render spy: 0 renders of the row on a burst of keystrokes). On blur, the field's current DOM value is read once and passed to `store.commit({ description })`; an unchanged value stages nothing (rides U6). Boundary vs. U39/U41b: U39 permits row A to re-render on a keystroke, U41e forbids it for this field. | C-RI-2, SC-006, US1-S3, INV-9 (intent — see note) | example | PENDING | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx` |
+| U41f | After a successful `save()` — and after `discard(key)` — the description field shows the store's value (`getFields(key).description`), not the last-typed uncommitted text: the uncontrolled field is re-synced (remounted via a `key` derived from the committed/base description) when that value changes underneath it. Boundary: an in-flight uncommitted edit is preserved across an unrelated re-render (rides U49), but a `save`/`discard` that changes this field's committed value replaces it. | INV-10, INV-7, C-RI-6 | example | PENDING | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx` |
 | U42 | Committing (blur / Enter / debounce) calls `store.commit(key, draft)` once and clears `draft` **only on success**; on failure `draft` is retained and the error surfaces via `getError` | INV-10, INV-12, C-RI-3 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a rejected commit keeps the draft on screen and surfaces the error (U42)` |
 | U43 | The caret / selection offset in row A's focused field is unchanged after an unrelated row is edited and after a deferred ripple recompute completes | INV-11, C-RI-7, FR-002 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::editing another row does not move the caret in the focused field (U43)` (ripple-recompute half rides A2/A3) |
 | U44 | On commit, no spinner / skeleton / disabled-greyed state is rendered for the edit (the Save button merely enabling does not count) | C-RI-3, SC-001, FR-001 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::committing an edit shows no spinner / skeleton / disabled state in the row (U44)` |
@@ -148,6 +150,32 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | U48 | Renaming in-file token `a` to `a2` and committing makes `B → {a}`'s preview show `{ kind: "unresolved" }` live (before any save), not the stale value | C-LR-5 | example | DONE | `apps/web-app/lib/tokens/staged-edits-store.test.ts::a pending rename of a referenced token makes the referrer's preview unresolved (U48)` + `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::renaming a same-file referenced token shows the referrer's preview as unresolved, not the stale value (U48)` |
 | U49 | Toggling colour theme / switching resolver mode while row A holds an uncommitted `draft` keeps the `draft` and keeps focus on the field (not `<body>`) | FR-014, C-KL-8, Edge "Mode / theme change mid-edit" | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::an external context re-render (theme / resolver mode) keeps the draft and focus (U49)` |
 | U50 | `axe` reports zero violations during and immediately after an edit interaction | C-KL-9, Principle X | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.a11y.test.tsx::has no WCAG 2.2 AA violations during and after an edit that surfaces an error (U50)` |
+
+**U41e / U41f note (added by `refresh` at `d56ce1d`).** A hands-on check found
+typing in the **description** `<textarea>` visibly lags on the large fixture: it
+is a controlled field, so every keystroke fires `setDraft`, which re-renders the
+whole `TreeTokenNode` subtree (value editor, `ReferenceValueDisplay` /
+`useResolvedPreview`, `FieldErrorSlot`) — cheap per row, but not free for a field
+you type sentences into. C-RI-2 ("displayed text never trails input by more than
+one animation frame", SC-006) is the criterion this misses. The fix makes just
+that one field **uncontrolled** (`defaultValue` + `ref`, commit on blur), so a
+keystroke does no React work at all.
+
+`data-model.md` **INV-9** currently reads "a keystroke updates only `draft`
+(`useState` …)" and **INV-11** "the focused input's `value` derives from
+`shown` / `draft`". The uncontrolled description field honours INV-9's normative
+content — its prohibition list (no store call, no `useSyncExternalStore`
+re-subscribe, no validation, no resolution) is fully kept, and it stays inside the
+already-`memo`'d component — while doing strictly less than the parenthetical
+"`useState`" describes; INV-11's caret guarantee is strengthened (React never
+touches the field's value). `plan.md` already sanctions "uncontrolled" as a
+technique (the native `<details>` note) and "debounce" as a commit trigger. This
+`refresh` records U41e/U41f against **C-RI-2 / SC-006** (a contract + a criterion,
+per Hard Rule 2) and treats the INV-9/INV-11 wording as descriptive; a one-line
+`data-model.md` clarification (local field state = a `useState` draft **or** an
+uncontrolled free-text input's own DOM value) is recommended as a follow-up
+outside this skill. Scope: description only — name / value / group-name fields
+stay controlled (short inputs, no measured lag).
 
 ### `apps/web-app/components/TreeGroupNode/TreeGroupNode.tsx` (CHANGED)
 
@@ -221,6 +249,17 @@ Grouped by the component from `plan.md` that owns them. React-free modules
   lag or compound re-renders. Partially covered by A6 (typing burst) + U38
   (deferred preview); a dedicated "commit×N in <1 s" assertion is not yet on a
   component.
+- **Per-keystroke row re-render cost** (controlled `draft` fields): now pinned for
+  the description field by U41e (uncontrolled → 0 renders). Name / value /
+  group-name fields still re-render their row per keystroke (permitted by U39/
+  C-RI-1); if a later measurement shows lag there too, the same uncontrolled
+  pattern applies — not on the list until measured.
+- **Same-field caret stability during a typing burst** (INV-11 / C-RI-2):
+  U41e makes it automatic for the description field (uncontrolled). Still unplaced
+  for the controlled value field — the A6 acceptance currently exercises the name
+  field and observes the caret landing at offset 0; needs a `TreeTokenNode` unit
+  ("caret offset preserved across a same-field burst") plus an A6 target fix. Not
+  part of this `refresh` (scoped to the description change).
 - **Validation state churn** (message appears on commit, clears on next
   successful commit / keystroke) must not bounce layout — covered by U60/U65 for
   the box, A2 end to end; no separate churn-loop test yet.
