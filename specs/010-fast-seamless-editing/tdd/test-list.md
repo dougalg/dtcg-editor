@@ -4,7 +4,7 @@ loop: outside-in
 profile: .specify/memory/tdd-profile.md
 spec_criteria: 8 # Success Criteria SC-001..SC-008 in spec.md; see "Mapping" note
 planned_at: b55f969
-updated_at: d56ce1d
+updated_at: 20d5d83
 suite_baseline: green
 ---
 
@@ -143,6 +143,7 @@ Grouped by the component from `plan.md` that owns them. React-free modules
 | U41f | After a successful `save()` — and after `discard(key)` — the description field shows the store's value (`getFields(key).description`), not the last-typed uncommitted text: the uncontrolled field is re-synced (remounted via a `key` derived from the committed/base description) when that value changes underneath it. Boundary: an in-flight uncommitted edit is preserved across an unrelated re-render (rides U49), but a `save`/`discard` that changes this field's committed value replaces it. | INV-10, INV-7, C-RI-6 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::the uncontrolled description field re-syncs when its committed value changes underneath it (U41f)` |
 | U42 | Committing (blur / Enter / debounce) calls `store.commit(key, draft)` once and clears `draft` **only on success**; on failure `draft` is retained and the error surfaces via `getError` | INV-10, INV-12, C-RI-3 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a rejected commit keeps the draft on screen and surfaces the error (U42)` |
 | U43 | The caret / selection offset in row A's focused field is unchanged after an unrelated row is edited and after a deferred ripple recompute completes | INV-11, C-RI-7, FR-002 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::editing another row does not move the caret in the focused field (U43)` (ripple-recompute half rides A2/A3) |
+| U43a | During a burst of characters typed into one **controlled** field (the name `<input>`, or a registered editor's text/number input), the caret / selection offset stays at the typing position — each keystroke's own `setDraft` re-render preserves the selection, so the characters land in order at the caret and are not reversed / prepended (a mid-string insert lands mid-string). Boundary vs. U43: U43 is the caret under *another row's* commit; U43a is the caret under the field's *own* rapid input. | INV-11, C-RI-2, SC-006, FR-013, US1-S3 | example | PENDING | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx` |
 | U44 | On commit, no spinner / skeleton / disabled-greyed state is rendered for the edit (the Save button merely enabling does not count) | C-RI-3, SC-001, FR-001 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::committing an edit shows no spinner / skeleton / disabled state in the row (U44)` |
 | U45 | The `parseReference → contract → editor-resolution` dispatch chain is memoised on `shown.value` + `effectiveType` + `inferredType`: for an unchanged key it is not recomputed, and its result is behaviourally identical to recomputing | INV-13 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.dispatch-memo.test.tsx::the editor-resolution dispatch is memoised — a name keystroke does not re-resolve it (U45)` |
 | U46 | The fallback (no-registered-editor) editor's `JSON.parse` failure calls `store.reportError(key, …)`; a valid parse does not | research §3b | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::the fallback editor calls store.reportError on a parse failure, not on a valid parse (U46)` |
@@ -238,7 +239,8 @@ stay controlled (short inputs, no measured lag).
 | id  | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
 | U70 | The `layout-shift` collector records each entry's `sources` (node + previous/current rect) and can answer "were all sources within subtree X" | C-MB-3 | example | DONE | `apps/web-app/e2e/support/stability.ts` — exercised green via `render-stability.spec.ts` (A2/A4/A10/A11) |
-| U71 | The `commit → value visible` timing helper measures the delta with `performance.now()` around `page.evaluate` DOM reads | C-MB-1 | example | DONE | `apps/web-app/e2e/support/stability.ts` — exercised via `editing-perf.spec.ts` (A1 returns a real measurement) |
+| U71 | The `commit → value visible` timing helper measures the delta with `performance.now()` around `page.evaluate` DOM reads — **superseded in role by U71a** (the start/stop `performance.now()` sit in `page.evaluate` but the `fill`/`blur` and each poll read run over the Playwright↔browser protocol in between, so the returned number folds in round-trip time; kept recorded, not deleted) | C-MB-1 | example | DONE | `apps/web-app/e2e/support/stability.ts` — exercised via `editing-perf.spec.ts` (A1 returns a real measurement) |
+| U71a | `measureCommitToVisible` runs its **entire** timed section — the opening `performance.now()`, the commit dispatch (a real `input` + `change`/`blur` on the target element), and the poll of the displayed value — inside **one** `page.evaluate`, so the returned delta is in-page time only and excludes Playwright↔browser protocol round-trips. Checkable on an unchanged production build: A1's reported delta drops from the wall-clock helper's hundreds of ms to a small in-page figure; a deliberate ≥200 ms synchronous block injected into the in-page commit path pushes the number back over the 100 ms budget (deliberate-mutant equivalent, since the profile has no vitest runner for an e2e helper). | C-MB-1, SC-001, NFR-001 | example | PENDING | `apps/web-app/e2e/support/stability.ts` — exercised via `editing-perf.spec.ts` (A1/A5) |
 
 ## Invariants and edge cases still to place
 
@@ -255,11 +257,16 @@ stay controlled (short inputs, no measured lag).
   C-RI-1); if a later measurement shows lag there too, the same uncontrolled
   pattern applies — not on the list until measured.
 - **Same-field caret stability during a typing burst** (INV-11 / C-RI-2):
-  U41e makes it automatic for the description field (uncontrolled). Still unplaced
-  for the controlled value field — the A6 acceptance currently exercises the name
-  field and observes the caret landing at offset 0; needs a `TreeTokenNode` unit
-  ("caret offset preserved across a same-field burst") plus an A6 target fix. Not
-  part of this `refresh` (scoped to the description change).
+  automatic for the description field since U41e (uncontrolled); now **placed as
+  U43a** for the controlled fields (name / registered-editor inputs). The A6
+  acceptance skeleton still types into the *name* field and sees the caret land at
+  offset 0 — correcting the A6 target to a *value* field and seating the caret is
+  `/speckit-tdd-run outer`'s job when it closes A6, on top of U43a.
+- **Edit-echo measurement fidelity** (C-MB-1 / SC-001): `measureCommitToVisible`
+  is being reworked to measure entirely in-page — **placed as U71a**. Until that
+  lands, A1's ~324–930 ms is the wall-clock helper's number (protocol round-trips
+  included) and is not a trustworthy SC-001 signal; whether virtualization (T047)
+  is actually needed can only be judged after U71a.
 - **Validation state churn** (message appears on commit, clears on next
   successful commit / keystroke) must not bounce layout — covered by U60/U65 for
   the box, A2 end to end; no separate churn-loop test yet.
