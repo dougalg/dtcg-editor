@@ -103,16 +103,16 @@ sorts — the caller passes `items` ready.
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U19 | Every token path in the index appears exactly once as a candidate | FR-002, SC-002 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U20 | No group path appears as a candidate | FR-002, FR-024 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U21 | A path defined once → a single `definition` with `mode: undefined` | FR-003 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U22 | A path defined under N modes → one candidate with one `definition` per mode | FR-003, FR-011 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U23 | A candidate whose value is a chain → `preview.outcome.kind === "resolved"` with the end-of-chain value | FR-010 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U24 | A candidate resolving to a missing path → `preview.outcome.kind === "unresolved"` | FR-015 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U25 | A candidate resolving to a group → `preview.outcome.kind === "group-target"` | FR-015 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U26 | A candidate already inside a cycle → `preview.outcome.kind === "circular"` | FR-014, FR-015 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U27 | `preview[].outcome.steps` is fully populated for a resolved multi-hop chain | FR-024 (invariant) | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
-| U28 | `modes` mirrors the resolver's mode list; `[]` when the set has no resolver | FR-011 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue.test.ts` |
+| U19 | Every token path in the index appears exactly once as a candidate | FR-002, SC-002 | example | DONE | `reference-catalogue.test.ts` |
+| U20 | No group path appears as a candidate | FR-002, FR-024 | example | DONE | `reference-catalogue.test.ts` |
+| U21 | A path defined once → a single `definition` with `mode: undefined` | FR-003 | example | DONE | `reference-catalogue.test.ts` |
+| U22 | A path defined under N modes → one candidate with one `definition` per mode | FR-003, FR-011 | example | DONE | `reference-catalogue.test.ts` |
+| U23 | A candidate whose value is a chain → `preview.outcome.kind === "resolved"` with the end-of-chain value | FR-010 | example | DONE | `reference-catalogue.test.ts` |
+| U24 | A candidate resolving to a missing path → `preview.outcome.kind === "unresolved"` | FR-015 | example | DONE | `reference-catalogue.test.ts` |
+| U25 | A candidate resolving to a group → `preview.outcome.kind === "group-target"` | FR-015 | example | DONE | `reference-catalogue.test.ts` |
+| U26 | A candidate already inside a cycle → `preview.outcome.kind === "circular"` | FR-014, FR-015 | example | DONE | `reference-catalogue.test.ts` |
+| U27 | `preview[].outcome.steps` is fully populated for a resolved multi-hop chain | FR-024 (invariant) | example | DONE | `reference-catalogue.test.ts` |
+| U28 | `modes` mirrors the resolver's mode list; `[]` when the set has no resolver | FR-011 | example | DONE | `reference-catalogue.test.ts` |
 
 ### `apps/web-app/app/api/tokens/references/route.ts`
 

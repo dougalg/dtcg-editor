@@ -99,3 +99,19 @@ Post-rebase onto local main (`0dbde43`); baseline re-verified `pnpm exec vitest 
 - suite: `pnpm exec vitest run` -> 592 passed / 125 files
 - refactor: none (pure declarative schema)
 - commit: (this commit — bundles cycles 16-18, the wire schema module + its two rejection guards)
+
+## Cycles 19-28: reference-catalogue U19-U28
+
+`buildReferenceCatalogue(index: ReferenceIndex): ReferenceCatalogue` — pure transform.
+
+- U19 (every token path once as a candidate): red `Failed to resolve import "./reference-catalogue.ts"`. Green: created the module iterating `index.definitions` (token paths only — groups never enter `definitions`). Mutant (`continue` on one key) -> `1 failed`. Restored. Suite -> 593.
+- U20 (no group path): passed first run — structural guarantee of `buildReferenceIndex` (`collectOccurrences` only pushes `kind === "token"`). No small mutant (would need to make the impl walk groups); pinned as a regression guard.
+- U21 (single-def -> one definition, `mode: undefined`): passed; mutant (`d.mode ?? "forced"`) -> `1 failed`. Restored.
+- U22 (multi-mode path -> one candidate, one definition per mode): passed with `LIGHT_DARK` resolver fixture; mutant (`defs.slice(0,1)`) -> `1 failed`. Restored.
+- U23 (chained candidate -> end-of-chain preview value): **real red** — the minimal impl synthesised `{kind:"resolved", value: d.value}` from the raw `{...}` string. Green: exported `lookupForMode` from `reference-index.ts` (seam extraction — one `export` keyword, no behaviour change, `reference-index.test.ts` stays green) and added `previewOutcome()` which runs token-core `resolveReference(parseReference(def.value), lookupForMode(index, def.mode))` for a reference value, else the literal. Suite -> 597.
+- U24 (missing -> `unresolved`) / U25 (group -> `group-target`) / U26 (cycle -> `circular`): passed once `previewOutcome` wired in `resolveReference` (token-core owns these outcomes). Combined mutant (`previewOutcome` never resolves references) -> U24, U26, U27 each `1 failed`. Restored.
+- U27 (`preview[].outcome.steps` populated for a multi-hop chain): passed; covered by the same combined mutant (`["color.brand","color.blue"]` collapses to one step).
+- U28 (`modes` mirrors the resolver; `[]` with no resolver): passed; mutant (`modes: []` always) -> `1 failed`. Restored.
+- suite: `pnpm exec vitest run` -> 602 passed / 125 files
+- refactor: `previewOutcome` extracted; `candidateFor` gained an `index` param. The `lookupForMode` export replaces what would have been a duplicated per-mode lookup.
+- commit: `lookupForMode` export (structural) separate from the catalogue behaviour commit.
