@@ -1472,3 +1472,16 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   0). T045 / U43a own those.
 - tasks: T056 ticked.
 - commit: this entry's commit
+
+## Cycle 84: U43a — caret stable during a same-field typing burst (pass-first-run)
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a burst of keystrokes in one controlled field keeps the caret at the typing position (U43a)` (new) — types "XYZ" one char at a time inserted at offset 2 of the name field, re-querying the input each iteration and asserting it is the *same* element, still `document.activeElement`, with `selectionStart` tracking the insert.
+- red: **passed on first run** — the name `<input>` is a plain controlled input, so React-DOM's own selection restoration keeps the caret across each `setDraft` re-render; the app does nothing that would break it.
+- deliberate mutant: added `key={name}` to the heading `<input>` in `apps/web-app/components/TokenBlock/TokenBlock.tsx` (forces a per-keystroke remount) ->
+  `pnpm exec vitest run …TreeTokenNode.draft.test.tsx -t "keeps the caret at the typing position"`
+  -> `AssertionError` at `TreeTokenNode.draft.test.tsx:298` (`expect(after).toBe(before)`), rendered `value="smXall"` (only the last char survived the remount). Mutant reverted; `TokenBlock.tsx` byte-restored.
+- green: no production change (behavior already correct). Full suite `pnpm exec vitest run` -> 120 files, **572 passed** (~59s). Biome clean.
+- refactor: none needed.
+- finding: this means the **A6 acceptance caret-at-offset-0** symptom (`"…dogdimension"`) is **not** an app bug in the controlled field — it is the A6 Playwright test's `focus()` + `keyboard.press("End")` not seating the caret (and typing into the *name* field, not a value field). Correcting the A6 target + caret seating is `/speckit-tdd-run outer`'s job when it closes A6, on top of U43a.
+- tasks: T057, T058 ticked (U43a DONE; T058's "if it passes first run, record the deliberate-mutant check" branch taken).
+- commit: this entry's commit

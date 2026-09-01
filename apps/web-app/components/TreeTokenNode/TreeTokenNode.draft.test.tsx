@@ -272,6 +272,38 @@ test("editing another row does not move the caret in the focused field (U43)", (
 	expect(aName.selectionStart).toBe(3);
 });
 
+test("a burst of keystrokes in one controlled field keeps the caret at the typing position (U43a)", () => {
+	renderRow();
+	const nameInput = () =>
+		screen.getByLabelText("small name") as HTMLInputElement;
+
+	const first = nameInput();
+	first.focus();
+
+	// type "XYZ" one character at a time, inserted after "sm" (offset 2). Each
+	// keystroke's own setDraft re-render must keep the *same* focused input with
+	// the caret right after the character just typed — a per-keystroke remount
+	// would drop the selection and the run would not land mid-string in order.
+	let value = first.value; // "small"
+	let caret = 2;
+	first.setSelectionRange(caret, caret);
+	for (const ch of "XYZ") {
+		const before = nameInput();
+		value = value.slice(0, caret) + ch + value.slice(caret);
+		caret += 1;
+		fireEvent.change(before, {
+			target: { value, selectionStart: caret, selectionEnd: caret },
+		});
+		const after = nameInput();
+		expect(after).toBe(before); // not remounted by its own keystroke
+		expect(after).toBe(document.activeElement); // still focused
+		expect(after.selectionStart).toBe(caret); // caret tracked the insert
+	}
+
+	expect(nameInput().value).toBe("smXYZall");
+	expect(nameInput().selectionStart).toBe(5);
+});
+
 test("committing an edit shows no spinner / skeleton / disabled state in the row (U44)", () => {
 	const { commitSpy } = renderRow();
 	const row = screen.getByTestId("token-small");
