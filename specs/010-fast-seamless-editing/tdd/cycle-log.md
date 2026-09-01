@@ -1423,3 +1423,15 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: none needed. `currentDescription` (== `fields.description` now that description left `draft`) kept for symmetry with `currentName` / `currentRawValue`.
 - notes: minimal green does **not** re-sync the field after a `save` / `discard` (uncontrolled + `defaultValue` only applies at mount) — that is U41f's cycle, whose red depends on this green.
 - commit: this entry's commit
+
+## Cycle 82: U41f — uncontrolled description field re-syncs on an external commit / save / discard
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::the uncontrolled description field re-syncs when its committed value changes underneath it (U41f)` (new) — mounts with description `"old"`, then `store.commit("small", { description: "new" })` and `store.discard("small")` from `act()`.
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "re-syncs when its committed value changes"`
+  -> `AssertionError: expected 'old' to be 'new'` at `TreeTokenNode.draft.test.tsx:175` — the uncontrolled field ignores the committed-value change (`defaultValue` only takes at mount; U41e's minimal green left it un-synced).
+- green: `apps/web-app/components/TreeTokenNode/TreeTokenNode.tsx` — add `key={`desc:${currentDescription ?? ""}`}` to the description `<textarea>`. The committed/base value (== `shown.description`, since description no longer lives in `draft`) drives the key, so a `save` / `discard` / external `commit` that changes it remounts the field onto the fresh `defaultValue`; an in-flight uncommitted edit does not change the key, so it survives an unrelated re-render (rides U49).
+  Full suite `pnpm exec vitest run` -> 120 files, 571 passed (~49s). Biome clean.
+- refactor: none needed.
+- notes: U41e's assertions still hold with the key — a 6-keystroke burst leaves `fields.description` untouched (`undefined`), so no remount and 0 row renders; the post-blur `commit` then changes the key, which is not something U41e asserts on.
+- tasks: T054, T055 ticked (both [U41e] and [U41f] now DONE).
+- commit: this entry's commit

@@ -384,6 +384,13 @@ export function TreeTokenNode({
 					Description
 				</span>
 				<textarea
+					// Uncontrolled: `defaultValue` only takes at mount, so re-key on
+					// the committed value to re-sync the field when a `save` /
+					// `discard` (or any external commit) changes it underneath the
+					// user (U41f). An in-flight, still-uncommitted edit does not
+					// change this value, so it is preserved across unrelated
+					// re-renders (rides U49).
+					key={`desc:${currentDescription ?? ""}`}
 					ref={descriptionRef}
 					aria-labelledby={`${headingId} ${descriptionLabelId}`}
 					className={styles.descriptionTextarea}

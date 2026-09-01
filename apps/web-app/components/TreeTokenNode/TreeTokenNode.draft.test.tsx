@@ -137,6 +137,50 @@ test("a keystroke in the uncontrolled description textarea does no React re-rend
 	expect(commitSpy).toHaveBeenCalledWith("small", { description: "a note" });
 });
 
+test("the uncontrolled description field re-syncs when its committed value changes underneath it (U41f)", () => {
+	const withDescription: TokenNode = { ...smallToken(), description: "old" };
+	const store = new StagedEditsStore({
+		initialTree: {
+			kind: "group",
+			name: "",
+			path: [],
+			declaredType: undefined,
+			effectiveType: undefined,
+			description: undefined,
+			deprecated: undefined,
+			children: [withDescription],
+		},
+		referenceView: undefined,
+		save: async () => true,
+	});
+	render(
+		<StagedEditsContext.Provider value={store}>
+			<ul>
+				<TreeTokenNode node={withDescription} relativePath="a.json" />
+			</ul>
+		</StagedEditsContext.Provider>,
+	);
+
+	const field = () =>
+		screen.getByRole("textbox", {
+			name: /description/i,
+		}) as HTMLTextAreaElement;
+	expect(field().value).toBe("old");
+
+	// a commit changes this field's effective value (INV-10) — the uncontrolled
+	// field must reflect it, not the value it was mounted with.
+	act(() => {
+		store.commit("small", { description: "new" });
+	});
+	expect(field().value).toBe("new");
+
+	// discarding that edit takes the effective value back — the field follows.
+	act(() => {
+		store.discard("small");
+	});
+	expect(field().value).toBe("old");
+});
+
 test("a keystroke in the fallback JSON editor buffers text — no store call until blur", () => {
 	const { commitSpy, reportErrorSpy } = renderRow(fallbackToken());
 	const jsonInput = screen.getByLabelText(
