@@ -101,30 +101,89 @@ test.describe("render-stability — large fixture", () => {
 		expect(report.total, summarize(report)).toBe(0);
 	});
 
-	test("committing an edit to the >=100-referrer token confines the shift (A4)", async ({
+	test("committing an edit in a ≥1,000-token doc changes only the edited row and its referrers (A4)", async ({
 		page,
 	}, testInfo) => {
 		await page.goto("/tokens/large_scale.tokens.json");
-		const hubValue = page
-			.getByTestId(HUB)
-			.getByRole("spinbutton", { name: "Value" });
+		const hubRow = page.getByTestId(HUB);
+		const hubValue = hubRow.getByRole("spinbutton", { name: "Value" });
 		await expect(hubValue).toBeVisible();
+		await page.waitForTimeout(1000); // hydration + preview settle
 
-		await startLayoutShiftObserver(page);
+		// `_showcase.color` / `_showcase.exotic` do not reference the hub — their
+		// rendered markup must be byte-identical across the commit, and their DOM
+		// node must not be remounted. A referrer (`token-1`) must change.
+		const UNRELATED = ["token-_showcase.color", "token-_showcase.exotic"];
+		const REFERRER = "token-group-0.sub-0.token-1";
+
+		const snapshot = () =>
+			page.evaluate(
+				({ unrelated, referrer }) => {
+					const html = (id: string) =>
+						document.querySelector(`[data-testid="${id}"]`)?.innerHTML ??
+						"(missing)";
+					const backLink = document.querySelector("a");
+					return {
+						unrelated: unrelated.map((id) => html(id)),
+						referrerText:
+							document
+								.querySelector(`[data-testid="${referrer}"]`)
+								?.textContent?.replace(/\s+/g, " ")
+								.trim() ?? "",
+						// group headers + page chrome: text and document-relative Y
+						groupSummaries: Array.from(
+							document.querySelectorAll("details > summary"),
+						)
+							.slice(0, 6)
+							.map((s) => (s as HTMLElement).innerText.trim()),
+						detailsOpen: Array.from(document.querySelectorAll("details"))
+							.slice(0, 8)
+							.map((d) => (d as HTMLDetailsElement).open),
+						backLinkText: backLink?.textContent?.trim() ?? "",
+						backLinkDocY: backLink
+							? Math.round(
+									backLink.getBoundingClientRect().top + window.scrollY,
+								)
+							: -1,
+					};
+				},
+				{ unrelated: UNRELATED, referrer: REFERRER },
+			);
+
+		const before = await snapshot();
+		const unrelatedNodeBefore = await page
+			.getByTestId(UNRELATED[0] as string)
+			.elementHandle();
+
 		await hubValue.fill("321");
 		await hubValue.blur();
+		await expect(hubValue).toHaveValue("321");
 		await page.waitForTimeout(SETTLE_MS * 2);
 
-		// The edited row and every referencing row's own preview are allowed;
-		// nothing else may move (no tree rebuild, no header shift).
-		const report = await getLayoutShiftReport(page, [
-			`[data-testid="${HUB}"]`,
-			'[data-testid^="token-group-0.sub-0.token-"]',
-		]);
+		const after = await snapshot();
+		const unrelatedNodeSurvived = await unrelatedNodeBefore?.evaluate(
+			(el) =>
+				el.isConnected &&
+				el === document.querySelector('[data-testid="token-_showcase.color"]'),
+		);
+
 		testInfo.annotations.push({
 			type: "perf",
-			description: `A4 ${summarize(report)}`,
+			description: `A4 unrelated-html-changed ${before.unrelated.map((h, i) => (h === after.unrelated[i] ? 0 : 1)).join("")}, referrer-changed ${before.referrerText !== after.referrerText}, node-survived ${unrelatedNodeSurvived}, backLinkDocY ${before.backLinkDocY}->${after.backLinkDocY}`,
 		});
-		expect(report.outOfRegion, summarize(report)).toEqual([]);
+
+		// SC-004: the change is confined to the edited row + referrers…
+		expect(after.unrelated).toEqual(before.unrelated);
+		expect(unrelatedNodeSurvived).toBe(true);
+		// …group headers, page header, and expanded state are untouched…
+		expect(after.groupSummaries).toEqual(before.groupSummaries);
+		expect(after.detailsOpen).toEqual(before.detailsOpen);
+		expect(after.detailsOpen.every((o) => o === true)).toBe(true);
+		expect(after.backLinkText).toBe(before.backLinkText);
+		expect(after.backLinkDocY).toBe(before.backLinkDocY);
+		// …and the edit *did* land (not a vacuous pass): the referrer's resolved
+		// preview reflects the new hub value.
+		expect(after.referrerText).not.toBe(before.referrerText);
+		expect(after.referrerText).toContain('"value":321');
 	});
 });

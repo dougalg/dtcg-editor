@@ -1556,3 +1556,14 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: none (`focusRingClip`'s inline `name()` overlaps `focusedInfo`'s label logic slightly; not worth a shared helper).
 - tasks: **T029, T030 ticked** — T030 is the `overflow` audit A3a performs (nothing offends); T029's reserved-slot `min-height` + focus `outline`/`outline-offset` are now validated end to end by A2 + A3 + A3a. **T032** (`[A3] [U54]` — tabbing leaves every group's open/closed state + scroll unchanged and re-renders no rows, C-KL-6) and **T033** (`[A3]` — `useTokenArrival` focus-on-navigate regression) carry `[A3]` but describe distinct tests the loop has not written — candidates for a `refresh` split (A3b / A3c) or to fold into A9 / A12.
 - commit: this entry's commit
+
+## Cycle 91: A4 — a commit in a 2,005-token doc changes only the edited row and its referrers
+
+- test: `apps/web-app/e2e/render-stability.spec.ts::committing an edit in a ≥1,000-token doc changes only the edited row and its referrers (A4)` — the T005 skeleton, reworked (T046's ripple interaction).
+- context: the skeleton used `getLayoutShiftReport`, which filters `hadRecentInput` (any shift within 500 ms of the commit-on-blur) — same blind spot as A2. Reworked to a **direct DOM diff**: `innerHTML` of two rows that do *not* reference the hub (`_showcase.color` / `_showcase.exotic`), the group `<summary>` texts, every `<details open>` flag, the back-link text + document-Y, snapshotted before and after the hub-value commit.
+- red: passed on first run — `unrelated-html-changed 00, referrer-changed true, node-survived true, backLinkDocY 35->35`; the referrer preview flips to `"value":321` and all `<details>` stay open.
+- deliberate-mutant: `<TreeNode key={String(hasPendingEdits)} …>` in `TokenTree.tsx` (remount the whole tree when the pending flag flips) -> `unrelated-html-changed 10, node-survived false`, `expect(received).toEqual(expected)` on `after.unrelated` -> **FAIL**. Reverted, `TokenTree.tsx` byte-restored, rebuilt.
+- green: no production change — `getTree` identity is stable across `commit` (U12), so `<TreeNode>` memo confines the re-render to the subscribed rows (U39 end to end at 2,005 tokens). Full `render-stability.spec.ts`: A2 ✓ A10/A11 ✓ A4 ✓. `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) + biome clean.
+- refactor: none — A4's inline `snapshot()` is single-use; the `elementHandle` node-survival check overlaps A5's but lives in a different spec file and is ~3 lines.
+- tasks: none ticked — T005 (`[A2] [A4] [A7] [A8] [A10] [A11]`) and T046 (`[A4] [A7]`) both still carry PENDING behaviors. A4 (T046's ripple deliverable) is done.
+- commit: this entry's commit
