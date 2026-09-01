@@ -1578,3 +1578,15 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: also replaced this file's stale "SKELETON (T004) … Expected to FAIL" docblock (flagged in cycle 87) with the current state.
 - tasks: **T047, T048 ticked** (`[A7]` — re-measurement done, no budget missed, so no `content-visibility` trial needed). T005 / T045 / T046 also carry `[A7]` but hold other PENDING behaviors.
 - commit: this entry's commit
+
+## Cycle 93: A8 — baseline.md complete, and the specs fail past the recorded baseline, not just the budget
+
+- artifacts: `specs/010-fast-seamless-editing/baseline.md` re-cast (before/after for every measured interaction, method-change note for A1/A2/A4 whose measurement was reworked in cycles 83–91); `apps/web-app/e2e/editing-perf.spec.ts` A5 now asserts `elapsed ≤ BASELINE_A5_MS` (100), a documented regression ceiling sourced from `baseline.md` (~32–54 ms after + headroom), replacing the ×3 CI-margin `≤ 300`.
+- rationale: C-MB-6 wants the specs to fail on a regression *past the recorded baseline*, not only past the SC budget. Only A5 had budget slack above its "after" — A1 (0 long tasks), A2 (≤1 px), A4 (exact DOM equality), A6 (0 dropped / 0 long tasks), A10/A11 (`=== 0`) are already asserted *at* their after value, so the assertion already is the regression ceiling. `baseline.md` documents that.
+- red: A5 with `≤ BASELINE_A5_MS` passed on first run (`54 ms`).
+- deliberate-mutant: `while (performance.now() - m < 150) {}` in `TreeTokenNode.commitDraft` -> A5 ripple **236 ms**, `expect(received).toBeLessThanOrEqual(100)` -> **FAIL**. 236 ms would have **passed** the old `≤ 300` — so the regression ceiling catches what the loose budget missed. Reverted, `TreeTokenNode.tsx` byte-restored, rebuilt.
+- green: no production change. Full `editing-perf.spec.ts`: A1 ✓ A5 ✓ A6 ✓ A7 ✓. `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) + biome clean.
+- refactor: none (constant rename + doc).
+- notes: the merge-base "before" re-capture was **not** re-run for the reworked measurements — A2/A4's new selectors (`FieldErrorSlot`, the resolved-value `<a>`, `data-testid` rows) don't exist pre-change, so those cells keep the original layout-shift numbers with the method annotated. A5/A6 have a genuine before → after. `baseline.md` spells this out.
+- tasks: **T007 ticked** (`[A8]` — baseline.md captured/complete). T005 (`[A2] [A4] [A7] [A8] [A10] [A11]`) still carries PENDING A10/A11.
+- commit: this entry's commit

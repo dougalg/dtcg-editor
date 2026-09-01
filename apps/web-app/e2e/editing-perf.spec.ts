@@ -23,8 +23,13 @@ import {
 
 /** SC-001 / SC-006 target: an edit is "visible" within ~100 ms (spec §Assumptions). */
 const ECHO_BUDGET_MS = 100;
-/** CI safety margin on the raw budget, sanctioned by C-MB-1 ("100 ms with a documented CI safety margin"). */
-const CI_MARGIN = 3;
+/**
+ * A5 regression ceiling: the referrer-ripple "after" recorded in
+ * `specs/010-fast-seamless-editing/baseline.md` is ~32 ms; this is that plus
+ * generous CI headroom (and equals the raw C-MB-1 budget). Do not raise it
+ * without re-capturing the baseline (C-MB-6 / SC-008).
+ */
+const BASELINE_A5_MS = 100;
 /** Steady-state value-edit commits A1 measures for long tasks (after a warm-up). */
 const A1_COMMITS = 12;
 
@@ -124,11 +129,11 @@ test.describe("editing-perf — large fixture", () => {
 
 		testInfo.annotations.push({
 			type: "perf",
-			description: `A5 hub edit → referrer preview updates: ${Number.isFinite(elapsed) ? `${Math.round(elapsed)}ms` : ">2000ms (not observed)"} (budget ${ECHO_BUDGET_MS}ms ×${CI_MARGIN} margin)`,
+			description: `A5 hub edit → referrer preview updates: ${Number.isFinite(elapsed) ? `${Math.round(elapsed)}ms` : ">2000ms (not observed)"} (baseline ceiling ${BASELINE_A5_MS}ms; budget ${ECHO_BUDGET_MS}ms)`,
 		});
 
 		// SC-005: the referrer reflects the edit within the same 100 ms budget…
-		expect(elapsed).toBeLessThanOrEqual(ECHO_BUDGET_MS * CI_MARGIN);
+		expect(elapsed).toBeLessThanOrEqual(BASELINE_A5_MS);
 		// …and it shows the *new* resolved value…
 		await expect(referrerLink).toHaveText(/\{"value":321,"unit":"px"\}/);
 		// …and the tree did not rebuild (the distant row is the same live node).
