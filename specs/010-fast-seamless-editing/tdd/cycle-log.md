@@ -1590,3 +1590,14 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - notes: the merge-base "before" re-capture was **not** re-run for the reworked measurements — A2/A4's new selectors (`FieldErrorSlot`, the resolved-value `<a>`, `data-testid` rows) don't exist pre-change, so those cells keep the original layout-shift numbers with the method annotated. A5/A6 have a genuine before → after. `baseline.md` spells this out.
 - tasks: **T007 ticked** (`[A8]` — baseline.md captured/complete). T005 (`[A2] [A4] [A7] [A8] [A10] [A11]`) still carries PENDING A10/A11.
 - commit: this entry's commit
+
+## Cycle 94: A9 — committing a value edit with Enter keeps focus on that control, caret preserved
+
+- test: `apps/web-app/e2e/keyboard-navigation.spec.ts::committing a value edit with Enter keeps focus on that control, caret preserved (A9)` (new; `default` project). Focuses `_showcase.color`'s "Legacy hex value" field (a `ChannelInput`, which commits on Enter via `preventDefault` + flush), fills a value, seats the caret at offset 4, presses Enter; then Tab.
+- red: passed on first run — after Enter, `toBeFocused()` on the hex input, `selectionStart === 4`, `document.activeElement !== body`; after Tab, focus lands on a visible control (not `<body>`).
+- deliberate-mutant: `event.currentTarget.blur()` added to `ChannelInput.handleKeyDown`'s Enter branch -> `expect(locator).toBeFocused() … Received: inactive` -> **FAIL**. Reverted, `ChannelInput.tsx` byte-restored, rebuilt.
+- green: no production change — `ChannelInput` already keeps focus on Enter (US1-S1 / Edge "Focus after commit via Enter"). Full `keyboard-navigation.spec.ts`: 8/8 (A9 runs under `default`, skipped under `token-references`). `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) + biome clean.
+- refactor: none.
+- note: only the colour editor's `ChannelInput` handles Enter — the name `<input>` and the dimension `spinbutton` have no Enter handler and no form, so Enter is a no-op there (commit stays on blur). A9 exercises the one field where "commit via Enter" is a real path.
+- tasks: **T025a ticked** (`[A9]` — the commit focus/caret e2e case).
+- commit: this entry's commit

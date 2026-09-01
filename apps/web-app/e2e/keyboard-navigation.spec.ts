@@ -496,3 +496,63 @@ test.describe("large fixture keyboard flow (A3)", () => {
 		expect(obscured, obscured.join("; ")).toEqual([]);
 	});
 });
+
+// A9 (FR-002 / US1-S1 / C-RI-7 / Edge "Focus after commit via Enter") —
+// committing a value edit with Enter keeps focus on that same visible control
+// with the caret preserved; a subsequent real blur (Tab) never lands focus on
+// <body>. Runs under "default" (large_scale.tokens.json).
+test.describe("commit focus + caret (A9)", () => {
+	// biome-ignore lint/correctness/noEmptyPattern: Playwright's testInfo-only fixture convention
+	test.beforeEach(({}, testInfo) => {
+		test.skip(
+			testInfo.project.name !== "default",
+			"runs only against the default fixture server",
+		);
+	});
+
+	test("committing a value edit with Enter keeps focus on that control, caret preserved (A9)", async ({
+		page,
+	}) => {
+		await page.goto("/tokens/large_scale.tokens.json");
+		// `_showcase.color`'s hex value field is a `ChannelInput` — it commits on
+		// Enter (`preventDefault` + flush), so focus never leaves it.
+		const hexInput = page
+			.getByTestId("token-_showcase.color")
+			.getByRole("textbox", { name: "Legacy hex value" });
+		await hexInput.focus();
+		await expect(hexInput).toBeFocused();
+
+		await hexInput.fill("#abcdef");
+		const CARET = 4;
+		await hexInput.evaluate(
+			(el, caret) => (el as HTMLInputElement).setSelectionRange(caret, caret),
+			CARET,
+		);
+
+		await page.keyboard.press("Enter");
+
+		// focus stays on the same control, caret offset preserved, never <body>
+		await expect(hexInput).toBeFocused();
+		expect(
+			await hexInput.evaluate((el) => (el as HTMLInputElement).selectionStart),
+		).toBe(CARET);
+		expect(
+			await page.evaluate(() => document.activeElement === document.body),
+		).toBe(false);
+
+		// a real blur afterwards (Tab) fires the store commit — focus must land on
+		// a control, not <body>.
+		await page.keyboard.press("Tab");
+		const landed = await page.evaluate(() => {
+			const el = document.activeElement;
+			return {
+				isBody: el === document.body || el === null,
+				tag: el?.tagName.toLowerCase() ?? "null",
+				visible:
+					el instanceof HTMLElement && el.getBoundingClientRect().width > 0,
+			};
+		});
+		expect(landed.isBody, `focus landed on <${landed.tag}>`).toBe(false);
+		expect(landed.visible).toBe(true);
+	});
+});
