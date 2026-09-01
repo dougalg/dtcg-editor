@@ -10,3 +10,11 @@ existed and failed before the implementation.
 - commit: `4da9386`
 - recorded: cycle 0, before any change
 - pre-existing reds: none in the vitest tier
+
+## Cycle 1: U1 Command renders the search input, the list, and one option per item
+
+- test: `packages/design-system/src/components/Command/Command.test.tsx::renders the search input, the list, and one option per item` (new)
+- red: `pnpm exec vitest run packages/design-system/src/components/Command/Command.test.tsx -t "renders the search input, the list, and one option per item"` -> `Error: Failed to resolve import "@/registry/components/dialog/react/dialog" from "…/Command/Command.tsx"` (1 failed suite, 0 tests)
+- green: `packages/design-system/src/components/Command/Command.tsx:12` — the `@/registry/components/dialog/react/dialog` import path corrected to `../Dialog/Dialog.tsx` (the stub's only unresolvable import). Test passed on re-run; deliberate mutant (`Command` returns `null`) confirmed the test fails, then restored. Suite `pnpm exec vitest run` -> 573 passed / 121 files
+- refactor: none needed (one import-path line + new test file)
+- commit: (this commit)

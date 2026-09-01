@@ -9,7 +9,7 @@ import {
 	DialogContent,
 	DialogDescription,
 	DialogTitle,
-} from "@/registry/components/dialog/react/dialog";
+} from "../Dialog/Dialog.tsx";
 
 function Command({
 	className,
@@ -144,11 +144,11 @@ function CommandShortcut({
 export {
 	Command,
 	CommandDialog,
-	CommandInput,
-	CommandList,
 	CommandEmpty,
 	CommandGroup,
+	CommandInput,
 	CommandItem,
-	CommandShortcut,
+	CommandList,
 	CommandSeparator,
+	CommandShortcut,
 };
