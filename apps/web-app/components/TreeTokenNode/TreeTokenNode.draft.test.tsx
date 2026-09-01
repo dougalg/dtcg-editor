@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { Profiler } from "react";
 import { expect, test, vi } from "vitest";
 import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
@@ -81,18 +82,58 @@ test("a keystroke in the name field updates only local draft — no store.commit
 	expect(commitSpy).toHaveBeenCalledWith("small", { name: "tiny" });
 });
 
-test("a keystroke in the description field updates only local draft — no store.commit until blur", () => {
-	const { commitSpy } = renderRow();
-	const descriptionInput = screen.getByRole("textbox", {
+test("a keystroke in the uncontrolled description textarea does no React re-render; blur commits once (U41e)", () => {
+	const store = new StagedEditsStore({
+		initialTree: {
+			kind: "group",
+			name: "",
+			path: [],
+			declaredType: undefined,
+			effectiveType: undefined,
+			description: undefined,
+			deprecated: undefined,
+			children: [smallToken()],
+		},
+		referenceView: undefined,
+		save: async () => true,
+	});
+	const commitSpy = vi.fn(store.commit);
+	store.commit = commitSpy;
+
+	let rowRenders = 0;
+	render(
+		<StagedEditsContext.Provider value={store}>
+			<Profiler
+				id="row"
+				onRender={() => {
+					rowRenders += 1;
+				}}
+			>
+				<ul>
+					<TreeTokenNode node={smallToken()} relativePath="a.json" />
+				</ul>
+			</Profiler>
+		</StagedEditsContext.Provider>,
+	);
+
+	const description = screen.getByRole("textbox", {
 		name: /description/i,
 	}) as HTMLTextAreaElement;
+	const rendersBeforeTyping = rowRenders;
 
-	fireEvent.change(descriptionInput, { target: { value: "a note" } });
+	// A burst of keystrokes: the field is uncontrolled, so the browser buffers
+	// the text and React does no work per character (INV-9 intent, C-RI-2).
+	for (const value of ["a", "a ", "a n", "a no", "a not", "a note"]) {
+		fireEvent.change(description, { target: { value } });
+	}
 
-	expect(descriptionInput.value).toBe("a note");
+	expect(description.value).toBe("a note");
+	expect(rowRenders).toBe(rendersBeforeTyping);
 	expect(commitSpy).not.toHaveBeenCalled();
 
-	fireEvent.blur(descriptionInput);
+	// Blur reads the field's current DOM value and stages it exactly once.
+	fireEvent.blur(description);
+	expect(commitSpy).toHaveBeenCalledTimes(1);
 	expect(commitSpy).toHaveBeenCalledWith("small", { description: "a note" });
 });
 

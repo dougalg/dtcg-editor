@@ -1412,3 +1412,14 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
     budget — an A1 / T024 concern, not the helper's).
 - no red-green cycle: the profile has no vitest runner for a Playwright in-page
   helper (Phase 1 "already covered / exercised" path). state -> DONE. T003 ticked.
+
+## Cycle 81: U41e — uncontrolled description field, zero re-renders per keystroke
+
+- test: `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx::a keystroke in the uncontrolled description textarea does no React re-render; blur commits once (U41e)` (rewrites the old `::a keystroke in the description field updates only local draft` case — U41b superseded; a `<Profiler id="row">` counts row renders across a 6-keystroke burst)
+- red: `pnpm exec vitest run apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx -t "does no React re-render"`
+  -> `AssertionError: expected 7 to be 1` at `TreeTokenNode.draft.test.tsx:131` (`expect(rowRenders).toBe(rendersBeforeTyping)`) — the controlled field fires `setDraft` per keystroke, 6 extra row renders.
+- green: `apps/web-app/components/TreeTokenNode/TreeTokenNode.tsx` — the description `<textarea>` becomes uncontrolled: `ref={descriptionRef}` + `defaultValue={currentDescription ?? ""}`, no `value` / `onChange`; `handleDescriptionChange` (the per-keystroke `setDraft`) replaced by `commitDescription()` on blur, which reads `descriptionRef.current.value` and calls `commit({ description })` only when it differs from `fields.description` (rides U6). `description` no longer participates in `draft` / `shown`.
+  Full suite `pnpm exec vitest run` -> 120 files, 570 passed (~49s). Biome clean on both files.
+- refactor: none needed. `currentDescription` (== `fields.description` now that description left `draft`) kept for symmetry with `currentName` / `currentRawValue`.
+- notes: minimal green does **not** re-sync the field after a `save` / `discard` (uncontrolled + `defaultValue` only applies at mount) — that is U41f's cycle, whose red depends on this green.
+- commit: this entry's commit

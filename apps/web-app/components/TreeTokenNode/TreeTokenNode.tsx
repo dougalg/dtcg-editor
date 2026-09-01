@@ -11,6 +11,7 @@ import {
 	type ReactElement,
 	useContext,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 import { useResolvedPreview } from "../../hooks/useResolvedPreview.ts";
@@ -116,6 +117,7 @@ export function TreeTokenNode({
 	const [fallbackDraft, setFallbackDraft] = useState<string | undefined>(
 		undefined,
 	);
+	const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
 	function commitDraft() {
 		if (Object.keys(draft).length === 0) {
@@ -313,9 +315,17 @@ export function TreeTokenNode({
 		setFallbackDraft(nextText);
 	}
 
-	function handleDescriptionChange(event: ChangeEvent<HTMLTextAreaElement>) {
-		const nextDescription = event.target.value;
-		setDraft((current) => ({ ...current, description: nextDescription }));
+	// The description field is *uncontrolled* (INV-9 intent / C-RI-2): a
+	// keystroke in a free-text field you type sentences into must do no React
+	// work at all, so it carries no `value` / `onChange` and buffers its text
+	// in the DOM. On blur its current value is read once and staged — an
+	// unchanged value stages nothing (rides U6).
+	function commitDescription() {
+		const next = descriptionRef.current?.value ?? "";
+		if (next === (fields.description ?? "")) {
+			return;
+		}
+		commit({ description: next });
 	}
 
 	// Present only when this token's type came from shape inference, not a
@@ -374,12 +384,12 @@ export function TreeTokenNode({
 					Description
 				</span>
 				<textarea
+					ref={descriptionRef}
 					aria-labelledby={`${headingId} ${descriptionLabelId}`}
 					className={styles.descriptionTextarea}
 					rows={1}
-					value={currentDescription}
-					onChange={handleDescriptionChange}
-					onBlur={commitDraft}
+					defaultValue={currentDescription ?? ""}
+					onBlur={commitDescription}
 				/>
 			</label>
 		</TokenBlock>
