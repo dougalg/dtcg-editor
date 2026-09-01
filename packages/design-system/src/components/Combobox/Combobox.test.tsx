@@ -104,3 +104,67 @@ test("pressing Escape requests close", () => {
 
 	expect(onOpenChange).toHaveBeenCalledWith(false);
 });
+
+const disableBeta = (it: Item) => it.id === "b";
+
+test("a disabled item is still rendered", () => {
+	render(<Combobox {...props({ open: true, isItemDisabled: disableBeta })} />);
+
+	const beta = screen.getByRole("option", { name: "beta" });
+	expect(beta).toBeTruthy();
+	expect(beta.getAttribute("aria-disabled")).toBe("true");
+});
+
+test("activating a disabled item never calls onSelect and does not close", () => {
+	const onSelect = vi.fn();
+	const onOpenChange = vi.fn();
+	render(
+		<Combobox
+			{...props({
+				open: true,
+				onSelect,
+				onOpenChange,
+				isItemDisabled: disableBeta,
+			})}
+		/>,
+	);
+
+	fireEvent.click(screen.getByRole("option", { name: "beta" }));
+
+	expect(onSelect).not.toHaveBeenCalled();
+	expect(onOpenChange).not.toHaveBeenCalledWith(false);
+});
+
+test("selectedKey marks exactly that row as the current selection", () => {
+	render(<Combobox {...props({ open: true, selectedKey: "c" })} />);
+
+	expect(
+		screen.getByRole("option", { name: /gamma/ }).getAttribute("aria-current"),
+	).toBe("true");
+	expect(
+		screen.getByRole("option", { name: "alpha" }).getAttribute("aria-current"),
+	).toBeNull();
+});
+
+test("loading shows loadingContent and neither the item list nor emptyContent", () => {
+	render(
+		<Combobox
+			{...props({
+				open: true,
+				loading: true,
+				loadingContent: "Loading…",
+			})}
+		/>,
+	);
+
+	expect(screen.getByText("Loading…")).toBeTruthy();
+	expect(screen.queryAllByRole("option")).toHaveLength(0);
+	expect(screen.queryByText("No items found")).toBeNull();
+});
+
+test("empty items (not loading) shows emptyContent and nothing selectable", () => {
+	render(<Combobox {...props({ open: true, items: [] })} />);
+
+	expect(screen.getByText("No items found")).toBeTruthy();
+	expect(screen.queryAllByRole("option")).toHaveLength(0);
+});

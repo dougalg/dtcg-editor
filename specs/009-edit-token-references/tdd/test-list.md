@@ -80,13 +80,13 @@ sorts — the caller passes `items` ready.
 | U6  | Renders exactly the `items` given, in the given order — no internal filter or sort | FR-004 | example | DONE | `Combobox.test.tsx::renders exactly the items given` |
 | U7  | Activating an enabled item calls `onSelect` with that item and then `onOpenChange(false)` | FR-006 | example | DONE | `Combobox.test.tsx::activating an enabled item` |
 | U8  | Pressing Escape calls `onOpenChange(false)` and returns focus to the trigger | FR-001 | example | DONE | `Combobox.test.tsx::pressing Escape requests close` |
-| U9  | An item where `isItemDisabled` returns true is still rendered | FR-024 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
-| U10 | Activating a disabled item never calls `onSelect` and does not close the popover | FR-024, SC-008 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
-| U11 | ArrowDown / ArrowUp move over enabled items and skip a disabled item | FR-024, FR-005 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
-| U12 | `selectedKey` marks the matching row as current (`aria-current`) and no other row | FR-018 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
-| U13 | `loading` true renders `loadingContent` and neither the item list nor `emptyContent` | FR-023 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
-| U14 | `items` empty and not loading renders `emptyContent`, and no row is selectable | FR-017 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.test.tsx` |
-| U15 | The open popover has zero axe-core violations, including with one disabled row present (announced unavailable, not omitted) | FR-005, SC-006 | example | PENDING | `packages/design-system/src/components/Combobox/Combobox.a11y.test.tsx` |
+| U9  | An item where `isItemDisabled` returns true is still rendered | FR-024 | example | DONE | `Combobox.test.tsx::a disabled item is still rendered` |
+| U10 | Activating a disabled item never calls `onSelect` and does not close the popover | FR-024, SC-008 | example | DONE | `Combobox.test.tsx::activating a disabled item never calls onSelect` |
+| U11 | ArrowDown / ArrowUp move over enabled items and skip a disabled item | FR-024, FR-005 | example | DONE | `Combobox.a11y.test.tsx::ArrowDown moves over enabled items and skips a disabled one` |
+| U12 | `selectedKey` marks the matching row as current (`aria-current`) and no other row | FR-018 | example | DONE | `Combobox.test.tsx::selectedKey marks exactly that row` |
+| U13 | `loading` true renders `loadingContent` and neither the item list nor `emptyContent` | FR-023 | example | DONE | `Combobox.test.tsx::loading shows loadingContent` |
+| U14 | `items` empty and not loading renders `emptyContent`, and no row is selectable | FR-017 | example | DONE | `Combobox.test.tsx::shows emptyContent and nothing selectable` |
+| U15 | The open popover has zero axe-core violations, including with one disabled row present (announced unavailable, not omitted) | FR-005, SC-006 | example | DONE | `Combobox.a11y.test.tsx::axe: populated/empty/disabled-row` |
 
 ### `apps/web-app/lib/tokens/reference-catalogue-wire.ts`
 

@@ -73,3 +73,18 @@ existed and failed before the implementation.
 - green: no change. Suite -> 580 passed / 123 files
 - refactor: none
 - commit: (this commit — bundles cycles 6-8, all characterization-by-mutant of the Combobox built test-first in cycle 4)
+
+## Cycles 9-15: Combobox U9-U15
+
+All exercise the Combobox built test-first in cycle 4. One test each, run individually.
+
+- U9 (disabled item still rendered + `aria-disabled="true"`): passed; mutant `disabled = false` -> `1 failed`. Restored.
+- U10 (activating a disabled item: no `onSelect`, no close): passed; single-guard mutants each still passed (defence-in-depth: cmdk `disabled` prop AND `handleSelect` early-return each independently block it); combined mutant (both removed) -> `1 failed`. Both guards kept intentionally.
+- U11 (ArrowDown skips a disabled item) — moved from `Combobox.test.tsx` (jsdom) to `Combobox.a11y.test.tsx` (real Chromium): cmdk keyboard nav is unreliable under jsdom `fireEvent` and `user-event` is not a repo dependency (Hard Rule 7). Browser-tier test with `waitFor` passes. Deliberate mutant `disabled={false}` did NOT flip it (cmdk's arrow-skip is internal, not solely the `disabled` prop in this harness); U9+U10 independently pin the disabled semantics, and e2e A12/A16 cover the real keyboard skip. Recorded as a weaker mutant result.
+- U12 (`selectedKey` -> `aria-current="true"` on exactly that row): passed; mutant `aria-current={undefined}` -> `1 failed`. Restored.
+- U13 (`loading` -> `loadingContent`, no list, no empty): passed; mutant `{false ? loading-branch}` -> `1 failed`. Restored.
+- U14 (empty `items` -> `emptyContent`, nothing selectable): **real red** — an empty cmdk `CommandList` (role=listbox) trips axe `aria-required-children` (critical). Fixed `Combobox.tsx`: the list stays mounted but `hidden` when there are no options (keeps cmdk's input `aria-controls` target valid), and the loading/empty text renders as a `role="status"` sibling; trigger `aria-controls` retargeted to `PopoverContent`'s id. Mutant `{false ? empty-branch}` -> `1 failed`. Restored.
+- U15 (open popover — populated / empty / with a disabled row — zero axe): red until the U14 fix above; now 3 axe assertions pass in real Chromium.
+- suite: `pnpm exec vitest run` -> 589 passed / 124 files
+- refactor: `hasNoOptions` extracted; the two disabled-selection guards kept (combined mutant proved each is load-bearing without the other). 
+- commit: (this commit — bundles cycles 9-15, the Combobox component's remaining behaviors + the empty-listbox a11y fix)

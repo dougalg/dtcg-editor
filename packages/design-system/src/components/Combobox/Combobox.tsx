@@ -6,7 +6,6 @@ import { type ReactNode, useId } from "react";
 import { Button } from "../Button/Button.tsx";
 import {
 	Command,
-	CommandEmpty,
 	CommandInput,
 	CommandItem,
 	CommandList,
@@ -72,6 +71,7 @@ export function Combobox<T>({
 	loadingContent,
 }: ComboboxProps<T>) {
 	const listId = useId();
+	const hasNoOptions = loading || items.length === 0;
 
 	function handleSelect(item: T) {
 		if (isItemDisabled?.(item) === true) {
@@ -96,46 +96,62 @@ export function Combobox<T>({
 					<ChevronsUpDown aria-hidden="true" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="combobox-content">
+			<PopoverContent id={listId} className="combobox-content">
 				<Command shouldFilter={false} label={inputLabel}>
 					<CommandInput
 						aria-label={inputLabel}
 						value={query}
 						onValueChange={onQueryChange}
 					/>
-					<CommandList id={listId}>
-						{loading ? (
-							<div data-slot="combobox-loading" className="combobox-loading">
-								{loadingContent}
-							</div>
-						) : items.length === 0 ? (
-							<CommandEmpty>{emptyContent}</CommandEmpty>
-						) : (
-							items.map((item) => {
-								const key = getKey(item);
-								const disabled = isItemDisabled?.(item) === true;
-								const selected =
-									selectedKey !== undefined && selectedKey === key;
-								return (
-									<CommandItem
-										key={key}
-										value={key}
-										disabled={disabled}
-										aria-current={selected ? "true" : undefined}
-										onSelect={() => handleSelect(item)}
-									>
-										{renderItem(item)}
-										{selected ? (
-											<Check
-												aria-hidden="true"
-												className="combobox-selected-check"
-											/>
-										) : null}
-									</CommandItem>
-								);
-							})
-						)}
+					{/* cmdk's CommandList hard-codes role="listbox" and owns its own
+					    id (the input's aria-controls target). An empty listbox trips
+					    aria-required-children, so when there are no options the list
+					    is `hidden` (kept mounted for the aria-controls target) and
+					    the loading / empty message renders as a live region sibling. */}
+					<CommandList hidden={hasNoOptions || undefined}>
+						{hasNoOptions
+							? null
+							: items.map((item) => {
+									const key = getKey(item);
+									const disabled = isItemDisabled?.(item) === true;
+									const selected =
+										selectedKey !== undefined && selectedKey === key;
+									return (
+										<CommandItem
+											key={key}
+											value={key}
+											disabled={disabled}
+											aria-current={selected ? "true" : undefined}
+											onSelect={() => handleSelect(item)}
+										>
+											{renderItem(item)}
+											{selected ? (
+												<Check
+													aria-hidden="true"
+													className="combobox-selected-check"
+												/>
+											) : null}
+										</CommandItem>
+									);
+								})}
 					</CommandList>
+					{loading ? (
+						<div
+							role="status"
+							data-slot="combobox-loading"
+							className="combobox-loading"
+						>
+							{loadingContent}
+						</div>
+					) : items.length === 0 ? (
+						<div
+							role="status"
+							data-slot="combobox-empty"
+							className="combobox-empty"
+						>
+							{emptyContent}
+						</div>
+					) : null}
 				</Command>
 			</PopoverContent>
 		</Popover>
