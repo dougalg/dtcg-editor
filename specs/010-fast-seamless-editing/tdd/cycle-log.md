@@ -1497,3 +1497,15 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: none. The long-task observer is inline and A1-specific; extract into `e2e/support/stability.ts` if a second spec needs it.
 - tasks: none ticked — T024 (`[A1] [A6]`) and T004 (`[A1] [A5] [A6] [A8]`) both bundle behaviors still red.
 - commit: this entry's commit
+
+## Cycle 86: A5 — a ≥100-referrer edit updates every referrer within budget, no tree rebuild
+
+- test: `apps/web-app/e2e/editing-perf.spec.ts::editing a token referenced by >=100 others updates every referrer within budget, no tree rebuild (A5)` — the T004 skeleton, its referrer selector fixed (T045).
+- red (pre-fix): `pnpm exec playwright test editing-perf.spec.ts -g "referenced by >=100 others"` -> `Test timeout of 30000ms exceeded` — the skeleton's `getByText(/px$/)` never matched: a `dimension` has no `Preview`, so the referrer renders its resolved value as JSON text (`{"value":42,"unit":"px"}`), confirmed by a throwaway DOM probe.
+- fix (own step, stated reason — the selector could not match): target the referrer's resolved-value **link** (`getByTestId(HUB_REFERRER).getByRole("link")`, textContent = the JSON literal); `measureCommitToVisible` cross-observe mode polls it until it differs from the captured `before`. Added: a ≥100-referrer precondition (`/referenced \d{3,} times/`), an assertion the referrer shows the *new* value (`{"value":321,…}`), and a "no tree rebuild" check (a distant unrelated row's DOM node is the same live element after the commit).
+- green: **A5 PASS**, referrer preview updates in **32 ms** (budget 100 ms). No production change — the live cross-referrer preview (U47, U19, U37, U38) already works in the prod build.
+- deliberate-mutant (A5 passed once the selector was right, so verify it can fail): invert the `sameFile` check in `TreeTokenNode.tsx`'s `ReferenceValueDisplay` (`outcome.targetFile !== relativePath`) -> the referrer never receives `liveValue` -> `measureCommitToVisible` times out -> `elapsed = Infinity`, `Expected: <= 300 / Received: Infinity` -> **FAIL**. Reverted, `TreeTokenNode.tsx` byte-restored, rebuilt.
+- suite: `pnpm exec vitest run` -> 120 files, 572 passed. `pnpm build` (tsc) clean; biome clean. `editing-perf.spec.ts`: A1 ✓, A5 ✓, A6 ✗ (name-field target — A6's cycle).
+- refactor: none.
+- tasks: none ticked — T045 (`[A5] [A7]`) and T004 (`[A1] [A5] [A6] [A8]`) both still carry PENDING behaviors. A5 (T045's deliverable) is done.
+- commit: this entry's commit

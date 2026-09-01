@@ -100,36 +100,52 @@ test.describe("editing-perf — large fixture", () => {
 		expect(busyOrDisabled).toBe(false);
 	});
 
-	test("editing a token referenced by >=100 others echoes within budget (A5)", async ({
+	test("editing a token referenced by >=100 others updates every referrer within budget, no tree rebuild (A5)", async ({
 		page,
 	}, testInfo) => {
 		await page.goto("/tokens/large_scale.tokens.json");
 
-		const hubValue = page
-			.getByTestId(HUB)
-			.getByRole("spinbutton", { name: "Value" });
+		const hubRow = page.getByTestId(HUB);
+		const hubValue = hubRow.getByRole("spinbutton", { name: "Value" });
 		await expect(hubValue).toBeVisible();
+		// Precondition: the hub really has ≥100 in-file referrers.
+		await expect(hubRow.getByText(/referenced \d{3,} times/)).toBeVisible();
 
-		// The number that matters: how long until a *referencing* row's shown
-		// resolved value reflects the hub edit. NOTE: the `/px$/` selector is
-		// wrong — a `dimension` has no `Preview`, so the referrer renders the
-		// resolved value as JSON text; T045 fixes this selector and the assertion.
-		const referrerValue = page.getByTestId(HUB_REFERRER).getByText(/px$/);
-		const before = (await referrerValue.textContent()) ?? "";
+		// The referrer row shows the hub's *resolved* value as a navigable link
+		// (a `dimension` has no `Preview`, so the literal renders as JSON text).
+		const referrerLink = page.getByTestId(HUB_REFERRER).getByRole("link");
+		const before = (await referrerLink.textContent()) ?? "";
+		expect(before).toMatch(/\{"value":\d+,"unit":"px"\}/);
+
+		// A distant, unrelated row — its DOM node must survive the commit intact
+		// (SC-005: "the tree does not visibly rebuild").
+		const distantBefore = await page.getByTestId(PLAIN).elementHandle();
 
 		const elapsed = await measureCommitToVisible(page, {
 			field: hubValue,
 			newValue: "321",
-			readFrom: referrerValue,
+			readFrom: referrerLink,
 			readAs: "text",
 			changesFrom: before,
 		});
 
 		testInfo.annotations.push({
 			type: "perf",
-			description: `A5 hub edit → referrer preview updates: ${Number.isFinite(elapsed) ? `${Math.round(elapsed)}ms` : ">2000ms (not observed — no live ref preview)"} (budget ${ECHO_BUDGET_MS}ms)`,
+			description: `A5 hub edit → referrer preview updates: ${Number.isFinite(elapsed) ? `${Math.round(elapsed)}ms` : ">2000ms (not observed)"} (budget ${ECHO_BUDGET_MS}ms ×${CI_MARGIN} margin)`,
 		});
-		expect(elapsed).toBeLessThan(ECHO_BUDGET_MS * CI_MARGIN);
+
+		// SC-005: the referrer reflects the edit within the same 100 ms budget…
+		expect(elapsed).toBeLessThanOrEqual(ECHO_BUDGET_MS * CI_MARGIN);
+		// …and it shows the *new* resolved value…
+		await expect(referrerLink).toHaveText(/\{"value":321,"unit":"px"\}/);
+		// …and the tree did not rebuild (the distant row is the same live node).
+		const distantSurvived = await distantBefore?.evaluate(
+			(el) =>
+				el.isConnected &&
+				el ===
+					document.querySelector('[data-testid="token-_showcase.dimension"]'),
+		);
+		expect(distantSurvived).toBe(true);
 	});
 
 	test("a typing burst drops no characters (A6)", async ({
