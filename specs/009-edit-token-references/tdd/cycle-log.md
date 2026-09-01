@@ -88,3 +88,14 @@ All exercise the Combobox built test-first in cycle 4. One test each, run indivi
 - suite: `pnpm exec vitest run` -> 589 passed / 124 files
 - refactor: `hasNoOptions` extracted; the two disabled-selection guards kept (combined mutant proved each is load-bearing without the other). 
 - commit: (this commit — bundles cycles 9-15, the Combobox component's remaining behaviors + the empty-listbox a11y fix)
+
+## Cycles 16-18: reference-catalogue-wire U16-U18
+
+Post-rebase onto local main (`0dbde43`); baseline re-verified `pnpm exec vitest run` -> 589 passed / 124 files.
+
+- U16 (well-formed payload parses to `ReferenceCatalogue`): red `Failed to resolve import "./reference-catalogue-wire.ts"` (module absent). Green: created `reference-catalogue-wire.ts` with `ReferenceCatalogueSchema` transcribed from contracts/candidate-catalogue-api.md (declarative schema, larger-than-minimal like cycle 4). Mutant `displayPath: z.number()` -> `1 failed`. Restored. Suite -> 590 passed.
+- U17 (a preview outcome missing `steps` is rejected): passed first run. Mutant `steps: z.array(...).optional()` -> `1 failed`. Restored.
+- U18 (unknown `outcome.kind` rejected by the discriminated union): passed first run. Mutant (union loosened to `z.object({ kind: z.string() }).loose()`) -> `1 failed`. Restored.
+- suite: `pnpm exec vitest run` -> 592 passed / 125 files
+- refactor: none (pure declarative schema)
+- commit: (this commit — bundles cycles 16-18, the wire schema module + its two rejection guards)

@@ -92,9 +92,9 @@ sorts — the caller passes `items` ready.
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U16 | A well-formed catalogue payload parses to the typed `ReferenceCatalogue` | FR-023 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue-wire.test.ts` |
-| U17 | A preview outcome missing `steps` is rejected (steps required — selectability depends on it) | FR-024 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue-wire.test.ts` |
-| U18 | An unknown `outcome.kind` is rejected by the discriminated union | FR-015 | example | PENDING | `apps/web-app/lib/tokens/reference-catalogue-wire.test.ts` |
+| U16 | A well-formed catalogue payload parses to the typed `ReferenceCatalogue` | FR-023 | example | DONE | `reference-catalogue-wire.test.ts::a well-formed catalogue payload parses` |
+| U17 | A preview outcome missing `steps` is rejected (steps required — selectability depends on it) | FR-024 | example | DONE | `reference-catalogue-wire.test.ts::a preview outcome missing steps is rejected` |
+| U18 | An unknown `outcome.kind` is rejected by the discriminated union | FR-015 | example | DONE | `reference-catalogue-wire.test.ts::an unknown outcome.kind is rejected` |
 
 ### `apps/web-app/lib/tokens/reference-catalogue.ts`
 
