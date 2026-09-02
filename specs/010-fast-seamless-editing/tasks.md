@@ -275,3 +275,21 @@ Task: "T023 TreeTokenNode.a11y.test.tsx / TreeGroupNode.a11y.test.tsx axe-during
   pass; the red goes in `tdd/cycle-log.md`** (Constitution XIII).
 - Commit after each cycle at green — the test and its implementation together, nothing else.
 - Do not touch the PATCH route, `token-core`, or `plain-node.ts` output (INV-7).
+
+---
+
+## Phase 7: TDD remediation
+
+Raised by `/speckit-tdd-verify` at `6654e24` (verdict **PASS_WITH_GAPS** — see
+`tdd/verification.md`). No blocking findings: the feature's discipline and
+coverage hold. These close weak-evidence gaps. None require a behavior change to
+`apps/web-app` except where noted.
+
+- [ ] T060 [verify-F1] Backfill the missing **Cycle 76** entry in `tdd/cycle-log.md` for **U63** (`FieldErrorSlot.a11y.test.tsx::has no WCAG 2.2 AA violations …`): re-run the test, record the command + output, and run one deliberate mutant (e.g. drop the alert's `role`) to show it fails. Proof: a `## Cycle 76:` section exists naming U63 with a red/mutant line. (`cycle-log.md` 75 → 77; commit `9c92601`)
+- [ ] T061 [verify-F2] In `apps/web-app/e2e/editing-perf.spec.ts` A1 (`:50`), add a comment block (or a short assertion) that ties the long-task guard back to SC-001's literal wording, and cross-reference `baseline.md`'s "measurement method changed" note, so a reader of SC-001 finds why "visible within 100 ms" is measured as a long-task count. No behavior change. Proof: `rg "SC-001" apps/web-app/e2e/editing-perf.spec.ts` shows the rationale inline.
+- [ ] T062 [verify-F3] Same for `render-stability.spec.ts` A2 (`:37`) and A4 (`:148`): a one-line pointer to the `layout-shift` API `hadRecentInput` blind spot (already in `cycle-log.md` cycles 88/91) explaining why SC-002 is measured by row-height delta / DOM-diff. No behavior change.
+- [ ] T063 [verify-F4] Strengthen A7 (`editing-perf.spec.ts:191`) from a pure row-count check toward its stated behavior: either (a) run one representative A1-style commit + long-task assertion inside the A7 test against the 2,005-token fixture, or (b) rename A7 to state plainly it is a *fixture-size guard* and add a doc line that SC-001..SC-006 at the ceiling are covered transitively by A1/A2/A4/A5/A6. Proof: the A7 test name/body no longer overclaims.
+- [ ] T064 [verify-F5] [A3] [U54] Close the FR-010 / C-KL-6 gap (this is `tasks.md` T032, still open): add a Playwright case to `apps/web-app/e2e/keyboard-navigation.spec.ts` or `render-stability.spec.ts` — capture every `<details open>` flag, Tab from the tree through the editor and Shift+Tab back, assert the flag array and `window.scrollY` are unchanged. **Red first.** Proof: the new test fails if a `<details>` is forced closed mid-pass, passes as-is.
+- [ ] T065 [verify-F6] Record the FR-008 "no product surface" determination where a spec reader will see it: add a line to `spec.md` FR-008 (or a `research.md` note) stating the editor ships no focus-revealed supplementary UI and that A11 covers the one real affordance (`TypeSuggestion` accept). No test needed unless such UI is later added. (`test-list.md:282-287`)
+- [ ] T066 [verify-F7] Reconcile `tasks.md` checkboxes with `tdd/test-list.md`: tick **T045** (`[A5]`), **T046** (`[A4]`), **T035** (`[A2]`), **T032** (`[A3][U54]` — after T064) and decide **T031** (`[A11]` — documented deferral: tick with a "focus half only, layout reservation deferred" note, or leave open explicitly). Proof: no unticked task carries only behavior ids that are all `DONE`. Do **not** let `/speckit-implement` re-run A4/A5's e2e cases.
+- [ ] T067 [verify-F8] In `editing-perf.spec.ts` A6 (`:184`), either tighten the lag assertion toward SC-006's ~16 ms frame bound or add a comment that the 0-dropped-characters check (`shown === BURST`) is the primary guarantee and 100 ms is a coarse block-detection threshold. No behavior change.
