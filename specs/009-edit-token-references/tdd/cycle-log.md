@@ -186,3 +186,20 @@ no type-check) rather than `pnpm build && …`. Behaviour was correct (U23-U28 g
 - suite: `pnpm build` (green) + `pnpm exec vitest run` -> 629 passed / 129 files
 - refactor: none (`samePath` helper is minimal)
 - commit: (this commit — bundles cycles 49-56, the candidate-selectability module)
+
+## Cycles 57-63: hypothetical-resolution U57-U63
+
+`resolveIfRepointed(editedTokenPath, candidatePath, catalogue): HypotheticalResolution` — pure; builds a synthetic `ReferenceLookup` per mode over `catalogue.candidates` and delegates chain-walking to token-core `resolveReference`.
+
+- U57 (`isSelf` iff paths deep-equal): red import error. Green: module built. Mutant (`isSelf: false`) -> `1 failed`.
+- U58 (literal -> `resolved` + value) / U59 (chain -> end-of-chain value) / U60 (loop back to edited -> `circular` + `cyclePath`): passed. Mutant (lookup finds nothing) -> U58, U60 `1 failed` (U59 shares the lookup path).
+- U61 (candidate path absent -> `unresolved`): passed. Mutant (lookup returns a fake hit for any path) -> `1 failed`.
+- U62 (multiply-defined -> one perMode per mode, values differ): passed. Mutant (`modes` forced to `[undefined]`) -> `1 failed`.
+- U63 (synthetic lookup picks the mode's definition, else the last): passed. Mutant (drop the `?? .at(-1)` fallback) -> `1 failed`.
+- suite: `pnpm build` (green) + `pnpm exec vitest run` -> 636 passed / 130 files
+- refactor: none (`samePath` local helper matches `candidate-selectability`'s; not worth a shared module yet)
+- commit: (this commit — bundles cycles 57-63)
+
+## Phase 3 pure-logic layer complete — U38-U63
+
+`candidate-filter`, `candidate-selectability`, `hypothetical-resolution` all built test-first. 63/121 behaviors DONE. Remaining: components (U64-U101) + acceptance (A1-A20).

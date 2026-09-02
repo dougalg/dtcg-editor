@@ -174,13 +174,13 @@ the highlighted candidate only. Delegates chain-walking to `token-core`'s
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U57 | `isSelf` is true exactly when `candidatePath` deep-equals `editedTokenPath` | FR-013 | example | PENDING | `apps/web-app/lib/tokens/hypothetical-resolution.test.ts` |
-| U58 | A candidate resolving to a literal → each `perMode[].chain.outcome.kind === "resolved"` with that value | FR-012 | example | PENDING | `apps/web-app/lib/tokens/hypothetical-resolution.test.ts` |
-| U59 | A candidate whose value is a chain → the previewed value is the end-of-chain value | FR-010, FR-012 | example | PENDING | `apps/web-app/lib/tokens/hypothetical-resolution.test.ts` |
-| U60 | A candidate that would close a loop back to the edited token → `outcome.kind === "circular"` with `cyclePath` naming the cycle | FR-014 | example | PENDING | `apps/web-app/lib/tokens/hypothetical-resolution.test.ts` |
-| U61 | A candidate path absent from the catalogue → `outcome.kind === "unresolved"` | FR-015 | example | PENDING | `apps/web-app/lib/tokens/hypothetical-resolution.test.ts` |
-| U62 | A multiply-defined candidate → one `perMode` entry per mode, differing where the mode definitions differ | FR-011, FR-012 | example | PENDING | `apps/web-app/lib/tokens/hypothetical-resolution.test.ts` |
-| U63 | The synthetic lookup picks the definition matching the requested mode, else the last definition | FR-011 (invariant) | example | PENDING | `apps/web-app/lib/tokens/hypothetical-resolution.test.ts` |
+| U57 | `isSelf` is true exactly when `candidatePath` deep-equals `editedTokenPath` | FR-013 | example | DONE | `hypothetical-resolution.test.ts` |
+| U58 | A candidate resolving to a literal → each `perMode[].chain.outcome.kind === "resolved"` with that value | FR-012 | example | DONE | `hypothetical-resolution.test.ts` |
+| U59 | A candidate whose value is a chain → the previewed value is the end-of-chain value | FR-010, FR-012 | example | DONE | `hypothetical-resolution.test.ts` |
+| U60 | A candidate that would close a loop back to the edited token → `outcome.kind === "circular"` with `cyclePath` naming the cycle | FR-014 | example | DONE | `hypothetical-resolution.test.ts` |
+| U61 | A candidate path absent from the catalogue → `outcome.kind === "unresolved"` | FR-015 | example | DONE | `hypothetical-resolution.test.ts` |
+| U62 | A multiply-defined candidate → one `perMode` entry per mode, differing where the mode definitions differ | FR-011, FR-012 | example | DONE | `hypothetical-resolution.test.ts` |
+| U63 | The synthetic lookup picks the definition matching the requested mode, else the last definition | FR-011 (invariant) | example | DONE | `hypothetical-resolution.test.ts` |
 
 ### `apps/web-app/components/TokenReferenceValue/format-literal-value.tsx` (extracted)
 
