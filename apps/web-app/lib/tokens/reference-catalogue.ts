@@ -26,7 +26,12 @@ function previewOutcome(
 ): ResolutionChainWire {
 	const reference = parseReference(def.value);
 	if (reference !== undefined) {
-		return resolveReference(reference, lookupForMode(index, def.mode));
+		// `resolveReference` returns token-core's deeply-`readonly`
+		// `ResolutionChain`; `structuredClone` produces the plain mutable copy
+		// the wire shape (and JSON serialization) wants.
+		return structuredClone(
+			resolveReference(reference, lookupForMode(index, def.mode)),
+		) as ResolutionChainWire;
 	}
 	return {
 		steps: [{ path: [...path], file: def.file, mode: def.mode }],

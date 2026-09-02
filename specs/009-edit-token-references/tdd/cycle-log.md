@@ -143,3 +143,18 @@ Post-rebase onto local main (`0dbde43`); baseline re-verified `pnpm exec vitest 
 ## Phase 2 (Foundational) complete — U1-U37 all DONE
 
 Checkpoint met: `Command` + `Combobox` design-system primitives, the reference-catalogue wire schema + transform, `GET /api/tokens/references`, and `useReferenceCatalogue` are built and covered. Suite 610 passed / 127 files at this point.
+
+## Baseline fix (session 3 preflight): reference-catalogue.ts type error
+
+`pnpm build` (the authoritative type-check gate) was **red** from cycle 23:
+`reference-catalogue.ts:29` — `resolveReference` returns token-core's deeply-`readonly`
+`ResolutionChain`, not assignable to the mutable Zod-inferred `ResolutionChainWire`
+(`Types of property 'steps' are incompatible ... 'readonly' ... cannot be assigned to the mutable type`).
+Not caught earlier because cycle-log baselines used `pnpm exec vitest run` (vite transpile-only,
+no type-check) rather than `pnpm build && …`. Behaviour was correct (U23-U28 green); type-only.
+
+- fix: `previewOutcome` wraps the reference-branch result in `structuredClone(...) as ResolutionChainWire`
+  — a plain mutable deep copy (sanctioned built-in, Principle VIII), behaviour-identical.
+- verified: `pnpm --filter @dtcg-editor/web-app run build` -> type-checks (exit 0); `pnpm build` -> all 7 packages green; `reference-catalogue.test.ts` -> 10 passed.
+- process correction: from here the per-green check is `pnpm build && pnpm exec vitest run`, not vitest alone.
+- commit: (this fix commit, before resuming at U38)
