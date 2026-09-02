@@ -157,14 +157,14 @@ sorts — the caller passes `items` ready.
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U49 | Returns true when `candidate.path` deep-equals `editedTokenPath` (the one-hop self-cycle) | FR-013, FR-024 | example | PENDING | `apps/web-app/lib/tokens/candidate-selectability.test.ts` |
-| U50 | Returns true when `editedTokenPath` is a step in the candidate's 2-hop resolution chain | FR-014, FR-024 | example | PENDING | `apps/web-app/lib/tokens/candidate-selectability.test.ts` |
-| U51 | Returns true when `editedTokenPath` is a step only in the candidate's 3-hop chain | FR-014, FR-024 | example | PENDING | `apps/web-app/lib/tokens/candidate-selectability.test.ts` |
-| U52 | Returns true when the candidate is circular under one mode only | FR-024 (edge case: cross-mode) | example | PENDING | `apps/web-app/lib/tokens/candidate-selectability.test.ts` |
-| U53 | Returns false for a candidate in a pre-existing cycle that does not include `editedTokenPath` | FR-016, FR-024 | example | PENDING | `apps/web-app/lib/tokens/candidate-selectability.test.ts` |
-| U54 | Returns false for a candidate resolving to a missing path | FR-016 | example | PENDING | `apps/web-app/lib/tokens/candidate-selectability.test.ts` |
-| U55 | Returns false for a candidate resolving to a group | FR-016 | example | PENDING | `apps/web-app/lib/tokens/candidate-selectability.test.ts` |
-| U56 | Returns false for a candidate that resolves cleanly | FR-006 | example | PENDING | `apps/web-app/lib/tokens/candidate-selectability.test.ts` |
+| U49 | Returns true when `candidate.path` deep-equals `editedTokenPath` (the one-hop self-cycle) | FR-013, FR-024 | example | DONE | `candidate-selectability.test.ts` |
+| U50 | Returns true when `editedTokenPath` is a step in the candidate's 2-hop resolution chain | FR-014, FR-024 | example | DONE | `candidate-selectability.test.ts` |
+| U51 | Returns true when `editedTokenPath` is a step only in the candidate's 3-hop chain | FR-014, FR-024 | example | DONE | `candidate-selectability.test.ts` |
+| U52 | Returns true when the candidate is circular under one mode only | FR-024 (edge case: cross-mode) | example | DONE | `candidate-selectability.test.ts` |
+| U53 | Returns false for a candidate in a pre-existing cycle that does not include `editedTokenPath` | FR-016, FR-024 | example | DONE | `candidate-selectability.test.ts` |
+| U54 | Returns false for a candidate resolving to a missing path | FR-016 | example | DONE | `candidate-selectability.test.ts` |
+| U55 | Returns false for a candidate resolving to a group | FR-016 | example | DONE | `candidate-selectability.test.ts` |
+| U56 | Returns false for a candidate that resolves cleanly | FR-006 | example | DONE | `candidate-selectability.test.ts` |
 
 ### `apps/web-app/lib/tokens/hypothetical-resolution.ts`
 

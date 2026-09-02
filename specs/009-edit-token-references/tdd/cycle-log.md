@@ -175,3 +175,14 @@ no type-check) rather than `pnpm build && …`. Behaviour was correct (U23-U28 g
 - suite: `pnpm build` (7 pkgs green) + `pnpm exec vitest run` -> 621 passed / 128 files
 - refactor: `emptyQueryBand` extracted.
 - commit: (this commit — bundles cycles 38-48, the candidate-filter module)
+
+## Cycles 49-56: candidate-selectability U49-U56
+
+`isCircularIfSelected(editedTokenPath, candidate): boolean` — pure; real `ReferenceCatalogue` candidates built via `buildReferenceCatalogue(buildReferenceIndex(files))`.
+
+- U49 (candidate IS the edited path -> true): red import error. Green: `samePath(candidate.path, editedTokenPath) || editedTokenPath in any preview step`. Fixture strengthened — `accent` is a *reference* token (chain runs through `blue`, not itself) so only the own-path check flags it. Mutant (drop the own-path check) -> `1 failed`.
+- U50 (edited path a step in the 2-hop chain) / U51 (only in the 3-hop chain) / U52 (circular through edited under one mode only, multiply-defined): all passed. Mutant (drop the `preview.some(steps.some(...))` check -> `return false`) -> U50 `1 failed` (same code path serves U51/U52).
+- U53 (unrelated pre-existing cycle) / U54 (missing) / U55 (group) / U56 (clean): all -> false. Mutant (`return true || ...`) -> all 4 `1 failed`.
+- suite: `pnpm build` (green) + `pnpm exec vitest run` -> 629 passed / 129 files
+- refactor: none (`samePath` helper is minimal)
+- commit: (this commit — bundles cycles 49-56, the candidate-selectability module)
