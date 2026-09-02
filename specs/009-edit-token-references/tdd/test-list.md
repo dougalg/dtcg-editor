@@ -139,17 +139,17 @@ sorts — the caller passes `items` ready.
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U38 | A non-empty query keeps only candidates whose `displayPath` contains it, case-insensitively | FR-004 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U39 | The match is against the whole dotted path — `brand.blue` matches `color.brand.blue` | FR-004 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U40 | Results are ordered by the index of the first match, earliest match first | FR-004 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U41 | Candidates with an equal first-match index are ordered alphabetically by `displayPath` | FR-004 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U42 | A query matching nothing returns an empty list | FR-017 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U43 | An empty query returns every candidate; a whitespace-only query behaves identically | FR-020 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U44 | For an empty query, a same-effective-type candidate sorts before a same-file-only candidate, which sorts before all others | FR-020 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U45 | For an empty query when the edited token's effective type is undefined, band 1 is skipped (no false "same type" grouping) | FR-020 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U46 | Within a band the order is alphabetical by `displayPath` | FR-020 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U47 | The edited token's own path is present in the results, not filtered out | FR-013 | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
-| U48 | A query containing braces or a leading/trailing dot matches literally as a substring — `{color.brand}` matches `color.brand.*` | FR-004 (edge case) | example | PENDING | `apps/web-app/lib/tokens/candidate-filter.test.ts` |
+| U38 | A non-empty query keeps only candidates whose `displayPath` contains it, case-insensitively | FR-004 | example | DONE | `candidate-filter.test.ts` |
+| U39 | The match is against the whole dotted path — `brand.blue` matches `color.brand.blue` | FR-004 | example | DONE | `candidate-filter.test.ts` |
+| U40 | Results are ordered by the index of the first match, earliest match first | FR-004 | example | DONE | `candidate-filter.test.ts` |
+| U41 | Candidates with an equal first-match index are ordered alphabetically by `displayPath` | FR-004 | example | DONE | `candidate-filter.test.ts` |
+| U42 | A query matching nothing returns an empty list | FR-017 | example | DONE | `candidate-filter.test.ts` |
+| U43 | An empty query returns every candidate; a whitespace-only query behaves identically | FR-020 | example | DONE | `candidate-filter.test.ts` |
+| U44 | For an empty query, a same-effective-type candidate sorts before a same-file-only candidate, which sorts before all others | FR-020 | example | DONE | `candidate-filter.test.ts` |
+| U45 | For an empty query when the edited token's effective type is undefined, band 1 is skipped (no false "same type" grouping) | FR-020 | example | DONE | `candidate-filter.test.ts` |
+| U46 | Within a band the order is alphabetical by `displayPath` | FR-020 | example | DONE | `candidate-filter.test.ts` |
+| U47 | The edited token's own path is present in the results, not filtered out | FR-013 | example | DONE | `candidate-filter.test.ts` |
+| U48 | A query containing braces or a leading/trailing dot matches literally as a substring — `{color.brand}` matches `color.brand.*` | FR-004 (edge case) | example | DONE | `candidate-filter.test.ts` |
 
 ### `apps/web-app/lib/tokens/candidate-selectability.ts`
 

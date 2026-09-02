@@ -158,3 +158,20 @@ no type-check) rather than `pnpm build && …`. Behaviour was correct (U23-U28 g
 - verified: `pnpm --filter @dtcg-editor/web-app run build` -> type-checks (exit 0); `pnpm build` -> all 7 packages green; `reference-catalogue.test.ts` -> 10 passed.
 - process correction: from here the per-green check is `pnpm build && pnpm exec vitest run`, not vitest alone.
 - commit: (this fix commit, before resuming at U38)
+
+## Cycles 38-48: candidate-filter U38-U48
+
+`filterCandidates(candidates, query, edited): readonly ReferenceCandidate[]` — pure. Per-green check now `pnpm build && pnpm exec vitest run`.
+
+- U38 (non-empty query -> case-insensitive substring on `displayPath`): red import error. Green: `.filter(c => c.displayPath.toLowerCase().includes(q))` after `q = query.trim().toLowerCase()`. Mutant `.startsWith(q)` -> `1 failed`.
+- U39 (whole dotted path, not just leaf): passed. Mutant (leaf-only `split(".").at(-1)`) -> `1 failed`.
+- U40 (order by first-match index) + U41 (alphabetical tie-break) — batched, one comparator: red (no sort). Green: `.sort` by `indexOf(q)` delta, then `localeCompare`. U41's first fixture had unequal positions (broken test) — fixed to leaf-only paths (`z.size`/`a.size`/`m.size`, match at index 2). Mutant (localeCompare only) -> U40 `1 failed`; mutant (posDelta only) -> U41 `1 failed`.
+- U42 (no match -> `[]`): passed. Mutant `.filter(() => true)` -> `1 failed`.
+- U43 (empty + whitespace query -> every candidate): passed. `if (q === "")` guard AND `includes("")` both return all (defence in depth); decisive mutant (`.slice(0,1)` in the empty-query branch) -> `1 failed`.
+- U44 (bands: same-type -> same-file -> rest) + U45 (undefined edited type -> band 0 skipped) + U46 (alphabetical within a band) — batched, one `emptyQueryBand` + sort: red (no banding). Green: 3-band sort. U45 fixture strengthened with a `effectiveType: undefined` candidate to give the guard teeth. Mutants: reversed band delta -> U44 `1 failed`; dropped `!== undefined` guard -> U45 `1 failed`; `return [...candidates]` (no sort) -> U46 `1 failed`.
+- U47 (edited token's own path not removed): passed. Mutant (filter out `edited.path`) -> `1 failed`.
+- U48 (braces / leading dot matched literally): passed. Mutant (`query.replace(/[{}]/g, "")`) -> `1 failed`.
+- fix: test line 124 `{ effectiveType: undefined }` -> omit the key (`exactOptionalPropertyTypes` — caught by `pnpm build`, not vitest).
+- suite: `pnpm build` (7 pkgs green) + `pnpm exec vitest run` -> 621 passed / 128 files
+- refactor: `emptyQueryBand` extracted.
+- commit: (this commit — bundles cycles 38-48, the candidate-filter module)
