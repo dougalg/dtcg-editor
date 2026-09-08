@@ -1,7 +1,6 @@
 import { parseReference, type ResolutionChain } from "@dtcg-editor/token-core";
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { resolveBuiltInContract } from "../../lib/token-editors/built-in.ts";
+import { formatLiteralValue } from "../../lib/tokens/format-literal-value.tsx";
 import type {
 	ResolvedOutcome,
 	ResolvedReference,
@@ -10,32 +9,6 @@ import type { ResolvedValue } from "../../lib/tokens/staged-edits-store.ts";
 import { tokenHref } from "../../lib/tokens/token-fragment.ts";
 import { ReferenceWarning } from "../ReferenceWarning/ReferenceWarning.tsx";
 import styles from "./TokenReferenceValue.module.css";
-
-function formatRaw(value: unknown): string {
-	return typeof value === "string" ? value : JSON.stringify(value);
-}
-
-/**
- * Presents a resolved literal value the same way an equivalent literal
- * value of that type is presented elsewhere in the app (spec FR-010),
- * delegating to that type's own built-in contract (e.g. color's swatch) —
- * this component holds no knowledge of any specific DTCG `$type` itself.
- * Falls back to the value's raw text form for a type with no built-in
- * contract, no `Preview`, or whose `Preview` declines to render (e.g. the
- * value doesn't actually parse as that type), matching how an
- * unrecognized or contract-less type is already shown elsewhere in this
- * tree (e.g. `TreeTokenNode`'s own `formatValue`).
- */
-function formatLiteralValue(
-	value: unknown,
-	type: string | undefined,
-): ReactNode {
-	const preview =
-		type !== undefined
-			? resolveBuiltInContract(type)?.Preview?.({ value })
-			: undefined;
-	return preview ?? <span className={styles.text}>{formatRaw(value)}</span>;
-}
 
 /** Purely decorative — the row itself (see `OutcomeRow`) carries the link semantics/label, not this icon. */
 function LinkGlyph() {
