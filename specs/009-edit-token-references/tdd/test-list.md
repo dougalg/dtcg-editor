@@ -190,8 +190,8 @@ Helper lifted out of `TokenReferenceValue.tsx` (brownfield — the existing
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
 | U64 | `TokenReferenceValue`'s existing render behavior is unchanged after the helper is extracted | FR-009 | characterization | BASELINE | `apps/web-app/components/TokenReferenceValue/TokenReferenceValue.test.tsx` (existing) |
-| U65 | `formatLiteralValue(value, type)` returns the type's built-in `Preview` output when a contract exists | FR-009 | example | PENDING | `apps/web-app/components/TokenReferenceValue/format-literal-value.test.tsx` |
-| U66 | Falls back to the raw text form when there is no contract, no `Preview`, or `Preview` declines | FR-009 | example | PENDING | `apps/web-app/components/TokenReferenceValue/format-literal-value.test.tsx` |
+| U65 | `formatLiteralValue(value, type)` returns the type's built-in `Preview` output when a contract exists | FR-009 | example | DONE | `format-literal-value.test.tsx` |
+| U66 | Falls back to the raw text form when there is no contract, no `Preview`, or `Preview` declines | FR-009 | example | DONE | `format-literal-value.test.tsx` |
 
 ### `apps/web-app/components/CandidatePreview/CandidatePreview.tsx`
 

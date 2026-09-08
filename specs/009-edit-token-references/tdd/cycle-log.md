@@ -203,3 +203,13 @@ no type-check) rather than `pnpm build && …`. Behaviour was correct (U23-U28 g
 ## Phase 3 pure-logic layer complete — U38-U63
 
 `candidate-filter`, `candidate-selectability`, `hypothetical-resolution` all built test-first. 63/121 behaviors DONE. Remaining: components (U64-U101) + acceptance (A1-A20).
+
+## Cycles 64-66: format-literal-value U64-U66 (brownfield extraction)
+
+- U64 (characterization / BASELINE): TokenReferenceValue.test.tsx + .a11y.test.tsx (12 tests) already pin the current render. Confirmed green; deliberate mutant (formatLiteralValue -> always raw, drop Preview) -> 1 failed. State BASELINE.
+- extraction (structural commit 3cfbc8a): formatLiteralValue + formatRaw moved from TokenReferenceValue.tsx to apps/web-app/lib/tokens/format-literal-value.tsx (kebab-case — .ls-lint.yml forbids a non-folder-matching .tsx in a component dir) + co-located .module.css. TokenReferenceValue.test.tsx stayed green (U64 held).
+- U65 (returns the type's built-in Preview when a contract has one): passed post-extraction. Mutant (drop the Preview call) -> 1 failed. Restored.
+- U66 (falls back to raw text — undefined / unknown type / Preview declines): passed. Mutant (return preview, no ?? span) -> 1 failed. Restored.
+- suite: pnpm build (green) + pnpm exec vitest run -> 638 passed / 131 files
+- refactor: none beyond the extraction
+- commit: 3cfbc8a (structural), (this commit — U65/U66 tests)
