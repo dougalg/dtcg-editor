@@ -197,7 +197,7 @@ Helper lifted out of `TokenReferenceValue.tsx` (brownfield — the existing
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U67 | A colour candidate renders the swatch preview, not raw text | FR-009 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
+| U67 | A colour candidate renders the swatch preview, not raw text | FR-009 | example | DONE | `CandidatePreview.test.tsx` |
 | U68 | A candidate whose value is a chain renders the end-of-chain value | FR-010 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
 | U69 | A multiply-defined candidate renders one mode-labelled row per mode | FR-011 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
 | U70 | A non-resolved outcome renders a `ReferenceWarning` instead of a value | FR-015 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |

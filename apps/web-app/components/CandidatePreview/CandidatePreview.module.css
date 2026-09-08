@@ -1,0 +1,9 @@
+.preview {
+	display: inline-flex;
+}
+.outcome {
+	display: inline-flex;
+}
+.modeLabel {
+	font-weight: 600;
+}

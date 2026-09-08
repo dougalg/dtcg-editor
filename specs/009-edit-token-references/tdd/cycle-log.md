@@ -213,3 +213,12 @@ no type-check) rather than `pnpm build && …`. Behaviour was correct (U23-U28 g
 - suite: pnpm build (green) + pnpm exec vitest run -> 638 passed / 131 files
 - refactor: none beyond the extraction
 - commit: 3cfbc8a (structural), (this commit — U65/U66 tests)
+
+## Cycle 67: U67 CandidatePreview renders the colour swatch, not just raw text
+
+- test: `CandidatePreview.test.tsx::a colour candidate renders the swatch preview, not just raw text` (new)
+- red: `Failed to resolve import "./CandidatePreview.tsx"`.
+- green: minimal `CandidatePreview` — maps `candidate.preview` entries, `formatLiteralValue(outcome.value, outcome.type)` for a resolved outcome else `ReferenceWarning`. `pnpm build` caught a wire-vs-token-core type mismatch (`ResolutionChainWire.steps` `mode?` optional vs `ChainStep.mode` required) -> `as unknown as ResolutionChain` at the `ReferenceWarning` call site (previewOutcome always populates `mode`; same friction as cycle 23). Mutant (`outcome.kind === "resolved"` -> `false`) -> `1 failed`. Restored.
+- suite: `pnpm build` (green) + `pnpm exec vitest run` -> 639 passed / 132 files
+- refactor: none
+- commit: (this commit)
