@@ -345,3 +345,12 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 664 passed / 136 files (unchanged from cycle 88).
 - refactor: the extraction *is* this cycle's structural step; nothing further.
 - commit: `0152cc6` (structural).
+
+## Cycle 90: U90 ReferenceEditControl resting output matches the baseline
+
+- test: `ReferenceEditControl.test.tsx::resting output matches the TreeTokenNode path-1 baseline: name field, raw alias, resolved value, no validation error` — renders `ReferenceEditControl` directly under a `StagedEditsContext.Provider`, cross-file reference (`targetFile "base.json"`, `relativePath "a.json"`) so the server `resolved` governs, matching the `TreeTokenNode` path-1 case.
+- red (first draft used `relativePath "base.json"` → same-file → the store's live resolution took over and reported `Missing target: no token exists at "color.brand.blue"`): `Unable to find an element with the text: /srgb/`. Corrected the fixture to the cross-file scenario the baseline actually exercises; code unchanged.
+- green: passes against the already-extracted component (parity test). Mutant (`ReferenceValueDisplay resolved={undefined}` in the render) → `1 failed`. Restored via `git checkout`.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` → 665 passed / 137 files.
+- refactor: none.
+- commit: (this commit).
