@@ -4,7 +4,9 @@ import { Combobox } from "@dtcg-editor/design-system/components/Combobox/Combobo
 import { useMemo, useState } from "react";
 import { useReferenceCatalogue } from "../../hooks/useReferenceCatalogue.ts";
 import { filterCandidates } from "../../lib/tokens/candidate-filter.ts";
+import { resolveIfRepointed } from "../../lib/tokens/hypothetical-resolution.ts";
 import type { ReferenceCandidate } from "../../lib/tokens/reference-catalogue-wire.ts";
+import { CandidatePreview } from "../CandidatePreview/CandidatePreview.tsx";
 import styles from "./TokenReferencePicker.module.css";
 
 function aliasFor(path: readonly string[]): string {
@@ -42,6 +44,7 @@ export function TokenReferencePicker({
 	const [open, setOpen] = useState(false);
 	const [activated, setActivated] = useState(false);
 	const [query, setQuery] = useState("");
+	const [highlightKey, setHighlightKey] = useState<string>();
 
 	const displayPath = editedTokenPath.join(".");
 	const { status, catalogue } = useReferenceCatalogue(fetchImpl, activated);
@@ -94,6 +97,12 @@ export function TokenReferencePicker({
 			? "No matches"
 			: `${items.length} token${items.length === 1 ? "" : "s"} match`;
 
+	const highlighted = items.find((c) => c.displayPath === highlightKey);
+	const hypothetical =
+		highlighted !== undefined && catalogue !== undefined
+			? resolveIfRepointed(editedTokenPath, highlighted.path, catalogue)
+			: undefined;
+
 	return (
 		<>
 			<span
@@ -103,6 +112,15 @@ export function TokenReferencePicker({
 				className={styles.srOnly}
 			>
 				{resultAnnouncement}
+				{highlighted !== undefined ? (
+					<>
+						{" — "}
+						<CandidatePreview
+							candidate={highlighted}
+							hypothetical={hypothetical}
+						/>
+					</>
+				) : null}
 			</span>
 			<Combobox<ReferenceCandidate>
 				open={open}
@@ -113,6 +131,7 @@ export function TokenReferencePicker({
 				getKey={(c) => c.displayPath}
 				renderItem={(c) => c.displayPath}
 				selectedKey={selectedKey}
+				onHighlightChange={setHighlightKey}
 				onSelect={(c) => {
 					const value = aliasFor(c.path);
 					if (value !== stagedTarget) {

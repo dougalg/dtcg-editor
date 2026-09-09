@@ -69,7 +69,7 @@ export function CandidatePreview({
 	readonly candidate: ReferenceCandidate;
 	readonly diagnostic?: CandidateDiagnostic;
 	/** Set for the highlighted row: what the edited token would resolve to. */
-	readonly hypothetical?: HypotheticalResolution;
+	readonly hypothetical?: HypotheticalResolution | undefined;
 }) {
 	const multiMode = candidate.preview.length > 1;
 	const hypoMultiMode =

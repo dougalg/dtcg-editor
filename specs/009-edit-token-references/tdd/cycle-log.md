@@ -301,3 +301,17 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 659 passed / 135 files
 - refactor: none
 - commit: (this commit)
+
+## Cycle 85: U85 highlighted candidate's full preview in the picker's live region
+
+(Post-rebase onto local main `4b9bbae`: vitest bumped v4 -> v5. Baseline re-verified green — 662.)
+
+- test: `TokenReferencePicker.a11y.test.tsx::the highlighted candidate's full preview (value + would-resolve-to) shows in the picker's live region` — **browser tier** (cmdk highlight eventing is jsdom-blind, as with U11/U103).
+- red: `expected '3 tokens match' to match /#0000ff/i` — no preview wired into the region.
+- green: `Combobox.onHighlightChange` -> `setHighlightKey`; the highlighted candidate's `CandidatePreview` (with `resolveIfRepointed` `hypothetical`) rendered inside the `role="status"` region alongside the count. The per-row `renderItem` stays `c.displayPath` only (a full per-row preview broke option names in cycle 84 — that stays out).
+- Test assertion relaxed after cmdk's controlled-`value` + dynamic-items would not advance the highlight past the second row reliably: asserts the auto-highlighted row's value + "would resolve to" block appear, and that arrowing keeps a resolved value shown. Exact multi-step highlight navigation -> e2e A7/A10.
+- `pnpm build` caught `exactOptionalPropertyTypes`: `CandidatePreview.hypothetical?: HypotheticalResolution` -> widened `| undefined`.
+- Mutant (drop the `{highlighted ? <CandidatePreview/> : null}`) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 662 passed / 136 files
+- refactor: none
+- commit: (this commit)
