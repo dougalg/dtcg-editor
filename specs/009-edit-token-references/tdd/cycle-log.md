@@ -323,3 +323,14 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 664 passed / 136 files (vitest v5 re-optimizes deps on the first run after a change, briefly reporting a lower count + a `collectTests` line — settles on a second run).
 - refactor: none
 - commit: (this commit)
+
+## Cycle 88: U88 TokenReferencePicker a11y (hosts A19)
+
+- test: `TokenReferencePicker.a11y.test.tsx::the open picker, including a disabled circular row and the live region, has no WCAG 2.2 AA violations` (browser tier).
+- Scoped to the picker-specific composition (trigger + `role="status"` live region + a disabled circular row): the empty-popover state's axe cleanliness is already `Combobox` U15's, and driving the picker's controlled search input to empty is browser-tier-flaky (setting `.value` + `input` event doesn't trip React's controlled `onQueryChange`).
+- red/green: the populated + disabled-row axe run passed on first write. Mutant (`aria-expanded={"maybe"}` on the Combobox trigger) -> axe `aria-valid-attr-value` -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 664 passed / 136 files
+- refactor: none
+- commit: (this commit)
+
+## TokenReferencePicker complete — U76-U88 (+ U102, U103)

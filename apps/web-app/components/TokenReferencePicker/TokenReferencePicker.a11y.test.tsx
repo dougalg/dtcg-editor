@@ -78,7 +78,14 @@ test("the highlighted candidate's full preview (value + would-resolve-to) shows 
 	expect(region()).toMatch(/token.*match/i);
 });
 
-test("open populated popover has no WCAG 2.2 AA violations", async () => {
+async function noViolations() {
+	const results = await axe.run(document.body, {
+		runOnly: { type: "tag", values: [...WCAG_22_AA_TAGS] },
+	});
+	expect(results.violations).toEqual([]);
+}
+
+test("the open picker, including a disabled circular row and the live region, has no WCAG 2.2 AA violations", async () => {
 	renderOpen();
 	const trigger = await screen.findByRole("combobox", {
 		name: /repoint reference for/i,
@@ -86,8 +93,14 @@ test("open populated popover has no WCAG 2.2 AA violations", async () => {
 	trigger.click();
 	await screen.findByRole("combobox", { name: /search tokens/i });
 
-	const results = await axe.run(document.body, {
-		runOnly: { type: "tag", values: [...WCAG_22_AA_TAGS] },
-	});
-	expect(results.violations).toEqual([]);
+	// color.accent is the edited token -> a disabled circular row is present.
+	await waitFor(() =>
+		expect(
+			screen
+				.getByRole("option", { name: /color\.accent/ })
+				.getAttribute("aria-disabled"),
+		).toBe("true"),
+	);
+	await noViolations();
+	// (the empty-popover state's axe cleanliness is covered by Combobox U15.)
 });
