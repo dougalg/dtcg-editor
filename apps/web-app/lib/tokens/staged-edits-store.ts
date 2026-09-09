@@ -1,3 +1,4 @@
+import { parseReference } from "@dtcg-editor/token-core";
 import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
 import { resolveBuiltInContract } from "../token-editors/built-in.ts";
 import type { ClientEdit } from "./edit-state.ts";
@@ -379,6 +380,16 @@ export class StagedEditsStore {
 		draft: Partial<EditableFields>,
 	): string | undefined {
 		if (!("value" in draft)) {
+			return undefined;
+		}
+		// A whole-value reference is valid for every `$type` (an aliasing
+		// token's type is its target's — contracts/reference-validation.md), so
+		// it is never the type contract's business to validate. This is what
+		// lets the reference picker repoint a typed token (spec FR-006).
+		if (
+			typeof draft.value === "string" &&
+			parseReference(draft.value) !== undefined
+		) {
 			return undefined;
 		}
 		const node = this.#index.get(key);

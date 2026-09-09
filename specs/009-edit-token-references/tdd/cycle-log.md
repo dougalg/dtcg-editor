@@ -417,3 +417,13 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - commit: (this commit).
 
 ## ReferenceEditControl complete — U89-U97
+
+## Cycle 104 (added mid-loop): U104 commit accepts a reference string without type-validating it
+
+- Discovered while wiring U98: `TreeTokenNode`'s `onRepoint={(value) => commit({ value })}` staged nothing — `StagedEditsStore.#validateDraftValue` ran the token's type contract over the `{…}` string and rejected it, so `commit` returned `false`.
+- test: `staged-edits-store.test.ts::commit stages a whole-value reference string without type-validating it` — a `color`-typed token, `commit("color.accent", { value: "{color.brand.blue}" })`.
+- red: `AssertionError: false !== true` (`commit` rejected the reference).
+- green: `#validateDraftValue` returns `undefined` (no error) when `typeof draft.value === "string" && parseReference(draft.value) !== undefined` — a reference is valid for any `$type` (contracts/reference-validation.md), matching what `TreeTokenNode` path-1 already assumes for display and what the PATCH route does on write (U100 BASELINE).
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 673 passed / 138 files.
+- refactor: none.
+- commit: (this commit).

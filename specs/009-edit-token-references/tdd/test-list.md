@@ -252,6 +252,12 @@ Extracted from `TreeTokenNode.tsx` path 1 (brownfield — existing path-1 tests 
 | U96 | For a token whose `$value` is a reference, `TreeTokenNode` delegates to `ReferenceEditControl` | FR-001 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx::a reference-valued token delegates to ReferenceEditControl — the repoint trigger is present` |
 | U97 | For a token whose `$value` is a literal, no reference edit trigger / picker is rendered | FR-022 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx::a literal-valued token renders no reference repoint trigger (FR-022)` |
 
+### `apps/web-app/lib/tokens/staged-edits-store.ts` (edited)
+
+| id  | behavior | traces | kind | state | test |
+| --- | -------- | ------ | ---- | ----- | ---- |
+| U104 | `commit` stages a whole-value reference string on a typed token without running per-type value validation (a reference is valid for any `$type`) — added mid-loop: `#validateDraftValue` was rejecting `{…}` against the token's contract, so a picker repoint reached `commit` and staged nothing | FR-006, FR-001 | example | DONE | `apps/web-app/lib/tokens/staged-edits-store.test.ts::commit stages a whole-value reference string without type-validating it` |
+
 ### `apps/web-app/components/TokenTree/TokenTree.tsx` (verify)
 
 | id  | behavior | traces | kind | state | test |

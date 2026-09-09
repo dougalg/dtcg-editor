@@ -351,6 +351,38 @@ test("commit renaming a token onto a sibling's name is rejected with a name erro
 	assert.equal(store.getHasPending(), false);
 });
 
+test("commit stages a whole-value reference string without type-validating it", () => {
+	const store = makeStore(
+		group("", [
+			group("color", [
+				{
+					kind: "token",
+					name: "accent",
+					path: ["color", "accent"],
+					value: { colorSpace: "srgb", components: [0, 0, 1] },
+					declaredType: "color",
+					effectiveType: "color",
+					inferredType: undefined,
+					description: undefined,
+					deprecated: undefined,
+				},
+			]),
+		]),
+	);
+
+	// A reference is valid for any `$type` (contracts/reference-validation.md),
+	// so repointing `color.accent` at another token must stage, not be rejected
+	// as "not a valid color".
+	const ok = store.commit("color.accent", { value: "{color.brand.blue}" });
+
+	assert.equal(ok, true);
+	assert.equal(
+		parseReference(store.getFields("color.accent").value)?.raw,
+		"{color.brand.blue}",
+	);
+	assert.equal(store.getError("color.accent")?.value, undefined);
+});
+
 test("successive commits to one key accumulate into a single staged edit", () => {
 	const store = makeStore(
 		group("", [
