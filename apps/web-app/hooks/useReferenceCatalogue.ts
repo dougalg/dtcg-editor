@@ -9,6 +9,8 @@ import type { SaveError } from "../lib/tokens/save-error.ts";
 
 type Status = "idle" | "loading" | "ready" | "error";
 
+/** `idle` until `enabled` — lets a consumer defer the fetch to first activation. */
+
 interface UseReferenceCatalogueResult {
 	readonly status: Status;
 	readonly catalogue?: ReferenceCatalogue;
@@ -68,11 +70,12 @@ async function loadCatalogue(
  */
 export function useReferenceCatalogue(
 	fetchImpl: typeof fetch = fetch,
+	enabled = true,
 ): UseReferenceCatalogueResult {
 	const [state, setState] = useState<UseReferenceCatalogueResult>(() =>
 		cachedCatalogue !== undefined
 			? { status: "ready", catalogue: cachedCatalogue }
-			: { status: "loading" },
+			: { status: enabled ? "loading" : "idle" },
 	);
 
 	useEffect(() => {
@@ -80,6 +83,10 @@ export function useReferenceCatalogue(
 			setState({ status: "ready", catalogue: cachedCatalogue });
 			return;
 		}
+		if (!enabled) {
+			return;
+		}
+		setState((prev) => (prev.status === "idle" ? { status: "loading" } : prev));
 
 		const controller = new AbortController();
 		let active = true;
@@ -111,7 +118,7 @@ export function useReferenceCatalogue(
 			active = false;
 			controller.abort();
 		};
-	}, [fetchImpl]);
+	}, [fetchImpl, enabled]);
 
 	return state;
 }
