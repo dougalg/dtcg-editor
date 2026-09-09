@@ -1,16 +1,64 @@
-import { render, screen } from "@testing-library/react";
-import { afterEach, expect, test, vi } from "vitest";
+import { parseTokenFile } from "@dtcg-editor/token-core";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeAll, expect, test, vi } from "vitest";
+import { resetReferenceCatalogueCache } from "../../hooks/useReferenceCatalogue.ts";
 import { StagedEditsContext } from "../../hooks/useStagedEdits.ts";
+import type { LoadedTokenFile } from "../../lib/tokens/load-directory.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
+import { buildReferenceCatalogue } from "../../lib/tokens/reference-catalogue.ts";
 import type { ResolvedReference } from "../../lib/tokens/reference-index.ts";
+import { buildReferenceIndex } from "../../lib/tokens/reference-index.ts";
 import { StagedEditsStore } from "../../lib/tokens/staged-edits-store.ts";
 import { ReferenceEditControl } from "./ReferenceEditControl.tsx";
 
 type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
 
+beforeAll(() => {
+	if (!window.ResizeObserver) {
+		window.ResizeObserver = class {
+			observe() {}
+			unobserve() {}
+			disconnect() {}
+		};
+	}
+	if (!Element.prototype.hasPointerCapture) {
+		Element.prototype.hasPointerCapture = () => false;
+	}
+	if (!Element.prototype.scrollIntoView) {
+		Element.prototype.scrollIntoView = () => {};
+	}
+});
+
 afterEach(() => {
 	document.body.innerHTML = "";
+	resetReferenceCatalogueCache();
 });
+
+function file(relativePath: string, json: unknown): LoadedTokenFile {
+	const result = parseTokenFile(JSON.stringify(json));
+	if (result.isErr()) throw new Error(result.error.message);
+	return { relativePath, document: result.value };
+}
+
+function okFetch() {
+	const catalogue = buildReferenceCatalogue(
+		buildReferenceIndex([
+			file("base.json", {
+				color: {
+					$type: "color",
+					blue: { $value: { hex: "#0000ff" } },
+					red: { $value: { hex: "#ff0000" } },
+					accent: { $value: "{color.blue}" },
+				},
+			}),
+		]),
+	);
+	return vi
+		.fn()
+		.mockResolvedValue(
+			new Response(JSON.stringify(catalogue), { status: 200 }),
+		);
+}
 
 function referenceNode(): TokenNode {
 	return {
@@ -115,4 +163,35 @@ test("the reference row shows a repoint trigger whose accessible name identifies
 		name: "Repoint reference for text",
 	});
 	expect(trigger.getAttribute("aria-expanded")).toBe("false");
+});
+
+test("picking a candidate through the hosted picker calls onRepoint with the alias value", async () => {
+	const onRepoint = vi.fn();
+	const editedNode: TokenNode = {
+		...referenceNode(),
+		name: "accent",
+		path: ["color", "accent"],
+		value: "{color.blue}",
+	};
+	renderControl({
+		node: editedNode,
+		currentName: "accent",
+		rawRef: "{color.blue}",
+		resolved: undefined,
+		tokenKey: "color.accent",
+		relativePath: "base.json",
+		onRepoint,
+		fetchImpl: okFetch(),
+	});
+
+	await act(async () => {
+		fireEvent.click(
+			screen.getByRole("combobox", { name: /repoint reference for/i }),
+		);
+		await Promise.resolve();
+	});
+
+	fireEvent.click(screen.getByRole("option", { name: "color.red" }));
+
+	expect(onRepoint).toHaveBeenCalledWith("{color.red}");
 });

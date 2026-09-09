@@ -365,3 +365,11 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` → 666 passed / 137 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 92: U92 a pick through the hosted picker calls onRepoint with the alias
+
+- test: `ReferenceEditControl.test.tsx::picking a candidate through the hosted picker calls onRepoint with the alias value` — stub `fetchImpl` catalogue (`color.blue|red|accent`), open the picker, click the `color.red` option, expect `onRepoint("{color.red}")`.
+- Passed first run (the `onStageEdit -> onRepoint` bridge landed in U91). Mutant (`onStageEdit={() => {}}` in `ReferenceEditControl`) -> `expected "vi.fn()" to be called with [ '{color.red}' ]` -> `1 failed`. Restored via `git checkout`.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 667 passed / 137 files (v5 re-optimizes deps on the first run after a new test file, briefly reporting `4 failed` files + a `collectTests` line — settles on the second run).
+- refactor: none.
+- commit: (this commit).
