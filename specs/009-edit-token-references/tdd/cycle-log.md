@@ -289,3 +289,15 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 658 passed / 135 files
 - refactor: none
 - commit: (this commit)
+
+## Cycle 84: U84 TokenReferencePicker aria-live result count
+
+- Split from the list's compound U84 ("count AND highlighted value"): the **count** is jsdom-observable; the highlighted-candidate announcement depends on cmdk highlight eventing (jsdom-blind) and is covered at the e2e tier (A7/A10).
+- test: `TokenReferencePicker.test.tsx::an aria-live region announces the current result count` (new)
+- red: `Unable to find an accessible element with the role "status" and name "Search results"`.
+- green: a visually-hidden `role="status" aria-live="polite"` region rendered outside the popover; text is `"N tokens match"` / `"No matches"` while open, `""` when closed. Given `aria-label="Search results"` to disambiguate from the Combobox's own `role="status"` loading/empty region.
+- A first attempt also wired a `CandidatePreview` into every row's `renderItem`; that polluted every option's accessible name/textContent and broke U78/U80/U81/U82 -> **reverted to the U83 green** and redone with the count region only (playbook: step too big). The per-row preview returns in U85+.
+- Mutant (`items.length` -> `0` in the template) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 659 passed / 135 files
+- refactor: none
+- commit: (this commit)

@@ -88,28 +88,44 @@ export function TokenReferencePicker({
 		);
 	}
 
+	const resultAnnouncement = !open
+		? ""
+		: items.length === 0
+			? "No matches"
+			: `${items.length} token${items.length === 1 ? "" : "s"} match`;
+
 	return (
-		<Combobox<ReferenceCandidate>
-			open={open}
-			onOpenChange={handleOpenChange}
-			query={query}
-			onQueryChange={setQuery}
-			items={items}
-			getKey={(c) => c.displayPath}
-			renderItem={(c) => c.displayPath}
-			selectedKey={selectedKey}
-			onSelect={(c) => {
-				const value = aliasFor(c.path);
-				if (value !== stagedTarget) {
-					onStageEdit(editedTokenPath, { value });
-				}
-			}}
-			inputLabel={`Search tokens to repoint ${displayPath}`}
-			triggerLabel={`Repoint reference for ${displayPath}`}
-			triggerContent={currentReferenceValue}
-			emptyContent="No tokens found"
-			loading={status === "loading"}
-			loadingContent="Loading tokens…"
-		/>
+		<>
+			<span
+				role="status"
+				aria-live="polite"
+				aria-label="Search results"
+				className={styles.srOnly}
+			>
+				{resultAnnouncement}
+			</span>
+			<Combobox<ReferenceCandidate>
+				open={open}
+				onOpenChange={handleOpenChange}
+				query={query}
+				onQueryChange={setQuery}
+				items={items}
+				getKey={(c) => c.displayPath}
+				renderItem={(c) => c.displayPath}
+				selectedKey={selectedKey}
+				onSelect={(c) => {
+					const value = aliasFor(c.path);
+					if (value !== stagedTarget) {
+						onStageEdit(editedTokenPath, { value });
+					}
+				}}
+				inputLabel={`Search tokens to repoint ${displayPath}`}
+				triggerLabel={`Repoint reference for ${displayPath}`}
+				triggerContent={currentReferenceValue}
+				emptyContent="No tokens found"
+				loading={status === "loading"}
+				loadingContent="Loading tokens…"
+			/>
+		</>
 	);
 }

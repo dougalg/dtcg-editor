@@ -218,3 +218,21 @@ test("when the catalogue fetch errors, a raw-text input stages edits", async () 
 		value: "{color.red}",
 	});
 });
+
+test("an aria-live region announces the current result count", async () => {
+	await openPicker();
+
+	const live = () =>
+		screen.getByRole("status", { name: "Search results" }).textContent;
+	expect(live()).toMatch(/3\b/);
+
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "color.re" },
+	});
+	expect(live()).toMatch(/\b1\b/);
+
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "zzz-nope" },
+	});
+	expect(live()).toMatch(/no match/i);
+});
