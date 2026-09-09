@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronsUpDown } from "lucide-react";
-import { type ReactNode, useId } from "react";
+import { type ReactNode, useId, useState } from "react";
 
 import { Button } from "../Button/Button.tsx";
 import {
@@ -33,6 +33,8 @@ export interface ComboboxProps<T> {
 	readonly onSelect: (item: T) => void;
 	/** Key of the item to mark as the current selection. */
 	readonly selectedKey?: string | undefined;
+	/** Fired with the key of the row the keyboard/pointer highlight is on. */
+	readonly onHighlightChange?: (key: string | undefined) => void;
 	/** Accessible name for the search field. */
 	readonly inputLabel: string;
 	/** Accessible name for the trigger. */
@@ -63,6 +65,7 @@ export function Combobox<T>({
 	isItemDisabled,
 	onSelect,
 	selectedKey,
+	onHighlightChange,
 	inputLabel,
 	triggerLabel,
 	triggerContent,
@@ -72,6 +75,12 @@ export function Combobox<T>({
 }: ComboboxProps<T>) {
 	const listId = useId();
 	const hasNoOptions = loading || items.length === 0;
+	const [highlight, setHighlight] = useState<string>("");
+
+	function handleValueChange(value: string) {
+		setHighlight(value);
+		onHighlightChange?.(value || undefined);
+	}
 
 	function handleSelect(item: T) {
 		if (isItemDisabled?.(item) === true) {
@@ -97,7 +106,12 @@ export function Combobox<T>({
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent id={listId} className="combobox-content">
-				<Command shouldFilter={false} label={inputLabel}>
+				<Command
+					shouldFilter={false}
+					label={inputLabel}
+					value={highlight}
+					onValueChange={handleValueChange}
+				>
 					<CommandInput
 						aria-label={inputLabel}
 						value={query}

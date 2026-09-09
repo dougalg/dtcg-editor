@@ -280,3 +280,12 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 657 passed / 134 files
 - refactor: none
 - commit: (this commit — U77-U83 + the Combobox selectedKey widen)
+
+## Cycle 103: Combobox onHighlightChange (behavior added mid-loop, seam for U84)
+
+- Added to the test list: `TokenReferencePicker`'s live region (U84) needs to know which row the highlight is on. Added `onHighlightChange?: (key | undefined)` to `ComboboxProps`, wired to cmdk `Command`'s `value`/`onValueChange` — **cmdk only fires `onValueChange` reliably when `value` is controlled**, so `Combobox` now holds an internal `highlight` state.
+- test: `Combobox.a11y.test.tsx::onHighlightChange reports the key of the row the highlight moves to` — jsdom `fireEvent`/`dispatchEvent` do not drive cmdk's highlight eventing at all (same wall as U11); the browser tier does. `waitFor` + `dispatchEvent(KeyboardEvent ArrowDown)`.
+- red: `expected "vi.fn()" to be called with [ 'a' ] — Number of calls: 0` (with uncontrolled `value`). Green: controlled `value={highlight}` + `handleValueChange`. Mutant (`onValueChange={setHighlight}`, skip `onHighlightChange`) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 658 passed / 135 files
+- refactor: none
+- commit: (this commit)

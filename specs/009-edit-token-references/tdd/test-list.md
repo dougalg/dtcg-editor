@@ -87,6 +87,7 @@ sorts — the caller passes `items` ready.
 | U13 | `loading` true renders `loadingContent` and neither the item list nor `emptyContent` | FR-023 | example | DONE | `Combobox.test.tsx::loading shows loadingContent` |
 | U14 | `items` empty and not loading renders `emptyContent`, and no row is selectable | FR-017 | example | DONE | `Combobox.test.tsx::shows emptyContent and nothing selectable` |
 | U15 | The open popover has zero axe-core violations, including with one disabled row present (announced unavailable, not omitted) | FR-005, SC-006 | example | DONE | `Combobox.a11y.test.tsx::axe: populated/empty/disabled-row` |
+| U103 | `onHighlightChange` reports the key of the row the highlight moves to — added mid-loop as the seam TokenReferencePicker's live region (U84) needs | FR-005 | example | DONE | `Combobox.a11y.test.tsx` (browser tier — cmdk highlight eventing is not jsdom-observable) |
 
 ### `apps/web-app/lib/tokens/reference-catalogue-wire.ts`
 

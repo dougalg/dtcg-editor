@@ -21,11 +21,13 @@ function Harness({
 	items = ITEMS,
 	disableBeta = false,
 	startOpen = true,
+	onHighlightChange,
 }: {
 	loading?: boolean;
 	items?: readonly Item[];
 	disableBeta?: boolean;
 	startOpen?: boolean;
+	onHighlightChange?: (key: string | undefined) => void;
 }) {
 	const [open, setOpen] = useState(startOpen);
 	const [query, setQuery] = useState("");
@@ -40,6 +42,7 @@ function Harness({
 			renderItem={(it) => it.label}
 			isItemDisabled={disableBeta ? (it) => it.id === "b" : undefined}
 			onSelect={vi.fn()}
+			onHighlightChange={onHighlightChange}
 			inputLabel="Search items"
 			triggerLabel="Choose an item"
 			triggerContent="Choose an item"
@@ -102,4 +105,18 @@ test("ArrowDown moves over enabled items and skips a disabled one", async () => 
 	expect(
 		screen.getByRole("option", { name: "beta" }).getAttribute("aria-selected"),
 	).not.toBe("true");
+});
+
+test("onHighlightChange reports the key of the row the highlight moves to", async () => {
+	const onHighlightChange = vi.fn();
+	render(<Harness onHighlightChange={onHighlightChange} />);
+	const field = screen.getByRole("combobox", { name: "Search items" });
+	field.focus();
+
+	await waitFor(() => expect(onHighlightChange).toHaveBeenCalledWith("a"));
+
+	field.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+	);
+	await waitFor(() => expect(onHighlightChange).toHaveBeenLastCalledWith("b"));
 });
