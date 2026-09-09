@@ -237,7 +237,7 @@ Extracted from `TreeTokenNode.tsx` path 1 (brownfield — existing path-1 tests 
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U89 | The current `TreeTokenNode` path-1 render for a reference token (raw alias text + resolved list) is captured before the extraction | FR-001 | characterization | BASELINE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx` (existing, to move) |
+| U89 | The current `TreeTokenNode` path-1 render for a reference token (raw alias text + resolved list) is captured before the extraction | FR-001 | characterization | BASELINE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx` (existing reference cases; extraction commit `0152cc6`) |
 | U90 | `ReferenceEditControl` resting output matches that captured baseline | FR-001 | example | PENDING | `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.test.tsx` |
 | U91 | The reference row shows an edit trigger with an accessible name | FR-001, FR-005 | example | PENDING | `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.test.tsx` |
 | U92 | A pick made through the hosted picker calls `onStageEdit(node.path, { value })` | FR-006 | example | PENDING | `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.test.tsx` |

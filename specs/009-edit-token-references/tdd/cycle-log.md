@@ -334,3 +334,14 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - commit: (this commit)
 
 ## TokenReferencePicker complete — U76-U88 (+ U102, U103)
+
+## Cycle 89: U89 characterize TreeTokenNode path-1, then extract ReferenceEditControl
+
+- behavior kind: `characterization` — capture the current path-1 (reference token) render before pulling it into its own component.
+- The safety net is the existing `TreeTokenNode.test.tsx` reference cases (raw alias text, resolved list, name-error branch). `pnpm exec vitest run apps/web-app/components/TreeTokenNode/` -> 29 passed / 5 files — the baseline that must survive the refactor.
+- Mutant check: `if (dispatch.reference !== undefined)` -> `if (false && dispatch.reference !== undefined)` -> `Failed Tests 4`. Restored. The cases do pin the path-1 render.
+- State set to `BASELINE`.
+- Structural extraction (separate commit `0152cc6`, on green): `ReferenceValueDisplay` + the path-1 `TokenBlock` render moved verbatim into `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.tsx`; `TreeTokenNode` path-1 now returns `<ReferenceEditControl ... />`. `useResolvedPreview` / `TokenReferenceValue` / `ResolvedReference` imports moved with it. `error` prop typed `FieldErrors | undefined`.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 664 passed / 136 files (unchanged from cycle 88).
+- refactor: the extraction *is* this cycle's structural step; nothing further.
+- commit: `0152cc6` (structural).
