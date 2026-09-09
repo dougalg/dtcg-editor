@@ -267,3 +267,16 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 650 passed / 134 files
 - refactor: none
 - commit: (this commit)
+
+## Cycles 77-83: TokenReferencePicker U77-U83
+
+- U77 (trigger + search field name the token): passed post-wiring. Test fixed (both are `role="combobox"` — assert on `aria-label` values). Mutant (`triggerLabel="x"`) -> `1 failed`.
+- U78 (typing -> `filterCandidates` -> narrowed list in order): **real red** (stub `items = []`). Green: `items = useMemo(filterCandidates(catalogue.candidates, query, {path, effectiveType, file}))`; added optional `editedEffectiveType` / `editedFile` props for the empty-query banding. Mutant (skip `filterCandidates`) -> `1 failed`.
+- U79 (no match -> "No tokens found", nothing selectable): passed (Combobox `emptyContent`). Mutant covered via U78's filter mutation.
+- U80 (select -> `onStageEdit(editedTokenPath, {value: "{path}"})` + close) / U81 (select current target -> no stage, still close): passed. One mutant (`onStageEdit(..., {value: "{wrong}"})` always) -> both `1 failed`.
+- U82 (re-open -> current target row `aria-current="true"`): passed (`selectedKey`). Mutant (`selectedKey={undefined}`) -> `1 failed`.
+- U83 (catalogue fetch errored -> raw-text `<input>` that stages edits, FR-021): **real red**. Green: `if (status === "error")` returns an `<input aria-label="Reference for <path>">` with `onChange -> onStageEdit`. Mutant (`if (false)`) -> `1 failed`.
+- `pnpm build` caught `exactOptionalPropertyTypes`: `Combobox`'s `selectedKey?: string` can't take `string | undefined` -> widened to `string | undefined` (design-system, U12 unaffected).
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 657 passed / 134 files
+- refactor: none
+- commit: (this commit — U77-U83 + the Combobox selectedKey widen)

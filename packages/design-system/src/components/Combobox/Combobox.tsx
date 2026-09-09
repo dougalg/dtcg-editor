@@ -32,7 +32,7 @@ export interface ComboboxProps<T> {
 	/** Never called for an item where `isItemDisabled` returns true. */
 	readonly onSelect: (item: T) => void;
 	/** Key of the item to mark as the current selection. */
-	readonly selectedKey?: string;
+	readonly selectedKey?: string | undefined;
 	/** Accessible name for the search field. */
 	readonly inputLabel: string;
 	/** Accessible name for the trigger. */

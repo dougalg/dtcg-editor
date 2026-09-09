@@ -1,9 +1,11 @@
 "use client";
 
 import { Combobox } from "@dtcg-editor/design-system/components/Combobox/Combobox.tsx";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useReferenceCatalogue } from "../../hooks/useReferenceCatalogue.ts";
+import { filterCandidates } from "../../lib/tokens/candidate-filter.ts";
 import type { ReferenceCandidate } from "../../lib/tokens/reference-catalogue-wire.ts";
+import styles from "./TokenReferencePicker.module.css";
 
 function aliasFor(path: readonly string[]): string {
 	return `{${path.join(".")}}`;
@@ -17,12 +19,17 @@ function aliasFor(path: readonly string[]): string {
  */
 export function TokenReferencePicker({
 	editedTokenPath,
+	editedEffectiveType,
+	editedFile = "",
 	currentReferenceValue,
 	pendingReferenceValue,
 	onStageEdit,
 	fetchImpl = fetch,
 }: {
 	readonly editedTokenPath: readonly string[];
+	readonly editedEffectiveType?: string | undefined;
+	/** Relative path of the file the edited token lives in — empty-query ordering only. */
+	readonly editedFile?: string;
 	readonly currentReferenceValue: string;
 	readonly pendingReferenceValue?: string | undefined;
 	readonly onStageEdit: (
@@ -37,7 +44,7 @@ export function TokenReferencePicker({
 	const [query, setQuery] = useState("");
 
 	const displayPath = editedTokenPath.join(".");
-	const { status } = useReferenceCatalogue(fetchImpl, activated);
+	const { status, catalogue } = useReferenceCatalogue(fetchImpl, activated);
 
 	function handleOpenChange(next: boolean) {
 		if (next) {
@@ -46,7 +53,40 @@ export function TokenReferencePicker({
 		setOpen(next);
 	}
 
-	const items: readonly ReferenceCandidate[] = [];
+	const stagedTarget = pendingReferenceValue ?? currentReferenceValue;
+
+	const items = useMemo(
+		(): readonly ReferenceCandidate[] =>
+			catalogue === undefined
+				? []
+				: filterCandidates(catalogue.candidates, query, {
+						path: editedTokenPath,
+						effectiveType: editedEffectiveType,
+						file: editedFile,
+					}),
+		[catalogue, query, editedTokenPath, editedEffectiveType, editedFile],
+	);
+
+	const selectedKey = items.find(
+		(c) => aliasFor(c.path) === stagedTarget,
+	)?.displayPath;
+
+	if (status === "error") {
+		// FR-021: the whole-directory catalogue is unavailable — degrade to
+		// editing the reference as raw alias text, no rich preview, so the user
+		// is no worse off than before this feature.
+		return (
+			<input
+				type="text"
+				className={styles.rawInput}
+				aria-label={`Reference for ${displayPath}`}
+				defaultValue={stagedTarget}
+				onChange={(event) =>
+					onStageEdit(editedTokenPath, { value: event.target.value })
+				}
+			/>
+		);
+	}
 
 	return (
 		<Combobox<ReferenceCandidate>
@@ -57,9 +97,10 @@ export function TokenReferencePicker({
 			items={items}
 			getKey={(c) => c.displayPath}
 			renderItem={(c) => c.displayPath}
+			selectedKey={selectedKey}
 			onSelect={(c) => {
 				const value = aliasFor(c.path);
-				if (value !== (pendingReferenceValue ?? currentReferenceValue)) {
+				if (value !== stagedTarget) {
 					onStageEdit(editedTokenPath, { value });
 				}
 			}}

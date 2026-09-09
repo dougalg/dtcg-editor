@@ -216,13 +216,13 @@ circular) — behaviors tagged with the story that adds them.
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
 | U76 | First open triggers the catalogue fetch; while `status: "loading"` the popover shows the loading state | US1, FR-023 | example | DONE | `TokenReferencePicker.test.tsx` |
-| U77 | The trigger and the search field each have an accessible name identifying the token being repointed | US1, FR-005 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
-| U78 | Typing passes the query through `filterCandidates` and renders the narrowed list in that order | US1, FR-004 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
-| U79 | An empty result renders "No tokens found" and nothing is selectable | US1, FR-017 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
-| U80 | Selecting a candidate calls `onStageEdit(editedTokenPath, { value: "{<displayPath>}" })` and closes | US1, FR-006 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
-| U81 | Selecting the candidate equal to the current/pending reference value stages nothing but still closes | US1, FR-019 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
-| U82 | On re-open, the row for the current/pending target is marked selected | US1, FR-018 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
-| U83 | When the catalogue fetch has errored, the popover renders a raw-text input bound to the alias string, and edits to it stage the change | US1, FR-021 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
+| U77 | The trigger and the search field each have an accessible name identifying the token being repointed | US1, FR-005 | example | DONE | `TokenReferencePicker.test.tsx` |
+| U78 | Typing passes the query through `filterCandidates` and renders the narrowed list in that order | US1, FR-004 | example | DONE | `TokenReferencePicker.test.tsx` |
+| U79 | An empty result renders "No tokens found" and nothing is selectable | US1, FR-017 | example | DONE | `TokenReferencePicker.test.tsx` |
+| U80 | Selecting a candidate calls `onStageEdit(editedTokenPath, { value: "{<displayPath>}" })` and closes | US1, FR-006 | example | DONE | `TokenReferencePicker.test.tsx` |
+| U81 | Selecting the candidate equal to the current/pending reference value stages nothing but still closes | US1, FR-019 | example | DONE | `TokenReferencePicker.test.tsx` |
+| U82 | On re-open, the row for the current/pending target is marked selected | US1, FR-018 | example | DONE | `TokenReferencePicker.test.tsx` |
+| U83 | When the catalogue fetch has errored, the popover renders a raw-text input bound to the alias string, and edits to it stage the change | US1, FR-021 | example | DONE | `TokenReferencePicker.test.tsx` |
 | U84 | Moving the highlight updates an `aria-live` region with the result count and the highlighted candidate's resolved value + any diagnostic | US2, FR-005, FR-012 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
 | U85 | The highlighted candidate's full `CandidatePreview` (with `hypothetical`) is rendered; other rows show only the compact form | US2, FR-009, FR-012 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
 | U86 | A circular candidate row is passed to `Combobox` as disabled; Enter/click stages nothing and the popover stays open | US3, FR-024, SC-008 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
