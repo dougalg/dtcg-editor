@@ -437,3 +437,11 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 674 passed / 138 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 99: U99 discard after a picker-staged repoint restores the saved reference
+
+- test: `TokenTree.test.tsx::'Discard and leave' after a picker-staged repoint restores the previously saved reference` — repoint `text` at `color.brand.red` via the picker, trigger the cross-file guard, click "Discard and leave"; then Save is disabled (nothing pending) and re-opening the picker shows `color.brand.blue` (the saved target) as `aria-current="true"`, `color.brand.red` not.
+- green first run (rides the existing `discardAll()` in `handleDiscardAndGo`). Mutant (comment out `discardAll();` in `handleDiscardAndGo`) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 675 passed / 138 files.
+- refactor: none.
+- commit: (this commit).

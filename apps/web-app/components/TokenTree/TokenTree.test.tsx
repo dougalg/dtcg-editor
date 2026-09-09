@@ -843,6 +843,44 @@ test("the unsaved-changes guard intercepts a cross-file nav after a picker-stage
 	expect(screen.getByText("Unsaved changes")).toBeTruthy();
 });
 
+test("'Discard and leave' after a picker-staged repoint restores the previously saved reference", async () => {
+	stubCatalogueFetch();
+	render(
+		<TokenTree
+			node={treeWithCrossFileReference()}
+			relativePath="semantic.json"
+			navigate={vi.fn()}
+		/>,
+	);
+
+	await repointTextViaPicker();
+	fireEvent.click(crossFileReferenceLink());
+	fireEvent.click(screen.getByRole("button", { name: "Discard and leave" }));
+
+	// Nothing staged any more…
+	expect(
+		(screen.getByRole("button", { name: /save/i }) as HTMLButtonElement)
+			.disabled,
+	).toBe(true);
+	// …and re-opening the picker shows the original target as the current one.
+	await act(async () => {
+		fireEvent.click(
+			screen.getByRole("combobox", { name: "Repoint reference for text" }),
+		);
+		await Promise.resolve();
+	});
+	expect(
+		screen
+			.getByRole("option", { name: "color.brand.blue" })
+			.getAttribute("aria-current"),
+	).toBe("true");
+	expect(
+		screen
+			.getByRole("option", { name: "color.brand.red" })
+			.getAttribute("aria-current"),
+	).not.toBe("true");
+});
+
 test("'Stay' closes the dialog without discarding the pending edit or navigating", () => {
 	const navigate = vi.fn();
 	render(
