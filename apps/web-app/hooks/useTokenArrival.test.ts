@@ -82,6 +82,28 @@ test("re-runs on hashchange, moving focus and marking to the new target", () => 
 	assert.equal(secondLi.className.length > 0, true);
 });
 
+// T033 regression assertion (C-KL-6 / FR-010): a same-file `<Link>` jump goes
+// through `history.pushState`, so the browser's native "auto-expand any closed
+// `<details>` ancestor of the target" never runs — `useTokenArrival` replicates
+// it with a plain `.open = true` DOM mutation (no React prop, so `<details>`
+// stays uncontrolled). No code change expected; this pins the behaviour.
+test("opens every closed <details> ancestor of the arrival target", () => {
+	const outer = document.createElement("details");
+	const inner = document.createElement("details");
+	const { li } = buildTokenRow("color.brand.blue");
+	inner.appendChild(li);
+	outer.appendChild(inner);
+	document.body.appendChild(outer);
+	assert.equal(outer.open, false);
+	assert.equal(inner.open, false);
+
+	setHash("#color.brand.blue");
+	renderHook(() => useTokenArrival());
+
+	assert.equal(outer.open, true);
+	assert.equal(inner.open, true);
+});
+
 test("clears the previous arrival mark when navigating to a new target", () => {
 	const { li: firstLi } = buildTokenRow("color.a");
 	buildTokenRow("color.b");

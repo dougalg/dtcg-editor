@@ -466,6 +466,60 @@ test.describe("large fixture keyboard flow (A3)", () => {
 		expect(headerYAfter).toBe(headerYBefore);
 	});
 
+	// FR-010 / C-KL-6 (T064 — closes verification.md finding #5): the commit
+	// side of FR-010 is covered by A4 (`<details open>` flags) and A10 (scroll);
+	// this is the *focus-movement* side. A full Tab / Shift+Tab pass moves focus
+	// across every row and control in the tree — and native `<summary>` elements
+	// are among the stops. Tabbing onto (not Enter/Space-ing) a `<summary>` must
+	// not toggle its `<details>`, and the symmetric pass must land back where it
+	// started with the scroll position restored.
+	test("a full Tab / Shift+Tab pass leaves every group's open state and the scroll position unchanged (FR-010)", async ({
+		page,
+	}, testInfo) => {
+		await page.goto("/tokens/large_scale.tokens.json");
+
+		const detailsOpen = () =>
+			page.evaluate(() =>
+				Array.from(document.querySelectorAll("details")).map((d) => d.open),
+			);
+		const scrollY = () => page.evaluate(() => window.scrollY);
+
+		await page.locator("body").click();
+		await page.evaluate(() => window.scrollTo(0, 0));
+
+		const openBefore = await detailsOpen();
+		const scrollBefore = await scrollY();
+		// Precondition: the fixture renders groups and they all start open
+		// (`<details open>` in TreeGroupNode's initial markup) — otherwise the
+		// "unchanged" assertion below would be vacuously satisfiable.
+		expect(openBefore.length).toBeGreaterThan(0);
+		expect(openBefore.every(Boolean)).toBe(true);
+
+		const STOPS = 40;
+		for (let i = 0; i < STOPS; i++) {
+			await page.keyboard.press("Tab");
+		}
+		for (let i = 0; i < STOPS; i++) {
+			await page.keyboard.press("Shift+Tab");
+		}
+
+		const openAfter = await detailsOpen();
+		const scrollAfter = await scrollY();
+
+		testInfo.annotations.push({
+			type: "perf",
+			description: `FR-010 tab-through: ${openBefore.length} <details>, ${openAfter.filter((o) => !o).length} closed after; scrollY ${scrollBefore}->${scrollAfter}`,
+		});
+
+		// FR-010: moving focus between rows and controls preserves every group's
+		// expanded/collapsed state…
+		expect(openAfter).toEqual(openBefore);
+		expect(openAfter.every(Boolean)).toBe(true);
+		// …and the token tree's scroll position (the symmetric pass returns to
+		// the first stop).
+		expect(scrollAfter).toBe(scrollBefore);
+	});
+
 	test("no tabbed-to control's focus ring is clipped by an overflow ancestor or obscured (A3a)", async ({
 		page,
 	}, testInfo) => {

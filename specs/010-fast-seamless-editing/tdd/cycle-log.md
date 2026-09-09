@@ -1344,6 +1344,28 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
   own box-model markup is message-independent. T026/T027 stay open (U63).
 - commit: this entry's commit
 
+## Cycle 76: U63 — FieldErrorSlot has no WCAG 2.2 AA violations, empty or with messages
+
+_Backfilled by T060 (`tdd/verification.md` finding #1) — this cycle's evidence
+was recorded in commit `9c92601`'s message at the time but never written up
+here, leaving a gap in the numbering (75 → 77). Re-verified at HEAD
+`accbecb` on 2026-09-09; no production or test change._
+
+- test: `apps/web-app/components/FieldErrorSlot/FieldErrorSlot.a11y.test.tsx::has no WCAG 2.2 AA violations with an empty slot (U63)` and `::… with name and value messages shown (U63)` (real-Chromium `apps/web-app:a11y` project; `axe.run` filtered to `WCAG_22_AA_TAGS` on the rendered container)
+- red: passes first run (the slot is a plain `<span>` wrapping `role="alert"`
+  spans — nothing for axe to flag). Deliberate-mutant: add an unnamed `<a href="#x" />`
+  inside the reserving box ->
+  `pnpm exec vitest run --project 'apps/web-app:a11y' FieldErrorSlot.a11y` ->
+  both tests fail on `expect(results.violations).toEqual([])` with the axe
+  `link-name` rule (`EN-9.4.1.2`, `RGAA-6.2.1`). Mutant reverted; both green again.
+- green: no production change.
+- refactor: none.
+- notes: standard axe-clean check for the FieldErrorSlot cluster (U60–U63);
+  the pixel-level "message appears, nothing moves" guarantee is A2
+  (`render-stability.spec.ts`), not this cycle. Ticked T026 and T027.
+- commit: `9c92601` (test + `tasks.md`/`test-list.md` ticks); this backfill entry
+  rides its own docs commit.
+
 ## Cycle 77: U64 — TokenBlock always renders FieldErrorSlot, threading `error`
 
 - test: `apps/web-app/components/TokenBlock/TokenBlock.test.tsx::always renders a FieldErrorSlot and shows the threaded error inside it (U64)` (new; renders `TokenBlock` with no `error` -> the `[data-testid="field-error-slot"]` box is present; with an `error` -> the message renders as `role="alert"` inside it)
@@ -1635,4 +1657,18 @@ sound; A1 formally closes once U41–U47 land + T024 tightens it.
 - refactor: none — the test follows the A3 / A9 describe-block pattern (gated `test.skip(project !== "default")`), self-contained.
 - **unrelated finding (reported, not fixed — Hard Rule 6)**: `_showcase.color`'s "Legacy hex value" `ChannelInput` draft is discarded ~asynchronously while the field is still focused and untouched otherwise (a plain 300 ms wait after `fill()` reverts it to the committed value) — the live-preview re-resolution (`useResolvedPreview` / `ReferenceValueDisplay`) appears to reset the colour editor's local draft on a timer. A9 doesn't hit it (it presses Enter immediately). Out of scope for A12; may warrant its own behavior.
 - tasks: **T037a ticked** (`[A12] [U49]` — the e2e case driving a theme change mid-draft; U49's unit half was already DONE via T037b). T037a also carried `[A2]` context in the tasks-summary line but its own text is the A12/U49 deliverable.
+- commit: this entry's commit
+
+## Cycle 98: T064 — a full Tab / Shift+Tab pass leaves every group's open state and scroll position unchanged (FR-010)
+
+_Raised by `/speckit-tdd-verify` finding #5: FR-010's focus-movement half was
+only covered indirectly (via the "supports A3 / SC-003" `layout-shift total === 0`
+guard). This adds the direct assertion on the `<details open>` flags and the
+scroll position. `tasks.md` T032 / T064._
+
+- test: `apps/web-app/e2e/keyboard-navigation.spec.ts::a full Tab / Shift+Tab pass leaves every group's open state and the scroll position unchanged (FR-010)` (new; `default` project, `large_scale.tokens.json`, inside the "large fixture keyboard flow (A3)" describe block). Snapshots `Array.from(document.querySelectorAll("details")).map(d => d.open)` and `window.scrollY` from the top of the page, presses Tab ×40 then Shift+Tab ×40, re-snapshots. Asserts the open-flag array is deep-equal, all still `true`, and `scrollY` returned to its starting value.
+- red: passes first run — the app already keeps `<details>` uncontrolled and never writes `.open` outside `useTokenArrival` (navigation only), and the symmetric pass returns to the first tab stop. Deliberate-mutant: between the forward and backward passes, `document.querySelector("details")?.removeAttribute("open")` → `expect(openAfter).toEqual(openBefore)` fails with `- true / + false` at index 0. Mutant removed; test green again (`1 passed (1.7s)`).
+- green: no production change.
+- refactor: none — follows the existing gated `test.skip(project !== "default")` describe-block pattern.
+- tasks: closes **T064**; **T032** (`[A3] [U54]` — C-KL-6 / FR-010) now has its direct e2e coverage and can be ticked (T066).
 - commit: this entry's commit

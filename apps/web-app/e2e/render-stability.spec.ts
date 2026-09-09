@@ -42,11 +42,14 @@ test.describe("render-stability — large fixture", () => {
 		// A2 / FR-012 / C-KL-4: a validation *message* must render inside the
 		// row's reserved-height `FieldErrorSlot`, moving nothing around it.
 		// Rename a token onto a sibling's name — the store rejects it (U8) and
-		// the slot renders the error. The `layout-shift` API filters shifts
-		// within 500 ms of a discrete input (a commit-on-blur error render always
-		// is), so the direct, scroll-independent observable is the **edited row's
-		// height** (`nextRow.top − row.top`): if the slot reserves its space,
-		// that gap does not change when the message appears.
+		// the slot renders the error. SC-002's literal metric is "measured
+		// layout shift … is zero", but the `layout-shift` API sets
+		// `hadRecentInput` on (and thus discards) any shift within 500 ms of a
+		// discrete input — and a commit-on-blur error render always is one. So
+		// SC-002 is measured here by the direct, scroll-independent observable:
+		// the **edited row's height** (`nextRow.top − row.top`). If the slot
+		// reserves its space, that gap does not change when the message appears.
+		// (Rationale recorded in `tdd/cycle-log.md` cycle 88.)
 		const row = page.getByTestId(REFERRER);
 		const nameInput = row.getByRole("textbox", { name: "token-1 name" });
 		const nextRow = page.getByTestId("token-group-0.sub-0.token-2");
@@ -153,6 +156,14 @@ test.describe("render-stability — large fixture", () => {
 		const hubValue = hubRow.getByRole("spinbutton", { name: "Value" });
 		await expect(hubValue).toBeVisible();
 		await page.waitForTimeout(1000); // hydration + preview settle
+
+		// SC-004's literal metric is "measured layout shift … is zero", but the
+		// `layout-shift` API discards any shift within 500 ms of a discrete input
+		// (`hadRecentInput`) and a commit-on-blur always is one. So the confinement
+		// is measured directly instead: an `innerHTML` DOM-diff of the unrelated
+		// rows / group headers / `<details open>` flags / back-link, which is
+		// stricter (byte equality, not just "no visible shift").
+		// (Rationale recorded in `tdd/cycle-log.md` cycle 91.)
 
 		// `_showcase.color` / `_showcase.exotic` do not reference the hub — their
 		// rendered markup must be byte-identical across the commit, and their DOM

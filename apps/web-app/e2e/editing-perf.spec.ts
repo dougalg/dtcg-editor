@@ -11,9 +11,10 @@ import {
  * build on the `default` server, which serves `e2e/fixtures/tokens/` — where
  * `large_scale.tokens.json` (T002) lives.
  *
- * A1 / A5 / A6 are green (cycles 85–87); A7 asserts they run at the SC-007
- * ceiling — this file navigates `large_scale.tokens.json`, which must be a
- * ≥2,000-token document.
+ * A1 / A5 / A6 are green (cycles 85–87); A7 is a fixture-size guard — SC-007
+ * coverage is transitive through A1 / A2 / A4 / A5 / A6, which all navigate
+ * `large_scale.tokens.json`, so A7 only asserts that file stays a ≥2,000-token
+ * document.
  *
  * Fixture landmarks (see `scripts/generate-large-fixture.ts`):
  * - `_showcase.dimension` — a plain, editable dimension token.
@@ -55,6 +56,13 @@ test.describe("editing-perf — large fixture", () => {
 		// API — a main-thread block > 50 ms — across a run of real commits, and
 		// require none over the budget. This measures in-page only; Playwright's
 		// `fill` / `blur` protocol time never enters it.
+		//
+		// Why the metric differs from SC-001's literal "value visible within
+		// 100 ms": see `specs/010-fast-seamless-editing/baseline.md`
+		// §"Measurement method changed mid-implementation" (A1 / cycle 85) — a
+		// `performance.now()` self-echo has no latency to time under the
+		// local-draft model, so the long-task count is the meaningful (and
+		// stricter) guard for the same guarantee.
 		//
 		// One warm-up commit first: the very first commit of a session costs
 		// ~160 ms on this fixture (one-time JIT + `buildReverseDeps` / preview
@@ -181,19 +189,27 @@ test.describe("editing-perf — large fixture", () => {
 			description: `A6 burst: ${BURST.length} chars, ${dropped} dropped, ${longTasks.length} long task(s) (longest ${Math.round(Math.max(0, ...longTasks))}ms)`,
 		});
 
-		// zero characters dropped, in order (SC-006 / C-RI-2)
+		// zero characters dropped, in order (SC-006 / C-RI-2) — this is the
+		// primary guarantee and it is exact.
 		expect(shown).toBe(BURST);
-		// displayed text never trailed the input by more than a frame — no
-		// keystroke blocked the main thread past the budget
+		// The lag half: SC-006's trailing bound is "one animation frame
+		// (~16 ms)", but a long task is only reported at > 50 ms, so this
+		// assertion pins the coarser "no keystroke blocked the main thread"
+		// property (≤ 100 ms budget). The ~16 ms frame bound is not directly
+		// observable here; the 0-dropped-characters check above is what proves
+		// the field kept up keystroke for keystroke.
 		expect(Math.max(0, ...longTasks)).toBeLessThanOrEqual(ECHO_BUDGET_MS);
 	});
 
-	test("the SC-001..SC-006 guards run at the 2,000-token ceiling (A7)", async ({
+	test("the committed large fixture is at/above the SC-007 2,000-token ceiling (A7)", async ({
 		page,
 	}, testInfo) => {
-		// SC-007: SC-001–SC-006 hold for documents *up to 2,000 tokens*. Every A1
-		// / A2 / A4 / A5 / A6 test navigates this one fixture, so the guarantee
-		// is only as strong as the fixture is large. U68 guards the generator's
+		// This test is a *fixture-size guard*, not a re-run of SC-001–SC-006 at
+		// the ceiling. SC-007 ("SC-001–SC-006 hold for documents up to 2,000
+		// tokens") is covered transitively: A1 / A2 / A4 / A5 / A6 each navigate
+		// this same `large_scale.tokens.json`, so their assertions already run at
+		// the ceiling — but only for as long as this file stays ≥ 2,000 tokens.
+		// That is the single property asserted here. U68 guards the generator's
 		// output size; this guards the committed file the acceptance suite loads.
 		await page.goto("/tokens/large_scale.tokens.json");
 		const rows = await page.locator('li[data-testid^="token-"]').count();

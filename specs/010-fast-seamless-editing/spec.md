@@ -169,6 +169,12 @@ pixel-stable, and expanded groups stay expanded.
   by an overflow boundary, and not obscured by another element.
 - **FR-008**: When a focused control reveals supplementary UI (hints, affordances, helper
   text), that UI MUST occupy pre-reserved space so surrounding controls do not move.
+  _Implementation note (010): the editor as shipped has **no focus-revealed
+  supplementary UI** — the one dynamic affordance, `TypeSuggestion`, is
+  condition-mounted on an inferred `$type`, not on focus. FR-008 is therefore
+  carried forward as a constraint on any such UI added later; acceptance test A11
+  covers the single real affordance (focus is not stranded on `<body>` when a type
+  suggestion is accepted). See `tdd/verification.md` finding #6._
 - **FR-009**: Committing an edit MUST visibly update only the edited row and the
   resolved-value previews of tokens that reference the edited token; the remainder of the
   token tree, the group headers, the Save button, and the page header MUST remain visually

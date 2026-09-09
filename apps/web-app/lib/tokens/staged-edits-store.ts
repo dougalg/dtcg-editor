@@ -318,6 +318,13 @@ export class StagedEditsStore {
 	 * records why, and `commit` returns `false` (INV-6). Only the touched key's
 	 * cached snapshot is invalidated — an unrelated key's `getFields` reference
 	 * is left intact (INV-1).
+	 *
+	 * Validation timing (research.md §3b, T037): inline errors surface here — on
+	 * commit (blur / Enter / debounce) — not per keystroke. That is deliberate:
+	 * it avoids error text flickering in and out under the cursor and fits the
+	 * reserved-slot model (`FieldErrorSlot`). A field that genuinely needs live
+	 * errors calls the pure `validate()` above in its own `onChange`, without
+	 * staging; as of 010 no field does.
 	 */
 	commit = (key: PathKey, draft: Partial<EditableFields>): boolean => {
 		const errors = this.validate(key, draft);

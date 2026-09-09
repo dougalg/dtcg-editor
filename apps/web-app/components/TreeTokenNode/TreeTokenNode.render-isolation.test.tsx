@@ -24,7 +24,6 @@ vi.mock("../TokenBlock/TokenBlock.tsx", () => ({
 			children: unknown;
 		}) => (
 			<li data-testid={rowTestId}>
-				{/* biome-ignore lint/a11y/noLabelWithoutControl: the input is the control */}
 				<input
 					aria-label={nameAriaLabel}
 					value={name}
