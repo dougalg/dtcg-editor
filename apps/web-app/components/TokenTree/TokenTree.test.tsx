@@ -1,9 +1,29 @@
-import { DTCG_TOKEN_TYPES } from "@dtcg-editor/token-core";
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, expect, test, vi } from "vitest";
+import { DTCG_TOKEN_TYPES, parseTokenFile } from "@dtcg-editor/token-core";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeAll, expect, test, vi } from "vitest";
+import { resetReferenceCatalogueCache } from "../../hooks/useReferenceCatalogue.ts";
 import { BUILT_IN_TOKEN_TYPES } from "../../lib/token-editors/built-in.ts";
+import type { LoadedTokenFile } from "../../lib/tokens/load-directory.ts";
 import type { PlainDtcgNode } from "../../lib/tokens/plain-node.ts";
+import { buildReferenceCatalogue } from "../../lib/tokens/reference-catalogue.ts";
+import { buildReferenceIndex } from "../../lib/tokens/reference-index.ts";
 import { TokenTree } from "./TokenTree.tsx";
+
+beforeAll(() => {
+	if (!window.ResizeObserver) {
+		window.ResizeObserver = class {
+			observe() {}
+			unobserve() {}
+			disconnect() {}
+		};
+	}
+	if (!Element.prototype.hasPointerCapture) {
+		Element.prototype.hasPointerCapture = () => false;
+	}
+	if (!Element.prototype.scrollIntoView) {
+		Element.prototype.scrollIntoView = () => {};
+	}
+});
 
 /**
  * Scopes a query to one token's row via a stable `data-testid` (keyed by the
@@ -179,7 +199,61 @@ function stubSuccessfulFetch() {
 
 afterEach(() => {
 	vi.unstubAllGlobals();
+	resetReferenceCatalogueCache();
 });
+
+function catalogueFile(relativePath: string, json: unknown): LoadedTokenFile {
+	const result = parseTokenFile(JSON.stringify(json));
+	if (result.isErr()) throw new Error(result.error.message);
+	return { relativePath, document: result.value };
+}
+
+/**
+ * Stubs `fetch` so the reference-picker catalogue endpoint returns a
+ * two-colour catalogue (`color.brand.blue` / `color.brand.red`) and every
+ * other call (e.g. a PATCH save) succeeds with `200`.
+ */
+function stubCatalogueFetch() {
+	const catalogue = buildReferenceCatalogue(
+		buildReferenceIndex([
+			catalogueFile("base.json", {
+				color: {
+					$type: "color",
+					brand: {
+						blue: { $value: { hex: "#0000ff" } },
+						red: { $value: { hex: "#ff0000" } },
+					},
+				},
+			}),
+		]),
+	);
+	vi.stubGlobal(
+		"fetch",
+		vi.fn((input: RequestInfo | URL) => {
+			const url = typeof input === "string" ? input : input.toString();
+			if (url.includes("/api/tokens/references")) {
+				return Promise.resolve(
+					new Response(JSON.stringify(catalogue), { status: 200 }),
+				);
+			}
+			return Promise.resolve(new Response(null, { status: 200 }));
+		}),
+	);
+}
+
+/** Opens the `text` row's reference picker and repoints it at `color.brand.red`. */
+async function repointTextViaPicker() {
+	await act(async () => {
+		fireEvent.click(
+			screen.getByRole("combobox", { name: "Repoint reference for text" }),
+		);
+		await Promise.resolve();
+	});
+	await act(async () => {
+		fireEvent.click(screen.getByRole("option", { name: "color.brand.red" }));
+		await Promise.resolve();
+	});
+}
 
 test("shows an editable value control for a dimension token but not for a non-standard type (AC-01, AC-05)", () => {
 	render(<TokenTree node={tree()} relativePath="tokens.json" />);
@@ -746,6 +820,23 @@ test("a cross-file reference click with pending edits opens the unsaved-changes 
 		/>,
 	);
 	stageAnEdit();
+
+	fireEvent.click(crossFileReferenceLink());
+
+	expect(screen.getByText("Unsaved changes")).toBeTruthy();
+});
+
+test("the unsaved-changes guard intercepts a cross-file nav after a picker-staged reference edit", async () => {
+	stubCatalogueFetch();
+	render(
+		<TokenTree
+			node={treeWithCrossFileReference()}
+			relativePath="semantic.json"
+			navigate={vi.fn()}
+		/>,
+	);
+
+	await repointTextViaPicker();
 
 	fireEvent.click(crossFileReferenceLink());
 

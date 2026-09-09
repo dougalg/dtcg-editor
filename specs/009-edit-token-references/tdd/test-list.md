@@ -262,7 +262,7 @@ Extracted from `TreeTokenNode.tsx` path 1 (brownfield — existing path-1 tests 
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U98 | The existing unsaved-changes navigation guard intercepts a cross-file navigation while a picker-staged reference edit is pending | FR-008 | example | PENDING | `apps/web-app/components/TokenTree/TokenTree.test.tsx` |
+| U98 | The existing unsaved-changes navigation guard intercepts a cross-file navigation while a picker-staged reference edit is pending | FR-008 | example | DONE | `apps/web-app/components/TokenTree/TokenTree.test.tsx::the unsaved-changes guard intercepts a cross-file nav after a picker-staged reference edit` |
 | U99 | Choosing "discard" in the unsaved-changes dialog after a picker-staged edit restores the previously saved reference | FR-008 | example | PENDING | `apps/web-app/components/TokenTree/TokenTree.test.tsx` |
 
 ### `apps/web-app/app/api/tokens/[...path]/route.ts` (existing + regression)

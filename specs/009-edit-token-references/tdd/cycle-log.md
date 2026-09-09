@@ -427,3 +427,13 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 673 passed / 138 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 98: U98 unsaved-changes guard fires on a picker-staged reference edit
+
+- test: `TokenTree.test.tsx::the unsaved-changes guard intercepts a cross-file nav after a picker-staged reference edit` — `stubCatalogueFetch()` (endpoint-aware fetch stub), render `treeWithCrossFileReference()` at `semantic.json`, open the `text` row's picker and select `color.brand.red`, then click the cross-file link -> "Unsaved changes" dialog shows.
+- red (first attempt, before U104): `Unable to find an element with the text: Unsaved changes` — the repoint reached `commit({ value })` which the store rejected, so nothing staged and the guard saw no pending edit. Split out **U104** (store must not type-validate a reference string), drove it, then restarted this cycle.
+- green after U104. Mutant (`onRepoint={() => {}}` in `TreeTokenNode`) -> `1 failed`. Restored.
+- New test infra in `TokenTree.test.tsx`: `beforeAll` jsdom polyfills (ResizeObserver / hasPointerCapture / scrollIntoView) for the Popover+cmdk picker, `resetReferenceCatalogueCache()` in `afterEach`, `stubCatalogueFetch` + `repointTextViaPicker` helpers.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 674 passed / 138 files.
+- refactor: none.
+- commit: (this commit).
