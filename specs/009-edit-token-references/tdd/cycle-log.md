@@ -390,3 +390,12 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 669 passed / 137 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 95: U95 ReferenceEditControl resting-state a11y (browser tier)
+
+- test: `ReferenceEditControl.a11y.test.tsx::the resting reference row (value display + closed repoint trigger) has no WCAG 2.2 AA violations` — `apps/web-app:a11y` (real Chromium), `axe.run` over the rendered container with `WCAG_22_AA_TAGS`.
+- green first run. Mutant (a bare `<input type="text" />` added beside the value label) -> axe `label` ("Ensure every form element has a label") -> `1 failed`. Restored.
+- Scope: resting state only; the open-popover axe (populated / empty / disabled circular row) is A19 / `TokenReferencePicker.a11y.test.tsx` U88.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 670 passed / 138 files.
+- refactor: none.
+- commit: (this commit).

@@ -243,7 +243,7 @@ Extracted from `TreeTokenNode.tsx` path 1 (brownfield — existing path-1 tests 
 | U92 | A pick made through the hosted picker calls `onRepoint(aliasValue)` (→ `TreeTokenNode` `commit({ value })`) | FR-006 | example | DONE | `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.test.tsx::picking a candidate through the hosted picker calls onRepoint with the alias value` |
 | U93 | When `resolved` is undefined (index build failed) the raw alias string is shown as the resting state | FR-021 | example | DONE | `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.test.tsx::when resolved is undefined (index build failed) the raw alias string is the resting value` |
 | U94 | The name-field rename-collision error branch is unchanged | FR-001 (regression) | example | DONE | `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.test.tsx::a name-field error is still surfaced through the shared FieldErrorSlot` |
-| U95 | The rendered `ReferenceEditControl` has zero axe-core violations | FR-005 | example | PENDING | `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.a11y.test.tsx` |
+| U95 | The rendered `ReferenceEditControl` has zero axe-core violations | FR-005 | example | DONE | `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.a11y.test.tsx::the resting reference row … has no WCAG 2.2 AA violations` |
 
 ### `apps/web-app/components/TreeTokenNode/TreeTokenNode.tsx` (edited)
 
