@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-20
 
-**Status**: Draft
+**Status**: Implemented (2026-09-09)
 
 **Input**: User description: "1. extract reusable "dumb" subcomponent from TreeTokenNode to remove existing duplication. Aim for just one component to be a "block" following the CUBE CSS definition of Blocks
 2. extract css from TokenTree.module.css that makes sense to be in the new component instead of in TokenTree

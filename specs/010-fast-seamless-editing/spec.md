@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-30
 
-**Status**: Draft
+**Status**: Implemented (2026-09-09)
 
 **Input**: User description: "An edit shouldn't should be fast and seamless for the user. Tabbing and moving around the page should also not trigger unexpected reflows and rerenders."
 
