@@ -466,3 +466,12 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - **A19** (open-popover axe) — closed by U88's `TokenReferencePicker.a11y.test.tsx` (populated + disabled circular row + live region) plus `Combobox` U15 for the empty-popover state. No separate Playwright axe host exists for a mounted popover; state -> DONE.
 - **A20** (repoint round-trip, one `$value` diff) — closed by U101 in `route.test.ts` (integration tier; no acceptance runner reaches the written file). State -> DONE.
 - **A1–A18** — still PENDING. These are the keyboard-only Playwright acceptance specs (`e2e/edit-token-references.spec.ts` + `-perf.spec.ts`), tasks T030 / T038 / T046 / T048 / T049, gated on the T002 fixture extension (a cycle-closing multi-hop candidate, a self-reference, a mode-conditional cycle, a missing-path reference, a group-path reference). Every unit they compose over (U1–U104) is DONE, so this is the outer loop to open next as its own phase, then `/speckit.tdd.verify`.
+
+## Note: TreeTokenNode.tsx line count (T027 / Principle X)
+
+The `ReferenceEditControl` extraction took `TreeTokenNode.tsx` from 409 -> 363 lines.
+Still over the 300-line ceiling T027 asks to confirm. That ceiling is a
+structural/lint check (T050 / `pnpm lint`), out of scope for this loop per the
+test-list; T027 stays unticked until the file is brought under 300 (further
+extraction of the non-reference dispatch paths, no behaviour change). U96/U97 —
+T027's behavioural half — are DONE.
