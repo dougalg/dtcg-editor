@@ -399,3 +399,11 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 670 passed / 138 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 96: U96 TreeTokenNode delegates a reference row to ReferenceEditControl
+
+- test: `TreeTokenNode.test.tsx::a reference-valued token delegates to ReferenceEditControl — the repoint trigger is present` — a reference token rendered through `TokenTree` exposes `role="combobox"` named `"Repoint reference for text"`, which only `ReferenceEditControl` renders.
+- green first run (delegation landed in cycle 91). Mutant (`if (dispatch.reference !== undefined)` -> `if (false && …)` in `TreeTokenNode`) -> `7 failed` incl. this one. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 671 passed / 138 files.
+- refactor: none.
+- commit: (this commit).

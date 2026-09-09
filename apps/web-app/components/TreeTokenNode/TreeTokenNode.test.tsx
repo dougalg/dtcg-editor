@@ -192,6 +192,19 @@ test("a token that both holds a reference and is itself referenced shows both in
 	expect(screen.getByText("referenced once")).toBeTruthy();
 });
 
+test("a reference-valued token delegates to ReferenceEditControl — the repoint trigger is present", () => {
+	render(
+		<TokenTree
+			node={referenceTree("color", "{color.brand.blue}", resolvedColor())}
+			relativePath="a.json"
+		/>,
+	);
+
+	expect(
+		screen.getByRole("combobox", { name: "Repoint reference for text" }),
+	).toBeTruthy();
+});
+
 test("a non-reference invalid color value is still reported as invalid (no regression on the non-reference path)", () => {
 	render(
 		<TokenTree
