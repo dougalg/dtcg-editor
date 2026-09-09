@@ -460,3 +460,9 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - commit: (this commit).
 
 ## Inner loop complete — U1-U104 all DONE/BASELINE
+
+## Outer loop status
+
+- **A19** (open-popover axe) — closed by U88's `TokenReferencePicker.a11y.test.tsx` (populated + disabled circular row + live region) plus `Combobox` U15 for the empty-popover state. No separate Playwright axe host exists for a mounted popover; state -> DONE.
+- **A20** (repoint round-trip, one `$value` diff) — closed by U101 in `route.test.ts` (integration tier; no acceptance runner reaches the written file). State -> DONE.
+- **A1–A18** — still PENDING. These are the keyboard-only Playwright acceptance specs (`e2e/edit-token-references.spec.ts` + `-perf.spec.ts`), tasks T030 / T038 / T046 / T048 / T049, gated on the T002 fixture extension (a cycle-closing multi-hop candidate, a self-reference, a mode-conditional cycle, a missing-path reference, a group-path reference). Every unit they compose over (U1–U104) is DONE, so this is the outer loop to open next as its own phase, then `/speckit.tdd.verify`.

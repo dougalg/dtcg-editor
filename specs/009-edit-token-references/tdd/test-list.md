@@ -48,8 +48,8 @@ All stay `PENDING` until the feature works end to end.
 | A16 | A circular candidate is visibly distinct as unselectable next to a clean one, without the user attempting to select it | US3-5, FR-024 | example | PENDING | `apps/web-app/e2e/edit-token-references.spec.ts` |
 | A17 | Every token path in the loaded fixture directory is reachable as a candidate through the search | SC-002 | example | PENDING | `apps/web-app/e2e/edit-token-references.spec.ts` |
 | A18 | Typing a burst into the open picker against a ~1,000-path set records no main-thread Long Task > 50 ms, and keystroke→updated-list p95 < 50 ms | SC-004 | example | PENDING | `apps/web-app/e2e/edit-token-references-perf.spec.ts` (acceptance-perf) |
-| A19 | The open popover — populated, empty, and with a disabled circular row — has zero axe-core WCAG 2.2 AA violations | SC-006, FR-005 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.a11y.test.tsx` (a11y tier — no Playwright axe host for a mounted popover) |
-| A20 | A PATCH that repoints a reference changes exactly that one `$value`; a parse→serialize round-trip of the file shows no other diff | SC-007, FR-007 | example | PENDING | `apps/web-app/app/api/tokens/[...path]/route.test.ts` (integration tier — no acceptance runner reaches the written file) |
+| A19 | The open popover — populated, empty, and with a disabled circular row — has zero axe-core WCAG 2.2 AA violations | SC-006, FR-005 | example | DONE | `TokenReferencePicker.a11y.test.tsx::the open picker, including a disabled circular row and the live region, has no WCAG 2.2 AA violations` (U88; empty-popover state = `Combobox` U15) |
+| A20 | A PATCH that repoints a reference changes exactly that one `$value`; a parse→serialize round-trip of the file shows no other diff | SC-007, FR-007 | example | DONE | `apps/web-app/app/api/tokens/[...path]/route.test.ts::PATCH repointing a reference changes exactly that one $value and nothing else (SC-007, hosts A20)` (U101) |
 
 ## Inner loop: unit behaviors
 
