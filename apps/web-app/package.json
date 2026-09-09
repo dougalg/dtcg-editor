@@ -31,7 +31,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.62.1",
+		"@playwright/test": "^1.63.0",
 		"@testing-library/react": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
@@ -41,7 +41,7 @@
 		"@vitest/browser-playwright": "catalog:",
 		"axe-core": "catalog:",
 		"jsdom": "catalog:",
-		"playwright": "^1.62.1",
+		"playwright": "^1.63.0",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	}
