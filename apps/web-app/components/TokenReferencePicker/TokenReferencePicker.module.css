@@ -2,6 +2,16 @@
 	font-family: var(--dtcg-ed-font-mono);
 	width: 100%;
 }
+.row {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--dtcg-ed-space-3xs);
+	width: 100%;
+}
+.rowPath {
+	font-family: var(--dtcg-ed-font-mono);
+}
 .srOnly {
 	position: absolute;
 	width: 1px;

@@ -467,6 +467,41 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - **A20** (repoint round-trip, one `$value` diff) — closed by U101 in `route.test.ts` (integration tier; no acceptance runner reaches the written file). State -> DONE.
 - **A1–A18** — still PENDING. These are the keyboard-only Playwright acceptance specs (`e2e/edit-token-references.spec.ts` + `-perf.spec.ts`), tasks T030 / T038 / T046 / T048 / T049, gated on the T002 fixture extension (a cycle-closing multi-hop candidate, a self-reference, a mode-conditional cycle, a missing-path reference, a group-path reference). Every unit they compose over (U1–U104) is DONE, so this is the outer loop to open next as its own phase, then `/speckit.tdd.verify`.
 
+## Cycle: U105 diagnosticFor + picker row visual wiring (opening the outer loop)
+
+Discovered while starting T030/T038: the outer-loop acceptance behaviors A7,
+A9, A15, A16 require each candidate row to visibly show its diagnostic /
+resolved value, but `TokenReferencePicker`'s `renderItem` only ever returned
+`c.displayPath` — no unit or a11y test caught this because U84/U85 deferred
+the actual visible-content assertion to e2e (see test-list.md notes on both).
+
+- test: `apps/web-app/lib/tokens/candidate-diagnostic.test.ts` (new, 4 cases)
+- red: `pnpm exec vitest run apps/web-app/lib/tokens/candidate-diagnostic.test.ts`
+  → `Error: Failed to resolve import "./candidate-diagnostic.ts"` (file did not
+  exist). After adding a first-draft implementation: 2/4 failed —
+  `AssertionError: 'none' !== 'missing'` / `'none' !== 'group'` (used
+  `entry.outcome.kind` where the wire shape is `entry.outcome.outcome.kind` —
+  `preview[].outcome` is a `ResolutionChainWire`, not the `ChainOutcome`
+  itself).
+- green: fixed the field path in `candidate-diagnostic.ts`. 4/4 passed. Wired
+  `diagnosticFor` + `CandidatePreview` into `TokenReferencePicker.tsx`'s
+  `renderItem` (diagnostic always, `hypothetical` only for the highlighted
+  row), wrapped in `aria-hidden` so the option's accessible name stays the
+  bare `displayPath`. This broke 4 existing `TokenReferencePicker.test.tsx`
+  assertions that queried `getByRole("option", { name: "…" })` with an exact
+  name (now the accessible name was unaffected — those 3 actually stayed
+  green) and 1 that asserted `option.textContent` exactly equals
+  `["color.red"]` (this one broke — legitimately, since the row now visibly
+  carries more than the path, which is what FR-009 asks for). Updated that
+  one assertion to check the option count + accessible name instead of raw
+  textContent. Full suite: `pnpm exec vitest run` → 680 passed / 139 files
+  (was 676/138).
+- refactor: none beyond the aria-hidden wrapper decision above.
+- commit: (this commit)
+- notes: no new behavior id for the picker wiring — it is the production
+  half of the already-listed U85, not a newly discovered observable result.
+  `U105` is new (the `diagnosticFor` pure function itself).
+
 ## Note: TreeTokenNode.tsx line count (T027 / Principle X)
 
 The `ReferenceEditControl` extraction took `TreeTokenNode.tsx` from 409 -> 363 lines.

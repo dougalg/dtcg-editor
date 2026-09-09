@@ -4,7 +4,7 @@ loop: outside-in
 profile: .specify/memory/tdd-profile.md
 spec_criteria: 16
 planned_at: 4da9386
-updated_at: 4da9386
+updated_at: 095546f
 suite_baseline: green
 ---
 
@@ -251,6 +251,36 @@ Extracted from `TreeTokenNode.tsx` path 1 (brownfield — existing path-1 tests 
 | --- | -------- | ------ | ---- | ----- | ---- |
 | U96 | For a token whose `$value` is a reference, `TreeTokenNode` delegates to `ReferenceEditControl` | FR-001 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx::a reference-valued token delegates to ReferenceEditControl — the repoint trigger is present` |
 | U97 | For a token whose `$value` is a literal, no reference edit trigger / picker is rendered | FR-022 | example | DONE | `apps/web-app/components/TreeTokenNode/TreeTokenNode.test.tsx::a literal-valued token renders no reference repoint trigger (FR-022)` |
+
+### `apps/web-app/lib/tokens/candidate-diagnostic.ts`
+
+`diagnosticFor(editedTokenPath, candidate)` — pure; added mid-loop while
+driving A7/A9/A15/A16: `TokenReferencePicker`'s `renderItem` needed a per-row
+`CandidateDiagnostic` to pass to `CandidatePreview`, and none of the existing
+units computed one (candidate-selectability only returns the boolean
+disabled/not-disabled half).
+
+| id   | behavior | traces | kind | state | test |
+| ---- | -------- | ------ | ---- | ----- | ---- |
+| U105 | Circular (via `isCircularIfSelected`) takes precedence over missing/group; among a candidate's preview outcomes, the first non-resolved kind found determines missing vs. group; a cleanly-resolving candidate is `"none"` | FR-015, FR-016, FR-024 | example | DONE | `candidate-diagnostic.test.ts` |
+
+### `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.tsx` (row rendering, mid-loop)
+
+Added while driving A7–A10: `renderItem` previously returned bare
+`c.displayPath` text — no candidate's resolved value or diagnostic was ever
+visible in the popover, only reachable via the `aria-live` region (U84/U85).
+Now every row renders `CandidatePreview` (diagnostic always; `hypothetical`
+only for the highlighted row) inside an `aria-hidden` wrapper, so the row's
+*accessible* name stays the bare `displayPath` (U78, U80–U82 unchanged) while
+sighted users see the value inline (closes the U85 "other rows show the
+compact form" claim, previously deferred to e2e with nothing to show).
+`TokenReferencePicker.test.tsx`'s narrowing assertion (U78) was changed from
+asserting `option.textContent` to asserting the option's accessible name —
+the old assertion tested implementation shape (bare text), the new one tests
+the actual behavior (which candidates are shown, in what order), per spec
+FR-004; the visible content is now allowed to carry more than just the path,
+which is exactly what FR-009 requires. No new behavior id: this is the
+production half of U85, not a new observable result.
 
 ### `apps/web-app/lib/tokens/staged-edits-store.ts` (edited)
 

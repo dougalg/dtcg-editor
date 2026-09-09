@@ -3,6 +3,7 @@
 import { Combobox } from "@dtcg-editor/design-system/components/Combobox/Combobox.tsx";
 import { type ReactNode, useMemo, useState } from "react";
 import { useReferenceCatalogue } from "../../hooks/useReferenceCatalogue.ts";
+import { diagnosticFor } from "../../lib/tokens/candidate-diagnostic.ts";
 import { filterCandidates } from "../../lib/tokens/candidate-filter.ts";
 import { isCircularIfSelected } from "../../lib/tokens/candidate-selectability.ts";
 import { resolveIfRepointed } from "../../lib/tokens/hypothetical-resolution.ts";
@@ -133,7 +134,25 @@ export function TokenReferencePicker({
 				onQueryChange={setQuery}
 				items={items}
 				getKey={(c) => c.displayPath}
-				renderItem={(c) => c.displayPath}
+				renderItem={(c) => (
+					<span className={styles.row}>
+						<span className={styles.rowPath}>{c.displayPath}</span>
+						{/* Visual only — the row's accessible name stays the bare
+						    displayPath above; the resolved value and any diagnostic
+						    are already announced through the aria-live region
+						    (U84), which tracks the highlight rather than dumping
+						    every row's preview into the accessible tree at once. */}
+						<span aria-hidden="true">
+							<CandidatePreview
+								candidate={c}
+								diagnostic={diagnosticFor(editedTokenPath, c)}
+								hypothetical={
+									c.displayPath === highlightKey ? hypothetical : undefined
+								}
+							/>
+						</span>
+					</span>
+				)}
 				isItemDisabled={(c) => isCircularIfSelected(editedTokenPath, c)}
 				selectedKey={selectedKey}
 				onHighlightChange={setHighlightKey}

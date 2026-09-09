@@ -123,8 +123,12 @@ test("typing narrows the list through filterCandidates, in order", async () => {
 		target: { value: "color.re" },
 	});
 
-	const options = screen.getAllByRole("option");
-	expect(options.map((o) => o.textContent)).toEqual(["color.red"]);
+	// Options now also carry their resolved-value preview (FR-009) in their
+	// visible text, so narrowing/order is asserted on the accessible name
+	// (the bare displayPath — see TokenReferencePicker.tsx's aria-hidden
+	// preview span) rather than full textContent.
+	expect(screen.getAllByRole("option")).toHaveLength(1);
+	expect(screen.getByRole("option", { name: "color.red" })).toBeDefined();
 });
 
 test("a query matching nothing shows 'No tokens found' and nothing is selectable", async () => {
