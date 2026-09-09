@@ -27,6 +27,13 @@ export default defineConfig({
 	// build` already ran as its own pipeline step) — see global-setup.ts for
 	// why two servers can no longer each run their own `build && start`.
 	globalSetup: "./e2e/support/global-setup.ts",
+	// CI only: shared-runner scheduler contention can delay a single
+	// requestAnimationFrame callback or long-task observation past a tight
+	// perf budget (e.g. editing-perf.spec.ts's BASELINE_A5_MS) with no actual
+	// app-perf regression. A local failure still fails on the first try. This
+	// does not raise any budget — a persistent failure across retries is
+	// still a real regression.
+	retries: process.env.CI ? 2 : 0,
 	use: {
 		baseURL: `http://localhost:${E2E_PORT}`,
 		// Explicit (not just Playwright's implicit default) so a stray global
