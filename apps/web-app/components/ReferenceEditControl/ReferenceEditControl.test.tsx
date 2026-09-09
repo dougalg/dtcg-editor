@@ -195,3 +195,13 @@ test("picking a candidate through the hosted picker calls onRepoint with the ali
 
 	expect(onRepoint).toHaveBeenCalledWith("{color.red}");
 });
+
+test("when resolved is undefined (index build failed) the raw alias string is the resting value", () => {
+	renderControl({ resolved: undefined });
+
+	const rawValue = screen.getByText("{color.brand.blue}");
+	expect(rawValue.className).toMatch(/value/);
+	// No resolved-outcome preview is rendered without a server resolution.
+	expect(screen.queryByText(/srgb/)).toBeNull();
+	expect(screen.queryByRole("link")).toBeNull();
+});

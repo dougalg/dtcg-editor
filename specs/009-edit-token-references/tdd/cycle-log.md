@@ -373,3 +373,12 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 667 passed / 137 files (v5 re-optimizes deps on the first run after a new test file, briefly reporting `4 failed` files + a `collectTests` line — settles on the second run).
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 93: U93 resolved-undefined resting value is the raw alias
+
+- test: `ReferenceEditControl.test.tsx::when resolved is undefined (index build failed) the raw alias string is the resting value` — `renderControl({ resolved: undefined })`; the alias text is shown in the `styles.value` span, no `/srgb/` preview, no navigable link.
+- red (first draft asserted `queryByRole("list")` is null — but the test's own wrapper `<ul>` / `TokenBlock`'s row is a list): `expected <ul>…</ul> to be null`. Retargeted to the value span's class + absence of the resolved preview / link; code unchanged.
+- green: passes against the pre-existing `ReferenceValueDisplay` `resolved === undefined` branch. Mutant (`{rawRef}` -> `{""}` in that branch) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 668 passed / 137 files.
+- refactor: none.
+- commit: (this commit).
