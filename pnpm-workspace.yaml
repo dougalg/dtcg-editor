@@ -36,6 +36,9 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
 
+update:
+  githubActions: true
+
 minimumReleaseAge: 4320
 
 minimumReleaseAgeExclude:
