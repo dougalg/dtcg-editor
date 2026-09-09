@@ -4,6 +4,7 @@ import { Combobox } from "@dtcg-editor/design-system/components/Combobox/Combobo
 import { useMemo, useState } from "react";
 import { useReferenceCatalogue } from "../../hooks/useReferenceCatalogue.ts";
 import { filterCandidates } from "../../lib/tokens/candidate-filter.ts";
+import { isCircularIfSelected } from "../../lib/tokens/candidate-selectability.ts";
 import { resolveIfRepointed } from "../../lib/tokens/hypothetical-resolution.ts";
 import type { ReferenceCandidate } from "../../lib/tokens/reference-catalogue-wire.ts";
 import { CandidatePreview } from "../CandidatePreview/CandidatePreview.tsx";
@@ -130,6 +131,7 @@ export function TokenReferencePicker({
 				items={items}
 				getKey={(c) => c.displayPath}
 				renderItem={(c) => c.displayPath}
+				isItemDisabled={(c) => isCircularIfSelected(editedTokenPath, c)}
 				selectedKey={selectedKey}
 				onHighlightChange={setHighlightKey}
 				onSelect={(c) => {

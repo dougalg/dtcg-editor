@@ -219,6 +219,49 @@ test("when the catalogue fetch errors, a raw-text input stages edits", async () 
 	});
 });
 
+test("a circular candidate row is disabled — selecting it stages nothing and the popover stays open", async () => {
+	// The edited token is color.accent; color.accent itself is a self-reference.
+	const { onStageEdit } = await openPicker();
+
+	const selfRow = screen.getByRole("option", { name: /color\.accent/ });
+	expect(selfRow.getAttribute("aria-disabled")).toBe("true");
+
+	fireEvent.click(selfRow);
+	expect(onStageEdit).not.toHaveBeenCalled();
+	expect(
+		screen
+			.getByRole("combobox", { name: /repoint reference for/i })
+			.getAttribute("aria-expanded"),
+	).toBe("true");
+});
+
+test("a candidate resolving to a missing path stays enabled and can be staged", async () => {
+	const brokenFetch = vi.fn().mockResolvedValue(
+		new Response(
+			JSON.stringify(
+				buildReferenceCatalogue(
+					buildReferenceIndex([
+						file("base.json", {
+							color: { $type: "color", accent: { $value: "{color.blue}" } },
+							broken: { $type: "color", $value: "{color.ghost}" },
+						}),
+					]),
+				),
+			),
+			{ status: 200 },
+		),
+	);
+	const { onStageEdit } = await openPicker(brokenFetch);
+
+	const brokenRow = screen.getByRole("option", { name: /^broken/ });
+	expect(brokenRow.getAttribute("aria-disabled")).not.toBe("true");
+
+	fireEvent.click(brokenRow);
+	expect(onStageEdit).toHaveBeenCalledWith(["color", "accent"], {
+		value: "{broken}",
+	});
+});
+
 test("an aria-live region announces the current result count", async () => {
 	await openPicker();
 

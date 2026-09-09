@@ -226,8 +226,8 @@ circular) — behaviors tagged with the story that adds them.
 | U83 | When the catalogue fetch has errored, the popover renders a raw-text input bound to the alias string, and edits to it stage the change | US1, FR-021 | example | DONE | `TokenReferencePicker.test.tsx` |
 | U84 | Moving the highlight updates an `aria-live` region with the result count and the highlighted candidate's resolved value + any diagnostic | US2, FR-005, FR-012 | example | DONE | `TokenReferencePicker.test.tsx` (count; highlighted value -> e2e A7/A10) |
 | U85 | The highlighted candidate's full `CandidatePreview` (with `hypothetical`) is rendered; other rows show only the compact form | US2, FR-009, FR-012 | example | DONE | `TokenReferencePicker.a11y.test.tsx` (browser tier; multi-step nav -> e2e A7/A10) |
-| U86 | A circular candidate row is passed to `Combobox` as disabled; Enter/click stages nothing and the popover stays open | US3, FR-024, SC-008 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
-| U87 | A missing or group candidate row stays enabled and selecting it stages the alias | US3, FR-016 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
+| U86 | A circular candidate row is passed to `Combobox` as disabled; Enter/click stages nothing and the popover stays open | US3, FR-024, SC-008 | example | DONE | `TokenReferencePicker.test.tsx` |
+| U87 | A missing or group candidate row stays enabled and selecting it stages the alias | US3, FR-016 | example | DONE | `TokenReferencePicker.test.tsx` |
 | U88 | The open popover — loading, populated, empty, and with a disabled circular row — has zero axe-core violations (hosts A19) | US1, FR-005, SC-006 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.a11y.test.tsx` |
 
 ### `apps/web-app/components/ReferenceEditControl/ReferenceEditControl.tsx`

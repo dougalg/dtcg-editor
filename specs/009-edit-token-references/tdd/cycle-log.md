@@ -315,3 +315,11 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 662 passed / 136 files
 - refactor: none
 - commit: (this commit)
+
+## Cycles 86-87: TokenReferencePicker disabled circular rows / selectable missing-group (U86, U87)
+
+- U86 (circular candidate row disabled -> select stages nothing, popover stays open): red `expected 'false' to be 'true'` (aria-disabled). Green: `isItemDisabled={(c) => isCircularIfSelected(editedTokenPath, c)}` to `Combobox`. The edited token `color.accent` is its own candidate -> self-cycle -> disabled. Mutant (`isItemDisabled={() => false}`) -> `1 failed`.
+- U87 (missing/group candidate stays enabled + stageable): passed first run — `isCircularIfSelected` returns false for a missing target (U54). A `{color.ghost}` fixture candidate: not `aria-disabled`, clicking it stages `{broken}`. Mutant (`isItemDisabled={() => true}`) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 664 passed / 136 files (vitest v5 re-optimizes deps on the first run after a change, briefly reporting a lower count + a `collectTests` line — settles on a second run).
+- refactor: none
+- commit: (this commit)
