@@ -1,9 +1,29 @@
 .preview {
 	display: inline-flex;
+	gap: var(--dtcg-ed-size-step--2, 0.25rem);
 }
 .outcome {
 	display: inline-flex;
+	gap: var(--dtcg-ed-size-step--2, 0.25rem);
 }
 .modeLabel {
 	font-weight: 600;
+}
+.marker {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--dtcg-ed-size-step--2, 0.25rem);
+}
+.markerLabel {
+	font-family: var(--dtcg-ed-font-mono);
+}
+.icon {
+	flex: none;
+}
+.hypothetical {
+	display: inline-flex;
+	gap: var(--dtcg-ed-size-step--2, 0.25rem);
+}
+.hypotheticalCaption {
+	font-style: italic;
 }

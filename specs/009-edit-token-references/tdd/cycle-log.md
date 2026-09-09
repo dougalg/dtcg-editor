@@ -222,3 +222,29 @@ no type-check) rather than `pnpm build && …`. Behaviour was correct (U23-U28 g
 - suite: `pnpm build` (green) + `pnpm exec vitest run` -> 639 passed / 132 files
 - refactor: none
 - commit: (this commit)
+
+## Cycles 68-75: CandidatePreview U68-U75
+
+Built on the U67 component. `pnpm build` in the per-green check throughout.
+
+- U68 (chained candidate -> end-of-chain value): passed (previewOutcome already resolved it). Mutant (`formatLiteralValue(null, ...)`) -> `1 failed`.
+- U69 (multiply-defined -> one mode-labelled row per mode): passed. Mutant (`multiMode` -> `false`) -> `1 failed`.
+- U70 (non-resolved outcome -> `ReferenceWarning`): passed. Mutant (warning branch -> `null`) -> `1 failed`.
+- U71 (`diagnostic: "circular"` -> circular icon + "circular-reference" label): **real red** (no `diagnostic` prop). Green: `diagnostic` prop + inline-SVG `DiagnosticIcon` + `DIAGNOSTIC_LABEL` marker. Mutant (`diagnostic !== "none"` -> `false`) -> `1 failed`.
+- U72 (`missing`/`group` markers, distinct from circular): passed against the same marker. Mutant (`DIAGNOSTIC_LABEL.missing` = "circular-reference") -> `1 failed`.
+- U73 (with `hypothetical` -> "would resolve to" block, naming a cycle): **real red** (no `hypothetical` prop). Green: `hypothetical` prop + a per-mode block reusing an extracted `OutcomeValue` helper. Test fixed mid-cycle (multiple `role="alert"` — the candidate's own preview is also circular; switched to `getAllByRole` + scoped caption check). Mutant (drop the block) -> `1 failed`.
+- U74 (a11y — plain / each diagnostic / with hypothetical): new `.a11y.test.tsx`, 3 axe checks pass. Mutant (SVG `role="img"` without a label) -> `1 failed`.
+- U75 (no `lucide-react` import — inline SVG, Principle VIII): source-read test. First assertion (`not.toContain("lucide-react")`) matched a doc-comment; tightened to `not.toMatch(/from ["']lucide-react["']/)`. Mutant (add `import { AlertCircle } from "lucide-react"`) -> `1 failed`.
+- suite: `pnpm build` (green) + `pnpm exec vitest run` -> 649 passed / 133 files
+- refactor: `OutcomeValue` extracted (shared by the candidate's own preview and the hypothetical block).
+- commit: (this commit — bundles cycles 68-75, the rest of CandidatePreview)
+
+## Cycle 75 revision: U75 moved from a runtime test to a lint rule
+
+The source-read test (`import("node:fs/promises")`) hit `biome`'s `noRestrictedImports`
+(fs bindings only in `lib/platform/node-fs.ts`). A static "no `lucide-react` in
+`apps/web-app`" constraint belongs in tooling, not a single-file runtime check:
+added `lucide-react` to `noRestrictedImports.paths` for `apps/web-app/**` in
+`biome.json` — enforced repo-wide, permanently, at every file. Verified it bites
+(injected `import { X } from "lucide-react"` -> biome error). The fs-based test
+was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.

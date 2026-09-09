@@ -61,7 +61,8 @@
 							"options": {
 								"paths": {
 									"node:fs": "Import fs bindings only in lib/platform/node-fs.ts; inject them as a parameter elsewhere.",
-									"node:fs/promises": "Import fs bindings only in lib/platform/node-fs.ts; inject them as a parameter elsewhere."
+									"node:fs/promises": "Import fs bindings only in lib/platform/node-fs.ts; inject them as a parameter elsewhere.",
+									"lucide-react": "lucide-react is a packages/design-system-only dependency (constitution, Principle VIII). Use an inline SVG or a design-system-exported icon in apps/web-app."
 								}
 							}
 						},

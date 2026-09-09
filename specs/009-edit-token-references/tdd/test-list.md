@@ -198,14 +198,14 @@ Helper lifted out of `TokenReferenceValue.tsx` (brownfield — the existing
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
 | U67 | A colour candidate renders the swatch preview, not raw text | FR-009 | example | DONE | `CandidatePreview.test.tsx` |
-| U68 | A candidate whose value is a chain renders the end-of-chain value | FR-010 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
-| U69 | A multiply-defined candidate renders one mode-labelled row per mode | FR-011 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
-| U70 | A non-resolved outcome renders a `ReferenceWarning` instead of a value | FR-015 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
-| U71 | `diagnostic: "circular"` renders the circular-reference icon and the short "circular-reference" label — for both the own-path case and a multi-hop cycle | FR-013, FR-024 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
-| U72 | `diagnostic: "missing"` and `diagnostic: "group"` each render their own icon + label, distinct from circular | FR-015 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
-| U73 | With `hypothetical` set, an "edited token would resolve to" block renders over `hypothetical.perMode`, naming the cycle for a circular outcome | FR-012, FR-014 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
-| U74 | The rendered `CandidatePreview` (each diagnostic variant) has zero axe-core violations | FR-005 | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.a11y.test.tsx` |
-| U75 | The circular/missing/group marker icons are inline SVG or design-system-exported — no direct `lucide-react` import in `apps/web-app` | Principle VIII | example | PENDING | `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` |
+| U68 | A candidate whose value is a chain renders the end-of-chain value | FR-010 | example | DONE | `CandidatePreview.test.tsx` |
+| U69 | A multiply-defined candidate renders one mode-labelled row per mode | FR-011 | example | DONE | `CandidatePreview.test.tsx` |
+| U70 | A non-resolved outcome renders a `ReferenceWarning` instead of a value | FR-015 | example | DONE | `CandidatePreview.test.tsx` |
+| U71 | `diagnostic: "circular"` renders the circular-reference icon and the short "circular-reference" label — for both the own-path case and a multi-hop cycle | FR-013, FR-024 | example | DONE | `CandidatePreview.test.tsx` |
+| U72 | `diagnostic: "missing"` and `diagnostic: "group"` each render their own icon + label, distinct from circular | FR-015 | example | DONE | `CandidatePreview.test.tsx` |
+| U73 | With `hypothetical` set, an "edited token would resolve to" block renders over `hypothetical.perMode`, naming the cycle for a circular outcome | FR-012, FR-014 | example | DONE | `CandidatePreview.test.tsx` |
+| U74 | The rendered `CandidatePreview` (each diagnostic variant) has zero axe-core violations | FR-005 | example | DONE | `CandidatePreview.a11y.test.tsx` |
+| U75 | The circular/missing/group marker icons are inline SVG or design-system-exported — no direct `lucide-react` import in `apps/web-app` | Principle VIII | example | DONE | `CandidatePreview.test.tsx` |
 
 ### `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.tsx`
 
