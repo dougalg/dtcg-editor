@@ -205,6 +205,22 @@ test("a reference-valued token delegates to ReferenceEditControl — the repoint
 	).toBeTruthy();
 });
 
+test("a literal-valued token renders no reference repoint trigger (FR-022)", () => {
+	render(
+		<TokenTree
+			node={inferredTypeTree("color", {
+				colorSpace: "srgb",
+				components: [0, 0, 1],
+			})}
+			relativePath="a.json"
+		/>,
+	);
+
+	expect(
+		screen.queryByRole("combobox", { name: /repoint reference/i }),
+	).toBeNull();
+});
+
 test("a non-reference invalid color value is still reported as invalid (no regression on the non-reference path)", () => {
 	render(
 		<TokenTree

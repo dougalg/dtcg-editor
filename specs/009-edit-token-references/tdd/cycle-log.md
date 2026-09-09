@@ -407,3 +407,13 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 671 passed / 138 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 97: U97 no repoint trigger on a literal-valued token (FR-022)
+
+- test: `TreeTokenNode.test.tsx::a literal-valued token renders no reference repoint trigger (FR-022)` — a literal color token through `TokenTree` has no `role="combobox"` named `/repoint reference/i`.
+- green first run (only the path-1 branch mounts `ReferenceEditControl`). Mutant (`dispatch.reference !== undefined` -> `=== undefined`) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 672 passed / 138 files.
+- refactor: none.
+- commit: (this commit).
+
+## ReferenceEditControl complete — U89-U97
