@@ -132,6 +132,7 @@ sorts — the caller passes `items` ready.
 | U35 | A rejected fetch → status `"error"` with a `SaveError`-shaped error, and does not throw | FR-021 | example | DONE | `useReferenceCatalogue.test.tsx` |
 | U36 | An abort before the response resolves does not reject; a response that completes still populates the cache | FR-023 | example | DONE | `useReferenceCatalogue.test.tsx` |
 | U37 | `fetch` is reached only through the injected `fetchImpl` | Principle VI | example | DONE | `useReferenceCatalogue.test.tsx` |
+| U102 | `enabled: false` stays `idle` and does not fetch; flipping to `true` starts the fetch (FR-023 "on first activation") — added mid-loop while building U76's picker | FR-023 | example | DONE | `useReferenceCatalogue.test.tsx` |
 
 ### `apps/web-app/lib/tokens/candidate-filter.ts`
 
@@ -214,7 +215,7 @@ circular) — behaviors tagged with the story that adds them.
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U76 | First open triggers the catalogue fetch; while `status: "loading"` the popover shows the loading state | US1, FR-023 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
+| U76 | First open triggers the catalogue fetch; while `status: "loading"` the popover shows the loading state | US1, FR-023 | example | DONE | `TokenReferencePicker.test.tsx` |
 | U77 | The trigger and the search field each have an accessible name identifying the token being repointed | US1, FR-005 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
 | U78 | Typing passes the query through `filterCandidates` and renders the narrowed list in that order | US1, FR-004 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |
 | U79 | An empty result renders "No tokens found" and nothing is selectable | US1, FR-017 | example | PENDING | `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` |

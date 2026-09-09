@@ -130,3 +130,23 @@ test("the fetch is reached only through the injected fetchImpl", async () => {
 	expect(fetchImpl).toHaveBeenCalledTimes(1);
 	expect(fetchImpl.mock.calls[0]?.[0]).toBe("/api/tokens/references");
 });
+
+test("enabled:false stays idle and does not fetch until flipped to true", async () => {
+	const fetchImpl = okFetch();
+	const { result, rerender } = renderHook(
+		({ enabled }: { enabled: boolean }) =>
+			useReferenceCatalogue(fetchImpl, enabled),
+		{ initialProps: { enabled: false } },
+	);
+
+	expect(result.current.status).toBe("idle");
+	expect(fetchImpl).not.toHaveBeenCalled();
+
+	rerender({ enabled: true });
+	await act(async () => {
+		await Promise.resolve();
+	});
+
+	expect(fetchImpl).toHaveBeenCalledTimes(1);
+	expect(result.current.status).toBe("ready");
+});

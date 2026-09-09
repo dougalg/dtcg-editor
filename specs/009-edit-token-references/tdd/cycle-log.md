@@ -248,3 +248,22 @@ added `lucide-react` to `noRestrictedImports.paths` for `apps/web-app/**` in
 `biome.json` — enforced repo-wide, permanently, at every file. Verified it bites
 (injected `import { X } from "lucide-react"` -> biome error). The fs-based test
 was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
+
+## Cycle 76: U76 TokenReferencePicker fetches the catalogue on first open
+
+- test: `TokenReferencePicker.test.tsx::first open triggers the catalogue fetch and shows a loading state` (new)
+- red: `Failed to resolve import "./TokenReferencePicker.tsx"`.
+- green: minimal picker = a `Combobox` whose trigger label is `Repoint reference for <path>`; `useReferenceCatalogue(fetchImpl, activated)` where `activated` flips true on first open (`enabled` gate — added to the hook as a structural refactor, commit 662cf2e, U33-U37 unaffected); `loading={status === "loading"}` -> `loadingContent`. Test harness: removed `document.body.innerHTML = ""` from afterEach (Radix portal + manual clear -> `NotFoundError`). Mutant (`enabled` forced `true`) -> `1 failed` (fetch fires before the click). Restored.
+- biome.json: `TokenReferencePicker.{tsx,test.tsx}` added to the `noRestrictedGlobals(fetch)` exemption (injectable `fetchImpl`, same as `useSaveTokenEdits`).
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 649 passed / 134 files
+- refactor: `enabled` gate on the hook (own commit 662cf2e).
+- commit: 662cf2e (hook refactor), 97f2947 (U76)
+
+## Cycle 102: U102 useReferenceCatalogue 'enabled' gate (behavior added mid-loop)
+
+- Added to the test list while building U76 — the `enabled` param introduced as a seam in commit 662cf2e needed its own hook-level coverage.
+- test: `useReferenceCatalogue.test.tsx::enabled:false stays idle and does not fetch until flipped to true` (new)
+- red: passed on first run (impl added in 662cf2e). Mutant (drop `if (!enabled) return;` in the effect) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 650 passed / 134 files
+- refactor: none
+- commit: (this commit)
