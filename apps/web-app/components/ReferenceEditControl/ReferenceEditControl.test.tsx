@@ -91,6 +91,7 @@ function renderControl(
 					relativePath="a.json"
 					resolved={resolvedColor()}
 					rawRef="{color.brand.blue}"
+					onRepoint={vi.fn()}
 					{...overrides}
 				/>
 			</ul>
@@ -105,4 +106,13 @@ test("resting output matches the TreeTokenNode path-1 baseline: name field, raw 
 	expect(screen.getByText("{color.brand.blue}")).toBeTruthy();
 	expect(screen.getByText(/srgb/)).toBeTruthy();
 	expect(screen.queryByRole("alert")).toBeNull();
+});
+
+test("the reference row shows a repoint trigger whose accessible name identifies the edited token", () => {
+	renderControl();
+
+	const trigger = screen.getByRole("combobox", {
+		name: "Repoint reference for text",
+	});
+	expect(trigger.getAttribute("aria-expanded")).toBe("false");
 });

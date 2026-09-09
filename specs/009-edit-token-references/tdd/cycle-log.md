@@ -354,3 +354,14 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` → 665 passed / 137 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 91: U91 ReferenceEditControl hosts a repoint trigger with an accessible name
+
+- test: `ReferenceEditControl.test.tsx::the reference row shows a repoint trigger whose accessible name identifies the edited token` — asserts a `role="combobox"` named `"Repoint reference for text"`, `aria-expanded="false"`.
+- red: `Unable to find an accessible element with the role "combobox" and name "Repoint reference for text"` — no picker was mounted.
+- green: mount `<TokenReferencePicker editedTokenPath={node.path} editedEffectiveType editedFile currentReferenceValue={rawRef} triggerContent="Change reference" onStageEdit={(_p,{value}) => onRepoint(value)} />` in the value field; new `onRepoint` + optional `fetchImpl` props on `ReferenceEditControl`, `TreeTokenNode` wires `onRepoint={(value) => commit({ value })}`.
+- regression fixed in-cycle: the trigger first rendered `currentReferenceValue`, duplicating the raw alias text → U90's `getByText("{color.brand.blue}")` became ambiguous. Added a `triggerContent?: ReactNode` prop to `TokenReferencePicker` (defaults to `currentReferenceValue`) and passed `"Change reference"` from `ReferenceEditControl`.
+- biome: `ReferenceEditControl.{tsx,test.tsx}` added to the `noRestrictedGlobals` (`fetch`) exemption list for the `typeof fetch` prop type.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` → 666 passed / 137 files.
+- refactor: none.
+- commit: (this commit).

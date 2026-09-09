@@ -103,7 +103,9 @@
 				"apps/web-app/hooks/useSaveTokenEdits.ts",
 				"apps/web-app/hooks/useReferenceCatalogue.ts",
 				"apps/web-app/components/TokenReferencePicker/TokenReferencePicker.tsx",
-				"apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx"
+				"apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx",
+				"apps/web-app/components/ReferenceEditControl/ReferenceEditControl.tsx",
+				"apps/web-app/components/ReferenceEditControl/ReferenceEditControl.test.tsx"
 			],
 			"linter": {
 				"rules": {

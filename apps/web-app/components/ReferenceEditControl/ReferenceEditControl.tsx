@@ -7,6 +7,7 @@ import type { ResolvedReference } from "../../lib/tokens/reference-index.ts";
 import type { FieldErrors } from "../../lib/tokens/staged-edits-store.ts";
 import styles from "../TokenBlock/TokenBlock.module.css";
 import { TokenBlock } from "../TokenBlock/TokenBlock.tsx";
+import { TokenReferencePicker } from "../TokenReferencePicker/TokenReferencePicker.tsx";
 import { TokenReferenceValue } from "../TokenReferenceValue/TokenReferenceValue.tsx";
 
 type TokenNode = Extract<PlainDtcgNode, { kind: "token" }>;
@@ -45,9 +46,9 @@ function ReferenceValueDisplay({
 
 /**
  * The value row for a token whose entire `$value` is a reference: the
- * read-only resolved-value display shown today (spec FR-001). Extracted
- * verbatim from `TreeTokenNode`'s path-1 branch so the repoint picker can be
- * hosted here in a following behavioral cycle.
+ * read-only resolved-value display, plus a `TokenReferencePicker` trigger for
+ * repointing the reference at another token (spec FR-001). Extracted from
+ * `TreeTokenNode`'s path-1 branch.
  */
 export function ReferenceEditControl({
 	node,
@@ -63,6 +64,8 @@ export function ReferenceEditControl({
 	relativePath,
 	resolved,
 	rawRef,
+	onRepoint,
+	fetchImpl,
 }: {
 	readonly node: TokenNode;
 	readonly currentName: string;
@@ -77,6 +80,10 @@ export function ReferenceEditControl({
 	readonly relativePath: string;
 	readonly resolved: ResolvedReference | undefined;
 	readonly rawRef: string;
+	/** Stages the repointed reference — `TreeTokenNode` wires this to the store's `commit`. */
+	readonly onRepoint: (aliasValue: string) => void;
+	/** Forwarded to the picker for tests (Principle VI); real `fetch` by default. */
+	readonly fetchImpl?: typeof fetch;
 }) {
 	return (
 		<TokenBlock
@@ -98,6 +105,15 @@ export function ReferenceEditControl({
 					relativePath={relativePath}
 					resolved={resolved}
 					rawRef={rawRef}
+				/>
+				<TokenReferencePicker
+					editedTokenPath={node.path}
+					editedEffectiveType={effectiveType}
+					editedFile={relativePath}
+					currentReferenceValue={rawRef}
+					triggerContent="Change reference"
+					onStageEdit={(_path, { value }) => onRepoint(value)}
+					{...(fetchImpl !== undefined ? { fetchImpl } : {})}
 				/>
 			</span>
 		</TokenBlock>

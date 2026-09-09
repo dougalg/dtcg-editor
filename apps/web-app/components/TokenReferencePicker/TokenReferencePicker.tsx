@@ -1,7 +1,7 @@
 "use client";
 
 import { Combobox } from "@dtcg-editor/design-system/components/Combobox/Combobox.tsx";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useReferenceCatalogue } from "../../hooks/useReferenceCatalogue.ts";
 import { filterCandidates } from "../../lib/tokens/candidate-filter.ts";
 import { isCircularIfSelected } from "../../lib/tokens/candidate-selectability.ts";
@@ -26,6 +26,7 @@ export function TokenReferencePicker({
 	editedFile = "",
 	currentReferenceValue,
 	pendingReferenceValue,
+	triggerContent,
 	onStageEdit,
 	fetchImpl = fetch,
 }: {
@@ -35,6 +36,8 @@ export function TokenReferencePicker({
 	readonly editedFile?: string;
 	readonly currentReferenceValue: string;
 	readonly pendingReferenceValue?: string | undefined;
+	/** What the closed trigger shows; defaults to the current reference text. */
+	readonly triggerContent?: ReactNode;
 	readonly onStageEdit: (
 		path: readonly string[],
 		patch: { readonly value: string },
@@ -142,7 +145,7 @@ export function TokenReferencePicker({
 				}}
 				inputLabel={`Search tokens to repoint ${displayPath}`}
 				triggerLabel={`Repoint reference for ${displayPath}`}
-				triggerContent={currentReferenceValue}
+				triggerContent={triggerContent ?? currentReferenceValue}
 				emptyContent="No tokens found"
 				loading={status === "loading"}
 				loadingContent="Loading tokens…"

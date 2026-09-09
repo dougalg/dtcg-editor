@@ -195,6 +195,7 @@ export function TreeTokenNode({
 				relativePath={relativePath}
 				resolved={node.references?.[0]}
 				rawRef={dispatch.reference.raw}
+				onRepoint={(value) => commit({ value })}
 			/>
 		);
 	}
