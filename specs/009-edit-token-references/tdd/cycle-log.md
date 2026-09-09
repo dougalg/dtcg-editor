@@ -382,3 +382,11 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 668 passed / 137 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 94: U94 name-field error branch unchanged by the extraction
+
+- test: `ReferenceEditControl.test.tsx::a name-field error is still surfaced through the shared FieldErrorSlot` — `renderControl({ error: { name: "That name is already taken", value: undefined } })`; the `role="alert"` text is that message.
+- green first run (the extracted component forwards `error` straight to `TokenBlock`, which owns the `FieldErrorSlot`). Mutant (`error={undefined}` on the `TokenBlock` call) -> `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 669 passed / 137 files.
+- refactor: none.
+- commit: (this commit).

@@ -205,3 +205,13 @@ test("when resolved is undefined (index build failed) the raw alias string is th
 	expect(screen.queryByText(/srgb/)).toBeNull();
 	expect(screen.queryByRole("link")).toBeNull();
 });
+
+test("a name-field error is still surfaced through the shared FieldErrorSlot", () => {
+	renderControl({
+		error: { name: "That name is already taken", value: undefined },
+	});
+
+	expect(screen.getByRole("alert").textContent).toBe(
+		"That name is already taken",
+	);
+});
