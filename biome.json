@@ -88,6 +88,8 @@
 				"apps/web-app/e2e/keyboard-navigation.spec.ts",
 				"apps/web-app/e2e/token-references.spec.ts",
 				"apps/web-app/e2e/inferred-type.spec.ts",
+				"apps/web-app/e2e/edit-token-references.spec.ts",
+				"apps/web-app/e2e/edit-token-references-perf.spec.ts",
 				"apps/web-app/e2e/support/axe.ts"
 			],
 			"linter": {

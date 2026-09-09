@@ -44,7 +44,11 @@ export default defineConfig({
 			// `large_scale.tokens.json` (T002) — no dedicated project/server
 			// needed (T006).
 			name: "default",
-			testIgnore: ["token-references.spec.ts", "inferred-type.spec.ts"],
+			testIgnore: [
+				"token-references.spec.ts",
+				"inferred-type.spec.ts",
+				"edit-token-references.spec.ts",
+			],
 			use: { baseURL: `http://localhost:${E2E_PORT}` },
 		},
 		{
@@ -54,7 +58,16 @@ export default defineConfig({
 			// `testInfo.project.name` (see that file's own comment), since
 			// Playwright routes a whole *file* to a project, not individual
 			// tests within it.
-			testMatch: ["token-references.spec.ts", "keyboard-navigation.spec.ts"],
+			testMatch: [
+				"token-references.spec.ts",
+				"keyboard-navigation.spec.ts",
+				// feature 009: A1-A17/A20 (edit-token-references.spec.ts) need
+				// this fixture set's cross-file/chained/broken/circular/group
+				// tokens; edit-token-references-perf.spec.ts (A18) instead runs
+				// under "default" against large_scale.tokens.json (already
+				// ≥1,000 candidate paths, no dedicated fixture set needed).
+				"edit-token-references.spec.ts",
+			],
 			use: { baseURL: `http://localhost:${TOKEN_REFERENCES_PORT}` },
 		},
 		{

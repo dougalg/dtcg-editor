@@ -465,7 +465,8 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 
 - **A19** (open-popover axe) — closed by U88's `TokenReferencePicker.a11y.test.tsx` (populated + disabled circular row + live region) plus `Combobox` U15 for the empty-popover state. No separate Playwright axe host exists for a mounted popover; state -> DONE.
 - **A20** (repoint round-trip, one `$value` diff) — closed by U101 in `route.test.ts` (integration tier; no acceptance runner reaches the written file). State -> DONE.
-- **A1–A18** — still PENDING. These are the keyboard-only Playwright acceptance specs (`e2e/edit-token-references.spec.ts` + `-perf.spec.ts`), tasks T030 / T038 / T046 / T048 / T049, gated on the T002 fixture extension (a cycle-closing multi-hop candidate, a self-reference, a mode-conditional cycle, a missing-path reference, a group-path reference). Every unit they compose over (U1–U104) is DONE, so this is the outer loop to open next as its own phase, then `/speckit.tdd.verify`.
+- **A1, A2, A3, A4, A5, A6, A17** — DONE (T030 cycle above). Turned out not to need the T002 fixture extension: the existing `token-references` set already had a cross-file candidate, a mid-path-only match, and a full 14-path catalogue.
+- **A7–A16, A18** — still PENDING (T038, T046, T048/T049). Every unit they compose over is DONE.
 
 ## Cycle: U105 diagnosticFor + picker row visual wiring (opening the outer loop)
 
@@ -501,6 +502,45 @@ the actual visible-content assertion to e2e (see test-list.md notes on both).
 - notes: no new behavior id for the picker wiring — it is the production
   half of the already-listed U85, not a newly discovered observable result.
   `U105` is new (the `diagnosticFor` pure function itself).
+
+## Cycle: T030 — US1 acceptance spec (A1, A2, A3, A4, A5, A6, A17)
+
+`apps/web-app/e2e/edit-token-references.spec.ts` did not exist, so the file
+itself was the red: `pnpm --filter @dtcg-editor/web-app exec playwright test
+edit-token-references.spec.ts --project=token-references` had nothing to run
+before this cycle. All 7 tests passed on the very first real run — expected,
+since every unit each one composes over (U1-U105) was already DONE — so per
+the playbook's "test passes on first run" rule, each was checked with a
+deliberate mutant instead of trusted at face value:
+
+- A17 + A1: mutated `filterCandidates`' empty-query branch to
+  `.slice(0, 3)` before sorting → A17 failed (`Expected: 14, Received: 3`,
+  `getByRole('option')` resolved to 3 elements) and A1 failed too (its
+  cross-file candidate assertions happened to fall outside the truncated
+  three). Reverted; rebuilt; both green again.
+- A2: mutated the non-empty-query branch from `.includes(q)` to
+  `.startsWith(q)` → A2 failed (`brand.blue` no longer matches
+  `color.brand.blue`, `getByRole('option')` resolved to 0 elements).
+  Reverted; rebuilt; green again.
+- A3, A4, A5, A6 not independently mutant-checked this cycle: A4/A5 assert
+  against the literal written file content through the same PATCH path
+  U101 already mutant-verifies at the unit tier (test-list.md, U101 note);
+  A3/A6 assert `aria-expanded`/focus/count directly against real DOM state
+  with no room for a tautological pass. Documented here rather than skipped
+  silently.
+- Playwright config: added `edit-token-references.spec.ts` to the
+  `token-references` project's `testMatch` (port 3101, this fixture set) and
+  to `default`'s `testIgnore`, so it never runs against the wrong fixtures.
+- No new fixtures needed (T002 as originally scoped): the existing
+  `token-references` fixture set already contains every shape these 7 tests
+  needed — cross-file candidates (A1), a mid-path-only substring match
+  (A2, `color.brand.blue`), and a 14-candidate catalogue (A17), counted with
+  a throwaway script over `buildReferenceCatalogue` + this fixture directory.
+- suite: `pnpm exec vitest run` unaffected (e2e-only cycle, no unit files
+  touched). `playwright test edit-token-references.spec.ts --project=token-references`
+  → 7 passed.
+- refactor: none.
+- commit: (this commit)
 
 ## Note: TreeTokenNode.tsx line count (T027 / Principle X)
 
