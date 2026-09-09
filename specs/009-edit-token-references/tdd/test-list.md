@@ -269,8 +269,8 @@ Extracted from `TreeTokenNode.tsx` path 1 (brownfield — existing path-1 tests 
 
 | id  | behavior | traces | kind | state | test |
 | --- | -------- | ------ | ---- | ----- | ---- |
-| U100 | A PATCH whose `edit.value` is a reference string is written through verbatim, bypassing per-type value validation (current behavior) | FR-007 | characterization | BASELINE | `apps/web-app/app/api/tokens/[...path]/route.test.ts` |
-| U101 | Repointing a reference and saving changes exactly that one `$value`; a parse→serialize round-trip shows no other diff (hosts A20) | FR-007, SC-007 | example | PENDING | `apps/web-app/app/api/tokens/[...path]/route.test.ts` |
+| U100 | A PATCH whose `edit.value` is a reference string is written through verbatim, bypassing per-type value validation (current behavior) | FR-007 | characterization | BASELINE | `apps/web-app/app/api/tokens/[...path]/route.test.ts::PATCH accepts a reference value without running it through the target type's valueSchema` (pre-existing, commit 9eb280b) |
+| U101 | Repointing a reference and saving changes exactly that one `$value`; a parse→serialize round-trip shows no other diff (hosts A20) | FR-007, SC-007 | example | DONE | `apps/web-app/app/api/tokens/[...path]/route.test.ts::PATCH repointing a reference changes exactly that one $value and nothing else (SC-007, hosts A20)` |
 
 ## Invariants and edge cases still to place
 

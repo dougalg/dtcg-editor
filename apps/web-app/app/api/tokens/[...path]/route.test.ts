@@ -531,6 +531,47 @@ test("PATCH leaves a reference-valued sibling byte-identical when saving unrelat
 	assert.equal(onDisk.color.text.$value, "{color.brand.blue}");
 });
 
+test("PATCH repointing a reference changes exactly that one $value and nothing else (SC-007, hosts A20)", async () => {
+	const original = {
+		color: {
+			brand: {
+				blue: {
+					$type: "color",
+					$value: { colorSpace: "srgb", components: [0, 0, 1] },
+				},
+				green: {
+					$type: "color",
+					$value: { colorSpace: "srgb", components: [0, 1, 0] },
+				},
+			},
+			text: {
+				$type: "color",
+				$value: "{color.brand.blue}",
+				$description: "Body text colour",
+				$extensions: { "com.example.tool": { pinned: true } },
+			},
+		},
+		spacing: {
+			small: { $type: "dimension", $value: { value: 4, unit: "px" } },
+		},
+	};
+	await writeFixture("patch-repoint-roundtrip.json", original);
+
+	const response = await readRoute.patchTokenFile(
+		patchRequest([{ path: ["color", "text"], value: "{color.brand.green}" }]),
+		"patch-repoint-roundtrip.json",
+	);
+	assert.equal(response.status, 200);
+
+	const onDisk = await readFixture("patch-repoint-roundtrip.json");
+
+	// A parse→serialize round-trip of the whole file differs from the original
+	// only in the one repointed `$value`.
+	const expected = structuredClone(original);
+	expected.color.text.$value = "{color.brand.green}";
+	assert.deepEqual(onDisk, expected);
+});
+
 test("exports only GET and PATCH as HTTP method handlers", () => {
 	const otherHttpMethods = ["POST", "PUT", "DELETE", "HEAD", "OPTIONS"];
 	assert.ok("GET" in readRoute);

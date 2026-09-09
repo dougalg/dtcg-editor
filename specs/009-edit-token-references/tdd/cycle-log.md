@@ -445,3 +445,18 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - suite: `pnpm build` (7/7) + `pnpm exec vitest run` -> 675 passed / 138 files.
 - refactor: none.
 - commit: (this commit).
+
+## Cycle 100: U100 PATCH writes a reference string verbatim (characterization)
+
+- Already covered by an existing passing test on `main`: `route.test.ts::PATCH accepts a reference value without running it through the target type's valueSchema` (commit `9eb280b`, feature 003's T022-T025). It writes `value: "{color.brand.blue}"` to a `color` token → `200`, on disk verbatim, not rejected by `ColorValueSchema`. That is exactly U100's behavior.
+- Per the playbook Phase 1 ("already covered by an existing passing test → verify it asserts the behavior, mark DONE with the test named"): verified, state stays `BASELINE`, `test` column points at the concrete test. No code, no new test, no commit of its own.
+
+## Cycle 101: U101 repoint round-trip changes exactly one $value (hosts A20)
+
+- test: `route.test.ts::PATCH repointing a reference changes exactly that one $value and nothing else (SC-007, hosts A20)` — a fixture with a reference token carrying `$description` + `$extensions`, sibling colour/dimension tokens, nested groups; PATCH repoints `color.text` to `{color.brand.green}`; the whole parsed on-disk file deep-equals the original with only that one `$value` changed.
+- green first run (the PATCH route already writes references verbatim — U100). Mutant (`value = edit.value` → `value = \`${edit.value} \`` in the route's reference branch) → `deepEqual` diff on the trailing space → `1 failed`. Restored.
+- suite: `pnpm build` (7/7) + `pnpm exec vitest run` → 676 passed / 138 files.
+- refactor: none.
+- commit: (this commit).
+
+## Inner loop complete — U1-U104 all DONE/BASELINE
