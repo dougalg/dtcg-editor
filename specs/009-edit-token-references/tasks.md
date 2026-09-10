@@ -128,7 +128,7 @@ Monorepo: `packages/design-system/src/…`, `apps/web-app/…`. `token-core` is 
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T047 [P] Micro-benchmark `apps/web-app/lib/tokens/candidate-filter.bench.ts` — `filterCandidates` + a full `isCircularIfSelected` pass over a generated 1,000-path catalogue stays under one frame; p95 keystroke→sorted-list < 50 ms. Supports [A18] / SC-004.
+- [X] T047 [P] Micro-benchmark `apps/web-app/lib/tokens/candidate-filter.bench.ts` — `filterCandidates` + a full `isCircularIfSelected` pass over a generated 1,000-path catalogue stays under one frame; p95 keystroke→sorted-list < 50 ms. Supports [A18] / SC-004.
 - [ ] T048 [P] Author `apps/web-app/e2e/edit-token-references-perf.spec.ts` **failing first** — [A18] typing a burst into the open picker records no main-thread Long Task > 50 ms (`PerformanceObserver`, as in `e2e/editing-perf.spec.ts`). Observe red, then make green.
 - [ ] T049 [P] Add a degradation case to `apps/web-app/e2e/edit-token-references.spec.ts` — catalogue route forced to `500` → the picker shows the raw alias text in an editable input, no previews, page otherwise fine (reinforces [A14] / FR-021).
 - [ ] T050 Run `pnpm --filter @dtcg-editor/design-system lint`, `pnpm --filter @dtcg-editor/web-app lint`, `pnpm build`, and `pnpm exec vitest run`; fix any `@ls-lint` / Biome / `DESIGN.md` (hardcoded-value) findings in new/edited files.

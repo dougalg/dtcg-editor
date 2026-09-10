@@ -677,6 +677,31 @@ fix, ran clean twice after.
   red-green pair, not a refactor of green code).
 - commit: (this commit)
 
+## Cycle: T047 — candidate-filter micro-benchmark (supports A18/SC-004)
+
+`apps/web-app/lib/tokens/candidate-filter.bench.ts` — times `filterCandidates`
+plus a full `isCircularIfSelected` pass (what `TokenReferencePicker`'s
+`renderItem` actually does per row via `diagnosticFor`, U105) over a
+synthetic 1,000-candidate catalogue, across 7 simulated keystrokes × 10 runs.
+Not a red-green cycle in the usual sense — `filterCandidates` and
+`isCircularIfSelected` are both pure and already fully implemented; this is
+a performance *gate* against existing code, same shape as
+`reference-index.test.ts`'s pre-existing SC-010 benchmark, which it follows
+for pattern (wall-clock via `performance.now()`, not the DI clock seam, and
+isolated into its own late `sequence.groupOrder` project so it doesn't
+compete with the rest of the suite for CPU).
+
+- `vitest.config.ts`'s `BENCH_FILE` (singular, one hardcoded path) became
+  `BENCH_FILES` (array) to add this file alongside
+  `reference-index.test.ts` — both excluded from the normal `:unit`
+  project's glob, both included in the `:bench` project.
+- suite: `pnpm exec vitest run --project "apps/web-app:bench"` → 15 passed
+  (14 existing `reference-index.test.ts` + this one). Full fast suite:
+  `pnpm exec vitest run` → 683 passed / 140 files (was 681/139) — confirms
+  the new file isn't also picked up by the default `:unit` project.
+- refactor: none.
+- commit: (this commit)
+
 ## Note: TreeTokenNode.tsx line count (T027 / Principle X)
 
 The `ReferenceEditControl` extraction took `TreeTokenNode.tsx` from 409 -> 363 lines.

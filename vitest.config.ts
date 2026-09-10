@@ -18,14 +18,21 @@ const a11yStylesSetup = fileURLToPath(
  * errors, etc.) are untouched and keep running via their own `test`
  * scripts outside this config.
  */
-// `apps/web-app`'s reference-index benchmark asserts a hard wall-clock
-// budget (SC-010). It must run with the machine to itself — dozens of
-// other test files scheduled concurrently onto the same cores can push a
-// sample well past budget purely from scheduling contention. It gets its
-// own project pinned to a later `sequence.groupOrder` so it runs alone
-// after every default-group project finishes, and is excluded from the
-// normal unit project below so it isn't also run under contention.
-const BENCH_FILE = "lib/tokens/reference-index.test.ts";
+// `apps/web-app`'s wall-clock benchmarks assert hard time budgets (SC-010,
+// SC-004). They must run with the machine to themselves — dozens of other
+// test files scheduled concurrently onto the same cores can push a sample
+// well past budget purely from scheduling contention. They get their own
+// project pinned to a later `sequence.groupOrder` so they run alone after
+// every default-group project finishes, and are excluded from the normal
+// unit project below so they aren't also run under contention.
+const BENCH_FILES = [
+	"lib/tokens/reference-index.test.ts",
+	// SC-004: filterCandidates + isCircularIfSelected over a 1,000-path
+	// catalogue — `.bench.ts`, not `.test.ts` (per tasks.md T047), so it's
+	// named explicitly here rather than picked up by the unit project's
+	// `**/*.test.ts` glob.
+	"lib/tokens/candidate-filter.bench.ts",
+];
 
 function unitProject(pkgRoot: string) {
 	return {
@@ -49,10 +56,10 @@ function unitProject(pkgRoot: string) {
 				"**/*.a11y.test.tsx",
 				"**/node_modules/**",
 				"**/dist/**",
-				// Runs in its own late-group project instead — see BENCH_FILE.
-				// Relative to this project's `root`, so it only matches inside
-				// `apps/web-app` and is a harmless no-op for the others.
-				BENCH_FILE,
+				// Runs in its own late-group project instead — see BENCH_FILES.
+				// Relative to this project's `root`, so these only match inside
+				// `apps/web-app` and are a harmless no-op for the others.
+				...BENCH_FILES,
 				// Relative to this project's own `root`, so these only ever
 				// match inside `packages/token-editor-color` — harmless
 				// (unmatched) globs for the other three projects.
@@ -112,7 +119,7 @@ function benchProject(pkgRoot: string) {
 			name: `${pkgRoot}:bench`,
 			environment: "jsdom",
 			setupFiles: ["./vitest.setup.ts"],
-			include: [BENCH_FILE],
+			include: BENCH_FILES,
 			exclude: ["**/node_modules/**", "**/dist/**"],
 			sequence: { groupOrder: 1 },
 		},
