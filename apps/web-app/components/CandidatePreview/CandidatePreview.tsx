@@ -1,5 +1,5 @@
 import type { ResolutionChain } from "@dtcg-editor/token-core";
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { formatLiteralValue } from "../../lib/tokens/format-literal-value.tsx";
 import type { HypotheticalResolution } from "../../lib/tokens/hypothetical-resolution.ts";
 import type { ReferenceCandidate } from "../../lib/tokens/reference-catalogue-wire.ts";
@@ -61,7 +61,7 @@ function DiagnosticIcon({
  * literal of that type is shown elsewhere — e.g. a colour swatch) or a
  * `ReferenceWarning` for an outcome that does not resolve.
  */
-export function CandidatePreview({
+export const CandidatePreview = memo(function CandidatePreview({
 	candidate,
 	diagnostic = "none",
 	hypothetical,
@@ -109,4 +109,4 @@ export function CandidatePreview({
 			) : null}
 		</span>
 	);
-}
+});

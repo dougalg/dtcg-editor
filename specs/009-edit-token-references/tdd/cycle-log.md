@@ -466,7 +466,7 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - **A19** (open-popover axe) — closed by U88's `TokenReferencePicker.a11y.test.tsx` (populated + disabled circular row + live region) plus `Combobox` U15 for the empty-popover state. No separate Playwright axe host exists for a mounted popover; state -> DONE.
 - **A20** (repoint round-trip, one `$value` diff) — closed by U101 in `route.test.ts` (integration tier; no acceptance runner reaches the written file). State -> DONE.
 - **A1–A17** — DONE (T030, T038, T046 cycles above). Turned out not to need the T002 fixture extension: the existing `token-references` set already had every shape needed.
-- **A18** — still PENDING (T047/T048; T049 also still open). Every unit A18 composes over is DONE.
+- **A18** — BLOCKED. A real perf gap at ~2,000 candidates (T048 above), not a test-authoring problem. Needs a capped/virtualized result list before this can go green. T049 still open (untouched).
 
 ## Cycle: U105 diagnosticFor + picker row visual wiring (opening the outer loop)
 
@@ -701,6 +701,57 @@ compete with the rest of the suite for CPU).
   the new file isn't also picked up by the default `:unit` project.
 - refactor: none.
 - commit: (this commit)
+
+## Cycle: T048 — A18 acceptance-perf spec, BLOCKED with a real finding
+
+`apps/web-app/e2e/edit-token-references-perf.spec.ts`, "default" Playwright
+project, `large_scale.tokens.json` (already ≥2,000 candidate paths, no new
+fixture needed — `group-0.sub-0.token-1`'s existing `{hub}` value is the
+reference token exercised).
+
+- First real run (after two selector-only fixes — `getByRole("option")`
+  unscoped also matched this page's native `<select>` colour-space
+  dropdowns' own hidden `<option>`s; the initial catalogue fetch/parse
+  itself needed excluding from the measured window, or its arrival
+  mid-keystroke inflated the count): **genuine red**, not a test bug —
+  `pnpm --filter @dtcg-editor/web-app exec playwright test
+  edit-token-references-perf.spec.ts --project=default` →
+  `long tasks over budget: 170, 80ms` while typing `"token-0"` into an
+  already-loaded, already-open picker over the full ~2,000-candidate list.
+- Tried one small, well-justified fix: wrapped `CandidatePreview` in
+  `React.memo` — every non-circular, non-highlighted row's `diagnostic`
+  ("none", a string literal) and `hypothetical` (`undefined`) stay
+  referentially stable across keystrokes for any candidate that survives a
+  narrowing, so memo should skip re-invoking most rows' render function.
+  Re-ran: **still red** — `long tasks over budget: 140, 51, 59ms`.
+  Marginal-at-best; the dominant cost is evidently the *first* keystroke's
+  reorder/reconciliation over a near-full ~2,000-row list (empty-query
+  band order → match-position order touches nearly every remaining row),
+  which memoized props can't avoid — a reorder still moves/diffs that many
+  DOM nodes even when no individual row's content changes.
+- **Stopping here rather than improvising further**, per the playbook's
+  escape hatch for a step too big for one cycle: a real fix needs capping
+  or virtualizing the rendered result list (e.g. render only the top N
+  matches with a "N of M shown — narrow your search" indicator) — a new,
+  spec-worthy behavior with its own accessibility and empty/degenerate-case
+  implications, not a same-cycle tweak. `memo` is kept (real, harmless
+  improvement; unit suite unaffected, all 17 `edit-token-references.spec.ts`
+  tests re-verified green after it) but the acceptance test itself stays
+  authored and red, its failure evidence above the record.
+- suite: `pnpm exec vitest run` → 683 passed / 140 files (unaffected by the
+  `memo` wrap). `edit-token-references.spec.ts --project=token-references`
+  → 17 passed (re-verified after the `memo` change, no regression).
+- refactor: none (the `memo` wrap *is* the attempted fix, not a
+  behavior-preserving cleanup of green code).
+- commit: (this commit)
+- **Recommendation for the next session**: cap `TokenReferencePicker`'s
+  rendered `items` at some N (a few hundred), independent of `Combobox`
+  itself (keep `Combobox` filter-agnostic per its own contract) —
+  `filterCandidates`'s ordering already puts the most likely matches first,
+  so a cap loses only long-tail results a user would keep typing past
+  anyway. Needs: a truncation-aware count in the `aria-live` announcement
+  (U84), a new unit behavior + test for the cap itself, and a mutant-
+  verified re-run of this same acceptance spec once implemented.
 
 ## Note: TreeTokenNode.tsx line count (T027 / Principle X)
 
