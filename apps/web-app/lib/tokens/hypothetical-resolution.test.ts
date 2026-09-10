@@ -91,6 +91,25 @@ test("a candidate that would close a loop back to the edited token is previewed 
 	);
 });
 
+test("a candidate whose real chain passes through the edited token — not itself circular today — is previewed as circular once the repoint is hypothesised", () => {
+	// wheel -> hub is a perfectly clean, non-circular chain right now. Only
+	// *because* hub is the token being repointed at wheel would hub -> wheel
+	// -> hub become a cycle — the earlier implementation walked from
+	// `candidatePath` (wheel) using the *unmodified* catalogue, so it never
+	// revisited `editedTokenPath` and reported "resolved", missing this case.
+	const catalogue = catalogueFrom([
+		file("base.json", {
+			hub: { $type: "color", $value: { hex: "#00f" } },
+			wheel: { $type: "color", $value: "{hub}" },
+		}),
+	]);
+
+	const outcome = firstOutcome(
+		resolveIfRepointed(["hub"], ["wheel"], catalogue),
+	);
+	assert.equal(outcome.kind, "circular");
+});
+
 test("a candidate path absent from the catalogue is previewed as unresolved", () => {
 	const catalogue = catalogueFrom([
 		file("base.json", {

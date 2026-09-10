@@ -465,8 +465,8 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 
 - **A19** (open-popover axe) — closed by U88's `TokenReferencePicker.a11y.test.tsx` (populated + disabled circular row + live region) plus `Combobox` U15 for the empty-popover state. No separate Playwright axe host exists for a mounted popover; state -> DONE.
 - **A20** (repoint round-trip, one `$value` diff) — closed by U101 in `route.test.ts` (integration tier; no acceptance runner reaches the written file). State -> DONE.
-- **A1–A11, A17** — DONE (T030, T038 cycles above). Turned out not to need the T002 fixture extension: the existing `token-references` set already had every shape needed.
-- **A12–A16, A18** — still PENDING (T046, T048/T049). Every unit they compose over is DONE.
+- **A1–A17** — DONE (T030, T038, T046 cycles above). Turned out not to need the T002 fixture extension: the existing `token-references` set already had every shape needed.
+- **A18** — still PENDING (T047/T048; T049 also still open). Every unit A18 composes over is DONE.
 
 ## Cycle: U105 diagnosticFor + picker row visual wiring (opening the outer loop)
 
@@ -592,6 +592,89 @@ same page also shows mode labels in the *hypothetical* block):
   edit-token-references.spec.ts --project=token-references` → 12 passed
   (US1's 7 + US2's 5).
 - refactor: none.
+- commit: (this commit)
+
+## Cycle: T046 — US3 acceptance spec (A12, A13, A14, A15, A16), and a real product-gap fix found along the way
+
+Third `describe` block, editing `color.text.primary` again (US1's target) —
+its own path being a circular candidate is exactly A12's setup, and its
+existing chain (`text.primary -> brand.blue`; `action.default ->
+text.primary`) makes `color.action.default` a genuine cycle-closing
+candidate for A13. No file save happens in this block.
+
+Two real bugs found (not test mistakes) while making A12/A13 pass, both
+fixed with their own red-green-refactor cycle before the acceptance test
+was retried:
+
+1. **A12**: `own.click()` timed out — Playwright's actionability check
+   refuses a real pointer click on an element it can't call "enabled"
+   (cmdk sets both `aria-disabled` and pointer-event gating from the same
+   `disabled` prop). This is FR-024 working correctly (a disabled row
+   really can't be clicked), not a test bug — switched to `click({ force:
+   true })` to still exercise the `onSelect` guard directly, and added an
+   `Enter`-key attempt for the same assertion.
+
+2. **A13**: the highlighted-only "would resolve to" cycle-naming (FR-014)
+   never appeared for `color.action.default`, a genuine (non-self)
+   cycle-closing candidate. Root cause, chased through two layers:
+   - cmdk's own `CommandItem` ties `onPointerMove` (highlight-on-hover) and
+     the "pick the first item on mount/list-change" (`W()`/`Q()`) logic to
+     the *same* `disabled` flag as `aria-disabled` — a disabled row can
+     never become cmdk's `value`, by hover **or** hard-coded initial
+     select, so `TokenReferencePicker`'s `highlightKey` could never equal a
+     disabled candidate's key except by coincidence at the very first
+     unfiltered render. New unit test `TokenReferencePicker.test.tsx`
+     (U108) pins this: a non-self cycle-closing candidate names the cycle
+     even when it isn't `highlightKey`. Fixed by computing the
+     hypothetical for *every* diagnostic-circular row, not only the
+     highlighted one — matches FR-014's own wording ("The control MUST
+     identify a candidate ... and, in the preview, name the tokens in the
+     cycle"), which (unlike FR-012's "for the highlighted candidate")
+     carries no highlight qualifier.
+   - Once every circular row got a computed hypothetical, `wheel`/`hub`
+     style non-self cycles still previewed as `"resolved"`, not
+     `"circular"` — `resolveIfRepointed` walked from `candidatePath`
+     against the *unmodified* real catalogue, so it only ever caught a
+     cycle that was *already real* in the fixture (which is all the
+     existing U60 test happened to cover — `edited -> {loop}`, `loop ->
+     {edited}`, a pre-existing cycle unrelated to any hypothetical
+     repoint). New unit test `hypothetical-resolution.test.ts` (U107) pins
+     the actually-hypothetical case (`wheel -> {hub}`, clean today; hub
+     repointed at wheel would close it). Fixed by walking from
+     `editedTokenPath` instead, with `editedTokenPath`'s own lookup
+     overridden to the hypothetical value — `resolveReference`'s own
+     `visited` set then catches a real revisit of `editedTokenPath`
+     correctly. Bonus: this also fixes the `isSelf` case, which the old
+     approach silently mis-reported as `"resolved"` whenever the edited
+     token's *current* value happened to be clean.
+   - red (U108): `TokenReferencePicker.test.tsx -t "names the cycle even
+     when"` → `AssertionError: expected 'color.wheelcircular-reference…'
+     to match /color\.hub/`.
+   - red (U107): `hypothetical-resolution.test.ts` → (written directly
+     against the not-yet-fixed function) `'resolved' !== 'circular'`.
+   - green: both — `pnpm exec vitest run
+     apps/web-app/components/TokenReferencePicker
+     apps/web-app/lib/tokens/hypothetical-resolution.test.ts
+     apps/web-app/components/CandidatePreview` → all passed; full fast
+     suite `pnpm exec vitest run` → 681 passed / 139 files.
+
+A14 also needed one selector fix after these two: the loop's second
+iteration intermittently collided in the *full-file* run (`strict mode
+violation … resolved to 2 elements`) — `CommandInput` hardcodes
+`aria-expanded="true"` unconditionally (cmdk's own listbox semantics,
+unrelated to `Popover` open/closed state), so a `/search tokens/i`
+page-wide query could still match a just-closed-but-not-yet-unmounted
+picker from the loop's first iteration. Fixed by naming the search field
+per path (`Search tokens to repoint ${path}`) and waiting for it to
+`toBeHidden()` before the next iteration, instead of trusting the
+trigger's own `aria-expanded` alone. Reproduced the race twice before the
+fix, ran clean twice after.
+
+- suite: `pnpm --filter @dtcg-editor/web-app exec playwright test
+  edit-token-references.spec.ts --project=token-references` → 17 passed
+  (US1's 7 + US2's 5 + US3's 5), twice in a row.
+- refactor: none beyond the two production fixes above (each its own
+  red-green pair, not a refactor of green code).
 - commit: (this commit)
 
 ## Note: TreeTokenNode.tsx line count (T027 / Principle X)

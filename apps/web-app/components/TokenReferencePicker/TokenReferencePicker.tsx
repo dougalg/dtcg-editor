@@ -108,6 +108,25 @@ export function TokenReferencePicker({
 			? resolveIfRepointed(editedTokenPath, highlighted.path, catalogue)
 			: undefined;
 
+	// FR-014 applies to *every* circular candidate, not only the highlighted
+	// one (contrast FR-012's "for the highlighted candidate" hypothetical
+	// preview) — a disabled row can never itself become `highlightKey`
+	// (cmdk's own pointer/keyboard highlight machinery skips a disabled
+	// `CommandItem` entirely, U11), so a non-self cycle-closing candidate
+	// would otherwise never get its "would resolve to" cycle naming at all.
+	function hypotheticalFor(c: ReferenceCandidate) {
+		if (c.displayPath === highlightKey) {
+			return hypothetical;
+		}
+		if (
+			catalogue !== undefined &&
+			diagnosticFor(editedTokenPath, c) === "circular"
+		) {
+			return resolveIfRepointed(editedTokenPath, c.path, catalogue);
+		}
+		return undefined;
+	}
+
 	return (
 		<>
 			<span
@@ -146,9 +165,7 @@ export function TokenReferencePicker({
 							<CandidatePreview
 								candidate={c}
 								diagnostic={diagnosticFor(editedTokenPath, c)}
-								hypothetical={
-									c.displayPath === highlightKey ? hypothetical : undefined
-								}
+								hypothetical={hypotheticalFor(c)}
 							/>
 						</span>
 					</span>

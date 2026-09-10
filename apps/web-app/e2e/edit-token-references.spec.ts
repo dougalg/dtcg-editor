@@ -341,3 +341,147 @@ test.describe("US2 — see what a candidate resolves to before committing", () =
 		).toHaveAttribute("aria-current", "true");
 	});
 });
+
+// US3 edits color.text.primary again (US1's target), in semantic.tokens.json
+// — its own path being a candidate is exactly what A12 needs, and its
+// existing chain (text.primary -> brand.blue, with action.default ->
+// text.primary -> brand.blue) is what makes color.action.default a
+// cycle-closing candidate for A13. No save happens in this block either.
+test.describe("US3 — circular candidates are unselectable; missing/group are flagged", () => {
+	async function openOnTextPrimary(page: import("@playwright/test").Page) {
+		await page.goto("/tokens/semantic.tokens.json");
+		await page
+			.getByRole("combobox", {
+				name: "Repoint reference for color.text.primary",
+			})
+			.click();
+		return page.getByRole("combobox", { name: /search tokens/i });
+	}
+
+	test("the edited token's own path is circular-marked and unselectable by click or Enter (A12)", async ({
+		page,
+	}) => {
+		const search = await openOnTextPrimary(page);
+		await search.fill("text.primary");
+
+		const own = page.getByRole("option", { name: "color.text.primary" });
+		await expect(own).toBeVisible();
+		await expect(own).toHaveAttribute("aria-disabled", "true");
+		await expect(own).toContainText(/circular-reference/i);
+
+		const trigger = page.getByRole("combobox", {
+			name: "Repoint reference for color.text.primary",
+		});
+		// A real pointer click on a disabled row never lands — Playwright's
+		// actionability check itself refuses it (the row is genuinely inert to
+		// the pointer, which *is* FR-024's "must not be selectable ... by
+		// pointer"); `force` bypasses that check to still exercise the
+		// `onSelect` guard directly, proving nothing is staged even if a click
+		// were somehow delivered.
+		await own.click({ force: true });
+		await expect(page.getByRole("button", { name: /^save$/i })).toBeDisabled();
+		await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+		// Enter on the highlighted (disabled) row is equally inert.
+		await page.keyboard.press("Enter");
+		await expect(page.getByRole("button", { name: /^save$/i })).toBeDisabled();
+		await expect(trigger).toHaveAttribute("aria-expanded", "true");
+	});
+
+	test("a candidate that would close a cycle is circular-marked, names the cycle, and stages nothing (A13)", async ({
+		page,
+	}) => {
+		const search = await openOnTextPrimary(page);
+		// color.action.default -> {color.text.primary}: picking it as
+		// text.primary's own new target would close a 2-token cycle.
+		await search.fill("action.default");
+
+		const option = page.getByRole("option", { name: "color.action.default" });
+		await expect(option).toHaveAttribute("aria-disabled", "true");
+		await expect(option).toContainText(/circular-reference/i);
+
+		// The "would resolve to" preview (with the cycle named) attaches only
+		// to the *highlighted* row — hover sets cmdk's highlight even on a
+		// disabled item (only arrow-key navigation skips one, U11).
+		await option.hover();
+		await expect(option).toContainText(/would resolve to/i);
+		// FR-014: the preview names the tokens in the cycle.
+		await expect(option).toContainText(/text\.primary/i);
+
+		await option.click({ force: true });
+		await expect(page.getByRole("button", { name: /^save$/i })).toBeDisabled();
+	});
+
+	test("a broken (missing/group) starting reference still opens, stays editable, and the page renders normally (A14)", async ({
+		page,
+	}) => {
+		await page.goto("/tokens/broken.tokens.json");
+
+		for (const path of [
+			"color.broken.missing-target",
+			"color.broken.group-target",
+		]) {
+			const row = page.getByTestId(`token-${path}`);
+			const trigger = row.getByRole("combobox", {
+				name: `Repoint reference for ${path}`,
+			});
+			// The popover's content portals outside `row` (Radix Popover), so
+			// the search field itself is named per-path and queried page-wide,
+			// rather than the ambiguous /search tokens/i — cmdk's own
+			// `CommandInput` hardcodes `aria-expanded="true"` unconditionally
+			// (its own listbox semantics, unrelated to Popover open state), so
+			// a closed-but-not-yet-unmounted picker can otherwise still match.
+			const search = page.getByRole("combobox", {
+				name: `Search tokens to repoint ${path}`,
+			});
+			await expect(trigger).toBeVisible();
+			await trigger.click();
+			await expect(trigger).toHaveAttribute("aria-expanded", "true");
+			await expect(search).toBeVisible();
+			await page.keyboard.press("Escape");
+			await expect(trigger).toHaveAttribute("aria-expanded", "false");
+			await expect(search).toBeHidden();
+		}
+		// The page is otherwise entirely normal.
+		await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+	});
+
+	test("a candidate resolving to a missing or group path is flagged but stays selectable (A15)", async ({
+		page,
+	}) => {
+		const search = await openOnTextPrimary(page);
+
+		await search.fill("missing-target");
+		const missing = page.getByRole("option", {
+			name: "color.broken.missing-target",
+		});
+		await expect(missing).not.toHaveAttribute("aria-disabled", "true");
+		await expect(missing).toContainText(/missing/i);
+		await missing.click();
+		await expect(page.getByRole("button", { name: /^save$/i })).toBeEnabled();
+
+		// Reload to discard, then repeat for the group-target candidate.
+		await page.reload();
+		await (await openOnTextPrimary(page)).fill("group-target");
+		const group = page.getByRole("option", {
+			name: "color.broken.group-target",
+		});
+		await expect(group).not.toHaveAttribute("aria-disabled", "true");
+		await expect(group).toContainText(/group/i);
+		await group.click();
+		await expect(page.getByRole("button", { name: /^save$/i })).toBeEnabled();
+	});
+
+	test("a circular candidate is visibly distinct as unselectable next to a clean one (A16)", async ({
+		page,
+	}) => {
+		await openOnTextPrimary(page);
+
+		const circular = page.getByRole("option", { name: "color.text.primary" });
+		const clean = page.getByRole("option", { name: "color.brand.blue" });
+		await expect(circular).toHaveAttribute("aria-disabled", "true");
+		await expect(circular).toContainText(/circular-reference/i);
+		await expect(clean).not.toHaveAttribute("aria-disabled", "true");
+		await expect(clean).not.toContainText(/circular-reference/i);
+	});
+});

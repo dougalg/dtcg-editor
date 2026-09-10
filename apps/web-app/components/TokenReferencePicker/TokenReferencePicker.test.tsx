@@ -239,6 +239,47 @@ test("a circular candidate row is disabled — selecting it stages nothing and t
 	).toBe("true");
 });
 
+test("a non-self cycle-closing candidate names the cycle even when it isn't the highlighted row", async () => {
+	// hub -> {color.blue} (clean); wheel -> {color.hub} — repointing hub at
+	// wheel would close hub -> wheel -> hub, but wheel is not hub's own path
+	// (the self case), so nothing marks it highlighted by default.
+	const cycleFetch = vi.fn().mockResolvedValue(
+		new Response(
+			JSON.stringify(
+				buildReferenceCatalogue(
+					buildReferenceIndex([
+						file("base.json", {
+							color: {
+								$type: "color",
+								blue: { $value: { hex: "#0000ff" } },
+								hub: { $value: "{color.blue}" },
+								wheel: { $value: "{color.hub}" },
+							},
+						}),
+					]),
+				),
+			),
+			{ status: 200 },
+		),
+	);
+	renderPicker({
+		editedTokenPath: ["color", "hub"],
+		currentReferenceValue: "{color.blue}",
+		fetchImpl: cycleFetch,
+	});
+	await act(async () => {
+		fireEvent.click(
+			screen.getByRole("combobox", { name: /repoint reference for/i }),
+		);
+		await Promise.resolve();
+	});
+
+	const wheelRow = screen.getByRole("option", { name: "color.wheel" });
+	expect(wheelRow.getAttribute("aria-disabled")).toBe("true");
+	// FR-014: named even without hovering/highlighting it first.
+	expect(wheelRow.textContent).toMatch(/color\.hub/);
+});
+
 test("a candidate resolving to a missing path stays enabled and can be staged", async () => {
 	const brokenFetch = vi.fn().mockResolvedValue(
 		new Response(
