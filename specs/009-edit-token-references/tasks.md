@@ -25,8 +25,8 @@ Monorepo: `packages/design-system/src/…`, `apps/web-app/…`. `token-core` is 
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 [P] Confirm `cmdk` and `@radix-ui/react-popover` are already in `packages/design-system/package.json` and that no dependency is added in any package (plan.md, Principle VIII); if drift is found, note it in `plan.md` rather than adding ad hoc.
-- [ ] T002 [P] Extend `apps/web-app/e2e/fixtures/token-references/*.json` with the minimal tokens the test list needs and does not yet have: a multi-hop cycle-closing candidate, a self-referencing token, a path multiply-defined so it is circular under one mode only, a reference to a missing path, and a reference to a group path. Provides fixtures for A2, A12–A17 and U22–U28, U50–U55, U62.
+- [X] T001 [P] Confirm `cmdk` and `@radix-ui/react-popover` are already in `packages/design-system/package.json` and that no dependency is added in any package (plan.md, Principle VIII); if drift is found, note it in `plan.md` rather than adding ad hoc.
+- [X] T002 [P] Extend `apps/web-app/e2e/fixtures/token-references/*.json` with the minimal tokens the test list needs and does not yet have: a multi-hop cycle-closing candidate, a self-referencing token, a path multiply-defined so it is circular under one mode only, a reference to a missing path, and a reference to a group path. Provides fixtures for A2, A12–A17 and U22–U28, U50–U55, U62.
 
 ---
 
@@ -39,14 +39,14 @@ Monorepo: `packages/design-system/src/…`, `apps/web-app/…`. `token-core` is 
 - [X] T005 [P] Write failing unit tests `packages/design-system/src/components/Command/Command.test.tsx` — [U1] renders input + list + one item per child; [U2] shows empty-slot content when the query matches nothing. Observe red.
 - [X] T006 [P] Write failing a11y test `packages/design-system/src/components/Command/Command.a11y.test.tsx` — [U3] zero axe-core violations. Observe red.
 - [X] T003 [P] Repair `packages/design-system/src/components/Command/Command.tsx` — replace the non-existent `@/registry/*` imports with real relative imports (`../Dialog/Dialog.tsx`) + the `cmdk` package; keep the exact export set; no behavioural additions. [U1] [U2] [U3]
-- [ ] T004 [P] Audit `packages/design-system/src/components/Command/Command.css` to `--dtcg-ed-*` only (Principle XII, `DESIGN.md`). No behavior.
+- [X] T004 [P] Audit `packages/design-system/src/components/Command/Command.css` to `--dtcg-ed-*` only (Principle XII, `DESIGN.md`). No behavior.
 
 ### design-system: `Combobox` (generic controlled)
 
 - [X] T009 [P] Write failing unit tests `packages/design-system/src/components/Combobox/Combobox.test.tsx` — [U4] trigger click → `onOpenChange(true)`, `role="combobox"` + `aria-expanded`/`aria-controls`; [U5] typing → `onQueryChange`, field shows controlled `query`; [U6] renders exactly `items` in order, no internal filter/sort; [U7] activating an enabled item → `onSelect(item)` then `onOpenChange(false)`; [U8] Escape → `onOpenChange(false)` + focus to trigger; [U9] a disabled item is still rendered; [U10] activating a disabled item → no `onSelect`, stays open; [U11] Arrow keys skip a disabled item; [U12] `selectedKey` marks exactly that row `aria-current`; [U13] `loading` → `loadingContent` only; [U14] empty `items` not loading → `emptyContent`, nothing selectable. Observe red.
 - [X] T010 [P] Write failing a11y test `packages/design-system/src/components/Combobox/Combobox.a11y.test.tsx` — [U15] zero axe-core on the open popover including one disabled row. Observe red.
 - [X] T007 Replace `packages/design-system/src/components/Combobox/Combobox.tsx` with the generic controlled `Combobox<T>` per contracts/reference-picker-ui.md (Popover + Command, `shouldFilter={false}`, props `open/onOpenChange`, `query/onQueryChange`, `items`, `getKey`, `renderItem`, `isItemDisabled`, `onSelect`, `selectedKey`, labels, `emptyContent`, `loading/loadingContent`). [U4] [U5] [U6] [U7] [U8] [U9] [U10] [U11] [U12] [U13] [U14] [U15]. Depends on T003.
-- [ ] T008 [P] Create `packages/design-system/src/components/Combobox/Combobox.css` — `--dtcg-ed-*` only. No behavior.
+- [X] T008 [P] Create `packages/design-system/src/components/Combobox/Combobox.css` — `--dtcg-ed-*` only. No behavior.
 
 ### web-app: catalogue data path
 
@@ -118,8 +118,8 @@ Monorepo: `packages/design-system/src/…`, `apps/web-app/…`. `token-core` is 
 - [X] T039 [P] [US3] Create `apps/web-app/lib/tokens/candidate-selectability.ts` — `isCircularIfSelected(editedTokenPath, candidate)` per contract (self OR `editedTokenPath` ∈ any `candidate.preview[i].outcome.steps[].path`; O(steps), no resolve). [U49] [U50] [U51] [U52] [U53] [U54] [U55] [U56]
 - [X] T044 [P] [US3] Write failing tests updating `apps/web-app/components/CandidatePreview/CandidatePreview.test.tsx` — [U71] `diagnostic: "circular"` → circular icon + "circular-reference" label, for both own-path and multi-hop cycle; [U72] `diagnostic: "missing"` / `"group"` → their own icon + label, distinct from circular. Observe red.
 - [X] T041 [US3] Add the compact diagnostic markers to `apps/web-app/components/CandidatePreview/CandidatePreview.tsx` from `rowState.diagnostic`. [U71] [U72] [U75]. Depends on T033, T039.
-- [ ] T043 [P] [US3] Write failing tests updating `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` — [U86] a circular candidate row is passed to `Combobox` disabled; Enter/click stages nothing, popover stays open; [U87] a missing/group candidate row stays enabled and selecting it stages the alias. Observe red.
-- [ ] T045 [P] [US3] Update `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.a11y.test.tsx` and `CandidatePreview.a11y.test.tsx` — [U88] a disabled circular row is announced unavailable, not omitted; still zero axe-core (completes [A19]). Observe red for the new assertion.
+- [X] T043 [P] [US3] Write failing tests updating `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.test.tsx` — [U86] a circular candidate row is passed to `Combobox` disabled; Enter/click stages nothing, popover stays open; [U87] a missing/group candidate row stays enabled and selecting it stages the alias. Observe red.
+- [X] T045 [P] [US3] Update `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.a11y.test.tsx` and `CandidatePreview.a11y.test.tsx` — [U88] a disabled circular row is announced unavailable, not omitted; still zero axe-core (completes [A19]). Observe red for the new assertion.
 - [X] T042 [US3] In `apps/web-app/components/TokenReferencePicker/TokenReferencePicker.tsx` build a `CandidateRowState` per row (`circular` = `isCircularIfSelected(...)`, `selectable = !circular`, `diagnostic` = worst preview outcome) and pass `isItemDisabled` to `Combobox`. [U86] [U87]. Depends on T039, T041.
 
 **Checkpoint**: [A12]–[A16], [A19] green; [U49]–[U88] green.

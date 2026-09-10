@@ -1,0 +1,39 @@
+/*
+COMBOBOX
+
+Styling for the generic `Combobox`'s own slots — the `Command` list it wraps
+carries its own `Command.css`, and the `Popover` shell its `Popover.css`
+(which already zeroes its padding when it `:has(.command)`). Every value here
+is a `--dtcg-ed-*` token (DESIGN.md rule 1); this file adds no behaviour.
+*/
+
+.combobox-content {
+	/* The popover content box the trigger's `aria-controls` points at — the
+	   `Command` inside owns layout, so this only needs a sensible min width. */
+	min-width: var(--dtcg-ed-container-2xs, fit-content);
+}
+
+.combobox-loading,
+.combobox-empty {
+	padding-block: var(--dtcg-ed-space-sm);
+	padding-inline: var(--dtcg-ed-space-md);
+	text-align: center;
+	color: var(--dtcg-ed-color-text-quiet);
+}
+
+.combobox-list-footer {
+	padding-block: var(--dtcg-ed-space-2xs);
+	padding-inline: var(--dtcg-ed-space-2xs);
+	border-top: var(--dtcg-ed-border-width-thin) var(--dtcg-ed-border-style)
+		var(--dtcg-ed-color-surface-border);
+	font-size: round(
+		calc(var(--dtcg-ed-form-control-font-size) * 0.875),
+		var(--dtcg-ed-border-width-thin)
+	);
+	color: var(--dtcg-ed-color-text-quiet);
+}
+
+.combobox-selected-check {
+	margin-inline-start: auto;
+	color: var(--dtcg-ed-color-text-quiet);
+}

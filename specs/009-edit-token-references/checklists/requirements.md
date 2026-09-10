@@ -43,3 +43,16 @@
   reworked, FR-024 + SC-008 added, US3 rewritten. Re-validated: all 16 items
   still pass. Downstream plan.md / research.md / contracts/ predate this change
   and need a matching pass (see completion report).
+- FR-020 revision (`/speckit-tdd-run`, 2026-09-10): an empty/whitespace query
+  no longer lists the whole directory (SC-004 — the idle full listing was the
+  expensive render); it shows only the current/staged target's own row, or a
+  "type to search" prompt. FR-018 clause added ("visible without typing"),
+  US1 scenario 1 + the empty-query edge case reworded, `docs/research/
+  reference-picker-search-and-virtualization.md` added as the basis. Also
+  corrected the quickstart's SC-007 step: SC-007 is a parse→serialize
+  round-trip guarantee (one `$value` line), not a raw-bytes one —
+  `token-core`'s serializer normalizes formatting/key-order by design and a
+  plain `git diff` shows that churn. `/speckit-implement` re-validation
+  (2026-09-10): all 16 items still pass; SC-001..SC-004/SC-006..SC-008 each
+  trace to a passing A-behavior (SC-005 is a post-launch usability study,
+  out of scope per spec).

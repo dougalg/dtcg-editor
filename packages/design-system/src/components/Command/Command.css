@@ -1,3 +1,14 @@
+/*
+COMMAND
+
+Every colour, spacing, radius, shadow, border and font value below is a
+`--dtcg-ed-*` token (DESIGN.md rule 1). The remaining literals are functional
+constraints with no design-token equivalent, kept as they are in the upstream
+`cmdk` baseline this was repaired from: `.command-list`'s `max-height: 300px`
+scroll cap, `.command-item[data-disabled]`'s `opacity: 0.5`, and the `1px`
+sub-pixel rounding guard in the two `round(calc(...), 1px)` font sizes.
+*/
+
 .command {
 	display: flex;
 	height: 100%;

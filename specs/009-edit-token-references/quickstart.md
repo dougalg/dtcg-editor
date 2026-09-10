@@ -83,15 +83,38 @@ and multi-mode tokens.
 12. Repoint again, then activate Save → the file is written; reload → the new
     reference persists.
 
-## Manual round-trip check (SC-007)
+## Round-trip check (SC-007)
+
+SC-007 is a **parse→serialize** round-trip guarantee, not a raw-bytes one:
+`token-core`'s `serializeTokenFile` normalizes formatting and key order by
+design (its own docstring: "formatting and key ordering may normalize, but
+the data doesn't"), so a plain `git diff` of the saved file will also show
+2-space re-indentation and possibly reordered sibling keys on a source file
+that wasn't already in that shape. That churn is expected and is not an
+SC-007 violation.
+
+What SC-007 actually requires — and what `route.test.ts`'s
+`PATCH repointing a reference changes exactly that one $value and nothing
+else (SC-007, hosts A20)` (U101/A20) verifies automatically — is that
+`serialize(parse(before))` and `serialize(parse(after))` differ on **exactly
+one line**: the edited token's `$value` alias string.
+
+To check by hand:
 
 ```bash
-# with the dev server running against a scratch copy of a token file
-git -C <tokensDir> diff -- <the-edited-file>.json
+# with the dev server running against a scratch copy of a token file,
+# after repointing + saving one reference:
+node -e '
+  const {parseTokenFile,serializeTokenFile}=require("@dtcg-editor/token-core");
+  const fs=require("fs");
+  const before=serializeTokenFile(parseTokenFile(process.argv[1])._unsafeUnwrap())._unsafeUnwrap();
+  const after=serializeTokenFile(parseTokenFile(fs.readFileSync(process.argv[2],"utf8"))._unsafeUnwrap())._unsafeUnwrap();
+  // diff `before` (git show of the pristine file) against `after`
+' "$(git show HEAD:<the-edited-file>.json)" <tokensDir>/<the-edited-file>.json
 ```
 
-Expected: exactly one changed line — the edited token's `$value` alias string.
-No reordering, no whitespace/key churn elsewhere (Principle IX).
+Expected: exactly one differing line — the `$value` alias — between the two
+round-tripped forms (Principle IX round-trip fidelity is data-level).
 
 ## Performance check (SC-004)
 
