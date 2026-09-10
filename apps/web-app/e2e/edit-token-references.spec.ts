@@ -485,3 +485,40 @@ test.describe("US3 — circular candidates are unselectable; missing/group are f
 		await expect(clean).not.toContainText(/circular-reference/i);
 	});
 });
+
+// T049 — reinforces A14/FR-021: when the whole-directory catalogue can't be
+// built at all (the route itself failing, not just a slow response), the
+// picker degrades to a raw-text alias input instead of breaking the page.
+test.describe("degradation when the catalogue route fails (T049, FR-021)", () => {
+	test("the picker falls back to an editable raw-alias input, no previews, page otherwise fine", async ({
+		page,
+	}) => {
+		await page.route("**/api/tokens/references", (route) =>
+			route.fulfill({ status: 500, body: "{}" }),
+		);
+		await page.goto("/tokens/semantic.tokens.json");
+
+		const trigger = page.getByRole("combobox", {
+			name: "Repoint reference for color.text.primary",
+		});
+		await expect(trigger).toBeVisible();
+		await trigger.click();
+
+		// FR-021: a raw, editable alias text input — not the Combobox popover.
+		const raw = page.getByRole("textbox", {
+			name: /reference for color\.text\.primary/i,
+		});
+		await expect(raw).toBeVisible();
+		await expect(raw).toHaveValue("{color.brand.blue}");
+		await expect(page.getByRole("option")).toHaveCount(0);
+
+		await raw.fill("{color.neutral.900}");
+		await expect(page.getByRole("button", { name: /^save$/i })).toBeEnabled();
+
+		// The rest of the page is entirely normal.
+		await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+		await expect(
+			page.getByRole("textbox", { name: /^gap name$/i }),
+		).toBeVisible();
+	});
+});

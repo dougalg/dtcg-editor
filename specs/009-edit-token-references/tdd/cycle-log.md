@@ -753,6 +753,21 @@ reference token exercised).
   (U84), a new unit behavior + test for the cap itself, and a mutant-
   verified re-run of this same acceptance spec once implemented.
 
+## Cycle: T049 — degradation when the catalogue route fails (FR-021)
+
+New `describe` block in `edit-token-references.spec.ts`: `page.route()`
+intercepts `**/api/tokens/references` to a `500`, then opens the picker on
+`color.text.primary`. Passed on first real run; deliberate-mutant checked
+(`TokenReferencePicker.tsx`'s `status === "error"` branch guard forced to
+`false && …`) — confirmed red (`element(s) not found` for the raw-text
+input), reverted, rebuilt, green again.
+
+- suite: `edit-token-references.spec.ts --project=token-references` → 18
+  passed (17 above + this one). Full fast suite: `pnpm exec vitest run` →
+  683 passed / 140 files (unaffected — e2e-only cycle).
+- refactor: none.
+- commit: (this commit)
+
 ## Note: TreeTokenNode.tsx line count (T027 / Principle X)
 
 The `ReferenceEditControl` extraction took `TreeTokenNode.tsx` from 409 -> 363 lines.
