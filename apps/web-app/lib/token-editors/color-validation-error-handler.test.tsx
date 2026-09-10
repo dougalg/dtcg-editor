@@ -1,10 +1,15 @@
-import {
-	ColorValidationErrorHandler,
-	colorTokenType,
-} from "@dtcg-editor/token-editor-color";
+import { colorTokenType } from "@dtcg-editor/token-editor-color";
 import { validateTokenValue } from "@dtcg-editor/token-editor-contract";
 import { render, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
+
+// The component under test is only exposed as `colorTokenType`'s contract
+// field, not as a standalone export — which is exactly how `TreeNode.tsx`
+// reaches it in production.
+const ColorValidationErrorHandler = colorTokenType.ValidationErrorHandler;
+if (!ColorValidationErrorHandler) {
+	throw new Error("colorTokenType must define a ValidationErrorHandler");
+}
 
 /**
  * Exercises `colorTokenType`'s `ValidationErrorHandler` directly, rather
