@@ -16,6 +16,22 @@ function aliasFor(path: readonly string[]): string {
 }
 
 /**
+ * Mounted `CommandItem` count cap (SC-004). `cmdk` doesn't virtualize its
+ * own list — every candidate is a real DOM row it reconciles on every
+ * keystroke — so an uncapped list over a large directory (~2,000+ paths)
+ * blows the 50ms Long Task budget (measured: 170ms/80ms). Virtualizing
+ * under `cmdk`'s `CommandList` isn't an option: it drives its own roving
+ * `aria-activedescendant` keyboard nav and `Command.Empty` detection off
+ * the currently-mounted `CommandItem`s, and both are documented as broken
+ * by windowing (cmdk#282, cmdk#299) — a showstopper given FR-005/SC-006's
+ * full-keyboard-operability requirement. `filterCandidates` already
+ * orders results by match relevance, so capping the render, not the
+ * match set, only ever drops the least-relevant tail — see
+ * `docs/research/reference-picker-search-and-virtualization.md`.
+ */
+const MAX_VISIBLE_CANDIDATES = 200;
+
+/**
  * The reference-repointing control: a `Combobox` over every token path in the
  * loaded directory. The catalogue is fetched on first open and cached for the
  * session; selecting a candidate stages an ordinary pending edit setting the
@@ -57,27 +73,58 @@ export function TokenReferencePicker({
 	function handleOpenChange(next: boolean) {
 		if (next) {
 			setActivated(true);
+		} else {
+			// Closing clears the query — otherwise a leftover search from the
+			// last time this row's picker was open would silently narrow (or
+			// empty) the idle listing the next time it reopens, instead of the
+			// current-target-only row a reopen is meant to show.
+			setQuery("");
 		}
 		setOpen(next);
 	}
 
 	const stagedTarget = pendingReferenceValue ?? currentReferenceValue;
+	const trimmedQuery = query.trim();
 
-	const items = useMemo(
-		(): readonly ReferenceCandidate[] =>
-			catalogue === undefined
-				? []
-				: filterCandidates(catalogue.candidates, query, {
-						path: editedTokenPath,
-						effectiveType: editedEffectiveType,
-						file: editedFile,
-					}),
-		[catalogue, query, editedTokenPath, editedEffectiveType, editedFile],
-	);
-
-	const selectedKey = items.find(
+	// FR-020 revision: an empty/whitespace query no longer lists the whole
+	// directory — on a large catalogue that idle full listing was itself
+	// the expensive render (SC-004). Idle shows only the current/staged
+	// target's own row (pre-selected, so FR-018's "reopening shows what's
+	// currently pointed at" keeps working with no typing needed); it stays
+	// empty (prompting the user to type) when nothing currently matches.
+	const allItems = useMemo((): readonly ReferenceCandidate[] => {
+		if (catalogue === undefined) {
+			return [];
+		}
+		if (trimmedQuery === "") {
+			return catalogue.candidates.filter(
+				(c) => aliasFor(c.path) === stagedTarget,
+			);
+		}
+		return filterCandidates(catalogue.candidates, query, {
+			path: editedTokenPath,
+			effectiveType: editedEffectiveType,
+			file: editedFile,
+		});
+	}, [
+		catalogue,
+		query,
+		trimmedQuery,
+		stagedTarget,
+		editedTokenPath,
+		editedEffectiveType,
+		editedFile,
+	]);
+	// The staged/current target must stay findable even past the render
+	// cap — losing A11's "re-opening marks the current selection" for a
+	// large directory would be a regression worse than the cap is meant to
+	// fix.
+	const selectedKey = allItems.find(
 		(c) => aliasFor(c.path) === stagedTarget,
 	)?.displayPath;
+
+	const items = allItems.slice(0, MAX_VISIBLE_CANDIDATES);
+	const truncatedCount = allItems.length - items.length;
 
 	if (status === "error") {
 		// FR-021: the whole-directory catalogue is unavailable — degrade to
@@ -98,9 +145,13 @@ export function TokenReferencePicker({
 
 	const resultAnnouncement = !open
 		? ""
-		: items.length === 0
-			? "No matches"
-			: `${items.length} token${items.length === 1 ? "" : "s"} match`;
+		: allItems.length === 0
+			? trimmedQuery === ""
+				? "Type to search"
+				: "No matches"
+			: truncatedCount > 0
+				? `${allItems.length} tokens match, showing the first ${items.length} — refine your search`
+				: `${allItems.length} token${allItems.length === 1 ? "" : "s"} match`;
 
 	const highlighted = items.find((c) => c.displayPath === highlightKey);
 	const hypothetical =
@@ -182,9 +233,16 @@ export function TokenReferencePicker({
 				inputLabel={`Search tokens to repoint ${displayPath}`}
 				triggerLabel={`Repoint reference for ${displayPath}`}
 				triggerContent={triggerContent ?? currentReferenceValue}
-				emptyContent="No tokens found"
+				emptyContent={
+					trimmedQuery === "" ? "Type to search tokens" : "No tokens found"
+				}
 				loading={status === "loading"}
 				loadingContent="Loading tokens…"
+				listFooter={
+					truncatedCount > 0
+						? `${truncatedCount} more — refine your search`
+						: undefined
+				}
 			/>
 		</>
 	);

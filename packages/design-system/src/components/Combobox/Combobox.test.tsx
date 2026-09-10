@@ -168,3 +168,22 @@ test("empty items (not loading) shows emptyContent and nothing selectable", () =
 	expect(screen.getByText("No items found")).toBeTruthy();
 	expect(screen.queryAllByRole("option")).toHaveLength(0);
 });
+
+test("listFooter renders after the item list when provided", () => {
+	render(
+		<Combobox
+			{...props({ open: true, listFooter: "3 more — refine your search" })}
+		/>,
+	);
+
+	expect(screen.getByText("3 more — refine your search")).toBeTruthy();
+	// Still shows the (capped, by the caller) items alongside it — the
+	// footer is additive, not a replacement for the list.
+	expect(screen.getAllByRole("option")).toHaveLength(3);
+});
+
+test("listFooter is absent when not provided", () => {
+	render(<Combobox {...props({ open: true })} />);
+
+	expect(screen.queryByText(/refine your search/i)).toBeNull();
+});

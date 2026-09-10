@@ -116,6 +116,28 @@ test("the trigger and the search field both name the token being repointed", asy
 	expect(named).toContain("Search tokens to repoint color.accent");
 });
 
+test("an empty query shows only the current target's own row, not the whole directory", async () => {
+	await openPicker();
+
+	// color.accent's current value is {color.blue} — only that row shows,
+	// pre-selected; color.red (a real, unrelated candidate) is not rendered
+	// at all until the user types (SC-004: an idle full-directory listing
+	// is exactly what makes the render cap matter on a large catalogue).
+	expect(screen.getAllByRole("option")).toHaveLength(1);
+	const blueRow = screen.getByRole("option", { name: "color.blue" });
+	expect(blueRow.getAttribute("aria-current")).toBe("true");
+	expect(screen.queryByRole("option", { name: "color.red" })).toBeNull();
+});
+
+test("an empty query with no current-target match shows nothing, prompting the user to type", async () => {
+	// A fresh (never-staged, unresolvable-today) reference: no candidate's
+	// alias equals it, so the current-target row itself has nothing to show.
+	await openPicker(okFetch(), { currentReferenceValue: "{color.nope}" });
+
+	expect(screen.queryAllByRole("option")).toHaveLength(0);
+	expect(screen.getByText("Type to search tokens")).toBeTruthy();
+});
+
 test("typing narrows the list through filterCandidates, in order", async () => {
 	await openPicker();
 
@@ -129,6 +151,27 @@ test("typing narrows the list through filterCandidates, in order", async () => {
 	// preview span) rather than full textContent.
 	expect(screen.getAllByRole("option")).toHaveLength(1);
 	expect(screen.getByRole("option", { name: "color.red" })).toBeDefined();
+});
+
+test("closing the popover resets the query, so reopening starts idle again", async () => {
+	await openPicker();
+
+	const search = screen.getByRole("combobox", { name: /search tokens/i });
+	fireEvent.change(search, { target: { value: "color.re" } });
+	expect(screen.getAllByRole("option")).toHaveLength(1);
+
+	fireEvent.keyDown(search, { key: "Escape" });
+	await act(async () => {
+		fireEvent.click(
+			screen.getByRole("combobox", { name: /repoint reference for/i }),
+		);
+		await Promise.resolve();
+	});
+
+	// Back to idle: only the current target (color.blue), not the stale
+	// "color.re" narrowing from before.
+	expect(screen.getAllByRole("option")).toHaveLength(1);
+	expect(screen.getByRole("option", { name: "color.blue" })).toBeTruthy();
 });
 
 test("a query matching nothing shows 'No tokens found' and nothing is selectable", async () => {
@@ -145,6 +188,11 @@ test("a query matching nothing shows 'No tokens found' and nothing is selectable
 test("selecting a candidate stages the alias edit and closes the popover", async () => {
 	const { onStageEdit } = await openPicker();
 
+	// color.red isn't the current target ({color.blue}), so it isn't shown
+	// at idle — type to reveal it.
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "red" },
+	});
 	fireEvent.click(screen.getByRole("option", { name: "color.red" }));
 
 	expect(onStageEdit).toHaveBeenCalledWith(["color", "accent"], {
@@ -190,6 +238,11 @@ test("re-opening marks the current target as the selected row", async () => {
 			.getByRole("option", { name: "color.blue" })
 			.getAttribute("aria-current"),
 	).toBe("true");
+
+	// Typing further still marks only the current target, not every row.
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "color" },
+	});
 	expect(
 		screen
 			.getByRole("option", { name: "color.red" })
@@ -225,7 +278,11 @@ test("when the catalogue fetch errors, a raw-text input stages edits", async () 
 
 test("a circular candidate row is disabled — selecting it stages nothing and the popover stays open", async () => {
 	// The edited token is color.accent; color.accent itself is a self-reference.
+	// Not the current target ({color.blue}), so type to reveal its own row.
 	const { onStageEdit } = await openPicker();
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "accent" },
+	});
 
 	const selfRow = screen.getByRole("option", { name: /color\.accent/ });
 	expect(selfRow.getAttribute("aria-disabled")).toBe("true");
@@ -273,6 +330,10 @@ test("a non-self cycle-closing candidate names the cycle even when it isn't the 
 		);
 		await Promise.resolve();
 	});
+	// wheel isn't the current target ({color.blue}) — type to reveal it.
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "wheel" },
+	});
 
 	const wheelRow = screen.getByRole("option", { name: "color.wheel" });
 	expect(wheelRow.getAttribute("aria-disabled")).toBe("true");
@@ -297,6 +358,9 @@ test("a candidate resolving to a missing path stays enabled and can be staged", 
 		),
 	);
 	const { onStageEdit } = await openPicker(brokenFetch);
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "broken" },
+	});
 
 	const brokenRow = screen.getByRole("option", { name: /^broken/ });
 	expect(brokenRow.getAttribute("aria-disabled")).not.toBe("true");
@@ -312,7 +376,8 @@ test("an aria-live region announces the current result count", async () => {
 
 	const live = () =>
 		screen.getByRole("status", { name: "Search results" }).textContent;
-	expect(live()).toMatch(/3\b/);
+	// Idle: only the current target ({color.blue}) shows, no query yet.
+	expect(live()).toMatch(/\b1\b/);
 
 	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
 		target: { value: "color.re" },
@@ -323,4 +388,36 @@ test("an aria-live region announces the current result count", async () => {
 		target: { value: "zzz-nope" },
 	});
 	expect(live()).toMatch(/no match/i);
+});
+
+test("a result set over the render cap shows only the first 200, with a footer noting the rest (SC-004)", async () => {
+	// 205 candidates — one more than the cap needs to prove it's applied at
+	// all, kept small enough to stay a fast unit test (the real regression
+	// guard for main-thread cost is the e2e Long Task spec).
+	const CANDIDATE_COUNT = 205;
+	const color: Record<string, unknown> = { $type: "color" };
+	for (let i = 0; i < CANDIDATE_COUNT; i++) {
+		color[`token_${i}`] = { $value: { hex: "#000000" } };
+	}
+	const manyCatalogue = buildReferenceCatalogue(
+		buildReferenceIndex([file("many.json", { color })]),
+	);
+	const manyFetch = vi
+		.fn()
+		.mockResolvedValue(
+			new Response(JSON.stringify(manyCatalogue), { status: 200 }),
+		);
+
+	await openPicker(manyFetch);
+	// Idle shows nothing (none of these is the current target) — type a
+	// query matching all 205 to exercise the cap.
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "token_" },
+	});
+
+	expect(screen.getAllByRole("option")).toHaveLength(200);
+	expect(screen.getByText(/5 more.*refine your search/i)).toBeTruthy();
+	expect(
+		screen.getByRole("status", { name: "Search results" }).textContent,
+	).toMatch(String(CANDIDATE_COUNT));
 });

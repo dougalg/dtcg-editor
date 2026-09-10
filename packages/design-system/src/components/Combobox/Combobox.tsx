@@ -46,6 +46,14 @@ export interface ComboboxProps<T> {
 	/** When true, the list region shows `loadingContent` instead of items/empty. */
 	readonly loading?: boolean;
 	readonly loadingContent?: ReactNode;
+	/**
+	 * Rendered after the item list, alongside it (not a replacement for
+	 * `emptyContent`/`loadingContent`) — e.g. a "N more — refine your
+	 * search" note when the caller has capped `items` to fewer than the
+	 * full result set. The caller owns any capping; this component never
+	 * truncates `items` itself.
+	 */
+	readonly listFooter?: ReactNode;
 }
 
 /**
@@ -72,6 +80,7 @@ export function Combobox<T>({
 	emptyContent,
 	loading = false,
 	loadingContent,
+	listFooter,
 }: ComboboxProps<T>) {
 	const listId = useId();
 	const hasNoOptions = loading || items.length === 0;
@@ -164,6 +173,14 @@ export function Combobox<T>({
 							className="combobox-empty"
 						>
 							{emptyContent}
+						</div>
+					) : null}
+					{listFooter !== undefined && !loading && items.length > 0 ? (
+						<div
+							data-slot="combobox-list-footer"
+							className="combobox-list-footer"
+						>
+							{listFooter}
 						</div>
 					) : null}
 				</Command>

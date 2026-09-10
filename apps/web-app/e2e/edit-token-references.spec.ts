@@ -55,6 +55,10 @@ test.describe("US1 — repoint a reference by searching every token", () => {
 		await page.keyboard.press("Enter");
 		await expect(trigger).toHaveAttribute("aria-expanded", "true");
 
+		// The idle popover shows only the current target's own row — type to
+		// bring the rest of the directory-wide candidate list into view.
+		await page.getByRole("combobox", { name: /search tokens/i }).fill("color");
+
 		// A candidate from this file (semantic.tokens.json) …
 		await expect(
 			page.getByRole("option", { name: "color.action.hover" }),
@@ -220,8 +224,11 @@ test.describe("US1 — repoint a reference by searching every token", () => {
 			})
 			.click();
 
-		// Empty query (FR-020) shows the whole catalogue — every distinct path
-		// this fixture set defines (see the file header comment).
+		// The idle popover shows only the current target — every candidate
+		// path in this fixture set contains a "." (SC-002 reachability is
+		// through the search, not the idle listing), so that alone surfaces
+		// the whole catalogue (see the file header comment for the count).
+		await page.getByRole("combobox", { name: /search tokens/i }).fill(".");
 		await expect(page.getByRole("option")).toHaveCount(14);
 	});
 });
@@ -475,7 +482,8 @@ test.describe("US3 — circular candidates are unselectable; missing/group are f
 	test("a circular candidate is visibly distinct as unselectable next to a clean one (A16)", async ({
 		page,
 	}) => {
-		await openOnTextPrimary(page);
+		const search = await openOnTextPrimary(page);
+		await search.fill("color");
 
 		const circular = page.getByRole("option", { name: "color.text.primary" });
 		const clean = page.getByRole("option", { name: "color.brand.blue" });

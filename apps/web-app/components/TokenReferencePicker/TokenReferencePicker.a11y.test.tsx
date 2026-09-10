@@ -1,5 +1,5 @@
 import { parseTokenFile } from "@dtcg-editor/token-core";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axe from "axe-core";
 import { expect, test, vi } from "vitest";
 import { resetReferenceCatalogueCache } from "../../hooks/useReferenceCatalogue.ts";
@@ -91,7 +91,12 @@ test("the open picker, including a disabled circular row and the live region, ha
 		name: /repoint reference for/i,
 	});
 	trigger.click();
-	await screen.findByRole("combobox", { name: /search tokens/i });
+	const field = await screen.findByRole("combobox", {
+		name: /search tokens/i,
+	});
+	// Idle shows only the current target (color.blue) — type to also bring
+	// the disabled circular (self) row into view for this check.
+	fireEvent.change(field, { target: { value: "color" } });
 
 	// color.accent is the edited token -> a disabled circular row is present.
 	await waitFor(() =>

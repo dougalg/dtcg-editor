@@ -249,6 +249,12 @@ async function repointTextViaPicker() {
 		);
 		await Promise.resolve();
 	});
+	// color.brand.red isn't the current target ({color.brand.blue}) — the
+	// idle popover only shows the current target's own row, so type to
+	// reveal it.
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "brand.red" },
+	});
 	await act(async () => {
 		fireEvent.click(screen.getByRole("option", { name: "color.brand.red" }));
 		await Promise.resolve();
@@ -874,11 +880,9 @@ test("'Discard and leave' after a picker-staged repoint restores the previously 
 			.getByRole("option", { name: "color.brand.blue" })
 			.getAttribute("aria-current"),
 	).toBe("true");
-	expect(
-		screen
-			.getByRole("option", { name: "color.brand.red" })
-			.getAttribute("aria-current"),
-	).not.toBe("true");
+	// The idle popover shows only the current target — color.brand.red
+	// (the discarded pick) isn't rendered at all any more.
+	expect(screen.queryByRole("option", { name: "color.brand.red" })).toBeNull();
 });
 
 test("'Stay' closes the dialog without discarding the pending edit or navigating", () => {

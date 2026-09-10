@@ -190,6 +190,11 @@ test("picking a candidate through the hosted picker calls onRepoint with the ali
 		);
 		await Promise.resolve();
 	});
+	// color.red isn't the current target ({color.blue}) — type to reveal it
+	// (the idle popover only ever shows the current target's own row).
+	fireEvent.change(screen.getByRole("combobox", { name: /search tokens/i }), {
+		target: { value: "red" },
+	});
 
 	fireEvent.click(screen.getByRole("option", { name: "color.red" }));
 

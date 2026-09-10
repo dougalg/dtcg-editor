@@ -466,7 +466,8 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 - **A19** (open-popover axe) — closed by U88's `TokenReferencePicker.a11y.test.tsx` (populated + disabled circular row + live region) plus `Combobox` U15 for the empty-popover state. No separate Playwright axe host exists for a mounted popover; state -> DONE.
 - **A20** (repoint round-trip, one `$value` diff) — closed by U101 in `route.test.ts` (integration tier; no acceptance runner reaches the written file). State -> DONE.
 - **A1–A17** — DONE (T030, T038, T046 cycles above). Turned out not to need the T002 fixture extension: the existing `token-references` set already had every shape needed.
-- **A18** — BLOCKED. A real perf gap at ~2,000 candidates (T048 above), not a test-authoring problem. Needs a capped/virtualized result list before this can go green. T049 still open (untouched).
+- **A18** — DONE. Was BLOCKED (T048 above: a real perf gap at ~2,000 candidates); closed by the render cap (T048's follow-up) plus the idle-query revision immediately below, which removes the expensive full-directory idle listing entirely.
+- **A1–A18 all DONE.** Outer loop closed pending T050–T052/T055 (polish/gate, no behavior markers — `/speckit.implement`'s scope, not this loop's).
 
 ## Cycle: U105 diagnosticFor + picker row visual wiring (opening the outer loop)
 
@@ -766,6 +767,59 @@ input), reverted, rebuilt, green again.
   passed (17 above + this one). Full fast suite: `pnpm exec vitest run` →
   683 passed / 140 files (unaffected — e2e-only cycle).
 - refactor: none.
+- commit: (this commit)
+
+## Cycle: idle query no longer lists the whole directory (FR-020 revision, follow-up to A18)
+
+User decision after the A18 fix (research doc + capping): don't show all
+candidates by default — wait for the user to type. Clarified via
+`AskUserQuestion`: on reopen with an already-staged/current target, show
+that one row (pre-selected) rather than nothing, so FR-018's "reopening
+shows what's currently pointed at" keeps working without typing.
+
+- `packages/design-system/src/components/Combobox/Combobox.tsx`: new
+  `listFooter?: ReactNode` prop, rendered after the item list (additive,
+  not a replacement for `emptyContent`/`loadingContent`) — the caller-owned
+  "N more — refine your search" affordance the render cap needs. Test
+  first (`Combobox.test.tsx`, 2 new cases: renders when provided, absent
+  otherwise) — red (element not found) → green.
+- `TokenReferencePicker.tsx`: `allItems` for an empty/whitespace query is
+  now `catalogue.candidates.filter(c => alias(c.path) === stagedTarget)`
+  (0 or 1 row) instead of the full `filterCandidates` banded list;
+  `emptyContent`/the live-region announcement distinguish "Type to search
+  tokens" (idle, nothing to show) from "No tokens found" (typed, no
+  match). New unit tests first (`TokenReferencePicker.test.tsx`): idle
+  shows only the current target's row, pre-selected; idle with no
+  current-target match shows nothing + the prompt. Both red (received the
+  old full/empty-catalogue list) → green.
+- Found and fixed one more real bug while verifying: the popover's `query`
+  state wasn't reset on close, so a leftover search from a prior open
+  session silently narrowed (or emptied) the *next* reopen's idle listing
+  instead of showing the current target — caught by
+  `TokenTree.test.tsx`'s discard-and-reopen test breaking for a reason
+  unrelated to the fix under test. New test first (`TokenReferencePicker.test.tsx`,
+  "closing the popover resets the query") — red → green
+  (`handleOpenChange` now clears `query` on close).
+- This deliberately breaks the idle-full-listing assumption in 9 existing,
+  previously-green tests across 4 files (`TokenReferencePicker.test.tsx`
+  ×7 internal to that file's own suite before the additions above,
+  `TokenReferencePicker.a11y.test.tsx` ×1, `ReferenceEditControl.test.tsx`
+  ×1, `TokenTree.test.tsx` ×1, `edit-token-references.spec.ts` ×3 e2e:
+  A1/A17/A16) and the acceptance-level A1/A17/A16 scenarios — each updated
+  to type a query first (or, for A17, filter on "." since every fixture
+  path is dotted) rather than reading the old idle full list, per this
+  session's explicit decision; `spec.md` FR-018/FR-020, the "Whitespace-
+  only or empty query" edge case, and US1 scenario 1 updated with a dated
+  Revision entry, matching this doc's existing convention (see the
+  2026-09-01 circular-reference revision above it).
+- suite: `pnpm exec vitest run` → 689 passed / 140 files.
+  `edit-token-references.spec.ts --project=token-references` → 18 passed.
+  `edit-token-references-perf.spec.ts --project=default` (A18, previously
+  BLOCKED) → **now passes** — idle starting from 0-1 rows instead of the
+  full directory removes the first-keystroke near-full-list reorder that
+  the earlier capping fix alone hadn't fully absorbed.
+- refactor: none beyond the query-reset fix above (itself a behavioral
+  fix, not a cleanup of green code).
 - commit: (this commit)
 
 ## Note: TreeTokenNode.tsx line count (T027 / Principle X)
