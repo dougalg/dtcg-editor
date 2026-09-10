@@ -56,7 +56,33 @@ other measured interaction is already asserted at its "after" value (0 long
 tasks, 0 px, exact DOM equality, `=== 0`), so the assertion *is* the regression
 ceiling — there is no looser budget to hide a regression behind. Raising
 `BASELINE_A5_MS`, or loosening any of the exact assertions, requires re-capturing
-this table.
+this table. (CI enforces a separate, higher A5 ceiling for slower hardware —
+see §"CI vs local" — not a change to the local budget here.)
+
+## CI vs local
+
+The "after" column and every budget above were captured on macOS dev hardware
+(Darwin 25.6.0). The suite also runs in CI on GitHub-hosted `ubuntu-latest`
+(2-vCPU Linux), which is materially slower for CPU/DOM-bound work.
+
+Only **A5** is sensitive to this. Its interaction is ~132 reference-row React
+re-renders (the hub's reverse-dependency set — linear in that count, not in the
+2,005-token tree size). That is ~32 ms locally but **496–545 ms across repeated
+CI runs** (measured 2026-09-09), a ~15× hardware factor with no code change.
+`editing-perf.spec.ts` therefore asserts two ceilings:
+
+| env | constant | ceiling | rationale |
+| --- | --- | --- | --- |
+| local | `BASELINE_A5_MS` | 100 ms | the SC-005 / C-MB-1 budget; a regression trips here first |
+| CI | `BASELINE_A5_CI_MS` | 800 ms | observed CI max (~545 ms) + headroom |
+
+The CI ceiling is a hardware allowance, not a looser correctness bar: a
+full-tree-rebuild regression still trips the 2 s `measureCommitToVisible`
+timeout and the distant-node "did not rebuild" assertion regardless of env.
+The spec is selected by `testInfo.config.metadata.isCI`, set from
+`process.env.CI` in `playwright.config.ts` (the one file `no-process-env.grit`
+exempts, so specs stay env-pure). Re-capture the CI row the same way as the
+local column — from a CI run's `perf` annotation — if the runner class changes.
 
 ## How to re-capture a column
 
