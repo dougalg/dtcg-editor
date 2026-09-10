@@ -225,3 +225,119 @@ test.describe("US1 — repoint a reference by searching every token", () => {
 		await expect(page.getByRole("option")).toHaveCount(14);
 	});
 });
+
+// US2 edits color.unaffected-sibling in references-unparseable.tokens.json
+// (currently `{color.brand.blue}`) rather than color.text.primary — it needs
+// a candidate list where color.text.primary itself is a normal, non-self
+// candidate (US1's edited token *is* color.text.primary, which would make
+// every one of these highlights the circular/self case instead of a preview
+// case). No file is ever saved in this block, so no fixture backup/restore
+// is needed.
+test.describe("US2 — see what a candidate resolves to before committing", () => {
+	async function openOn(page: import("@playwright/test").Page) {
+		await page.goto("/tokens/references-unparseable.tokens.json");
+		await page
+			.getByRole("combobox", {
+				name: "Repoint reference for color.unaffected-sibling",
+			})
+			.click();
+		return page.getByRole("combobox", { name: /search tokens/i });
+	}
+
+	test("a literal candidate's concrete value is previewed the same way the editor shows that type elsewhere (A7)", async ({
+		page,
+	}) => {
+		const search = await openOn(page);
+		await search.fill("brand.blue");
+
+		const option = page.getByRole("option", { name: "color.brand.blue" });
+		await expect(option).toBeVisible();
+		// The colour type's own `Preview` contract — a swatch (an element
+		// carrying the `--swatch-color` custom property `Swatch.tsx` sets) plus
+		// the value's raw text form, exactly as `ColorPreview` renders it
+		// elsewhere in the editor (format-literal-value.tsx delegates to it).
+		// This is the only remaining candidate, so it is also auto-highlighted
+		// — its row additionally carries the "would resolve to" hypothetical
+		// (per catalogue mode), hence >=1 rather than an exact count.
+		await expect(
+			option.locator('[style*="--swatch-color"]').first(),
+		).toBeVisible();
+		await expect(option).toContainText(/0\.2.*0\.4.*0\.9/);
+	});
+
+	test("a chained candidate previews the value at the end of the chain (A8)", async ({
+		page,
+	}) => {
+		const search = await openOn(page);
+		// color.action.hover -> action.default -> text.primary -> brand.blue:
+		// a 3-hop chain: the *chain's own* end-of-chain literal, not any
+		// intermediate hop's value.
+		await search.fill("action.hover");
+
+		const option = page.getByRole("option", { name: "color.action.hover" });
+		await expect(option).toBeVisible();
+		await expect(
+			option.locator('[style*="--swatch-color"]').first(),
+		).toBeVisible();
+		await expect(option).toContainText(/0\.2.*0\.4.*0\.9/);
+	});
+
+	test("a multiply-defined candidate previews one mode-labelled value per mode (A9)", async ({
+		page,
+	}) => {
+		const search = await openOn(page);
+		await search.fill("text.primary");
+
+		const option = page.getByRole("option", { name: "color.text.primary" });
+		await expect(option).toBeVisible();
+		// light: {color.brand.blue} -> the base literal; dark: dark.tokens.json's
+		// own literal override — two distinct values, each labelled by mode.
+		// This candidate is also the sole match, so it is auto-highlighted and
+		// additionally carries the "would resolve to" hypothetical block
+		// (A10), which repeats its own mode labels — so each label is
+		// expected *twice* (once in the candidate's own preview, once in the
+		// hypothetical), not merely present, to actually pin down that the
+		// candidate's own per-mode preview (not only the hypothetical) is
+		// mode-labelled.
+		await expect(option.getByText("light:", { exact: true })).toHaveCount(2);
+		await expect(option.getByText("dark:", { exact: true })).toHaveCount(2);
+		await expect(option).toContainText(/0\.2.*0\.4.*0\.9/); // light
+		await expect(option).toContainText(/0\.95.*0\.95.*0\.95/); // dark
+	});
+
+	test("the edited token's own hypothetical resolution previews before any save (A10)", async ({
+		page,
+	}) => {
+		const search = await openOn(page);
+		await search.fill("text.primary");
+
+		const option = page.getByRole("option", { name: "color.text.primary" });
+		await expect(option).toContainText(/would resolve to/i);
+		// live region carries the same information for screen-reader users
+		// (U84) — updates as the highlight moves. Scoped to this token's own
+		// row: every `TokenReferencePicker` instance on the page renders its
+		// own "Search results" status region, even while closed.
+		const region = page
+			.getByTestId("token-color.unaffected-sibling")
+			.getByRole("status", { name: "Search results" });
+		await expect(region).toContainText(/would resolve to/i);
+	});
+
+	test("re-opening after an unsaved selection marks the staged target as current (A11)", async ({
+		page,
+	}) => {
+		const search = await openOn(page);
+		await search.fill("action.default");
+		await page.getByRole("option", { name: "color.action.default" }).click();
+
+		await page
+			.getByRole("combobox", {
+				name: "Repoint reference for color.unaffected-sibling",
+			})
+			.click();
+
+		await expect(
+			page.getByRole("option", { name: "color.action.default" }),
+		).toHaveAttribute("aria-current", "true");
+	});
+});

@@ -465,8 +465,8 @@ was removed (Hard Rule 4: replaced, not weakened; venue was wrong). Suite 648.
 
 - **A19** (open-popover axe) — closed by U88's `TokenReferencePicker.a11y.test.tsx` (populated + disabled circular row + live region) plus `Combobox` U15 for the empty-popover state. No separate Playwright axe host exists for a mounted popover; state -> DONE.
 - **A20** (repoint round-trip, one `$value` diff) — closed by U101 in `route.test.ts` (integration tier; no acceptance runner reaches the written file). State -> DONE.
-- **A1, A2, A3, A4, A5, A6, A17** — DONE (T030 cycle above). Turned out not to need the T002 fixture extension: the existing `token-references` set already had a cross-file candidate, a mid-path-only match, and a full 14-path catalogue.
-- **A7–A16, A18** — still PENDING (T038, T046, T048/T049). Every unit they compose over is DONE.
+- **A1–A11, A17** — DONE (T030, T038 cycles above). Turned out not to need the T002 fixture extension: the existing `token-references` set already had every shape needed.
+- **A12–A16, A18** — still PENDING (T046, T048/T049). Every unit they compose over is DONE.
 
 ## Cycle: U105 diagnosticFor + picker row visual wiring (opening the outer loop)
 
@@ -539,6 +539,58 @@ deliberate mutant instead of trusted at face value:
 - suite: `pnpm exec vitest run` unaffected (e2e-only cycle, no unit files
   touched). `playwright test edit-token-references.spec.ts --project=token-references`
   → 7 passed.
+- refactor: none.
+- commit: (this commit)
+
+## Cycle: T038 — US2 acceptance spec (A7, A8, A9, A10, A11)
+
+Extended `edit-token-references.spec.ts` with a second `describe` block,
+edited token deliberately **not** `color.text.primary` (US1's target) —
+that path is also the only multiply-defined candidate, so highlighting it
+while editing itself would hit the circular/self case (FR-013) instead of a
+normal preview. Edits `color.unaffected-sibling` in
+`references-unparseable.tokens.json` instead; no file is ever saved in this
+block, so no fixture backup/restore needed.
+
+All 5 passed on first real run except two selector bugs caught immediately
+(not mutants — genuine test mistakes):
+
+- A7/A8: asserted `option.locator('[style*="--swatch-color"]')` had
+  `toHaveCount(1)`, got 3 — the sole matching candidate is also
+  auto-highlighted by cmdk, so its row carries **both** its own
+  `candidate.preview` swatch **and** the highlighted-only `hypothetical`
+  block's per-mode swatches (2 catalogue modes: light, dark) = 3 total.
+  Not a bug; loosened to `.first()` + `toBeVisible()`.
+- A10: `getByRole("status", { name: "Search results" })` was a strict-mode
+  violation — every `TokenReferencePicker` instance on the page renders its
+  own (empty, closed) live region, so the page had 2. Scoped to
+  `getByTestId("token-color.unaffected-sibling")` first.
+
+Then, per the playbook's first-run-pass rule, deliberate-mutant checked A9
+(mode-labelling — the one most exposed to a tautological pass, since the
+same page also shows mode labels in the *hypothetical* block):
+
+- red (mutant): `CandidatePreview.tsx`'s `multiMode && entry.mode !==
+  undefined` ternary (the *candidate's own* per-mode label, not the
+  hypothetical one) forced to `false`. First version of A9 (assert
+  `option` `toContainText(/light/i)` / `/dark/i`) **did not catch it** — the
+  hypothetical block's own (unmutated) mode labels satisfied the same
+  substring assertions. That is a real test weakness the mutant check
+  exists to catch, not a false positive: caught, not silently accepted.
+- Rewrote A9 to assert `option.getByText("light:", { exact: true })` /
+  `"dark:"` have count **2** each (one from the candidate's own preview +
+  one from the hypothetical), instead of merely present. Re-ran against the
+  same mutant → correctly failed (`Expected: 2, Received: 1`). Reverted the
+  mutant, rebuilt, re-ran clean → 2/2 passed.
+- A7, A8, A11 not independently mutant-checked: A7/A8 assert both a real DOM
+  attribute (`--swatch-color`, only ever set by `Swatch.tsx`'s own
+  colour-parsing branch) and a value-specific regex, which a vacuous
+  render can't satisfy; A11 asserts a real `aria-current` DOM attribute
+  after a full select → close → reopen round trip, already the same shape
+  U82 mutant-verifies at the unit tier.
+- suite: `pnpm --filter @dtcg-editor/web-app exec playwright test
+  edit-token-references.spec.ts --project=token-references` → 12 passed
+  (US1's 7 + US2's 5).
 - refactor: none.
 - commit: (this commit)
 
