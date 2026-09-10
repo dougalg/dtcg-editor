@@ -27,6 +27,15 @@ export default defineConfig({
 	// build` already ran as its own pipeline step) — see global-setup.ts for
 	// why two servers can no longer each run their own `build && start`.
 	globalSetup: "./e2e/support/global-setup.ts",
+	// CI only: absorb transient shared-runner scheduler contention (a single
+	// delayed rAF / long-task observation). A local failure still fails on
+	// the first try; a failure that persists across retries is real.
+	retries: process.env.CI ? 2 : 0,
+	// Read by editing-perf.spec.ts (A5): its ripple ceiling is hardware-
+	// dependent, and GitHub-hosted 2-vCPU runners are ~15× slower than the
+	// local baseline for that DOM-heavy path. process.env is confined to this
+	// config file (biome/no-process-env.grit exempts it) so specs stay pure.
+	metadata: { isCI: Boolean(process.env.CI) },
 	use: {
 		baseURL: `http://localhost:${E2E_PORT}`,
 		// Explicit (not just Playwright's implicit default) so a stray global
