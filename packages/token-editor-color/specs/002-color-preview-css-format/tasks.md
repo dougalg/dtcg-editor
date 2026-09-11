@@ -197,3 +197,22 @@ original wording, each noted honestly:
   from the accepted-deviation baseline (pre-existing perf/timing e2e
   flake, unrelated to this feature) — not a literal all-green gate, but
   the accepted exception, consistent throughout this feature's work.
+
+## Phase 7: TDD remediation (from /speckit-tdd-verify, verdict: FAIL)
+
+**The feature is not "done" by the strict letter of the verify rubric** — 10 of
+15 behaviors classify `TEST_AFTER` (see `tdd/verification.md`), which forces a
+`FAIL` verdict regardless of other findings. That classification is a
+consequence of a correctly-generalizing first implementation (`T006`) making
+several list items pass before their own tests existed — explicitly sanctioned
+by `/speckit.tdd.run`'s own playbook (deliberate-mutant-verified, not a literal
+red) — not undisciplined work, and it cannot be fixed by a task: git history is
+the evidence, and rewriting it to manufacture a different order would be
+fabricating evidence, which the loop's Hard Rules already forbid. Treat this as
+an accepted, explained exception rather than a blocker to close. The two tasks
+below address the audit's actual actionable findings (`tdd/verification.md`
+Findings #1 and #3); Findings #2 and #4 are informational only, no task
+warranted.
+
+- [ ] T014 [P] Add a component-level assertion on `<Swatch>`'s `--swatch-color` custom property in `packages/token-editor-color/src/components/ColorPreview/ColorPreview.test.tsx` (e.g. assert the rendered `<span>`'s `style` attribute matches `colorValueToCssColor(value)`, alongside the existing text assertion, for at least the oklch-with-alpha case). Closes Finding #1 (`tdd/verification.md`): today only the e2e A7 test catches a swatch/text divergence — a mutant hardcoding `Swatch`'s `value` prop survives all 9 component-level tests. Proof: re-apply that exact mutant (`<Swatch value={value} />` → `<Swatch value="#000000" />`) and confirm the new assertion fails; restore and confirm green.
+- [ ] T015 [P] Extend `packages/token-editor-color/src/components/ColorPreview/ColorPreview.a11y.test.tsx` to cover the no-alpha (U6) and legacy-hex (U7) render branches, matching the in-package exemplar's (`ColorFunctionValue.a11y.test.tsx`) practice of a11y-testing each structurally distinct variant, not just one. Closes Finding #3. Proof: `pnpm exec vitest run --project 'packages/token-editor-color:a11y' packages/token-editor-color/src/components/ColorPreview/ColorPreview.a11y.test.tsx` — 3 tests passing, 0 violations.
