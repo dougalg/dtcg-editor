@@ -58,7 +58,7 @@ existed and failed before the implementation.
 - **Deliberate mutant check**: same `+ "X"` mutation as Cycles 1–2 on `ColorPreview.tsx`'s `cssColor` line -> re-ran the same command -> 1 failed (`Unable to find an element with the text: #3366ff`). Restored exactly (`git diff` empty).
 - green: no implementation change needed.
 - refactor: none needed.
-- commit: (recorded below)
+- commit: `d93886b`
 
 ## Cycle 4: U8 declines to render for a value that fails color validation
 
@@ -68,4 +68,27 @@ existed and failed before the implementation.
 - **Deliberate mutant check**: temporarily replaced the guard `if (!parsed.success)` with `if (false)` (never decline) -> re-ran -> 1 failed, with a React render crash (`colorValueToCssColor` called on data that never actually parsed as a `ColorValue`) rather than a clean assertion mismatch — still a genuine kill: the mutant demonstrably breaks something the test catches. Restored the guard exactly (`git diff` empty, confirmed both by diff and by the full 8-test file re-run: 8 passed).
 - green: no implementation change needed.
 - refactor: none needed.
+- commit: `d93886b`
+
+## Cycle 5: U9 zero axe WCAG 2.2 AA violations
+
+- test: `ColorPreview.a11y.test.tsx::a rendered color preview has no WCAG 2.2 AA violations` (new), following the `ColorFunctionValue.a11y.test.tsx` exemplar's `expectNoViolations` pattern.
+- **Passed on first run**: `pnpm exec vitest run --project 'packages/token-editor-color:a11y' packages/token-editor-color/src/components/ColorPreview/ColorPreview.a11y.test.tsx` -> 1 passed.
+- **Deliberate mutant check — three attempts, first two false negatives worth recording**:
+  1. Gave the text `<span>` `role="button"` with no keyboard handling -> still passed. Axe's automated ruleset doesn't flag a named, roled element for missing keyboard interactivity on its own; not a real kill.
+  2. Added `aria-labelledby="does-not-exist"` -> still passed. Not a real kill either (this axe version/ruleset didn't flag the dangling reference automatically here).
+  3. Set inline `style={{ color: "#fafafa", backgroundColor: "#ffffff" }}` on the text span (contrast ratio 1.04:1, needs 4.5:1) -> **failed**, `color-contrast` rule, `serious` impact, `wcag2aa`/`wcag143` tags. A genuine kill.
+  - Restored the span to its original form after each attempt; final `git diff` on `ColorPreview.tsx` empty, confirmed clean.
+  - Noted here rather than silently discarded, per the hard rule against fabricating or reconstructing evidence: attempts 1–2 are not claimed as red evidence for anything, only attempt 3 is.
+- green: no implementation change needed (this was always true; the component has no interactive semantics and the design-system's default text color already clears contrast).
+- refactor: none needed.
+- Full package suite re-run after restoring: `pnpm exec vitest run --project 'packages/token-editor-color:unit' --project 'packages/token-editor-color:a11y'` -> 71 passed, 0 failed.
+- commit: (recorded below)
+
+## A4/A5 verification (no new test/code — User Story 2's own point)
+
+- A4/A5 are proved by absence of change, not by a new assertion (spec User Story 2 / tasks.md T008–T009):
+  - `ColorEditor` + sibling suites (`ColorFunctionValue`, `ChannelInput`, `ColorSpaceSelect`, `SpaceConversionDialog`): `pnpm exec vitest run --project 'packages/token-editor-color:unit' --project 'packages/token-editor-color:a11y'` scoped to those five components -> 56 passed, 0 failed (matches Phase 1's baseline pass count exactly, per `tasks.md` T001/T008).
+  - `git diff --stat main...HEAD -- packages/token-editor-color/src apps/web-app` -> only `ColorPreview/ColorPreview.tsx`, `ColorPreview/ColorPreview.test.tsx`, `ColorPreview/ColorPreview.a11y.test.tsx`, and `apps/web-app/e2e/edit-token-references.spec.ts` — no file under `ColorEditor/` or its siblings appears.
+- A4 and A5 marked `DONE` on this evidence. tasks.md T008, T009 ticked.
 - commit: (recorded below)
