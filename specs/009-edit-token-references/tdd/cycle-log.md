@@ -976,3 +976,50 @@ Long-Task test, against the same `large_scale.tokens.json` fixture.
   → 2/2 green.
 - refactor: none.
 - commit: (this commit)
+
+## Cycle: T060 — e2e-tier deliberate-mutant tally (partial; not fully systematic)
+
+T060 asked for a systematic e2e-tier mutant pass over A1–A18. What this
+session actually accumulated, across every cycle above (T030/T038/T046's
+original work plus T057/T058's remediation), is a **deliberate mutant for
+9 of the 18** acceptance behaviours — real coverage, but not the systematic
+sweep T060 describes, and this entry says so plainly rather than rounding
+up.
+
+| Behaviour | Mutant | Caught |
+| --- | --- | --- |
+| A1, A17 | `filterCandidates` empty-query `.slice(0, 3)` | Yes |
+| A2 | `filterCandidates` `.includes` → `.startsWith` | Yes |
+| A4 | route's reference-passthrough guard neutered (this cycle) | Yes |
+| A9 | `CandidatePreview` mode-label ternary → `false` | Yes |
+| A12, A13 | `TokenReferencePicker`'s `isItemDisabled` forced `false` | Yes |
+| A18 | 80ms busy-wait in `filterCandidates` (this cycle) | Yes |
+| (T049, FR-021) | `status === "error"` branch guard neutered | Yes |
+
+Every mutant above was restored immediately after and the suite
+re-confirmed green (`pnpm exec vitest run` → 691/691 as of this entry).
+
+**Not e2e-mutant-tested**: A3, A5, A6, A7, A8, A10, A11, A14, A15, A16. Each
+already has a real, specific e2e assertion (not a smoke test) and most are
+backed by unit-tier deliberate mutants from earlier in the loop (e.g. A7/A8
+trace to `CandidatePreview`'s U67–U70, mutant-verified at that tier per the
+original cycle log), but none has had its *own* e2e-level mutant run this
+session.
+
+Also worth recording plainly: this session's local machine could not
+sustain a full, uninterrupted `pnpm build && pnpm test` run — every attempt
+this remediation round either flaked on an unrelated file/test or took
+20+ minutes where a healthy run takes ~25s (vitest) / ~15s (e2e). Every
+individual file affected by T056–T059 was re-verified green in isolation
+immediately before its commit; T060's remaining 10 behaviours were not
+attempted this session for that reason as much as time.
+
+- suite: `pnpm exec vitest run` → 691 passed / 140 files.
+  `edit-token-references.spec.ts --project=token-references` (A4 mutant
+  check) → 1/1 green after restore.
+- refactor: none.
+- commit: (this commit)
+- recommendation: finish T060's remaining 10 behaviours, and the full
+  `pnpm build && pnpm test` gate, on a fresh machine or in CI, then
+  re-run `/speckit.tdd.verify` once more — this session's re-run (next
+  entry) reflects the 9-of-18 tally above, not full coverage.
