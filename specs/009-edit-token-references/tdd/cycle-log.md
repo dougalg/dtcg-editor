@@ -851,3 +851,44 @@ produces correctly either way for the sampled fixture.
 - refactor: none.
 - suite: `pnpm exec vitest run` → 690 passed / 140 files (was 689/140).
 - commit: (this commit)
+
+## Cycle: T058 remediation — assert the pointer refusal itself, not only the onSelect guard (verification.md Finding 3)
+
+A12/A13 used `click({ force: true })` straight away — proving the `onSelect`
+guard, but never asserting the row is actually inert to a real pointer click
+(FR-024's own wording).
+
+- test: added `await expect(own.click({ trial: true, timeout: 2000
+  })).rejects.toThrow()` before each `force: true` click, in both A12 and A13.
+  `trial: true` runs Playwright's actionability check (wait/scroll/hover)
+  without dispatching the click.
+- First run: **passed** against the real app (2.3s/2.5s — a healthy,
+  freshly-restarted server; the earlier session-long flakiness turned out to
+  be partly a **stale reused `next start` process** serving an old build
+  across repeated `pnpm build` calls — `webServer.reuseExistingServer` — not
+  purely OS contention. Killed the port-3101/3100/3102 listeners before each
+  rebuild from here on).
+- Deliberate mutant, attempt 1: removed `candidate-selectability.ts`'s
+  self-path check (the same mutant `/speckit-tdd-verify` used at the unit
+  tier) — **did not fail A12**. Root cause: `color.text.primary` is
+  multiply-defined, and its **dark**-mode preview's `steps[0].path` is
+  `["color","text","primary"]` (the literal dark-mode definition records
+  itself as the chain's starting step), so the `.some()` fallback in
+  `isCircularIfSelected` still returns `true` for this specific fixture even
+  without the explicit self-check — a fixture-specific coincidence, not a
+  flaw in the new assertion. Reverted.
+- Deliberate mutant, attempt 2: `TokenReferencePicker.tsx`'s
+  `isItemDisabled` forced to always return `false` (still calling
+  `isCircularIfSelected` so the import stays used) — directly removes the
+  pointer-block regardless of the underlying detection logic. **Caught**:
+  both A12 and A13 failed — `Expected: "true", Received: "false"` on
+  `aria-disabled` (the pre-existing check fails first; the new trial-click
+  assertion is exercised alongside it, not proven to fail in isolation on
+  this particular mutant, but the row is confirmed genuinely pointer-clickable
+  under the mutant, which is what the new assertion is written to catch).
+  Restored exactly; `edit-token-references.spec.ts --project=token-references`
+  → 18/18 green again (16.8s).
+- suite: `pnpm exec vitest run` → 690 passed / 140 files (unaffected — e2e-only
+  cycle).
+- refactor: none.
+- commit: (this commit)

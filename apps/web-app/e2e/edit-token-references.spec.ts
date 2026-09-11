@@ -379,12 +379,15 @@ test.describe("US3 — circular candidates are unselectable; missing/group are f
 		const trigger = page.getByRole("combobox", {
 			name: "Repoint reference for color.text.primary",
 		});
-		// A real pointer click on a disabled row never lands — Playwright's
-		// actionability check itself refuses it (the row is genuinely inert to
-		// the pointer, which *is* FR-024's "must not be selectable ... by
-		// pointer"); `force` bypasses that check to still exercise the
-		// `onSelect` guard directly, proving nothing is staged even if a click
-		// were somehow delivered.
+		// FR-024 "not selectable ... by pointer", asserted directly: a `trial`
+		// click only runs Playwright's actionability check (wait, scroll,
+		// hover) without dispatching the click, so it rejects here precisely
+		// because the row is genuinely inert to the pointer — not merely
+		// because `onSelect` happens to guard it.
+		await expect(own.click({ trial: true, timeout: 2000 })).rejects.toThrow();
+		// `force` bypasses that same check to still exercise the `onSelect`
+		// guard directly, proving nothing is staged even if a click were
+		// somehow delivered.
 		await own.click({ force: true });
 		await expect(page.getByRole("button", { name: /^save$/i })).toBeDisabled();
 		await expect(trigger).toHaveAttribute("aria-expanded", "true");
@@ -415,6 +418,11 @@ test.describe("US3 — circular candidates are unselectable; missing/group are f
 		// FR-014: the preview names the tokens in the cycle.
 		await expect(option).toContainText(/text\.primary/i);
 
+		// FR-024: refused at the pointer level (see A12's comment), not only
+		// by the onSelect guard `force` goes on to exercise below.
+		await expect(
+			option.click({ trial: true, timeout: 2000 }),
+		).rejects.toThrow();
 		await option.click({ force: true });
 		await expect(page.getByRole("button", { name: /^save$/i })).toBeDisabled();
 	});
