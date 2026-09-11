@@ -830,3 +830,24 @@ structural/lint check (T050 / `pnpm lint`), out of scope for this loop per the
 test-list; T027 stays unticked until the file is brought under 300 (further
 extraction of the non-reference dispatch paths, no behaviour change). U96/U97 —
 T027's behavioural half — are DONE.
+
+## Cycle: T056 remediation — pin resolveIfRepointed's walk-start (verification.md Finding 1)
+
+`/speckit-tdd-verify`'s deliberate mutant (`targetPath: editedTokenPath` →
+`candidatePath`) survived inside `U107` because no test asserted the chain's
+`steps` order — only `outcome.kind`, which the `editedTokenPath` lookup override
+produces correctly either way for the sampled fixture.
+
+- test: `hypothetical-resolution.test.ts::the hypothetical chain's steps start
+  at the edited token itself, so the cycle names hub before wheel` (new)
+- First run: **passed** (the implementation was already correct from the U107
+  cycle; only the assertion was missing). Per the playbook, applied the
+  verification report's own mutant: `targetPath: editedTokenPath` →
+  `candidatePath` in `hypothetical-resolution.ts` → `AssertionError: expected
+  ["wheel"] to deeply equal ["hub"]` at `chain.steps[0]`. Restored exactly;
+  `pnpm exec vitest run apps/web-app/lib/tokens/hypothetical-resolution.test.ts`
+  → 9/9 green again.
+- green: no implementation change needed — the test alone closes the gap.
+- refactor: none.
+- suite: `pnpm exec vitest run` → 690 passed / 140 files (was 689/140).
+- commit: (this commit)

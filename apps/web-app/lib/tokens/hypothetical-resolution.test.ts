@@ -110,6 +110,28 @@ test("a candidate whose real chain passes through the edited token — not itsel
 	assert.equal(outcome.kind, "circular");
 });
 
+test("the hypothetical chain's steps start at the edited token itself, so the cycle names hub before wheel", () => {
+	// FR-014 requires the preview to "name the tokens in the cycle" — that
+	// only reads correctly (hub -> wheel -> hub, the order the repoint
+	// actually creates) if the walk starts at editedTokenPath, not
+	// candidatePath. Neither outcome.kind nor isSelf pins this: walking
+	// from candidatePath instead still reaches "circular" for this fixture
+	// (the editedTokenPath lookup override closes the loop either way), so
+	// this asserts the steps themselves.
+	const catalogue = catalogueFrom([
+		file("base.json", {
+			hub: { $type: "color", $value: { hex: "#00f" } },
+			wheel: { $type: "color", $value: "{hub}" },
+		}),
+	]);
+
+	const chain = resolveIfRepointed(["hub"], ["wheel"], catalogue).perMode[0]
+		?.chain;
+	assert.ok(chain !== undefined);
+	assert.deepEqual(chain.steps[0]?.path, ["hub"]);
+	assert.deepEqual(chain.steps[1]?.path, ["wheel"]);
+});
+
 test("a candidate path absent from the catalogue is previewed as unresolved", () => {
 	const catalogue = catalogueFrom([
 		file("base.json", {
