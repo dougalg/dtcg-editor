@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Color Editor CSS-Style Formatting
+# Specification Quality Checklist: Color Token Preview CSS-Style Formatting
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-09-11
@@ -32,8 +32,12 @@
 ## Notes
 
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
-- No [NEEDS CLARIFICATION] markers were needed: the feature is a
-  presentation-layer formatting change over an existing, well-understood
-  component (`ColorEditor`), and CSS Color Module 4 gives an unambiguous
-  reference syntax for every DTCG-supported color space already in the
-  codebase.
+- Revision note: the original draft of this spec conflated the read-only
+  color *preview* (used e.g. for resolved-reference display) with the
+  interactive color *editor* — two already-separate components in this
+  codebase. This revision narrows scope to the preview only and adds User
+  Story 2 as an explicit non-regression guardrail for the editor.
+- No [NEEDS CLARIFICATION] markers were needed: the preview already has a
+  sibling formatting utility (used for the swatch's rendered color) that
+  this feature reuses rather than inventing new formatting rules, leaving
+  no open scope or syntax questions.
