@@ -83,7 +83,7 @@ existed and failed before the implementation.
 - green: no implementation change needed (this was always true; the component has no interactive semantics and the design-system's default text color already clears contrast).
 - refactor: none needed.
 - Full package suite re-run after restoring: `pnpm exec vitest run --project 'packages/token-editor-color:unit' --project 'packages/token-editor-color:a11y'` -> 71 passed, 0 failed.
-- commit: (recorded below)
+- commit: `fc30239`
 
 ## A4/A5 verification (no new test/code — User Story 2's own point)
 
@@ -91,4 +91,4 @@ existed and failed before the implementation.
   - `ColorEditor` + sibling suites (`ColorFunctionValue`, `ChannelInput`, `ColorSpaceSelect`, `SpaceConversionDialog`): `pnpm exec vitest run --project 'packages/token-editor-color:unit' --project 'packages/token-editor-color:a11y'` scoped to those five components -> 56 passed, 0 failed (matches Phase 1's baseline pass count exactly, per `tasks.md` T001/T008).
   - `git diff --stat main...HEAD -- packages/token-editor-color/src apps/web-app` -> only `ColorPreview/ColorPreview.tsx`, `ColorPreview/ColorPreview.test.tsx`, `ColorPreview/ColorPreview.a11y.test.tsx`, and `apps/web-app/e2e/edit-token-references.spec.ts` — no file under `ColorEditor/` or its siblings appears.
 - A4 and A5 marked `DONE` on this evidence. tasks.md T008, T009 ticked.
-- commit: (recorded below)
+- commit: `fc30239`
