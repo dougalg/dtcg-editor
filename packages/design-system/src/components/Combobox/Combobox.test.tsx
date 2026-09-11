@@ -176,10 +176,19 @@ test("listFooter renders after the item list when provided", () => {
 		/>,
 	);
 
-	expect(screen.getByText("3 more — refine your search")).toBeTruthy();
 	// Still shows the (capped, by the caller) items alongside it — the
 	// footer is additive, not a replacement for the list.
-	expect(screen.getAllByRole("option")).toHaveLength(3);
+	const options = screen.getAllByRole("option");
+	expect(options).toHaveLength(3);
+
+	// Genuinely *after*: the footer follows the last option in document
+	// order (DOCUMENT_POSITION_FOLLOWING), not merely present somewhere.
+	const footer = screen.getByText("3 more — refine your search");
+	const lastOption = options.at(-1);
+	expect(lastOption).toBeTruthy();
+	// biome-ignore lint/style/noNonNullAssertion: guarded by the toBeTruthy() above
+	const position = lastOption!.compareDocumentPosition(footer);
+	expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
 test("listFooter is absent when not provided", () => {

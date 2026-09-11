@@ -265,10 +265,16 @@ test.describe("US2 — see what a candidate resolves to before committing", () =
 		// elsewhere in the editor (format-literal-value.tsx delegates to it).
 		// This is the only remaining candidate, so it is also auto-highlighted
 		// — its row additionally carries the "would resolve to" hypothetical
-		// (per catalogue mode), hence >=1 rather than an exact count.
+		// (per catalogue mode), hence `.first()` rather than an exact count.
+		// The swatch's own `--swatch-color` value is asserted (not merely
+		// that *a* swatch element exists) — `colorValueToCssColor` renders
+		// srgb {0.2, 0.4, 0.9} as `color(srgb 0.2 0.4 0.9)` (css-color.ts).
 		await expect(
 			option.locator('[style*="--swatch-color"]').first(),
-		).toBeVisible();
+		).toHaveAttribute(
+			"style",
+			/--swatch-color:\s*color\(srgb 0\.2 0\.4 0\.9\)/,
+		);
 		await expect(option).toContainText(/0\.2.*0\.4.*0\.9/);
 	});
 
@@ -283,6 +289,15 @@ test.describe("US2 — see what a candidate resolves to before committing", () =
 
 		const option = page.getByRole("option", { name: "color.action.hover" });
 		await expect(option).toBeVisible();
+		// Not value-pinned on the swatch itself like A7's, deliberately: this
+		// candidate's own preview resolves through the multiply-defined
+		// color.text.primary, and which mode's value ends up as the
+		// candidate's *own* (non-hypothetical) preview swatch depends on
+		// mode-fallback selection this test doesn't control — see
+		// tdd/cycle-log.md's T059 entry. The end-of-chain value is still
+		// pinned via the option's full text (the hypothetical block's own
+		// per-mode entries include the light-mode end-of-chain value
+		// unambiguously).
 		await expect(
 			option.locator('[style*="--swatch-color"]').first(),
 		).toBeVisible();

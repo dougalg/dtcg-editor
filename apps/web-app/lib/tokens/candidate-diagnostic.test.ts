@@ -32,13 +32,34 @@ function candidate(
 	return found;
 }
 
-test("the edited token's own path is diagnosed circular, ahead of any other outcome", () => {
+test("the edited token's own path is diagnosed circular", () => {
 	const cs = catalogueFrom([
 		file("base.json", {
 			color: {
 				$type: "color",
 				blue: { $value: { hex: "#00f" } },
 				accent: { $value: "{color.blue}" },
+			},
+		}),
+	]);
+
+	assert.equal(
+		diagnosticFor(["color", "accent"], candidate(cs, "color.accent")),
+		"circular",
+	);
+});
+
+test("circular takes precedence over missing when a candidate is both", () => {
+	// accent's own value references a path that doesn't exist, so accent's
+	// own preview outcome is "unresolved" — but accent is also the edited
+	// token's own path (self, circular). Circular must win: it's the one
+	// diagnostic that makes a candidate unselectable (FR-024), so it can't
+	// be shadowed by a merely-informational missing/group flag.
+	const cs = catalogueFrom([
+		file("base.json", {
+			color: {
+				$type: "color",
+				accent: { $value: "{color.nope}" },
 			},
 		}),
 	]);

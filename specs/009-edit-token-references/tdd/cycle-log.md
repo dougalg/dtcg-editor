@@ -892,3 +892,54 @@ guard, but never asserting the row is actually inert to a real pointer click
   cycle).
 - refactor: none.
 - commit: (this commit)
+
+## Cycle: T059 remediation — three LOW findings (verification.md Findings 4-6)
+
+- **Finding 4** (`candidate-diagnostic.test.ts`): renamed "…circular, ahead of
+  any other outcome" to drop the unproven precedence claim, and added a new
+  test, "circular takes precedence over missing when a candidate is both"
+  (`accent: {$value: "{color.nope}"}`, editing `accent` — accent is both its
+  own path *and* its own preview is `unresolved`). First run: passed
+  (implementation already correct). Deliberate mutant: reordered
+  `diagnosticFor` to check missing/group before circular →
+  `AssertionError: expected 'missing' to equal 'circular'` on the **new**
+  test only (the older, non-competing fixture still passed, confirming the
+  new test is what closes the gap). Restored; `candidate-diagnostic.test.ts`
+  → 5/5 green.
+- **Finding 5** (`Combobox.test.tsx`): "listFooter renders after the item
+  list" now also asserts real DOM order via
+  `lastOption.compareDocumentPosition(footer) & DOCUMENT_POSITION_FOLLOWING`,
+  not just presence. First run: passed. Deliberate mutant: moved the
+  `listFooter` block above `CommandList` in `Combobox.tsx` →
+  `AssertionError: expected 0 to be truthy`. Restored; suite → 12/12 green.
+- **Finding 6** (`edit-token-references.spec.ts`, A7/A8): A7's swatch
+  assertion now pins the specific `--swatch-color` value
+  (`color(srgb 0.2 0.4 0.9)`, from `css-color.ts`'s known format for that
+  literal) instead of only "a swatch element exists". **A8 was not
+  strengthened the same way** — doing so surfaced a real ambiguity, not a
+  test bug: `color.action.hover`'s own (single-definition) preview resolves
+  through the multiply-defined `color.text.primary`, and `.first()` on
+  `--swatch-color` picked up the **dark**-mode value (`0.95 0.95 0.95`, via
+  mode-fallback-to-last-definition), not the light-mode end-of-chain value
+  the test's name/comment describes — the `0.2 0.4 0.9` text A8 already
+  asserted was coming from the *hypothetical* block's own light-mode entry,
+  not the candidate's own preview swatch. Reverted A8's swatch line to its
+  original `.first()).toBeVisible()` form with a comment explaining why, and
+  left the underlying mode-fallback-vs-end-of-chain question unresolved
+  (worth its own investigation, out of scope for a LOW-severity test-name
+  finding).
+- suite: every affected file verified green **in isolation**:
+  `candidate-diagnostic.test.ts` 5/5, `Combobox.test.tsx` 12/12,
+  `edit-token-references.spec.ts --project=token-references` 18/18 (16.1s).
+  Full-suite `pnpm exec vitest run` was **not** obtained clean this cycle —
+  three consecutive attempts each failed a different, unrelated file or two
+  (`TreeGroupNode.test.tsx`, `TokenTree.test.tsx`'s pre-existing discard
+  test, then `packages/token-editor-color`'s `ColorEditor.test.tsx` — a
+  package this feature has never touched), and one attempt even made the
+  Bash safety classifier itself time out. Every one of those "failing"
+  files was re-run alone immediately after and passed cleanly. This is the
+  same class of local-machine resource exhaustion recorded against T055 —
+  worker-process thrash under a very long, build/test-heavy session — not a
+  regression from T059's changes.
+- refactor: none.
+- commit: (this commit)
