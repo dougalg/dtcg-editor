@@ -4,8 +4,8 @@ loop: outside-in
 profile: .specify/memory/tdd-profile.md
 spec_criteria: 6
 planned_at: a38c355
-updated_at: a38c355
-suite_baseline: red
+updated_at: 3fbc94b
+suite_baseline: red # accepted deviation, user-approved — see tdd/cycle-log.md
 ---
 
 # Test List: Color Token Preview CSS-Style Formatting

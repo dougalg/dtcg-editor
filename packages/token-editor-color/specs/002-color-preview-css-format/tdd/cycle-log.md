@@ -15,4 +15,14 @@ existed and failed before the implementation.
   - `editing-perf.spec.ts` — sustained-typing no-lag budget (A6)
   - `keyboard-navigation.spec.ts` — Tab/Shift+Tab visual-order regression count (A3)
   - Git history already has a dedicated `worktree-fix-editing-perf-ci-flake` branch tracking this class of flake, consistent with this being known, pre-existing, environment/timing-sensitive breakage rather than something this feature introduced.
-  - This loop's own suite-green checks (Step 4) will therefore compare against this baseline's pass/fail set, not require these 5 to turn green — a new failure outside this list is this feature's regression; continued failure of exactly these 5 is not.
+
+## Baseline re-check: rebased onto main
+
+- Rebased (fast-forward, no conflicts — this branch was already an ancestor of `main`) onto `main` at the user's request, hoping `3fbc94b fix(root): serialize a11y browser tests into their own sequence group` would clear the baseline.
+- suite: `pnpm test` -> 69 passed, 4 failed, 10 skipped. One of the five (`editing-perf.spec.ts` sustained-typing no-lag budget, A6) now passes; the other four remain:
+  - `edit-token-references-perf.spec.ts` — Long Task budget (A18)
+  - `edit-token-references-perf.spec.ts` — keystroke-to-updated-list p95 latency (SC-004)
+  - `editing-perf.spec.ts` — >=100-referrer update budget (A5)
+  - `keyboard-navigation.spec.ts` — Tab/Shift+Tab visual-order regression count (A3)
+- commit: `3fbc94b`
+- **Deliberate deviation from this command's Phase 0 rule, approved explicitly by the user**: asked whether to (a) proceed on this known-red, unrelated baseline with the deviation recorded, or (b) hold until the perf-flake branch lands. User chose (a). The loop proceeds from here with these 4 failures as the accepted baseline — a **new** failure outside this set is this feature's regression; continued failure of exactly these 4 is not, and is not attributed to any cycle below.
