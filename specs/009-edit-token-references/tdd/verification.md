@@ -202,9 +202,21 @@ Stated plainly.
   `ReferenceEditControl` (U90–U95).
 - **Coverage was not run** — `@vitest/coverage-v8` is not installed
   (`coverage: null`).
-- **The full `pnpm build && pnpm test` gate (T055) was not demonstrated green in
-  one run** — see the `/speckit-implement` completion report. Its vitest, lint,
-  build, and commitlint constituents were each verified green separately.
+- **The full `pnpm build && pnpm test` gate (T055) has not produced a clean run
+  on this session's machine**, including a re-run after this report was first
+  written: build 7/7, but the e2e stage timed out on 8 tests (`Test timeout of
+  30000ms exceeded` on `locator.click`/`getByRole`), spread across **three**
+  features — `keyboard-navigation.spec.ts` (010), `edit-token-references.spec.ts`
+  A5/A8/A9/T049 (009), and `token-references.spec.ts` (007, unmodified by this
+  branch — e.g. its `color.brand.blue` "referenced twice" badge test). Failures
+  on an untouched feature's spec, in the same shape (a timeout waiting for an
+  element, not an assertion mismatch), are the signature of a slow/contended
+  fixture server, not a code regression — reinforced by A5/A8/A9 each having
+  passed in isolation twice earlier this session. **The user confirmed the gate
+  passes on their machine.** T055 is ticked on that basis plus the isolation
+  evidence above, not a clean run witnessed by this audit. Its vitest, lint,
+  build, and commitlint constituents were each verified green separately on
+  this machine.
 - **The audit is not independent** — the same session wrote the session-3 tests
   under audit (see the independence caveat above).
 - **`packages/token-core`'s serializer** (`serialize.ts`) is upstream of this

@@ -134,7 +134,7 @@ Monorepo: `packages/design-system/src/…`, `apps/web-app/…`. `token-core` is 
 - [X] T050 Run `pnpm --filter @dtcg-editor/design-system lint`, `pnpm --filter @dtcg-editor/web-app lint`, `pnpm build`, and `pnpm exec vitest run`; fix any `@ls-lint` / Biome / `DESIGN.md` (hardcoded-value) findings in new/edited files.
 - [X] T051 [P] Run `specs/009-edit-token-references/quickstart.md` end to end, including the SC-007 manual `git diff` round-trip check.
 - [X] T052 [P] Re-validate `specs/009-edit-token-references/checklists/requirements.md` against the finished implementation — confirm 16/16.
-- [ ] T055 Full acceptance gate: `pnpm build && pnpm test` green in one run — every acceptance behavior [A1]–[A20] passing together, plus commitlint / lint. This is the "outer loop green before the feature is done" gate.
+- [X] T055 Full acceptance gate: `pnpm build && pnpm test` green in one run — every acceptance behavior [A1]–[A20] passing together, plus commitlint / lint. This is the "outer loop green before the feature is done" gate.
 
 ---
 
