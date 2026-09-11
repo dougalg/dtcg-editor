@@ -30,7 +30,7 @@ export async function listReferenceCatalogue(
 		);
 	}
 
-	const resolverResult = await loadResolverModes(tokensDir);
+	const resolverResult = await loadResolverModes(tokensDir, logger);
 	const resolverModes = resolverResult.isOk()
 		? resolverResult.value
 		: undefined;

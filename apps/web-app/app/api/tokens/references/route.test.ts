@@ -75,10 +75,12 @@ test("a present-but-invalid resolver file yields 200 with modes: []", async () =
 	const resolverPath = join(tokensDir, "tokens.resolver.json");
 	await writeFile(resolverPath, "{ not valid json");
 	try {
-		const response = await route.GET();
+		const { logger, state } = fakeLogger();
+		const response = await route.listReferenceCatalogue(logger);
 		assert.equal(response.status, 200);
 		const body = (await response.json()) as { modes: string[] };
 		assert.deepEqual(body.modes, []);
+		assert.equal(state.calls, 1);
 	} finally {
 		await rm(resolverPath, { force: true });
 	}
