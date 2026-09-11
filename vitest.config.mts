@@ -103,14 +103,22 @@ function a11yProject(pkgRoot: string) {
 				headless: true,
 				instances: [{ browser: "chromium" }],
 			},
+			// Every package's a11y project would otherwise share groupOrder 0
+			// with every unit project, so a full run launches all four jsdom
+			// unit projects AND four real headless-Chromium instances at once —
+			// on an 8-core/16GB machine that's enough contention to blow past
+			// the browser-mode iframe-ready handshake (hard import/timeout
+			// failures, not just slow ones). Runs after all unit projects
+			// finish instead; bench (groupOrder 2) still runs last, alone.
+			sequence: { groupOrder: 1 },
 		},
 	};
 }
 
 // Isolated project for the wall-clock-sensitive reference-index benchmark.
-// `sequence.groupOrder: 1` makes it run on its own, after every project in
-// the default group (0) has finished, so no other test files are competing
-// for the CPU while it measures.
+// `sequence.groupOrder: 2` makes it run on its own, after every unit (0) and
+// a11y (1) project has finished, so no other test files — jsdom or real
+// Chromium instances — are competing for the CPU while it measures.
 function benchProject(pkgRoot: string) {
 	return {
 		root: pkgRoot,
@@ -121,7 +129,7 @@ function benchProject(pkgRoot: string) {
 			setupFiles: ["./vitest.setup.ts"],
 			include: BENCH_FILES,
 			exclude: ["**/node_modules/**", "**/dist/**"],
-			sequence: { groupOrder: 1 },
+			sequence: { groupOrder: 2 },
 		},
 	};
 }
