@@ -14,8 +14,10 @@ fully-covered, framework-free utility that renders every DTCG-supported
 color space (plus legacy hex) as CSS Color 4 syntax, and is already used to
 paint the same preview's `Swatch`. The implementation is to replace
 `ColorPreview`'s `formatRaw` with `colorValueToCssColor`, add the missing
-unit + a11y test coverage `ColorPreview` currently lacks, and touch nothing
-in `ColorEditor` or its subtree.
+unit + a11y test coverage `ColorPreview` currently lacks, tighten the one
+existing `apps/web-app` acceptance test that already renders it (per root
+Principle XIII's real-entry-point requirement), and touch nothing in
+`ColorEditor` or its subtree.
 
 ## Technical Context
 
@@ -35,7 +37,13 @@ tests run under the root-aggregated Vitest config
 (`pnpm exec vitest run` from repo root). `ColorPreview` currently has
 **no** test file of either kind — both must be added as part of this
 feature, both under TDD (root Principle XIII, NON-NEGOTIABLE): a failing
-test before each behavior change.
+test before each behavior change. A third tier applies too: the existing
+`@playwright/test` acceptance suite (`apps/web-app/e2e/`) already exercises
+`ColorPreview` through a real reference-preview flow
+(`edit-token-references.spec.ts`) and is tightened, not newly written, to
+assert the new CSS-syntax text — satisfying Principle XIII's
+real-entry-point acceptance-test requirement for this feature's acceptance
+scenarios.
 
 **Target Platform**: Web (Next.js app, `apps/web-app`, consuming this
 package as a workspace dependency)
@@ -52,8 +60,10 @@ User Story 2). Must not introduce a new formatting mapping independent of
 `colorValueToCssColor` (spec FR-002 / Assumptions) — reuse only.
 
 **Scale/Scope**: One component (`ColorPreview`), its module CSS
-(unaffected — already design-system-token-only), and its new tests. No
-other file in this package or `apps/web-app` needs to change.
+(unaffected — already design-system-token-only), and its new tests, plus
+one existing `apps/web-app/e2e/` acceptance test updated to assert the new
+CSS-syntax text at the real entry point (Principle XIII). No other file in
+either location needs to change.
 
 ## Constitution Check
 
@@ -91,14 +101,26 @@ own Scope & Precedence section.
   already covers all DTCG 2025.10-supported spaces plus the legacy hex
   form, unchanged by this feature.
 - **Root Principle XIII** (TDD, NON-NEGOTIABLE) — applies in full (package
-  constitution cannot relax it). Both new test files (unit + a11y) must be
-  written and observed failing before `ColorPreview`'s implementation
-  changes, per the repo's red-green-refactor discipline. This package's
-  `.specify/extensions.yml` does not exist, so the `speckit-tdd-*`
-  extension's automatic hooks won't fire for this package-scoped pipeline
-  — the discipline still applies constitutionally; `/speckit-implement`
-  MUST be run test-first by hand here, or `speckit-tdd-setup` run first to
-  install the extension package-locally.
+  constitution cannot relax it), and in full means three concrete
+  obligations `tasks.md` must satisfy, not just "write tests first" in the
+  abstract:
+  1. Both new component test files (unit + a11y) must be written and
+     observed failing, for the expected reason, before `ColorPreview`'s
+     implementation changes.
+  2. Every acceptance criterion in `spec.md` needs at least one acceptance
+     test exercising the *real entry point* (`@playwright/test`), not only
+     a component-level Vitest test — `apps/web-app/e2e/edit-token-references.spec.ts`
+     already renders `ColorPreview` in a real reference-preview flow and
+     must be updated (not just left passing incidentally) to assert the
+     new CSS-syntax text.
+  3. Each observed-red failure is recorded in
+     `specs/002-color-preview-css-format/tdd/cycle-log.md` before the
+     implementation task that makes it green begins.
+  This package's `.specify/extensions.yml` does not exist, so the
+  `speckit-tdd-*` extension's automatic hooks won't fire for this
+  package-scoped pipeline — the discipline still applies constitutionally;
+  `/speckit-implement` MUST satisfy all three obligations by hand here, or
+  `speckit-tdd-setup` run first to install the extension package-locally.
 
 No violations requiring Complexity Tracking.
 
@@ -147,14 +169,21 @@ packages/token-editor-color/src/
 │   ├── css-color.ts                   # unchanged — reused, not modified
 │   └── css-color.test.ts              # unchanged — already covers every color space
 └── token-type.ts                      # unchanged — Preview wiring already points at ColorPreview
+
+apps/web-app/e2e/
+└── edit-token-references.spec.ts      # MODIFIED — tighten preview-text
+                                        # assertions to the new CSS syntax
+                                        # (Principle XIII real-entry-point
+                                        # acceptance test requirement)
 ```
 
 **Structure Decision**: Single package, single component modified
 (`ColorPreview`), reusing an existing, already-tested sibling utility
 (`css-color.ts`). No new files outside `ColorPreview`'s own folder except
-its two missing test files. No changes anywhere in `apps/web-app` are
-anticipated — `ColorPreview` is consumed only through the `TokenTypeContract`
-wiring already in place.
+its two missing test files, plus one existing `apps/web-app` acceptance
+test tightened (not newly created) to actually pin down the new format at
+the real entry point — `ColorPreview` is otherwise consumed only through
+the `TokenTypeContract` wiring already in place.
 
 ## Complexity Tracking
 
