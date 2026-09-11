@@ -39,4 +39,14 @@ existed and failed before the implementation.
   - refactor: none needed — the change mirrors `Swatch`'s existing parse pattern exactly; `biome check` and `tsc --noEmit` both clean on the changed files.
 - **A1/A2 (outer, closed)**: green: re-ran the same Playwright test after the implementation landed -> 1 passed. Ran the full file (`edit-token-references.spec.ts`, 18 tests) to confirm zero regression in sibling tests whose looser regexes (A8/A9) still happen to match the new CSS text -> 18 passed.
 - notes: U1's implementation change also satisfies U2–U6's assertions by construction (colorValueToCssColor already handles every color-space family and the no-alpha case) — those will be written and mutant-verified as their own cycles next, per the playbook's "test passes on first run" path, not re-implemented.
-- commit: (recorded below, this entry committed together with the code change)
+- commit: `9602458`
+
+## Cycle 2: U2–U6, each passes on first run — verified with a shared deliberate-mutant check
+
+- Behaviors: U2 (hsl percent channels), U3 (display-p3 `color()` predicate), U4 (lab unbounded a/b), U5 (`"none"` component -> CSS `none`), U6 (no-alpha -> `/` omitted).
+- test: `packages/token-editor-color/src/components/ColorPreview/ColorPreview.test.tsx` — one new `test()` per behavior (new), each asserting the exact `colorValueToCssColor` output for its space.
+- **Each passed on first run** (the U1 implementation already handles every space): `pnpm exec vitest run --project 'packages/token-editor-color:unit' packages/token-editor-color/src/components/ColorPreview/ColorPreview.test.tsx` -> 6 passed (U1 + U2–U6), 0 failed.
+- **Deliberate mutant check** (playbook Step 3, "test passes on first run" path — batched across U2–U6 rather than one mutant per behavior, since all five exercise the identical `cssColor` computation; a batched kill still proves each assertion string is load-bearing, not vacuous): temporarily changed `ColorPreview.tsx`'s `const cssColor = colorValueToCssColor(parsed.data);` to append a stray `"X"`. Re-ran the same command -> **6 failed** (all six, each showing its own expected-vs-actual mismatch, e.g. `Unable to find an element with the text: color(srgb 0.5 0.2 0.8)`), confirming none of the six is vacuous. Restored the line exactly (`git diff` on `ColorPreview.tsx` empty before proceeding) -> 6 passed again.
+- green: no implementation change needed — already correct from Cycle 1.
+- refactor: none needed; the five new tests follow the same one-`render`-one-`expect` shape as U1's, no duplication beyond the fixture literal each needs.
+- commit: (recorded below, this entry committed together with the test file)

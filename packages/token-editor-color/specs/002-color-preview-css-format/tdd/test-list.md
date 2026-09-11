@@ -45,11 +45,11 @@ is no new red to produce when nothing is meant to change.
 | id  | behavior                                                                 | traces               | kind    | state   | test                              |
 | --- | -------------------------------------------------------------------------- | --------------------- | ------- | ------- | ---------------------------------- |
 | U1  | Renders an `oklch` value with alpha as `oklch(0.7 0.1 180 / 0.8)`         | US1-AS1, FR-001, FR-002 | example | DONE    | `ColorPreview.test.tsx` (new)      |
-| U2  | Renders an `hsl` value (percent-based S/L channels) as `hsl(...)`         | FR-001, FR-006        | example | PENDING | `ColorPreview.test.tsx` (new)      |
-| U3  | Renders a `display-p3` value (no dedicated CSS function) as `color(display-p3 ...)` | FR-001, FR-006        | example | PENDING | `ColorPreview.test.tsx` (new)      |
-| U4  | Renders a `lab` or `lch` value (unbounded-channel family) correctly       | FR-001, FR-006        | example | PENDING | `ColorPreview.test.tsx` (new)      |
-| U5  | Renders a `"none"` component using the CSS `none` keyword                 | Edge Case 1 (spec.md) | example | PENDING | `ColorPreview.test.tsx` (new)      |
-| U6  | Renders a value with no alpha set, omitting the `/` syntax entirely       | Edge Case 2 (spec.md), FR-002 | example | PENDING | `ColorPreview.test.tsx` (new)      |
+| U2  | Renders an `hsl` value (percent-based S/L channels) as `hsl(...)`         | FR-001, FR-006        | example | DONE    | `ColorPreview.test.tsx` (new)      |
+| U3  | Renders a `display-p3` value (no dedicated CSS function) as `color(display-p3 ...)` | FR-001, FR-006        | example | DONE    | `ColorPreview.test.tsx` (new)      |
+| U4  | Renders a `lab` or `lch` value (unbounded-channel family) correctly       | FR-001, FR-006        | example | DONE    | `ColorPreview.test.tsx` (new)      |
+| U5  | Renders a `"none"` component using the CSS `none` keyword                 | Edge Case 1 (spec.md) | example | DONE    | `ColorPreview.test.tsx` (new)      |
+| U6  | Renders a value with no alpha set, omitting the `/` syntax entirely       | Edge Case 2 (spec.md), FR-002 | example | DONE    | `ColorPreview.test.tsx` (new)      |
 | U7  | Renders a legacy bare-hex string unchanged                                | US1-AS3, FR-004       | example | PENDING | `ColorPreview.test.tsx` (new)      |
 | U8  | Declines (renders nothing) for a value that fails `ColorValueSchema`      | US3-AS1, FR-005       | example | PENDING | `ColorPreview.test.tsx` (new)      |
 | U9  | Zero `axe-core` WCAG 2.2 AA violations rendering a representative color value | package Principle IV | example | PENDING | `ColorPreview.a11y.test.tsx` (new) |
