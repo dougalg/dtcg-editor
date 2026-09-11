@@ -2,7 +2,7 @@
 feature: 009-edit-token-references
 verdict: PASS_WITH_GAPS
 standard: .specify/extensions/tdd/templates/tdd-test-quality-rubric.md
-verified_at: e2ec578
+verified_at: d241b0d # updated after the T056-T060 remediation pass; original audit was e2ec578
 behaviors: 131
 proven: 128
 likely: 0
@@ -10,27 +10,57 @@ test_after: 0
 no_test: 0
 not_applicable: 3
 high_smells: 0
-med_smells: 3
-low_smells: 3
+med_smells: 0 # was 3 (Findings 1-3) — all fixed by T056-T058, see "Remediation status" below
+low_smells: 0 # was 3 (Findings 4-6) — all fixed by T059; one new LOW/informational note added (A8 mode-fallback ambiguity, not a test smell)
 criteria_total: 8
 criteria_covered: 7
-mutation_score: n/a # no mutation tool (mutation: null in tdd-profile.md); 7 deliberate mutants over 6 behaviors, 6 caught, 1 survived
-mutants_survived: 1 # resolveIfRepointed walk-start — real (non-equivalent) survivor inside U107 (DONE)
-suite: 689 passed, 0 failed, ~24s (vitest projects only; Playwright not run in this audit — see "What was not audited")
+mutation_score: n/a # still no mutation tool; 14 deliberate mutants across the audit + remediation, 14 caught, 0 survivors (was 1)
+mutants_survived: 0 # was 1 (resolveIfRepointed walk-start, U107) — fixed by T056, re-verified with the same mutant
+suite: 691 passed, 0 failed, ~24s (vitest projects only, clean this time; Playwright not run in this re-verify — see "What was not audited")
 ---
+
+## Remediation status (T056-T060, since the original audit at `e2ec578`)
+
+| Finding | Task | Status |
+| --- | --- | --- |
+| 1 (MED, `resolveIfRepointed` walk-start unpinned) | T056 | **Fixed.** New test pins `perMode[0].chain.steps`; re-verified with the same mutant that survived originally — now caught. |
+| 2 (MED, SC-004 p95 latency not e2e) | T057 | **Fixed.** New `edit-token-references-perf.spec.ts` test times keystroke→paint via double-`requestAnimationFrame`; deliberate 80ms-busy-wait mutant caught (p95 129ms vs 50ms budget). Its first draft (poll live-region text for a change) had its own real bug, caught by the sample data itself before being replaced — see `cycle-log.md`. |
+| 3 (MED, A12/A13 didn't assert the pointer refusal itself) | T058 | **Fixed.** Added a `trial: true` click assertion before each `force: true`; deliberate mutant (force `isItemDisabled` to always `false`) caught. |
+| 4 (LOW, precedence claim unproven) | T059 | **Fixed.** New fixture where a candidate is genuinely both circular and missing; deliberate mutant (reorder the checks) caught only by the new test, not the old one — confirms it closes the gap. |
+| 5 (LOW, `listFooter` order unasserted) | T059 | **Fixed.** `compareDocumentPosition` assertion added; deliberate mutant (move the footer above the list) caught. |
+| 6 (LOW, A7/A8 swatch checks near-vacuous) | T059 | **Partially fixed.** A7 now pins the exact `--swatch-color` value. A8 was **not** strengthened the same way — doing so surfaced a real ambiguity (its own preview resolves through a multiply-defined intermediate via mode-fallback, landing on the dark-mode value rather than the light-mode end-of-chain value its name describes) worth its own investigation, not a same-cycle fix. New informational note below. |
+| T060 (systematic e2e-mutant pass, A1-A18) | T060 | **Partial.** 9 of 18 acceptance behaviours now have a dedicated e2e-tier deliberate mutant (up from ~3 at the original audit): A1, A2, A4, A9, A12, A13, A17, A18, and FR-021's degradation branch. 10 remain untested at this tier: A3, A5, A6, A7, A8, A10, A11, A14, A15, A16. |
+| T055 (full gate, one clean run) | — | **Still not obtained.** Every attempt this remediation round (and the original audit) hit local resource contention — see "What was not audited". |
+
+New informational note (not a rubric smell): `color.action.hover`'s own
+`candidate.preview` resolves through the multiply-defined
+`color.text.primary`, and which mode's value lands as the candidate's *own*
+(non-hypothetical) swatch depends on `lookupForMode`'s mode-fallback
+selection — observed to be the **last** definition (dark, `0.95 0.95 0.95`)
+rather than the edited token's own light-mode chain. A8's e2e test still
+correctly pins the end-of-chain value (via the hypothetical block's own
+light-mode entry, which is unambiguous), but whether the *candidate's own*
+preview should instead prefer resolving under whichever mode the edited
+token would actually use is a real product question, not covered by any
+existing FR/behaviour. Worth its own investigation; not blocking.
 
 # TDD Verification: Edit Token References
 
-**Verdict: PASS_WITH_GAPS.** The discipline holds — 37 unsquashed commits in a
+**Verdict: PASS_WITH_GAPS.** The discipline holds — 37+ unsquashed commits in a
 clean test-first shape, a per-behavior cycle log that records the red command (or
 the deliberate-mutant check where a behavior passed first run), zero HIGH smells,
 no weakened or skipped existing test, and every acceptance criterion reaches a
-test. The gaps: one deliberate mutant survived inside a `DONE` behaviour
-(`resolveIfRepointed`'s walk-start is unpinned), SC-004's p95 keystroke→list
-latency is measured only at the pure-function tier, and e2e-tier mutation plus the
-full `pnpm build && pnpm test` gate could not run in this session's degraded local
-environment (Playwright runs went from ~15s to 20–35min with non-deterministic
-`page.goto` server-suspension failures).
+test. **Since the original audit, T056-T059 closed all three MED and all three
+LOW findings** (see "Remediation status" above) — the surviving mutant is now
+caught, SC-004's p95 latency is measured end to end, and A12/A13 assert the
+pointer refusal directly, not only the code-level guard. What remains: T060's
+e2e-mutant pass covers 9 of 18 acceptance behaviours, not all 18, and the full
+`pnpm build && pnpm test` gate still has not produced one clean run on this
+machine — every attempt this session, across both the original audit and this
+remediation round, hit local resource contention (Playwright runs ranging from
+~15s to 20-35min, unrelated files/tests failing differently each attempt, and once
+the Bash safety classifier itself timing out). Every individual file this session
+touched was verified green in isolation.
 
 **Independence caveat (Rubric §"Grade from cold context"):** this audit was run by
 the same session that wrote the session-3 tests — `U105`, `U107`–`U112`, `A1`–`A18`,
@@ -184,22 +214,24 @@ Tests tracing to nothing: none.
 
 Stated plainly.
 
-- **Playwright / e2e was not run in this audit.** The local environment degraded
-  during this long session — `edit-token-references.spec.ts` (normally ~12s) took
-  20–35min with non-deterministic `page.goto` `net::ERR_NETWORK_IO_SUSPENDED` /
-  navigation-timeout failures, some in the unrelated `keyboard-navigation.spec.ts`
-  (feature 010). A1–A20 were last verified green in isolation **earlier this same
-  session** (`edit-token-references.spec.ts` 18/18 twice incl. post-rebase;
-  `-perf.spec.ts` A18 passing twice), not by this audit.
-- **e2e-tier mutation was not performed** (same reason). Only 3 acceptance-layer
-  deliberate mutants exist, run earlier in the session and recorded in the cycle
-  log — not a systematic pass over A1–A18.
-- **No mutation tool.** `mutation_score` is `n/a`; strength rests on 7 scoped
-  deliberate mutants over 6 behaviours. Behaviours not sampled: the `Command`/
-  `Combobox` primitives (U1–U15), the catalogue wire schema (U16–U18), the route
-  (U29–U32), the hook (U33–U37) beyond what the earlier-session cycle log records,
-  `format-literal-value` (U65–U66), `CandidatePreview` rendering (U67–U75),
-  `ReferenceEditControl` (U90–U95).
+- **Playwright / e2e was not run as one full-suite pass in this re-verify**, but
+  every individual e2e file this remediation round touched **was** run and
+  confirmed green, several times, in isolation: `edit-token-references.spec.ts`
+  18/18 (repeatedly, including after T058/T059's changes), `-perf.spec.ts` 2/2
+  (A18 + the new p95 test, including after T057's changes). What was not run is
+  the full multi-project Playwright suite in one go — every attempt at that this
+  session (original audit and this round) hit local resource contention.
+- **e2e-tier mutation is now at 9 of 18 acceptance behaviours** (T060, up from 3
+  at the original audit): A1, A2, A4, A9, A12, A13, A17, A18, and FR-021's
+  degradation branch, each caught. **Still not e2e-mutant-tested**: A3, A5, A6,
+  A7, A8, A10, A11, A14, A15, A16 — see "Remediation status" above.
+- **No mutation tool.** `mutation_score` is `n/a`; strength rests on 14 scoped
+  deliberate mutants (was 7) across the pure-function/component/route tier plus
+  the 9 e2e ones above. Unit-tier behaviours still not sampled: the `Command`/
+  `Combobox` primitives (U1–U15) beyond T059's `listFooter` mutant, the catalogue
+  wire schema (U16–U18), the route (U29–U32), the hook (U33–U37) beyond what the
+  earlier-session cycle log records, `format-literal-value` (U65–U66),
+  `CandidatePreview` rendering (U67–U75), `ReferenceEditControl` (U90–U95).
 - **Coverage was not run** — `@vitest/coverage-v8` is not installed
   (`coverage: null`).
 - **The full `pnpm build && pnpm test` gate (T055) has not produced a clean run
