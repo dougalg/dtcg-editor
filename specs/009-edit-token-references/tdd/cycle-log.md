@@ -943,3 +943,36 @@ guard, but never asserting the row is actually inert to a real pointer click
   regression from T059's changes.
 - refactor: none.
 - commit: (this commit)
+
+## Cycle: T057 remediation — SC-004's p95 keystroke latency, measured end to end (verification.md Finding 2)
+
+New test in `edit-token-references-perf.spec.ts`: "keystroke-to-updated-list
+latency stays under budget at p95 (SC-004)", alongside the existing A18
+Long-Task test, against the same `large_scale.tokens.json` fixture.
+
+- First attempt: measured each keystroke by polling the `aria-live` region's
+  announced text until it changed from its pre-keystroke value. **Real
+  methodology bug, caught by the sample data itself**: p95 came back
+  516ms — but the raw samples showed a bimodal split (a handful under 40ms,
+  most pinned at ~500-516ms, suspiciously close to the 500ms poll deadline).
+  Root cause: once the burst's nonsense tail narrows the match set to zero,
+  *consecutive* keystrokes both render "No matches" — identical announced
+  text, so "wait for a change" never resolves and times out, wrongly
+  charging a legitimately-fast (nothing-to-repaint) keystroke as a
+  516ms stall.
+- Rewrote the signal: double `requestAnimationFrame` after the input event
+  (the standard "give the browser a full paint cycle" technique) instead of
+  waiting for any specific DOM change. Re-ran: p95 ~9-13ms, comfortably
+  under budget, no bimodal artefact.
+- Deliberate mutant: added an 80ms busy-wait inside `filterCandidates`
+  (`candidate-filter.ts`) — caught: p95 129.0ms, every sample 90ms+
+  (`Expected: < 50, Received: 129`). Restored exactly; suite green again.
+- A18's own Long-Task test flaked once mid-cycle (`63ms` vs the 50ms
+  budget, on an otherwise-loaded machine) and passed clean on immediate
+  retry — recorded, not investigated further (same class of local
+  resource-contention flakiness as T055/T058/T059).
+- suite: `pnpm exec vitest run` → 691 passed / 140 files (unaffected, clean
+  this time — 140/140). `edit-token-references-perf.spec.ts --project=default`
+  → 2/2 green.
+- refactor: none.
+- commit: (this commit)
