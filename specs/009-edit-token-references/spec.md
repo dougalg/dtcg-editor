@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-29
 
-**Status**: Draft
+**Status**: Implemented (2026-09-11)
 
 **Input**: User description: "I want to be able to edit references. this means a combobox of some sort to search and filter all tokens with a preview of the other references as I search."
 
