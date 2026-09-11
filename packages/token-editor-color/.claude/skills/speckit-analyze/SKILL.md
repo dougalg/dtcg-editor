@@ -1,0 +1,1 @@
+../../../../../.claude/skills/speckit-analyze/SKILL.md

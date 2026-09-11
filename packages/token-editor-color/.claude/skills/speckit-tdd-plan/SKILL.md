@@ -1,0 +1,1 @@
+../../../../../.claude/skills/speckit-tdd-plan/SKILL.md

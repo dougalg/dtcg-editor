@@ -1,0 +1,1 @@
+../../../../../.claude/skills/speckit-tdd-verify/SKILL.md
