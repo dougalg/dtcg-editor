@@ -31,8 +31,8 @@ is no new red to produce when nothing is meant to change.
 
 | id  | behavior                                                                          | traces          | kind    | state   | test                                                        |
 | --- | ---------------------------------------------------------------------------------- | --------------- | ------- | ------- | ------------------------------------------------------------ |
-| A1  | A previewed color token, at the real app entry point, renders CSS-syntax text, not JSON | US1-AS1, FR-001 | example | PENDING | `apps/web-app/e2e/edit-token-references.spec.ts::A7` (tightened) |
-| A2  | A previewed color token's swatch and text describe the same value, at the real app entry point | US1-AS2, FR-002, SC-002 | example | PENDING | `apps/web-app/e2e/edit-token-references.spec.ts::A7` (tightened) |
+| A1  | A previewed color token, at the real app entry point, renders CSS-syntax text, not JSON | US1-AS1, FR-001 | example | DONE    | `apps/web-app/e2e/edit-token-references.spec.ts::A7` (tightened) |
+| A2  | A previewed color token's swatch and text describe the same value, at the real app entry point | US1-AS2, FR-002, SC-002 | example | DONE    | `apps/web-app/e2e/edit-token-references.spec.ts::A7` (tightened) |
 | A3  | A previewed legacy-hex color token's text is unchanged                            | US1-AS3, FR-004 | example | PENDING | proxied — see U7; no real-entry-point fixture (see note above) |
 | A4  | The interactive color editor renders unaffected                                   | US2-AS1, FR-003 | example | PENDING | existing `ColorEditor` suite, unchanged (`tasks.md` T008)    |
 | A5  | Editing a channel/alpha in the interactive editor updates the value/validation exactly as before | US2-AS2, FR-003, SC-003 | example | PENDING | existing `ColorEditor` suite, unchanged (`tasks.md` T008/T009) |
@@ -44,7 +44,7 @@ is no new red to produce when nothing is meant to change.
 
 | id  | behavior                                                                 | traces               | kind    | state   | test                              |
 | --- | -------------------------------------------------------------------------- | --------------------- | ------- | ------- | ---------------------------------- |
-| U1  | Renders an `oklch` value with alpha as `oklch(0.7 0.1 180 / 0.8)`         | US1-AS1, FR-001, FR-002 | example | PENDING | `ColorPreview.test.tsx` (new)      |
+| U1  | Renders an `oklch` value with alpha as `oklch(0.7 0.1 180 / 0.8)`         | US1-AS1, FR-001, FR-002 | example | DONE    | `ColorPreview.test.tsx` (new)      |
 | U2  | Renders an `hsl` value (percent-based S/L channels) as `hsl(...)`         | FR-001, FR-006        | example | PENDING | `ColorPreview.test.tsx` (new)      |
 | U3  | Renders a `display-p3` value (no dedicated CSS function) as `color(display-p3 ...)` | FR-001, FR-006        | example | PENDING | `ColorPreview.test.tsx` (new)      |
 | U4  | Renders a `lab` or `lch` value (unbounded-channel family) correctly       | FR-001, FR-006        | example | PENDING | `ColorPreview.test.tsx` (new)      |

@@ -261,21 +261,26 @@ test.describe("US2 — see what a candidate resolves to before committing", () =
 		await expect(option).toBeVisible();
 		// The colour type's own `Preview` contract — a swatch (an element
 		// carrying the `--swatch-color` custom property `Swatch.tsx` sets) plus
-		// the value's raw text form, exactly as `ColorPreview` renders it
-		// elsewhere in the editor (format-literal-value.tsx delegates to it).
+		// its text rendered as CSS Color 4 syntax (`colorValueToCssColor`,
+		// css-color.ts), exactly as `ColorPreview` renders it elsewhere in the
+		// editor (format-literal-value.tsx delegates to it) — not the raw DTCG
+		// JSON shape.
 		// This is the only remaining candidate, so it is also auto-highlighted
 		// — its row additionally carries the "would resolve to" hypothetical
 		// (per catalogue mode), hence `.first()` rather than an exact count.
-		// The swatch's own `--swatch-color` value is asserted (not merely
-		// that *a* swatch element exists) — `colorValueToCssColor` renders
-		// srgb {0.2, 0.4, 0.9} as `color(srgb 0.2 0.4 0.9)` (css-color.ts).
+		// The swatch's own `--swatch-color` value and the adjacent text are
+		// both asserted against the *same* literal string — `colorValueToCssColor`
+		// renders srgb {0.2, 0.4, 0.9} as `color(srgb 0.2 0.4 0.9)`
+		// (css-color.ts) — so a future divergence between the two rendering
+		// paths would fail this test even if each individually still looked
+		// like valid CSS.
 		await expect(
 			option.locator('[style*="--swatch-color"]').first(),
 		).toHaveAttribute(
 			"style",
 			/--swatch-color:\s*color\(srgb 0\.2 0\.4 0\.9\)/,
 		);
-		await expect(option).toContainText(/0\.2.*0\.4.*0\.9/);
+		await expect(option).toContainText("color(srgb 0.2 0.4 0.9)");
 	});
 
 	test("a chained candidate previews the value at the end of the chain (A8)", async ({
