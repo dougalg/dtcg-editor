@@ -55,3 +55,13 @@ test("renders a value with no alpha set, omitting the / syntax entirely", () => 
 	);
 	expect(screen.getByText("color(srgb 0.5 0.2 0.8)")).toBeTruthy();
 });
+
+test("renders a legacy bare-hex string unchanged", () => {
+	render(<ColorPreview value="#3366ff" />);
+	expect(screen.getByText("#3366ff")).toBeTruthy();
+});
+
+test("declines to render for a value that fails color validation", () => {
+	const { container } = render(<ColorPreview value={{ not: "a color" }} />);
+	expect(container.firstChild).toBeNull();
+});

@@ -49,4 +49,23 @@ existed and failed before the implementation.
 - **Deliberate mutant check** (playbook Step 3, "test passes on first run" path — batched across U2–U6 rather than one mutant per behavior, since all five exercise the identical `cssColor` computation; a batched kill still proves each assertion string is load-bearing, not vacuous): temporarily changed `ColorPreview.tsx`'s `const cssColor = colorValueToCssColor(parsed.data);` to append a stray `"X"`. Re-ran the same command -> **6 failed** (all six, each showing its own expected-vs-actual mismatch, e.g. `Unable to find an element with the text: color(srgb 0.5 0.2 0.8)`), confirming none of the six is vacuous. Restored the line exactly (`git diff` on `ColorPreview.tsx` empty before proceeding) -> 6 passed again.
 - green: no implementation change needed — already correct from Cycle 1.
 - refactor: none needed; the five new tests follow the same one-`render`-one-`expect` shape as U1's, no duplication beyond the fixture literal each needs.
-- commit: (recorded below, this entry committed together with the test file)
+- commit: `79e54b6`
+
+## Cycle 3: U7 renders a legacy bare-hex string unchanged
+
+- test: `ColorPreview.test.tsx::renders a legacy bare-hex string unchanged` (new)
+- **Passed on first run**: `pnpm exec vitest run --project 'packages/token-editor-color:unit' packages/token-editor-color/src/components/ColorPreview/ColorPreview.test.tsx -t "legacy bare-hex"` -> 1 passed (`ColorValueSchema` already accepts a bare `#RRGGBB` string via `LegacyHexColorValueSchema`, and `colorValueToCssColor` already passes a string through unchanged).
+- **Deliberate mutant check**: same `+ "X"` mutation as Cycles 1–2 on `ColorPreview.tsx`'s `cssColor` line -> re-ran the same command -> 1 failed (`Unable to find an element with the text: #3366ff`). Restored exactly (`git diff` empty).
+- green: no implementation change needed.
+- refactor: none needed.
+- commit: (recorded below)
+
+## Cycle 4: U8 declines to render for a value that fails color validation
+
+- test: `ColorPreview.test.tsx::declines to render for a value that fails color validation` (new)
+- red (test-broken, not behavior-missing — playbook Step 3's "broken test" path): first attempt used `expect(container).toBeEmptyDOMElement()` -> `Error: Invalid Chai property: toBeEmptyDOMElement` (this repo's Vitest setup doesn't register `@testing-library/jest-dom` matchers; its own convention, per `ColorEditor.test.tsx` and others, is `expect(x).toBeNull()`). Fixed the test to `expect(container.firstChild).toBeNull()` before re-running — not counted as behavior evidence, per the playbook's explicit carve-out for a broken-test red.
+- **Passed on first run** once fixed: same command with `-t "declines to render"` -> 1 passed (the decline branch already existed, unchanged by Cycles 1–3).
+- **Deliberate mutant check**: temporarily replaced the guard `if (!parsed.success)` with `if (false)` (never decline) -> re-ran -> 1 failed, with a React render crash (`colorValueToCssColor` called on data that never actually parsed as a `ColorValue`) rather than a clean assertion mismatch — still a genuine kill: the mutant demonstrably breaks something the test catches. Restored the guard exactly (`git diff` empty, confirmed both by diff and by the full 8-test file re-run: 8 passed).
+- green: no implementation change needed.
+- refactor: none needed.
+- commit: (recorded below)

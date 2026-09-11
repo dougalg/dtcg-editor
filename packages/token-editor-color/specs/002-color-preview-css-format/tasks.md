@@ -90,8 +90,8 @@ Single package (`packages/token-editor-color`), no `src/`/`tests/` split — tes
 
 > These characterize already-correct, pre-existing behavior (the decline branch and the hex passthrough are not being changed by T006) rather than driving a new implementation — still written before being declared done, per Principle IV's coverage requirement, but not expected to go through a literal red phase against `ColorPreview.tsx` itself.
 
-- [ ] T010 [US3] [U8] Add a test case to `ColorPreview.test.tsx` (from T002): render with a value that fails `ColorValueSchema` (e.g. `{ not: "a color" }`) and assert the component renders nothing (spec FR-005; quickstart Scenario 3).
-- [ ] T011 [US3] [U7] Add a test case to `ColorPreview.test.tsx` (from T002): render with a legacy bare-hex string (e.g. `"#3366ff"`) and assert the text renders that string unchanged (spec FR-004; quickstart Scenario 4).
+- [X] T010 [US3] [U8] Add a test case to `ColorPreview.test.tsx` (from T002): render with a value that fails `ColorValueSchema` (e.g. `{ not: "a color" }`) and assert the component renders nothing (spec FR-005; quickstart Scenario 3).
+- [X] T011 [US3] [U7] Add a test case to `ColorPreview.test.tsx` (from T002): render with a legacy bare-hex string (e.g. `"#3366ff"`) and assert the text renders that string unchanged (spec FR-004; quickstart Scenario 4).
 
 **Checkpoint**: All three user stories independently verified.
 
