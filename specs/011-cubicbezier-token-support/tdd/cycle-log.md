@@ -180,6 +180,25 @@ existed and failed before the implementation.
     is unchanged, same PRNG seed/sequence).
 - commit: `feat(web-app): register cubicBezier as a built-in token type`
 
+## Session summary (all 30 behaviors DONE)
+
+- All 7 outer-loop acceptance behaviors (A1-A7) and all 23 inner-loop unit
+  behaviors (U1-U30, minus none dropped) are `DONE` as of commit `d8b0ebd`.
+  `specs/011-cubicbezier-token-support/tdd/test-list.md` has no remaining
+  `PENDING`/`RED`/`GREEN`/`BLOCKED` rows.
+- Remaining open `tasks.md` items (T024-T028) carry no behavior marker —
+  lint/build/full-suite/quickstart validation, left for `/speckit-implement`.
+- Full fast suite (`pnpm exec vitest run`) after Cycle 7: 519/519
+  `apps/web-app` unit tests passed, plus the rest of the aggregated
+  `test.projects` run green except the one pre-existing, unrelated
+  `reference-index.test.ts` wall-clock flake noted at Baseline (not
+  re-checked every cycle; targeted per-file/per-package runs were used
+  instead, per the stack profile's own guidance).
+- `packages/token-core`'s `node --test src/*.test.ts`: 116/116 passed
+  (Cycles 1-2).
+- `packages/token-editor-cubic-bezier`'s Vitest unit+a11y projects: 18/18
+  passed (Cycles 3-6).
+
 ## Notes and deviations
 
 - Cycles 1 and 2 are committed together in a single commit
