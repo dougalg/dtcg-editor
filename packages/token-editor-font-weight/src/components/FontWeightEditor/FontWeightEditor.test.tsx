@@ -42,6 +42,51 @@ test("entering a non-integer numeric value does not call onChange", () => {
 	expect(onChange).not.toHaveBeenCalled();
 });
 
+test("offers an alias picker with all 18 aliases plus a custom-number option", () => {
+	render(<FontWeightEditor value={400} onChange={vi.fn()} />);
+
+	const select = screen.getByLabelText("Alias") as HTMLSelectElement;
+	const offered = Array.from(select.options).map((option) => option.value);
+	expect(offered).toEqual([
+		"custom",
+		"thin",
+		"hairline",
+		"extra-light",
+		"ultra-light",
+		"light",
+		"normal",
+		"regular",
+		"book",
+		"medium",
+		"semi-bold",
+		"demi-bold",
+		"bold",
+		"extra-bold",
+		"ultra-bold",
+		"black",
+		"heavy",
+		"extra-black",
+		"ultra-black",
+	]);
+});
+
+test("reflects an existing alias value in the picker instead of a raw number", () => {
+	render(<FontWeightEditor value="bold" onChange={vi.fn()} />);
+
+	const select = screen.getByLabelText("Alias") as HTMLSelectElement;
+	expect(select.value).toBe("bold");
+});
+
+test("selecting a different alias calls onChange with that exact string", () => {
+	const onChange = vi.fn();
+	render(<FontWeightEditor value="bold" onChange={onChange} />);
+
+	const select = screen.getByLabelText("Alias") as HTMLSelectElement;
+	fireEvent.change(select, { target: { value: "semi-bold" } });
+
+	expect(onChange).toHaveBeenCalledWith("semi-bold");
+});
+
 test("entering an out-of-range integer does not call onChange", () => {
 	const onChange = vi.fn();
 	render(<FontWeightEditor value={400} onChange={onChange} />);
