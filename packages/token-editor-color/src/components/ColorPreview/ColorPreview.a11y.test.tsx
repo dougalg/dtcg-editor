@@ -20,6 +20,13 @@ test("a rendered color preview has no WCAG 2.2 AA violations", async () => {
 	await expectNoViolations(container);
 });
 
+// Kept alongside the has-alpha case above even though today's markup is
+// DOM-structurally identical between the two (axe checks structure/contrast/
+// ARIA, not color-string text content, so this can't currently catch a
+// regression the has-alpha test wouldn't) — per-variant a11y coverage is
+// this package's established convention (see ColorFunctionValue.a11y.test.tsx),
+// and it's a low-cost tripwire if the alpha/no-alpha branches ever diverge
+// structurally (e.g. an added "no alpha" indicator).
 test("a color preview with no alpha has no WCAG 2.2 AA violations", async () => {
 	const { container } = render(
 		<ColorPreview

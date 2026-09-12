@@ -73,8 +73,8 @@ test("the swatch's rendered color matches the adjacent text (SC-002)", () => {
 		/>,
 	);
 	const swatch = container.querySelector('[style*="--swatch-color"]');
-	expect(swatch?.getAttribute("style")).toContain(
-		"--swatch-color: oklch(0.7 0.1 180 / 0.8)",
+	expect(swatch?.getAttribute("style")).toMatch(
+		/--swatch-color:\s*oklch\(0\.7 0\.1 180 \/ 0\.8\)/,
 	);
 	expect(screen.getByText("oklch(0.7 0.1 180 / 0.8)")).toBeTruthy();
 });

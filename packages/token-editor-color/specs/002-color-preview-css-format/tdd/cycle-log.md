@@ -145,3 +145,33 @@ existed and failed before the implementation.
 - Full `ColorPreview` suite after restore and a `biome check --write` formatting fix (Prettier-equivalent JSX line-wrap, no semantic change): 12 passed, 0 failed.
 - State: `BASELINE`.
 - commit: `ceafe3c`
+
+## T016 (refactor on green): U10's swatch assertion loosened to whitespace-tolerant
+
+- Closes `tdd/verification.md` (re-run) Finding #5. Not a new behavior — a
+  refactor of `U10`'s existing test to match the pattern already established
+  in `apps/web-app/e2e/edit-token-references.spec.ts:277-282` for the
+  identical check.
+- Before: `expect(swatch?.getAttribute("style")).toContain("--swatch-color: oklch(0.7 0.1 180 / 0.8)")`
+- After: `expect(swatch?.getAttribute("style")).toMatch(/--swatch-color:\s*oklch\(0\.7 0\.1 180 \/ 0\.8\)/)`
+- Confirmed still green after the change:
+  `pnpm exec vitest run --project 'packages/token-editor-color:unit' packages/token-editor-color/src/components/ColorPreview/ColorPreview.test.tsx -t "SC-002"` -> 1 passed.
+- **Confirmed not weakened**: re-applied the exact `Swatch value={value}` -> `Swatch value="#000000"` mutant from `U10`'s original cycle -> still 1 failed. Restored exactly (`git diff` empty).
+- Full `ColorPreview` suite: 12 passed, 0 failed.
+- commit: (recorded below)
+
+## T017 (decision, no code behavior change): U11's redundancy — kept, documented
+
+- Closes `tdd/verification.md` (re-run) Finding #6. Decision: **keep** `U11`
+  (the no-alpha a11y test) rather than remove it — matches this package's
+  established per-variant a11y convention (`ColorFunctionValue.a11y.test.tsx`
+  tests alpha-present and alpha-absent separately too), and is a low-cost
+  tripwire if the alpha/no-alpha branches ever structurally diverge, even
+  though today axe can't distinguish the two renders (both are DOM-identical
+  aside from text content).
+- Change: added a comment above `U11`'s test explaining this reasoning
+  explicitly, so a future reader doesn't have to re-derive it or assume it
+  was an oversight.
+- Not a behavior change — no test added, removed, or reworded in substance.
+  Full `ColorPreview` suite re-confirmed: 12 passed, 0 failed.
+- commit: (recorded below)
