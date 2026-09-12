@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-12
 
-**Status**: Draft
+**Status**: Implemented (2026-09-12)
 
 **Input**: User description: "Add support for \"duration\" tokens" — full editor support for the DTCG `duration` token type ($value shape `{ value: number >= 0, unit: "ms" | "s" }`), currently only viewable as an unsupported/readonly JSON fallback.
 
