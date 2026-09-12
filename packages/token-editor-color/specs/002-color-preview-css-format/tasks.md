@@ -227,3 +227,14 @@ and #6) on those same new tests.
 
 - [X] T016 [P] Loosen `U10`'s swatch-style assertion in `packages/token-editor-color/src/components/ColorPreview/ColorPreview.test.tsx` from an exact-substring match on the serialized `style` attribute to a whitespace-tolerant regex, matching the pattern already established in `apps/web-app/e2e/edit-token-references.spec.ts:277-282` for the identical check (`/--swatch-color:\s*oklch\(0\.7 0\.1 180 \/ 0\.8\)/` in place of `.toContain("--swatch-color: oklch(0.7 0.1 180 / 0.8)")`). Closes Finding #5. Proof: re-run the test; still green, and re-apply the `Swatch` mutant from T014/U10 to confirm it still fails.
 - [X] T017 [P] Decide whether `U11`'s a11y test (`ColorPreview.a11y.test.tsx:23-30`) earns its keep alongside the pre-existing has-alpha a11y test, given both render DOM-structurally identical markup — differing only in color-string text content, which axe's structural/contrast/ARIA checks don't distinguish. Either: (a) keep it and record in a comment why the per-variant convention is followed even where axe can't actually differentiate the DOM, or (b) remove it and rely on `U9`'s existing coverage for that structural shape. Closes Finding #6. Proof: whichever choice, `pnpm exec vitest run --project 'packages/token-editor-color:a11y' packages/token-editor-color/src/components/ColorPreview/ColorPreview.a11y.test.tsx` stays green.
+
+## Phase 9: TDD remediation, round 3 (from /speckit-tdd-verify re-run)
+
+No new tasks. Findings #5 and #6 (Phase 8) are confirmed closed by `T016`/`T017`
+and verified not-weakened (`tdd/verification.md`, this round). The one new
+observation (Finding #7 — `T016`/`T017` ticked without a `[Un]` marker) is a
+process/convention note about how remediation tasks interact with the marker
+system, not a defect a code task can fix. All actionable findings across all
+three verify rounds are closed. The standing FAIL verdict remains solely the
+original 15 behaviors' permanent `TEST_AFTER` classification (Phase 7's note),
+which has no remediation task by design.

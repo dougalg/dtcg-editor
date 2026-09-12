@@ -2,7 +2,7 @@
 feature: 002-color-preview-css-format
 verdict: FAIL
 standard: .specify/extensions/tdd/templates/tdd-test-quality-rubric.md
-verified_at: 3e207d1
+verified_at: d318cde
 behaviors: 18
 proven: 3
 likely: 0
@@ -12,105 +12,103 @@ not_applicable: 5
 high_smells: 0
 criteria_total: 6
 criteria_covered: 6
-mutation_score: unmeasured # no mutation tool in tdd-profile.md; deliberate mutants used
-mutants_survived: 0 # 0 full-suite survivors; 1 partial (unit-level blind spot, now closed — see Findings)
-suite: 74 Vitest + 41 node:test passed, 0 failed (package); repo-wide apps/web-app e2e 69/73 passed, 4 pre-existing baseline flake unrelated to this feature
+mutation_score: unmeasured # no mutation tool; deliberate mutants used
+mutants_survived: 0
+suite: 74 Vitest + 41 node:test passed, 0 failed (package); repo-wide apps/web-app e2e 71/73 passed, 2 pre-existing baseline flake unrelated to this feature
 ---
 
-# TDD Verification: Color Token Preview CSS-Style Formatting (re-run)
+# TDD Verification: Color Token Preview CSS-Style Formatting (second re-run)
 
-This re-run audits everything added since the prior report (`46bdcec`): three new
-characterization behaviors (`U10`–`U12`) closing that report's Findings #1 and #3.
-The prior report's findings on the original 15 behaviors are carried forward
-unchanged where still applicable, and superseded where closed. **Not independent**
-for Phases 0/1/2/4/5/6 (same session that wrote the code); the smell pass (Phase 3)
-was again delegated to a fresh subagent with no prior context, and every finding it
-returned was independently re-verified against the cited file:line before inclusion
-here, per the rubric's vetting requirement.
+Audits everything added since the prior report (`df4e2f0`): commits `98f1529`
+(T016, T017) and `d318cde` (docs only). **Independence note, honestly reduced
+this round**: the diff in scope is trivial (a 2-line assertion swap and a
+7-line comment addition, no new test, no new behavior) — I assessed it directly
+rather than delegating the smell pass to a fresh subagent, unlike the prior two
+reports. This is a deliberate proportionality call, not an oversight, but it
+means this round's smell-pass conclusions carry less independent weight than
+the prior two rounds', which used a fresh subagent whose findings I then
+vetted line-by-line.
 
-**Verdict: FAIL, unchanged from the prior report, for the same reason.** The 10
-`TEST_AFTER` behaviors from the original implementation (`U2`–`U9`, `A3`, `A6`) are
-a permanent historical record — git history doesn't change because new,
-better-covered work landed on top of it. This session's new work (`U10`–`U12`) is
-clean: correctly classified `NOT_APPLICABLE` (characterization, verified with
-fresh mutants both by this session and independently by the smell-pass subagent),
-0 `HIGH` smells, both of the prior report's actionable findings closed. The FAIL
-verdict is not telling you anything new happened wrong — it is telling you the same
-thing the prior report told you, now with two fewer open findings.
+**Verdict: FAIL, unchanged, same permanent reason as both prior reports.** The
+original 15 behaviors' `TEST_AFTER` classifications are git history and cannot
+change. This round's own work — T016 and T017 — is clean: both prior report's
+open findings (#5, #6) are now closed, correctly, with no new findings.
 
 ## Test-first evidence
 
-Unchanged from the prior report for `A1`–`A6`, `U1`–`U9` (see `git log`
-`46bdcec`'s report, reproduced in substance below). New rows:
+Unchanged from the prior report's table for all 18 behaviors — T016/T017 did
+not add or change any behavior's classification; they refined `U10`'s test and
+documented `U11`'s, both already `BASELINE`.
 
-| Behavior | Class | Evidence |
-|---|---|---|
-| A1, A2, U1 | PROVEN | (unchanged — see prior report) |
-| U2–U9, A3, A6 | TEST_AFTER | (unchanged, permanent — see prior report's full reasoning) |
-| A4, A5 | NOT_APPLICABLE | (unchanged — see prior report) |
-| **U10** | **NOT_APPLICABLE** | Characterization test, commit `ceafe3c`: `ColorPreview.test.tsx` gained the test with no change to `ColorPreview.tsx` in the same commit (confirmed via `git show --stat`) — consistent with pinning already-correct behavior, not driving new behavior. Green on first run per `tdd/cycle-log.md` Cycle 6; verified non-vacuous by two independent mutants (mine and the smell-pass subagent's, on different files — `ColorPreview.tsx` and `Swatch.tsx` respectively — both killed it, both restored). |
-| **U11** | **NOT_APPLICABLE** | Same commit, same reasoning. Green on first run (Cycle 7); low-contrast mutant killed it, restored. |
-| **U12** | **NOT_APPLICABLE** | Same commit, same reasoning. Green on first run (Cycle 8); same mutant killed it, restored. |
+**Weakened-existing-test check**: `U10`'s assertion changed from
+`.toContain("--swatch-color: oklch(0.7 0.1 180 / 0.8)")` to
+`.toMatch(/--swatch-color:\s*oklch\(0\.7 0\.1 180 \/ 0\.8\)/)` (commit
+`98f1529`). This is **not a weakening of what's checked** — the full color
+value (space, all three components, alpha) is still required verbatim in both
+forms; the only change is tolerating whitespace-count variance around the
+colon (`\s*` accepts zero-or-more spaces where the old exact string required
+exactly one). This mirrors the pattern already established in this codebase's
+own e2e test for the identical fact
+(`edit-token-references.spec.ts:277-282`), and was verified in `tdd-run` (not
+just claimed) by re-applying the original `Swatch`-hardcoding mutant against
+the new assertion and confirming it still fails. Correctly closes prior
+Finding #5.
 
-**tasks.md-vs-test-list cross-check, new finding**: `T014` and `T015` are ticked
-`[X]` with behaviors `U10`, `U11`, `U12` all in state `BASELINE`, not literally
-`DONE`. The rubric's checkbox-trust rule ("a task ticked `[X]` whose behavior id is
-not `DONE`... is a completion claim with no evidence behind it") is written against
-the literal state name. The underlying evidence for all three is genuine (green +
-mutant-killed + restored, independently confirmed this session) — this is not an
-unearned claim in substance — but it is, by the rubric's literal wording, a
-technicality worth flagging rather than silently accepting the prior session's own
-interpretation that `BASELINE` counts as `DONE` for ticking purposes. **Severity:
-LOW** (evidenced, not fabricated; a naming-convention gap in the test-list template
-itself, which defines `BASELINE` as characterization's terminal state without
-saying whether Phase 6's ticking rule extends to it).
+`U11`'s change (commit `98f1529`) is a comment only — no assertion touched,
+confirmed by the diff. Correctly closes prior Finding #6 as a documented
+decision, not a code change.
 
-**Weakened-existing-test check**: none in this range — commit `ceafe3c` is pure
-addition (`git show --stat`: only insertions in both test files, no deletions).
+**tasks.md-vs-test-list cross-check, new note**: `T016` and `T017` are ticked
+`[X]` but carry no `[Un]` behavior marker in `tasks.md` — they were remediation
+tasks the prior verify report appended itself, not tasks `tdd-plan` wrote with
+a marker. Per Phase 6's rule, "a task with no marker is not this command's
+work" for ticking purposes; `tdd-run`'s own report (session transcript)
+acknowledged this tension and ticked them anyway on the grounds that they were
+invoked directly by id and their work is fully evidenced. **Severity: LOW**,
+same character as the prior report's `BASELINE`-vs-`DONE` finding — a
+convention gap in how remediation tasks interact with the marker system, not
+an unearned claim (both tasks' evidence is genuine, checked above).
 
 ## Findings
 
-| # | Severity | Finding | Evidence | Status |
-|---|---|---|---|---|
-| 1 (prior) | MED | No component-level test asserted the `<Swatch>` child | `ColorPreview.test.tsx` (old) | **CLOSED** by `U10` — see below for a new, narrower finding on how it was closed |
-| 2 (prior) | LOW | U9's mutant check took 3 attempts, 2 false negatives | `tdd/cycle-log.md` Cycle 5 | Open, informational — unchanged, no action taken (correctly so; it's a log-honesty note, not a defect) |
-| 3 (prior) | LOW | a11y coverage was 1 of 3 render variants | `ColorPreview.a11y.test.tsx` (old) | **CLOSED** by `U11`/`U12` |
-| 4 (prior) | LOW, out of scope | `tdd-profile.md`'s `node-packages` entry is stale for this package | `.specify/memory/tdd-profile.md` | Open, out of this feature's scope — unchanged |
-| 5 (new) | MED | `U10`'s assertion (`ColorPreview.test.tsx:75-78`) hardcodes the swatch's `style` attribute as an exact substring (`"--swatch-color: oklch(0.7 0.1 180 / 0.8)"`). The repo's own e2e test asserting the identical fact (`edit-token-references.spec.ts:277-282`) uses a whitespace-tolerant regex (`/--swatch-color:\s*color\(...\)/`) instead. Confirmed non-vacuous (a fresh mutant on `Swatch.tsx` forcing `cssColor = "red"` killed it), but more brittle than the pattern already established in this codebase for this exact check — a harmless React/jsdom style-serialization change could break it for no behavioral reason. | `ColorPreview.test.tsx:75-78` vs `apps/web-app/e2e/edit-token-references.spec.ts:277-282` | Open |
-| 6 (new) | LOW-MED | `U11`'s a11y test and the pre-existing has-alpha a11y test (`ColorPreview.a11y.test.tsx:14-21` vs `:23-30`) render DOM-structurally identical markup — only the color-string text content differs, which axe-core's structural/contrast/ARIA checks don't distinguish between. A real accessibility regression would be caught by either test equally; the second buys limited marginal detection for its added browser-mode runtime cost. (`U12`'s hex-branch test is *not* flagged the same way — it exercises a genuinely different source branch, `ColorValueSchema` parsing a string vs. an object.) | `ColorPreview.a11y.test.tsx:14-21`, `:23-30` | Open |
+| # | Severity | Finding | Status |
+|---|---|---|---|
+| 1 (orig.) | MED | No component-level swatch assertion | **CLOSED** (round 1, `U10`) |
+| 2 (orig.) | LOW | U9's mutant check took 3 attempts | Open, informational, unchanged |
+| 3 (orig.) | LOW | a11y coverage was 1 of 3 variants | **CLOSED** (round 1, `U11`/`U12`) |
+| 4 (orig.) | LOW, out of scope | `tdd-profile.md` stale for this package | Open, out of scope, unchanged |
+| 5 (round 1) | MED | U10's assertion more brittle than the e2e pattern | **CLOSED** (this round, T016) |
+| 6 (round 1) | LOW-MED | U11 redundant with the has-alpha a11y test | **CLOSED** (this round, T017 — kept + documented, not removed; the underlying DOM-identity observation itself is still true and now explicitly acknowledged in the test file rather than a report) |
+| 7 (new) | LOW | T016/T017 ticked without a `[Un]` behavior marker in `tasks.md` | Open, informational — see cross-check note above |
 
-No `HIGH` findings.
+No `HIGH` findings. No open MED findings — all MED-or-above findings across all
+three rounds are now closed.
 
 ## Mutation results
 
-No mutation tool configured. Deliberate mutants this session (in addition to the
-prior report's 8 self-reported + 1 fresh):
-
-| Mutant | Behavior | Survived (full suite) | Judgment |
-|---|---|---|---|
-| `ColorPreview.tsx`: `<Swatch value={value} />` → `<Swatch value="#000000" />` (this session, tdd-run Cycle 6) | U10 | No — killed by the new component-level assertion | Closes the prior report's Finding #1 gap at the unit-test layer |
-| `ColorPreview.tsx`: text span given low-contrast inline style (this session, tdd-run Cycles 7–8, reusing the U9-proven mutant) | U11, U12 | No — both killed | Confirms the new a11y tests aren't vacuous |
-| `Swatch.tsx`: forced `cssColor = "red"` (smell-pass subagent, independent, different file than mine) | U10 | No — killed | **Independent corroboration** that U10's assertion is real, from a different mutation site than my own |
-
-**Prior report's partial-survivor finding is now closed**: the mutant that
-previously survived every component-level test (`Swatch` fed a hardcoded value)
-is now caught by `U10` — confirmed twice, once per mutation site, by two different
-sessions/agents.
+No mutation tool. This round's mutant activity was re-verification, not new
+coverage: `tdd-run`'s T016 cycle re-applied the exact `Swatch`-hardcoding
+mutant from `U10`'s original cycle against the newly-loosened regex and
+confirmed it still fails (`git diff` empty after restore, confirmed in
+`tdd/cycle-log.md`). No new mutant was warranted for T017 (a comment carries no
+executable behavior to mutate).
 
 ## Traceability
 
-Unchanged from the prior report — `U10`–`U12` trace to `tdd/verification.md`'s own
-prior Findings #1 and #3, not to `spec.md` criteria directly (they're
-test-coverage remediation, not new product requirements). All 6 acceptance
-criteria remain covered exactly as before; the two real-entry-point gaps
-(US1-AS3, US3-AS1) are unchanged, since `U10`–`U12` are component-level tests, not
-new e2e coverage.
+Unchanged from the prior report. 6/6 acceptance criteria covered; the two
+real-entry-point gaps (US1-AS3, US3-AS1) remain as previously recorded
+scoping decisions, untouched by this round.
 
 ## What was not audited
 
-- Same list as the prior report (independence beyond the smell pass; real
-  mutation testing; performance; the two proxied criteria's reachability claim).
-- The redundant-test finding (#6) was reasoned from source inspection, not from
-  actually disabling one test and confirming the other still catches the same
-  class of regression — a cheaper, more rigorous check that would strengthen or
-  refute it, not performed here.
+- Same standing list as both prior reports (independence beyond what's noted
+  above for this round specifically; real mutation testing; performance; the
+  two proxied criteria's reachability claim).
+- **This round's smell pass was not delegated to a fresh subagent**, unlike
+  the prior two rounds — a deliberate scope call given the trivial diff size,
+  disclosed above rather than silently omitted. If you want full independence
+  restored for future rounds regardless of diff size, say so and it'll be the
+  default again.
+- Finding #7 (the marker-less ticking) was reasoned from re-reading `tasks.md`
+  and `tdd-run`'s own transcript, not independently re-litigated against the
+  rubric's Phase 6 text by a fresh reader.
