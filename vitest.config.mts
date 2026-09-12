@@ -139,6 +139,7 @@ const packages = [
 	"packages/design-system",
 	"packages/token-editor-color",
 	"packages/token-editor-dimension",
+	"packages/token-editor-duration",
 ];
 
 export default defineConfig({
