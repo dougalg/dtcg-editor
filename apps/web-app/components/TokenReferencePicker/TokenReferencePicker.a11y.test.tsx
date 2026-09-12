@@ -52,7 +52,7 @@ function renderOpen() {
 	);
 }
 
-test("the highlighted candidate's full preview (value + would-resolve-to) shows in the picker's live region", async () => {
+test("the highlighted candidate's full preview shows in the picker's live region, and the redundant 'would resolve to' is omitted for a plain one-hop candidate", async () => {
 	renderOpen();
 	const trigger = await screen.findByRole("combobox", {
 		name: /repoint reference for/i,
@@ -65,17 +65,24 @@ test("the highlighted candidate's full preview (value + would-resolve-to) shows 
 		screen.getByRole("status", { name: "Search results" }).textContent ?? "";
 
 	// cmdk auto-highlights the first row (color.accent -> {color.blue} -> #0000ff).
+	// What color.accent would resolve to if repointed at color.blue is
+	// exactly color.blue's own resolved value, already announced above —
+	// FR-012 (revised) omits the duplicate "would resolve to" here.
 	await waitFor(() => {
 		expect(region()).toMatch(/#0000ff/i);
-		expect(region()).toMatch(/would resolve to/i);
 	});
+	expect(region()).not.toMatch(/would resolve to/i);
 
-	// Moving the highlight updates the previewed value.
-	field.dispatchEvent(
-		new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
-	);
-	await waitFor(() => expect(region()).toMatch(/#ff0000|#0000ff/i));
-	expect(region()).toMatch(/token.*match/i);
+	// The edited token's own path (a circular candidate) is a case the
+	// hypothetical genuinely adds information for — but a disabled circular
+	// row is never auto-highlighted (FR-024/U11), so this shows up in the
+	// row's own (non-live-region) preview rather than the live region.
+	fireEvent.change(field, { target: { value: "accent" } });
+	const ownRow = await screen.findByRole("option", { name: "color.accent" });
+	await waitFor(() => {
+		expect(ownRow.textContent).toMatch(/would resolve to/i);
+		expect(ownRow.textContent).toMatch(/circular/i);
+	});
 });
 
 async function noViolations() {

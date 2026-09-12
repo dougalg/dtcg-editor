@@ -1,7 +1,10 @@
 import type { ResolutionChain } from "@dtcg-editor/token-core";
 import { memo, type ReactNode } from "react";
 import { formatLiteralValue } from "../../lib/tokens/format-literal-value.tsx";
-import type { HypotheticalResolution } from "../../lib/tokens/hypothetical-resolution.ts";
+import {
+	type HypotheticalResolution,
+	hypotheticalDiffersFromPreview,
+} from "../../lib/tokens/hypothetical-resolution.ts";
 import type { ReferenceCandidate } from "../../lib/tokens/reference-catalogue-wire.ts";
 import { ReferenceWarning } from "../ReferenceWarning/ReferenceWarning.tsx";
 import styles from "./CandidatePreview.module.css";
@@ -72,8 +75,10 @@ export const CandidatePreview = memo(function CandidatePreview({
 	readonly hypothetical?: HypotheticalResolution | undefined;
 }) {
 	const multiMode = candidate.preview.length > 1;
-	const hypoMultiMode =
-		hypothetical !== undefined && hypothetical.perMode.length > 1;
+	const showHypothetical =
+		hypothetical !== undefined &&
+		hypotheticalDiffersFromPreview(candidate, hypothetical);
+	const hypoMultiMode = showHypothetical && hypothetical.perMode.length > 1;
 	return (
 		<span className={styles.preview}>
 			{diagnostic !== "none" ? (
@@ -92,7 +97,7 @@ export const CandidatePreview = memo(function CandidatePreview({
 					<OutcomeValue chain={entry.outcome as unknown as ResolutionChain} />
 				</span>
 			))}
-			{hypothetical !== undefined ? (
+			{showHypothetical && hypothetical !== undefined ? (
 				<span className={styles.hypothetical}>
 					<span className={styles.hypotheticalCaption}>
 						This token would resolve to:

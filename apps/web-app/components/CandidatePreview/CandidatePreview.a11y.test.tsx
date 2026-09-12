@@ -20,13 +20,16 @@ function file(relativePath: string, json: unknown): LoadedTokenFile {
 const FILES = [
 	file("base.json", {
 		color: { $type: "color", blue: { $value: { hex: "#00f" } } },
-		edited: { $type: "color", $value: "{loop}" },
-		loop: { $type: "color", $value: "{edited}" },
+		hub: { $type: "color", $value: { hex: "#0f0" } },
+		wheel: { $type: "color", $value: "{hub}" },
 	}),
 ];
 const CATALOGUE = buildReferenceCatalogue(buildReferenceIndex(FILES));
 const BLUE = CATALOGUE.candidates.find((c) => c.displayPath === "color.blue");
-const LOOP = CATALOGUE.candidates.find((c) => c.displayPath === "loop");
+// `wheel` resolves cleanly today; repointing `hub` at `wheel` (below) closes
+// a cycle that only the hypothetical reveals — the case where FR-012's
+// (revised) hypothetical is actually shown, not suppressed as a duplicate.
+const WHEEL = CATALOGUE.candidates.find((c) => c.displayPath === "wheel");
 
 async function expectNoViolations(container: Element) {
 	const results = await axe.run(container, {
@@ -62,12 +65,12 @@ test("no WCAG 2.2 AA violations — each diagnostic marker", async () => {
 });
 
 test("no WCAG 2.2 AA violations — with a hypothetical block", async () => {
-	if (LOOP === undefined) throw new Error("fixture");
-	const hypothetical = resolveIfRepointed(["edited"], ["loop"], CATALOGUE);
+	if (WHEEL === undefined) throw new Error("fixture");
+	const hypothetical = resolveIfRepointed(["hub"], ["wheel"], CATALOGUE);
 	const { container } = render(
 		<ul>
 			<li>
-				<CandidatePreview candidate={LOOP} hypothetical={hypothetical} />
+				<CandidatePreview candidate={WHEEL} hypothetical={hypothetical} />
 			</li>
 		</ul>,
 	);

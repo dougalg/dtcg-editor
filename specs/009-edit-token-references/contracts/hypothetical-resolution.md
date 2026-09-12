@@ -182,3 +182,35 @@ case (one edit at a time) is exact.
       007's view, not this function).
 - [ ] multiply-defined candidate → one `perMode` entry per mode, differing
       where the modes differ.
+
+### `hypotheticalDiffersFromPreview` (added 2026-09-12)
+
+```ts
+export function hypotheticalDiffersFromPreview(
+  candidate: ReferenceCandidate,
+  hypothetical: HypotheticalResolution,
+): boolean;
+```
+
+FR-012 (revised): the caller (`CandidatePreview`) renders the "would resolve
+to" block only when this returns `true`. `false` means the hypothetical would
+just repeat the candidate's own preview already shown alongside it — the
+common case for a plain one-hop repoint, where the two are identical by
+construction.
+
+**Algorithm**: `false` iff `hypothetical.perMode.length === candidate.preview.length`
+**and** every `hypothetical.perMode[i]` has a same-mode entry in
+`candidate.preview` whose outcome is identical — same `kind`, and same
+`value`+`type` (resolved) / `missingPath` (unresolved) / `groupPath`
+(group-target) / `cyclePath` (circular). Any mode-count mismatch or per-mode
+divergence — including a cycle the repoint itself creates (the two chains
+having different `cyclePath`s) — returns `true`.
+
+**Tests**:
+
+- [ ] plain one-hop candidate → `false`.
+- [ ] repoint creates a new cycle (candidate's own chain doesn't pass through
+      the edited token today) → `true`.
+- [ ] candidate's own preview and the hypothetical have a different number of
+      modes (ambiguous single-entry own preview vs. full per-catalogue-mode
+      hypothetical) → `true`.
