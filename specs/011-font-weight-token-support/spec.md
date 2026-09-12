@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-12
 
-**Status**: Draft
+**Status**: Implemented (2026-09-12)
 
 **Input**: User description: "Add support for \"fontWeight\" tokens: implement full editor support for the DTCG fontWeight token type in the dtcg-editor. Currently fontWeight tokens parse and display via the generic unsupported-type JSON textarea fallback (read-only) — there is no dedicated editor. Per the DTCG 2025.10 Format spec (Font Weight type), $value is either an integer 1-1000, or one of a fixed set of keyword aliases. Follow the token-core + token-editor-dimension precedent."
 
