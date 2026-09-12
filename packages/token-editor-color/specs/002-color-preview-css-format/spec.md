@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-11
 
-**Status**: Draft
+**Status**: Implemented (2026-09-12)
 
 **Input**: User description: "color-editor formats should look like css representation instead of raw json" — refined: "this spec is currently written about editing, but it is just about previews. this shouldn't touch existing edit behaviour, but the visual rendering should align for the user. the difference is that this is for preview only so it isn't editable"
 
