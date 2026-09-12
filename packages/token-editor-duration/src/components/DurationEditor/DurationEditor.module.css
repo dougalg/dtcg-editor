@@ -1,0 +1,25 @@
+.container {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-sm);
+}
+
+.field {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+	/* Overrides the design system's default `label { width: 100% }` (for
+	 * labels wrapping a text control), which would otherwise fight this
+	 * row's flex layout and blow the gap between the two fields way out. */
+	width: max-content;
+}
+
+.labelText {
+	font-size: var(--dtcg-ed-text-xs);
+	color: var(--dtcg-ed-color-neutral-text-quiet);
+}
+
+.valueInput,
+.unitSelect {
+	width: max-content;
+}

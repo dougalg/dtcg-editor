@@ -21,9 +21,9 @@ that component-export boundary rather than at a Playwright acceptance spec — s
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| A1 | Opening a `duration` token in the editor shows a numeric input + unit select (not a JSON textarea) | US1-AC1 | example | PENDING | `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx::renders the current value and unit` |
-| A2 | Changing the value and unit through the editor produces the updated `$value` | US1-AC2 | example | PENDING | `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx::editing the numeric value calls onChange` |
-| A3 | The editor rejects/prevents a negative numeric entry | US1-AC3 | example | PENDING | `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx::rejects a negative value` |
+| A1 | Opening a `duration` token in the editor shows a numeric input + unit select (not a JSON textarea) | US1-AC1 | example | DONE | `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx::renders the current value and unit` |
+| A2 | Changing the value and unit through the editor produces the updated `$value` | US1-AC2 | example | DONE | `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx::editing the numeric value calls onChange` |
+| A3 | The editor rejects/prevents a negative numeric entry | US1-AC3 | example | DONE | `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx::rejects a negative value` |
 | A4 | A resolved `{value:200,unit:"ms"}` preview renders as `200ms` | US2-AC1 | example | PENDING | `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.test.tsx::renders ms` |
 | A5 | A resolved `{value:1,unit:"s"}` preview renders as `1s` | US2-AC2 | example | PENDING | `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.test.tsx::renders s` |
 | A6 | `duration` appears in `BUILT_IN_TOKEN_TYPES` / the type picker's built-in list | US3-AC1 | example | PENDING | `apps/web-app/lib/token-editors/built-in.test.ts::includes duration` |
@@ -46,14 +46,14 @@ that component-export boundary rather than at a Playwright acceptance spec — s
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U7 | Renders the current value and unit | FR-001, FR-002, US1-AC1 | example | PENDING | `DurationEditor.test.tsx::renders the current value and unit` |
-| U8 | Offers exactly `["ms","s"]` as unit options | FR-002 | example | PENDING | `DurationEditor.test.tsx::offers both ms and s units` |
-| U9 | Editing the numeric value calls `onChange` with value updated, unit preserved | FR-002, US1-AC2 | example | PENDING | `DurationEditor.test.tsx::editing the numeric value calls onChange` |
-| U10 | A non-numeric value input is rejected by the number input itself, reporting `0` | FR-002 | example | PENDING | `DurationEditor.test.tsx::a non-numeric value input is rejected` |
-| U11 | Changing the unit calls `onChange` with unit updated, value preserved | FR-002 | example | PENDING | `DurationEditor.test.tsx::changing the unit calls onChange` |
-| U12 | A negative numeric entry never reaches `onChange` (boundary at 0, the other side of U2) | FR-003, US1-AC3 | example | PENDING | `DurationEditor.test.tsx::rejects a negative value` |
-| U13 | Has no WCAG 2.2 AA violations for an `ms` value | Constitution X | example | PENDING | `DurationEditor.a11y.test.tsx::has no WCAG 2.2 AA violations` |
-| U14 | Has no WCAG 2.2 AA violations for an `s` value | Constitution X | example | PENDING | `DurationEditor.a11y.test.tsx::a seconds value has no WCAG 2.2 AA violations` |
+| U7 | Renders the current value and unit | FR-001, FR-002, US1-AC1 | example | DONE | `DurationEditor.test.tsx::renders the current value and unit` |
+| U8 | Offers exactly `["ms","s"]` as unit options | FR-002 | example | DONE | `DurationEditor.test.tsx::offers both ms and s units` |
+| U9 | Editing the numeric value calls `onChange` with value updated, unit preserved | FR-002, US1-AC2 | example | DONE | `DurationEditor.test.tsx::editing the numeric value calls onChange` |
+| U10 | A non-numeric value input is rejected by the number input itself, reporting `0` | FR-002 | example | DONE | `DurationEditor.test.tsx::a non-numeric value input is rejected` |
+| U11 | Changing the unit calls `onChange` with unit updated, value preserved | FR-002 | example | DONE | `DurationEditor.test.tsx::changing the unit calls onChange` |
+| U12 | A negative numeric entry never reaches `onChange` (boundary at 0, the other side of U2) | FR-003, US1-AC3 | example | DONE | `DurationEditor.test.tsx::rejects a negative value` |
+| U13 | Has no WCAG 2.2 AA violations for an `ms` value | Constitution X | example | DONE | `DurationEditor.a11y.test.tsx::has no WCAG 2.2 AA violations` |
+| U14 | Has no WCAG 2.2 AA violations for an `s` value | Constitution X | example | DONE | `DurationEditor.a11y.test.tsx::a seconds value has no WCAG 2.2 AA violations` |
 
 ### `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.tsx`
 

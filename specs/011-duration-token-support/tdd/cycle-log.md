@@ -31,4 +31,22 @@ existed and failed before the implementation.
   `node --test src/*.test.ts` -> 107 passed, 0 failed (was 101 at baseline).
   `pnpm --filter @dtcg-editor/token-core build` -> clean, no type errors.
 - refactor: none needed — six lines, already minimal
-- commit: (pending, see next commit in this session)
+- commit: `eb4cff2`
+
+## Cycle 2: U7-U14, A1-A3 DurationEditor
+
+- test: `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx`
+  (new, 7 cases) and `DurationEditor.a11y.test.tsx` (new, 2 cases)
+- red: `pnpm exec vitest run packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx`
+  -> `Error: Failed to resolve import "./DurationEditor.tsx" ... Does the file
+  exist?` (1 test file failed to even collect — the right reason, component
+  doesn't exist yet)
+- green: `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.tsx`
+  added (mirrors `DimensionEditor.tsx`; numeric handler additionally guards
+  `Number.isNaN(next) || next < 0` so a negative edit never reaches
+  `onChange`, covering U12/A3) + `DurationEditor.module.css`. `pnpm exec
+  vitest run .../DurationEditor.test.tsx` -> 7 passed. `pnpm exec vitest run
+  .../DurationEditor.a11y.test.tsx` -> 2 passed. `pnpm --filter
+  @dtcg-editor/token-editor-duration build` -> clean.
+- refactor: none needed
+- commit: (this session, see repo history)
