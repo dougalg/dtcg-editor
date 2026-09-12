@@ -43,7 +43,7 @@ adds to `apps/web-app` to exercise end-to-end via Playwright).
 | A4 | Setting P1x below 0 never reaches the emitted value as `<0` | US1.4 | example | PENDING | `CubicBezierEditor.test.tsx::setting P1x below 0 clamps to 0` |
 | A5 | `CubicBezierPreview` renders a short readable string for a valid resolved value | US2.1 | example | PENDING | `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.test.tsx::renders a cubic-bezier(...) string for a valid value` |
 | A6 | `CubicBezierPreview` renders nothing for a value that isn't a valid cubicBezier tuple | US2.2 | example | PENDING | `CubicBezierPreview.test.tsx::renders nothing for a malformed value` |
-| A7 | A `cubicBezier` token with out-of-range y-coordinates round-trips through parse -> serialize unchanged | US3.1, US3.2 | example | PENDING | `packages/token-core/src/serialize.test.ts::round-trips a cubicBezier token with out-of-range y-coordinates` |
+| A7 | A `cubicBezier` token with out-of-range y-coordinates round-trips through parse -> serialize unchanged | US3.1, US3.2 | example | DONE | `packages/token-core/src/serialize.test.ts::round-trips a cubicBezier token with out-of-range y-coordinates unchanged (AC-07, spec 011 US3)` |
 
 ## Inner loop: unit behaviors
 
@@ -51,20 +51,20 @@ adds to `apps/web-app` to exercise end-to-end via Playwright).
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U1 | Accepts a valid 4-tuple with in-range x-coordinates | FR-001 | example | PENDING | `cubic-bezier.test.ts::accepts a valid tuple` |
-| U2 | Accepts P1x exactly at the lower boundary `0` | FR-002 | example | PENDING | `cubic-bezier.test.ts::accepts P1x at 0` |
-| U3 | Accepts P1x exactly at the upper boundary `1` | FR-002 | example | PENDING | `cubic-bezier.test.ts::accepts P1x at 1` |
-| U4 | Rejects P1x just below the lower boundary (e.g. `-0.0001`) | FR-002 | example | PENDING | `cubic-bezier.test.ts::rejects P1x below 0` |
-| U5 | Rejects P1x just above the upper boundary (e.g. `1.0001`) | FR-002 | example | PENDING | `cubic-bezier.test.ts::rejects P1x above 1` |
-| U6 | Accepts P2x exactly at the lower boundary `0` | FR-002 | example | PENDING | `cubic-bezier.test.ts::accepts P2x at 0` |
-| U7 | Accepts P2x exactly at the upper boundary `1` | FR-002 | example | PENDING | `cubic-bezier.test.ts::accepts P2x at 1` |
-| U8 | Rejects P2x just below the lower boundary | FR-002 | example | PENDING | `cubic-bezier.test.ts::rejects P2x below 0` |
-| U9 | Rejects P2x just above the upper boundary | FR-002 | example | PENDING | `cubic-bezier.test.ts::rejects P2x above 1` |
-| U10 | Accepts a large negative P1y (overshoot easing) | FR-003 | example | PENDING | `cubic-bezier.test.ts::accepts a negative P1y` |
-| U11 | Accepts a P2y greater than 1 (bounce easing) | FR-003 | example | PENDING | `cubic-bezier.test.ts::accepts a P2y greater than 1` |
-| U12 | Rejects a tuple with 3 elements | Edge case (spec.md) | example | PENDING | `cubic-bezier.test.ts::rejects a 3-element array` |
-| U13 | Rejects a tuple with 5 elements | Edge case (spec.md) | example | PENDING | `cubic-bezier.test.ts::rejects a 5-element array` |
-| U14 | Rejects a tuple containing a non-numeric entry | Edge case (spec.md) | example | PENDING | `cubic-bezier.test.ts::rejects a non-numeric entry` |
+| U1 | Accepts a valid 4-tuple with in-range x-coordinates | FR-001 | example | DONE | `cubic-bezier.test.ts::accepts a valid tuple` |
+| U2 | Accepts P1x exactly at the lower boundary `0` | FR-002 | example | DONE | `cubic-bezier.test.ts::accepts P1x at 0` |
+| U3 | Accepts P1x exactly at the upper boundary `1` | FR-002 | example | DONE | `cubic-bezier.test.ts::accepts P1x at 1` |
+| U4 | Rejects P1x just below the lower boundary (e.g. `-0.0001`) | FR-002 | example | DONE | `cubic-bezier.test.ts::rejects P1x below 0` |
+| U5 | Rejects P1x just above the upper boundary (e.g. `1.0001`) | FR-002 | example | DONE | `cubic-bezier.test.ts::rejects P1x above 1` |
+| U6 | Accepts P2x exactly at the lower boundary `0` | FR-002 | example | DONE | `cubic-bezier.test.ts::accepts P2x at 0` |
+| U7 | Accepts P2x exactly at the upper boundary `1` | FR-002 | example | DONE | `cubic-bezier.test.ts::accepts P2x at 1` |
+| U8 | Rejects P2x just below the lower boundary | FR-002 | example | DONE | `cubic-bezier.test.ts::rejects P2x below 0` |
+| U9 | Rejects P2x just above the upper boundary | FR-002 | example | DONE | `cubic-bezier.test.ts::rejects P2x above 1` |
+| U10 | Accepts a large negative P1y (overshoot easing) | FR-003 | example | DONE | `cubic-bezier.test.ts::accepts a negative P1y` |
+| U11 | Accepts a P2y greater than 1 (bounce easing) | FR-003 | example | DONE | `cubic-bezier.test.ts::accepts a P2y greater than 1` |
+| U12 | Rejects a tuple with 3 elements | Edge case (spec.md) | example | DONE | `cubic-bezier.test.ts::rejects a 3-element array` |
+| U13 | Rejects a tuple with 5 elements | Edge case (spec.md) | example | DONE | `cubic-bezier.test.ts::rejects a 5-element array` |
+| U14 | Rejects a tuple containing a non-numeric entry | Edge case (spec.md) | example | DONE | `cubic-bezier.test.ts::rejects a non-numeric entry` |
 
 ### `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.tsx`
 

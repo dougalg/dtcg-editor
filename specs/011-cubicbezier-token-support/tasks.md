@@ -48,7 +48,7 @@ of feature code.
 
 ### Tests (write FIRST, observe them fail, per Principle XIII)
 
-- [ ] T005 [P] [U1][U2][U3][U4][U5][U6][U7][U8][U9][U10][U11][U12][U13][U14] Write
+- [X] T005 [P] [U1][U2][U3][U4][U5][U6][U7][U8][U9][U10][U11][U12][U13][U14] Write
       `packages/token-core/src/cubic-bezier.test.ts` (`node:test`) covering:
       accepts a valid tuple (e.g. `[0.4, 0, 0.2, 1]`); accepts extreme-but-valid y-values (e.g.
       `[0.68, -0.55, 0.27, 1.55]`); rejects P1x `> 1` (index 0); rejects P1x `< 0`; rejects P2x
@@ -60,7 +60,7 @@ of feature code.
 
 ### Implementation
 
-- [ ] T006 [U1][U2][U3][U4][U5][U6][U7][U8][U9][U10][U11][U12][U13][U14] Create
+- [X] T006 [U1][U2][U3][U4][U5][U6][U7][U8][U9][U10][U11][U12][U13][U14] Create
       `packages/token-core/src/cubic-bezier.ts` exporting
       `CubicBezierValueSchema = z.tuple([z.number().min(0).max(1), z.number(),
       z.number().min(0).max(1), z.number()])` and `export type CubicBezierValue =
@@ -68,7 +68,7 @@ of feature code.
       designtokens.org/tr/2025.10/format's Cubic Bezier type and the index-based constraint,
       mirroring `dimension.ts`'s doc-comment style. Run T005's tests again and confirm they now
       pass.
-- [ ] T007 Export `CubicBezierValue` (type) and `CubicBezierValueSchema` from
+- [X] T007 Export `CubicBezierValue` (type) and `CubicBezierValueSchema` from
       `packages/token-core/src/index.ts`, alongside the existing `DimensionValue`/
       `DimensionValueSchema` exports
 
@@ -196,7 +196,7 @@ a built-in registered type.
 
 ### Tests for User Story 3 (write FIRST, observe fail)
 
-- [ ] T020 [US3] [A7] Add a round-trip test case to `packages/token-core/src/serialize.test.ts` (or
+- [X] T020 [US3] [A7] Add a round-trip test case to `packages/token-core/src/serialize.test.ts` (or
       `parse.test.ts`, matching wherever the existing round-trip fixture tests live) for a
       `cubicBezier` token with `$value: [0.68, -0.55, 0.27, 1.55]`, asserting parse → serialize
       → re-parse deep-equals the original parse (Principle IX). Confirm it fails first if

@@ -11,6 +11,8 @@ export {
 	ColorValueSchema,
 	LegacyHexColorValueSchema,
 } from "./color.ts";
+export type { CubicBezierValue } from "./cubic-bezier.ts";
+export { CubicBezierValueSchema } from "./cubic-bezier.ts";
 export type { DimensionValue } from "./dimension.ts";
 export { DimensionValueSchema } from "./dimension.ts";
 export type { DurationValue } from "./duration.ts";

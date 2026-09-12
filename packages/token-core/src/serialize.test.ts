@@ -48,6 +48,20 @@ test("round-trips nested groups with an inherited $type declared on an ancestor 
 	assert.deepEqual(second, first);
 });
 
+test("round-trips a cubicBezier token with out-of-range y-coordinates unchanged (AC-07, spec 011 US3)", () => {
+	const raw = JSON.stringify({
+		easing: {
+			back: {
+				$type: "cubicBezier",
+				$value: [0.68, -0.55, 0.27, 1.55],
+			},
+		},
+	});
+
+	const { first, second } = roundTrip(raw);
+	assert.deepEqual(second, first);
+});
+
 test("round-trips unrecognized $-prefixed fields, including $extensions itself (AC-07)", () => {
 	const raw = JSON.stringify({
 		color: {
