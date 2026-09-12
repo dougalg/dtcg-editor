@@ -19,3 +19,17 @@ test("a rendered color preview has no WCAG 2.2 AA violations", async () => {
 	);
 	await expectNoViolations(container);
 });
+
+test("a color preview with no alpha has no WCAG 2.2 AA violations", async () => {
+	const { container } = render(
+		<ColorPreview
+			value={{ colorSpace: "srgb", components: [0.5, 0.2, 0.8] }}
+		/>,
+	);
+	await expectNoViolations(container);
+});
+
+test("a legacy bare-hex color preview has no WCAG 2.2 AA violations", async () => {
+	const { container } = render(<ColorPreview value="#3366ff" />);
+	await expectNoViolations(container);
+});

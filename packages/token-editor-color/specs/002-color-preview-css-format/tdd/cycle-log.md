@@ -92,3 +92,56 @@ existed and failed before the implementation.
   - `git diff --stat main...HEAD -- packages/token-editor-color/src apps/web-app` -> only `ColorPreview/ColorPreview.tsx`, `ColorPreview/ColorPreview.test.tsx`, `ColorPreview/ColorPreview.a11y.test.tsx`, and `apps/web-app/e2e/edit-token-references.spec.ts` — no file under `ColorEditor/` or its siblings appears.
 - A4 and A5 marked `DONE` on this evidence. tasks.md T008, T009 ticked.
 - commit: `fc30239`
+
+## Session re-entry: /speckit-tdd-verify's remediation (T014, T015)
+
+- `/speckit-tdd-verify` (commit `46bdcec`) found verdict `FAIL` (10 `TEST_AFTER`
+  behaviors — explained fully in `tdd/verification.md` as an accepted,
+  explained exception, not fixable retroactively) plus two actionable
+  findings, appended as `tasks.md` T014/T015. Added `U10`/`U11` to the test
+  list to drive them properly.
+- Phase 0 baseline re-check at this re-entry: `pnpm test` -> 70 passed, 3
+  failed (`edit-token-references-perf.spec.ts` ×2 — A18, SC-004;
+  `keyboard-navigation.spec.ts` — A3), 10 skipped. Same class, same specific
+  tests, as the standing user-approved deviation from earlier this session
+  (see "Baseline re-check: rebased onto main" above) — not re-litigated as a
+  new decision; proceeding on that standing approval.
+- Both `U10` and `U11` characterize **already-correct existing behavior**
+  (the swatch already computes the right CSS color; the no-alpha/hex
+  branches already have no a11y issues) — not new behavior to drive. Per the
+  playbook's brownfield section, these follow the characterization path
+  (write the test, expect it green immediately, verify with a deliberate
+  mutant, set state `BASELINE`), not red-green-refactor.
+- Split T015's bundled "no-alpha and legacy-hex" description into two
+  separate behaviors (`U11`, `U12`) per Hard Rule 1 (one behavior per
+  cycle) — the remediation task itself may cover two things, but each gets
+  its own test and its own mutant check.
+
+## Cycle 6 (characterization): U10 — swatch/text agreement, pinned
+
+- test: `ColorPreview.test.tsx::the swatch's rendered color matches the adjacent text (SC-002)` (new)
+- **Green immediately, as expected for a characterization test** (the behavior already exists and is correct): `pnpm exec vitest run --project 'packages/token-editor-color:unit' packages/token-editor-color/src/components/ColorPreview/ColorPreview.test.tsx -t "SC-002"` -> 1 passed.
+- **Deliberate mutant** (this is `tdd/verification.md` Finding #1's exact mutant, reused because it's precisely the bug this test now exists to catch): `<Swatch value={value} />` -> `<Swatch value="#000000" />` in `ColorPreview.tsx`. Re-ran -> 1 failed: `Expected: "--swatch-color: oklch(0.7 0.1 180 / 0.8)" / Received: "--swatch-color: #000000;"`. Restored exactly (`git diff` empty).
+- refactor: none needed.
+- Full `ColorPreview` suite after restore: 10 passed, 0 failed.
+- State: `BASELINE`.
+- commit: (recorded below)
+
+## Cycle 7 (characterization): U11 — no-alpha branch has no a11y violations
+
+- test: `ColorPreview.a11y.test.tsx::a color preview with no alpha has no WCAG 2.2 AA violations` (new)
+- **Green immediately**: `pnpm exec vitest run --project 'packages/token-editor-color:a11y' packages/token-editor-color/src/components/ColorPreview/ColorPreview.a11y.test.tsx -t "no alpha"` -> 1 passed.
+- **Deliberate mutant** (the low-contrast style proven reliable during Cycle 5's U9 hunt): text span given `style={{ color: "#fafafa", backgroundColor: "#ffffff" }}` -> re-ran -> 1 failed, `color-contrast` violation. Restored exactly.
+- refactor: none needed.
+- State: `BASELINE`.
+- commit: (recorded below)
+
+## Cycle 8 (characterization): U12 — legacy-hex branch has no a11y violations
+
+- test: `ColorPreview.a11y.test.tsx::a legacy bare-hex color preview has no WCAG 2.2 AA violations` (new)
+- **Green immediately**: `pnpm exec vitest run --project 'packages/token-editor-color:a11y' packages/token-editor-color/src/components/ColorPreview/ColorPreview.a11y.test.tsx -t "legacy bare-hex"` -> 1 passed.
+- **Deliberate mutant**: same low-contrast style -> re-ran -> 1 failed, `color-contrast` violation. Restored exactly.
+- refactor: none needed.
+- Full `ColorPreview` suite after restore and a `biome check --write` formatting fix (Prettier-equivalent JSX line-wrap, no semantic change): 12 passed, 0 failed.
+- State: `BASELINE`.
+- commit: (recorded below)

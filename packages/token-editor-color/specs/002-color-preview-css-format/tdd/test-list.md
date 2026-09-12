@@ -53,6 +53,9 @@ is no new red to produce when nothing is meant to change.
 | U7  | Renders a legacy bare-hex string unchanged                                | US1-AS3, FR-004       | example | DONE    | `ColorPreview.test.tsx` (new)      |
 | U8  | Declines (renders nothing) for a value that fails `ColorValueSchema`      | US3-AS1, FR-005       | example | DONE    | `ColorPreview.test.tsx` (new)      |
 | U9  | Zero `axe-core` WCAG 2.2 AA violations rendering a representative color value | package Principle IV | example | DONE    | `ColorPreview.a11y.test.tsx` (new) |
+| U10 | Current behavior: the rendered `<Swatch>`'s `--swatch-color` matches `colorValueToCssColor(value)` — the same value the adjacent text renders | tdd/verification.md Finding #1, SC-002 | characterization | BASELINE | `ColorPreview.test.tsx` (new) |
+| U11 | Current behavior: the no-alpha render branch has zero WCAG 2.2 AA violations | tdd/verification.md Finding #3 | characterization | BASELINE | `ColorPreview.a11y.test.tsx` (new) |
+| U12 | Current behavior: the legacy-hex render branch has zero WCAG 2.2 AA violations | tdd/verification.md Finding #3 | characterization | BASELINE | `ColorPreview.a11y.test.tsx` (new) |
 
 ## Invariants and edge cases still to place
 
