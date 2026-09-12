@@ -199,6 +199,51 @@ existed and failed before the implementation.
 - `packages/token-editor-cubic-bezier`'s Vitest unit+a11y projects: 18/18
   passed (Cycles 3-6).
 
+## Post-implementation full-suite audit (T025-T026)
+
+`pnpm build` passes clean across all 8 packages/apps. `pnpm exec vitest run`
+(the fast inner-loop subset covering every unit + a11y project, our feature's
+actual scope) passes 519/519 `apps/web-app` tests and the full aggregated
+project set, modulo the one pre-existing wall-clock bench flake documented at
+Baseline (confirmed to pass in isolation, uncontended).
+
+`pnpm test` (the full CI gate, which also runs `apps/web-app`'s Playwright
+e2e suite) surfaced 3 additional failures, all investigated and confirmed
+**pre-existing and out of this feature's scope** — per Hard Rule 6 ("an
+unrelated bug you notice is reported, not fixed"), none were changed:
+
+1. Two `edit-token-references-perf.spec.ts` failures (A18 Long Task budget,
+   SC-004 p95 latency) — wall-clock/Long-Task-budget assertions, the same
+   category of CPU-contention-sensitive test as the vitest bench flakes.
+   Re-running showed different subsets failing each time (non-deterministic),
+   confirming contention sensitivity rather than a real regression. This
+   feature touches no reference-picker or performance-critical code path.
+2. `keyboard-navigation.spec.ts`'s A3 "visual order" test — deterministic
+   (reproduced 3/3 runs), but root-caused via a debug instrumented run to a
+   pre-existing DOM-ordering issue in the reference-repointing UI
+   (`TokenReferencePicker`/`ReferenceEditControl`'s "Repoint reference for
+   ..." button rendering above its adjacent "Go to ..." link in document
+   order for every heavily-referenced token) — **confirmed independent of
+   this feature's fixture change** by temporarily reverting
+   `large_scale.tokens.json`'s `_showcase.exotic` back to its original
+   `cubicBezier` value and re-running: the same class of regression still
+   occurred (6 vs this branch's 7, the 1-count difference being a minor
+   layout-height side effect of the exotic token's value length, not the
+   root cause). `git log` shows `TokenReferencePicker.tsx`'s "Repoint
+   reference" button predates this feature entirely (feature 010's work).
+   This is a real, pre-existing bug affecting any fixture with heavily
+   cross-referenced tokens (which `large_scale.tokens.json` deliberately is,
+   per its `HUB_REFERRERS = 130` design) — reported here for a maintainer to
+   triage as its own bug-fix task; not fixed as part of this feature per Hard
+   Rule 6 (stay inside the feature's scope).
+
+Every test this feature is actually responsible for (token-core's
+`cubic-bezier.test.ts` + updated `serialize.test.ts`, the entire
+`token-editor-cubic-bezier` package, and `apps/web-app`'s
+`built-in.test.ts`/`define-config.test.ts`/`generate-large-fixture.test.ts`)
+passes. T026 is complete in that sense; the 3 pre-existing e2e failures above
+are called out rather than silently left unmentioned.
+
 ## Notes and deviations
 
 - Cycles 1 and 2 are committed together in a single commit

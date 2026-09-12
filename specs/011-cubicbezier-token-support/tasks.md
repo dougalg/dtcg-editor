@@ -233,16 +233,16 @@ existing token files round-trip unchanged.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T024 [P] Run `pnpm --filter @dtcg-editor/token-editor-cubic-bezier lint:write` and
+- [X] T024 [P] Run `pnpm --filter @dtcg-editor/token-editor-cubic-bezier lint:write` and
       `pnpm --filter @dtcg-editor/token-core lint:write` to apply Biome formatting to all new
       files
-- [ ] T025 Run `pnpm build` at repo root and fix any type errors surfaced across
+- [X] T025 Run `pnpm build` at repo root and fix any type errors surfaced across
       `token-core`, `token-editor-cubic-bezier`, and `apps/web-app`
-- [ ] T026 Run `pnpm test` at repo root (full suite: `node --test` packages +
+- [X] T026 Run `pnpm test` at repo root (full suite: `node --test` packages +
       root Vitest `test.projects`) and confirm everything is green
-- [ ] T027 Manually execute `quickstart.md` steps 1–4 (schema tests, editor/preview tests,
+- [X] T027 Manually execute `quickstart.md` steps 1–4 (schema tests, editor/preview tests,
       optional manual end-to-end check, round-trip fixture) and confirm all pass
-- [ ] T028 [A1][A2][A3][A4][A5][A6][A7] Confirm every outer-loop acceptance behavior in
+- [X] T028 [A1][A2][A3][A4][A5][A6][A7] Confirm every outer-loop acceptance behavior in
       `specs/011-cubicbezier-token-support/tdd/test-list.md` is `DONE` (green, full suite
       green, refactor step complete or judged unnecessary) before considering this feature
       complete
