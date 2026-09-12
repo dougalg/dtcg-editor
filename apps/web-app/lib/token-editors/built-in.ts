@@ -1,6 +1,7 @@
 import { colorTokenType } from "@dtcg-editor/token-editor-color";
 import type { TokenTypeContract } from "@dtcg-editor/token-editor-contract";
 import { dimensionTokenType } from "@dtcg-editor/token-editor-dimension";
+import { durationTokenType } from "@dtcg-editor/token-editor-duration";
 import type { TokenEditorExtension } from "./types.ts";
 
 /**
@@ -9,7 +10,7 @@ import type { TokenEditorExtension } from "./types.ts";
  * `builtInContractsByType` below — the mapped type on that record makes
  * forgetting the second edit a compile error, not silent drift.
  */
-export const BUILT_IN_TOKEN_TYPES = ["dimension", "color"] as const;
+export const BUILT_IN_TOKEN_TYPES = ["dimension", "color", "duration"] as const;
 
 export type TokenType = (typeof BUILT_IN_TOKEN_TYPES)[number];
 
@@ -24,6 +25,8 @@ const builtInContractsByType: {
 	dimension: dimensionTokenType as unknown as TokenTypeContract<unknown>,
 	// Same safety argument as `dimension` above.
 	color: colorTokenType as unknown as TokenTypeContract<unknown>,
+	// Same safety argument as `dimension` above.
+	duration: durationTokenType as unknown as TokenTypeContract<unknown>,
 };
 
 /** Built-in `{ type, editor }` entries, one per `BUILT_IN_TOKEN_TYPES` member. */

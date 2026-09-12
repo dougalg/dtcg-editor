@@ -24,6 +24,7 @@
 		"@dtcg-editor/token-editor-color": "workspace:*",
 		"@dtcg-editor/token-editor-contract": "workspace:*",
 		"@dtcg-editor/token-editor-dimension": "workspace:*",
+		"@dtcg-editor/token-editor-duration": "workspace:*",
 		"neverthrow": "catalog:",
 		"next": "catalog:",
 		"react": "catalog:",

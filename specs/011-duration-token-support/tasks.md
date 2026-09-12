@@ -90,11 +90,11 @@ description: "Task list for Duration Token Support (011)"
 
 ### Tests for User Story 3 ⚠️ (write first, confirm red)
 
-- [ ] T019pre [US3] [U21][U22] Add `apps/web-app`'s workspace dependency first (`pnpm add @dtcg-editor/token-editor-duration --workspace --filter @dtcg-editor/web-app`, per CLAUDE.md — never hand-edit `package.json`), then write failing tests in `apps/web-app/lib/token-editors/built-in.test.ts` (new, or extend an existing registry test if one already asserts this list — search for one referencing `"dimension"`/`"color"`): `BUILT_IN_TOKEN_TYPES` includes `"duration"` [U21]; `resolveBuiltInContract("duration")` returns a contract with `type: "duration"` [U22] — confirm red (registration doesn't exist yet)
+- [x] T019pre [US3] [U21][U22] Add `apps/web-app`'s workspace dependency first (`pnpm add @dtcg-editor/token-editor-duration --workspace --filter @dtcg-editor/web-app`, per CLAUDE.md — never hand-edit `package.json`), then write failing tests in `apps/web-app/lib/token-editors/built-in.test.ts` (new, or extend an existing registry test if one already asserts this list — search for one referencing `"dimension"`/`"color"`): `BUILT_IN_TOKEN_TYPES` includes `"duration"` [U21]; `resolveBuiltInContract("duration")` returns a contract with `type: "duration"` [U22] — confirm red (registration doesn't exist yet)
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] [U21][U22][A6][A7] Register `duration` in `apps/web-app/lib/token-editors/built-in.ts`: import `durationTokenType` from `@dtcg-editor/token-editor-duration`, add `"duration"` to `BUILT_IN_TOKEN_TYPES`, add the `duration: durationTokenType as unknown as TokenTypeContract<unknown>` entry to `builtInContractsByType` — confirm T019pre goes green (covers A6); A7 (round-trip fidelity) is already covered by `token-core`'s existing type-agnostic round-trip fixture tests once `duration` is a recognized `DtcgTokenType` (already true — see `token-types.ts`)
+- [x] T019 [US3] [U21][U22][A6][A7] Register `duration` in `apps/web-app/lib/token-editors/built-in.ts`: import `durationTokenType` from `@dtcg-editor/token-editor-duration`, add `"duration"` to `BUILT_IN_TOKEN_TYPES`, add the `duration: durationTokenType as unknown as TokenTypeContract<unknown>` entry to `builtInContractsByType` — confirm T019pre goes green (covers A6); A7 (round-trip fidelity) is already covered by `token-core`'s existing type-agnostic round-trip fixture tests once `duration` is a recognized `DtcgTokenType` (already true — see `token-types.ts`)
 
 **Checkpoint**: `duration` tokens are indistinguishable from other built-in types anywhere the app enumerates or validates token types.
 

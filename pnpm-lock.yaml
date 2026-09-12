@@ -325,6 +325,9 @@ importers:
       '@dtcg-editor/token-editor-dimension':
         specifier: workspace:*
         version: link:../../packages/token-editor-dimension
+      '@dtcg-editor/token-editor-duration':
+        specifier: workspace:*
+        version: link:../../packages/token-editor-duration
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0

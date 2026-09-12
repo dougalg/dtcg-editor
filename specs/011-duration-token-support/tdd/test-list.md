@@ -26,8 +26,8 @@ that component-export boundary rather than at a Playwright acceptance spec — s
 | A3 | The editor rejects/prevents a negative numeric entry | US1-AC3 | example | DONE | `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.test.tsx::rejects a negative value` |
 | A4 | A resolved `{value:200,unit:"ms"}` preview renders as `200ms` | US2-AC1 | example | DONE | `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.test.tsx::renders ms` |
 | A5 | A resolved `{value:1,unit:"s"}` preview renders as `1s` | US2-AC2 | example | DONE | `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.test.tsx::renders s` |
-| A6 | `duration` appears in `BUILT_IN_TOKEN_TYPES` / the type picker's built-in list | US3-AC1 | example | PENDING | `apps/web-app/lib/token-editors/built-in.test.ts::includes duration` |
-| A7 | A syntactically valid `duration` token parses/validates successfully and round-trips losslessly | US3-AC2 | example | PENDING | `packages/token-core/src/duration.test.ts::accepts a valid ms value` (validation) + existing `packages/token-core/src/serialize.test.ts` round-trip pattern (fidelity) |
+| A6 | `duration` appears in `BUILT_IN_TOKEN_TYPES` / the type picker's built-in list | US3-AC1 | example | DONE | `apps/web-app/lib/token-editors/built-in.test.ts::includes duration` |
+| A7 | A syntactically valid `duration` token parses/validates successfully and round-trips losslessly | US3-AC2 | example | DONE | `packages/token-core/src/duration.test.ts::accepts a valid ms value` (validation) + existing `packages/token-core/src/serialize.test.ts` round-trip pattern (fidelity) |
 
 ## Inner loop: unit behaviors
 
@@ -75,8 +75,8 @@ that component-export boundary rather than at a Playwright acceptance spec — s
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U21 | `BUILT_IN_TOKEN_TYPES` includes `"duration"` | FR-005, US3-AC1 | example | PENDING | `built-in.test.ts::includes duration` (new, or extend an existing registry test if one already asserts this list) |
-| U22 | `resolveBuiltInContract("duration")` returns `durationTokenType` | FR-005 | example | PENDING | `built-in.test.ts::resolves the duration contract` |
+| U21 | `BUILT_IN_TOKEN_TYPES` includes `"duration"` | FR-005, US3-AC1 | example | DONE | `built-in.test.ts::includes duration` (new, or extend an existing registry test if one already asserts this list) |
+| U22 | `resolveBuiltInContract("duration")` returns `durationTokenType` | FR-005 | example | DONE | `built-in.test.ts::resolves the duration contract` |
 
 ## Invariants and edge cases still to place
 

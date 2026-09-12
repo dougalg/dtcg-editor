@@ -1,5 +1,6 @@
 import { colorTokenType } from "@dtcg-editor/token-editor-color";
 import { dimensionTokenType } from "@dtcg-editor/token-editor-dimension";
+import { durationTokenType } from "@dtcg-editor/token-editor-duration";
 import { render } from "@testing-library/react";
 import axe from "axe-core";
 import { expect, test, vi } from "vitest";
@@ -25,6 +26,19 @@ test("the built-in color editor has no WCAG 2.2 AA violations", async () => {
 			value={{ colorSpace: "srgb", components: [0.2, 0.4, 0.9] }}
 			onChange={vi.fn()}
 		/>,
+	);
+
+	const results = await axe.run(container, {
+		runOnly: { type: "tag", values: [...WCAG_22_AA_TAGS] },
+	});
+
+	expect(results.violations).toEqual([]);
+});
+
+test("the built-in duration editor has no WCAG 2.2 AA violations", async () => {
+	const Editor = durationTokenType.Editor;
+	const { container } = render(
+		<Editor value={{ value: 200, unit: "ms" }} onChange={vi.fn()} />,
 	);
 
 	const results = await axe.run(container, {

@@ -49,7 +49,7 @@ existed and failed before the implementation.
   .../DurationEditor.a11y.test.tsx` -> 2 passed. `pnpm --filter
   @dtcg-editor/token-editor-duration build` -> clean.
 - refactor: none needed
-- commit: (this session, see repo history)
+- commit: `e856424`
 
 ## Cycle 3: U15-U19, A4-A5 DurationPreview
 
@@ -66,5 +66,34 @@ existed and failed before the implementation.
   `durationTokenType` (completes U20). `pnpm exec vitest run
   packages/token-editor-duration` -> 4 test files, 14 tests, all passed.
   `pnpm --filter @dtcg-editor/token-editor-duration build` -> clean.
+- refactor: none needed
+- commit: `e856424`
+
+## Cycle 4: U21-U22, A6-A7 built-in registration
+
+- test: extended `apps/web-app/lib/token-editors/built-in.test.ts` (existing
+  file — the `BUILT_IN_TOKEN_TYPES` deepEqual assertion already asserted an
+  exact list, so it doubles as the failing test for U21 once `"duration"` is
+  added to the expected array) plus a new `resolveBuiltInContract('duration')`
+  case (U22); also extended `built-in.a11y.test.tsx` with a duration-editor
+  smoke case (non-TDD-gated — durationTokenType.Editor already existed and
+  passing before this cycle, so this addition has no red/green transition of
+  its own; kept for parity with the dimension/color entries already there)
+- red: `pnpm exec vitest run apps/web-app/lib/token-editors/built-in.test.ts`
+  -> `AssertionError: Expected values to be strictly equal` (deepEqual
+  mismatch: actual `["dimension","color"]` vs expected `[...,"duration"]`)
+  and `AssertionError: Expected values to be strictly equal: + undefined -
+  'duration'` for `resolveBuiltInContract` (2 failed, 1 passed — right
+  reasons: `duration` not yet registered)
+- green: `apps/web-app/lib/token-editors/built-in.ts` imports
+  `durationTokenType` from the new `@dtcg-editor/token-editor-duration`
+  workspace dependency (added via `pnpm add ... --workspace`, then corrected
+  from the erroneous `catalog:` protocol pnpm's `add` produced to
+  `workspace:*` matching every sibling entry — `packages/token-editor-duration`
+  is a workspace member, not a catalog-versioned external package),
+  adds `"duration"` to `BUILT_IN_TOKEN_TYPES` and
+  `builtInContractsByType`. `pnpm exec vitest run
+  apps/web-app/lib/token-editors/built-in` -> 2 test files, 6 tests, all
+  passed.
 - refactor: none needed
 - commit: (this session, see repo history)
