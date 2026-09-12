@@ -19,6 +19,8 @@ export type { DurationValue } from "./duration.ts";
 export { DurationValueSchema } from "./duration.ts";
 export type { TokenEdit } from "./edit.ts";
 export { applyTokenEdits, TokenEditError } from "./edit.ts";
+export type { FontWeightValue } from "./font-weight.ts";
+export { FontWeightValueSchema } from "./font-weight.ts";
 export { parseTokenFile, TokenParseError } from "./parse.ts";
 export type { TokenReference } from "./reference.ts";
 export { collectReferences, parseReference } from "./reference.ts";

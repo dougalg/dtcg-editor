@@ -51,15 +51,15 @@ host's built-in-type registry for A1).
 
 | id  | behavior                                                            | traces  | kind    | state   | test                                                          |
 | --- | -------------------------------------------------------------------- | ------- | ------- | ------- | -------------------------------------------------------------- |
-| U1  | Accepts the integer lower boundary, `1`                              | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::accepts 1`       |
-| U2  | Accepts the integer upper boundary, `1000`                           | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::accepts 1000`    |
-| U3  | Accepts a mid-range integer, `400`                                   | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::accepts 400`     |
-| U4  | Accepts every one of the 18 documented keyword aliases                | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::accepts every alias` |
-| U5  | Rejects `0`, just below the lower boundary                           | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::rejects 0`        |
-| U6  | Rejects `1001`, just above the upper boundary                        | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::rejects 1001`     |
-| U7  | Rejects a non-integer number, `400.5`                                 | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::rejects a non-integer` |
-| U8  | Rejects an unrecognized string, `"extra-bold-ish"`                    | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::rejects unknown alias` |
-| U9  | Rejects a non-string/non-number shape (an object)                     | FR-002  | example | PENDING | `packages/token-core/src/font-weight.test.ts::rejects wrong shape` |
+| U1  | Accepts the integer lower boundary, `1`                              | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::accepts the integer lower boundary, 1` |
+| U2  | Accepts the integer upper boundary, `1000`                           | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::accepts the integer upper boundary, 1000` |
+| U3  | Accepts a mid-range integer, `400`                                   | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::accepts a mid-range integer, 400` |
+| U4  | Accepts every one of the 18 documented keyword aliases                | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::accepts every one of the 18 documented keyword aliases` |
+| U5  | Rejects `0`, just below the lower boundary                           | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::rejects 0, just below the lower boundary` |
+| U6  | Rejects `1001`, just above the upper boundary                        | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::rejects 1001, just above the upper boundary` |
+| U7  | Rejects a non-integer number, `400.5`                                 | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::rejects a non-integer number, 400.5` |
+| U8  | Rejects an unrecognized string, `"extra-bold-ish"`                    | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::rejects an unrecognized string, extra-bold-ish` |
+| U9  | Rejects a non-string/non-number shape (an object)                     | FR-002  | example | DONE    | `packages/token-core/src/font-weight.test.ts::rejects a non-string/non-number shape, an object` |
 
 ### `packages/token-editor-font-weight/src/components/FontWeightEditor/FontWeightEditor.tsx`
 
