@@ -6,7 +6,10 @@ import { useReferenceCatalogue } from "../../hooks/useReferenceCatalogue.ts";
 import { diagnosticFor } from "../../lib/tokens/candidate-diagnostic.ts";
 import { filterCandidates } from "../../lib/tokens/candidate-filter.ts";
 import { isCircularIfSelected } from "../../lib/tokens/candidate-selectability.ts";
-import { resolveIfRepointed } from "../../lib/tokens/hypothetical-resolution.ts";
+import {
+	type HypotheticalResolution,
+	resolveIfRepointed,
+} from "../../lib/tokens/hypothetical-resolution.ts";
 import type { ReferenceCandidate } from "../../lib/tokens/reference-catalogue-wire.ts";
 import { CandidatePreview } from "../CandidatePreview/CandidatePreview.tsx";
 import styles from "./TokenReferencePicker.module.css";
@@ -126,6 +129,33 @@ export function TokenReferencePicker({
 	const items = allItems.slice(0, MAX_VISIBLE_CANDIDATES);
 	const truncatedCount = allItems.length - items.length;
 
+	// FR-009/FR-012 (revised 2026-09-12, third pass): the hypothetical is
+	// computed for every visible row, not only the highlighted one — the
+	// user wants to see the effect of each candidate in the list as they
+	// browse, not only after hovering/highlighting it. `items` is already
+	// capped at `MAX_VISIBLE_CANDIDATES` (SC-004); this cache additionally
+	// carries results across keystrokes (a narrowing search re-shows many of
+	// the same candidates), so only genuinely new rows entering the visible
+	// set pay the resolve cost — the `useMemo` below returns a stable `Map`
+	// instance per (catalogue, editedTokenPath) pair and mutates it in
+	// place, rather than rebuilding one from scratch on every keystroke.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: cache-invalidation key, not a factory data dependency — a new pair means stale entries, so the Map should be recreated even though the factory body doesn't read either value.
+	const hypotheticalCache = useMemo(
+		() => new Map<string, HypotheticalResolution>(),
+		[catalogue, editedTokenPath],
+	);
+	if (catalogue !== undefined) {
+		for (const c of items) {
+			if (!hypotheticalCache.has(c.displayPath)) {
+				hypotheticalCache.set(
+					c.displayPath,
+					resolveIfRepointed(editedTokenPath, c.path, catalogue),
+				);
+			}
+		}
+	}
+	const hypotheticalByPath = hypotheticalCache;
+
 	if (status === "error") {
 		// FR-021: the whole-directory catalogue is unavailable — degrade to
 		// editing the reference as raw alias text, no rich preview, so the user
@@ -155,28 +185,9 @@ export function TokenReferencePicker({
 
 	const highlighted = items.find((c) => c.displayPath === highlightKey);
 	const hypothetical =
-		highlighted !== undefined && catalogue !== undefined
-			? resolveIfRepointed(editedTokenPath, highlighted.path, catalogue)
+		highlighted !== undefined
+			? hypotheticalByPath.get(highlighted.displayPath)
 			: undefined;
-
-	// FR-014 applies to *every* circular candidate, not only the highlighted
-	// one (contrast FR-012's "for the highlighted candidate" hypothetical
-	// preview) — a disabled row can never itself become `highlightKey`
-	// (cmdk's own pointer/keyboard highlight machinery skips a disabled
-	// `CommandItem` entirely, U11), so a non-self cycle-closing candidate
-	// would otherwise never get its "would resolve to" cycle naming at all.
-	function hypotheticalFor(c: ReferenceCandidate) {
-		if (c.displayPath === highlightKey) {
-			return hypothetical;
-		}
-		if (
-			catalogue !== undefined &&
-			diagnosticFor(editedTokenPath, c) === "circular"
-		) {
-			return resolveIfRepointed(editedTokenPath, c.path, catalogue);
-		}
-		return undefined;
-	}
 
 	return (
 		<>
@@ -216,7 +227,7 @@ export function TokenReferencePicker({
 							<CandidatePreview
 								candidate={c}
 								diagnostic={diagnosticFor(editedTokenPath, c)}
-								hypothetical={hypotheticalFor(c)}
+								hypothetical={hypotheticalByPath.get(c.displayPath)}
 							/>
 						</span>
 					</span>

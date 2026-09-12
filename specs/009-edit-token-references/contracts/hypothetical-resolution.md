@@ -189,11 +189,54 @@ case (one edit at a time) is exact.
 compare the hypothetical against the candidate's own preview to decide
 whether to show it. When `hypothetical` is passed, it is rendered *instead
 of* `candidate.preview` — not alongside it, and with no "would resolve to"
-caption — for exactly the rows a hypothetical is computed for (the
-highlighted row, and any row FR-014 requires cycle-naming for). Every other
-row has no `hypothetical` (perf budget, SC-004) and renders `candidate.preview`
-unchanged. This replaced an earlier same-day revision that added a
+caption. This replaced an earlier same-day revision that added a
 mode-for-mode identity comparison (`hypotheticalDiffersFromPreview`, since
 removed) to conditionally *append* the hypothetical only when it differed;
 user feedback simplified this further — the user only cares about the effect
 of the selection, so there is never a need to show both.
+
+### Rendering scope: every visible row, not only the highlighted one (revised 2026-09-12, third pass)
+
+`TokenReferencePicker` now calls `resolveIfRepointed` for **every** row in
+`items` (the already-`MAX_VISIBLE_CANDIDATES`-capped render list, SC-004),
+not only the highlighted row plus FR-014's forced-circular rows — the user
+wants the effect of every visible candidate without hovering/highlighting
+first. Three changes keep this inside the SC-004 latency budget (measured
+regression: p95 71.8ms against a 50ms budget once this rendering-scope
+change landed):
+
+1. **O(1) path index** (`candidateIndexFor`, `hypothetical-resolution.ts`):
+   `lookupForCatalogueMode` previously did `catalogue.candidates.find(...)` —
+   an O(N) linear scan — on *every hop of every chain*. Over a ~2,000-candidate
+   directory and up to 200 rows per keystroke, this was the actual bottleneck
+   (millions of comparisons/keystroke), not the rendering scope itself. A
+   `WeakMap<ReferenceCatalogue, Map<pathKey, ReferenceCandidate>>`, built once
+   per catalogue object and cached by identity, turns every lookup into an
+   O(1) map read.
+2. **Cross-keystroke result cache** (`hypotheticalCache`,
+   `TokenReferencePicker.tsx`): a `Map<displayPath, HypotheticalResolution>`
+   that persists for the life of a (catalogue, editedTokenPath) pair (a
+   `useMemo` returning a stable instance, mutated in place — a recognized
+   memoization pattern, not a render side effect that affects output). A
+   narrowing search re-shows many of the same candidates keystroke to
+   keystroke; only genuinely new rows pay the resolve cost.
+3. **Fast path** (`resolveIfRepointedFast`, `hypothetical-resolution.ts`): when
+   `candidate-selectability.isCircularIfSelected` says the pick cannot create
+   a cycle, and every catalogue mode exactly matches one of the candidate's
+   own defined modes, the downstream chain from `candidatePath` onward cannot
+   differ depending on whether it's reached from `editedTokenPath` or from the
+   candidate's own definition (no `visited`-set behavior can differ, since
+   `editedTokenPath` never recurs later in the walk). So the result is exactly
+   `candidate.preview` for that mode — already computed server-side, via the
+   real document graph rather than this module's flat-array lookup — with one
+   synthetic hop prepended, not a fresh `resolveReference` walk. This is the
+   common case (a single-mode catalogue, or a candidate defining every mode)
+   and closes most of the remaining gap. Falls back to the full walk (self,
+   a cycle, or a mode the candidate doesn't define) where the fast path's
+   assumptions don't hold.
+
+Verified via `apps/web-app/e2e/edit-token-references-perf.spec.ts` (A18,
+SC-004) against `large_scale.tokens.json` (2,000+ candidates, single mode —
+every candidate hits the fast path in that fixture) — both the Long Task
+ceiling and the p95 latency budget pass reliably in isolation and under
+concurrent Playwright workers.

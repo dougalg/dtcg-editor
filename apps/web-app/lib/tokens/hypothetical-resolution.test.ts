@@ -174,6 +174,58 @@ test("a multiply-defined candidate produces one perMode entry per mode, differin
 	assert.deepEqual(dark.value, { hex: "#000" });
 });
 
+test("fast path (non-circular, literal candidate): steps are exactly [edited, candidate], matching the slow-path shape", () => {
+	// `target` is a plain literal, single mode — the common case the fast
+	// path exists for (reusing `target`'s own precomputed preview instead of
+	// a fresh resolveReference walk). Steps must still read as if walked
+	// fresh: the edited token's hop, then the candidate's own hop, nothing
+	// duplicated or omitted.
+	const catalogue = catalogueFrom([
+		file("base.json", {
+			edited: { $type: "color", $value: "{other}" },
+			other: { $type: "color", $value: { hex: "#0f0" } },
+			target: { $type: "color", $value: { hex: "#00f" } },
+		}),
+	]);
+
+	const chain = resolveIfRepointed(["edited"], ["target"], catalogue).perMode[0]
+		?.chain;
+	assert.ok(chain !== undefined);
+	assert.deepEqual(
+		chain.steps.map((s) => s.path),
+		[["edited"], ["target"]],
+	);
+	assert.equal(chain.outcome.kind, "resolved");
+});
+
+test("fast path (non-circular, chained candidate): the candidate's own hop is inserted before its downstream chain, not duplicated or dropped", () => {
+	// `brand` -> `{leaf}`: `brand`'s own precomputed preview.steps starts at
+	// `leaf` (previewOutcome's `reference` is `brand`'s parsed value, not
+	// `brand` itself) — the fast path must still insert a `brand` step
+	// between the synthetic edited-token hop and `leaf`, matching what a
+	// fresh walk from `editedTokenPath` would produce.
+	const catalogue = catalogueFrom([
+		file("base.json", {
+			edited: { $type: "color", $value: "{x}" },
+			x: { $type: "color", $value: { hex: "#111" } },
+			brand: { $type: "color", $value: "{leaf}" },
+			leaf: { $type: "color", $value: { hex: "#abc" } },
+		}),
+	]);
+
+	const chain = resolveIfRepointed(["edited"], ["brand"], catalogue).perMode[0]
+		?.chain;
+	assert.ok(chain !== undefined);
+	assert.deepEqual(
+		chain.steps.map((s) => s.path),
+		[["edited"], ["brand"], ["leaf"]],
+	);
+	assert.equal(chain.outcome.kind, "resolved");
+	assert.deepEqual((chain.outcome as { value: unknown }).value, {
+		hex: "#abc",
+	});
+});
+
 test("the synthetic lookup picks the definition for the requested mode, else the last", () => {
 	const resolver: ResolverModes = {
 		modes: ["light", "dark"],
