@@ -23,6 +23,7 @@
 		"@dtcg-editor/token-core": "workspace:*",
 		"@dtcg-editor/token-editor-color": "workspace:*",
 		"@dtcg-editor/token-editor-contract": "workspace:*",
+		"@dtcg-editor/token-editor-cubic-bezier": "catalog:",
 		"@dtcg-editor/token-editor-dimension": "workspace:*",
 		"@dtcg-editor/token-editor-duration": "workspace:*",
 		"neverthrow": "catalog:",

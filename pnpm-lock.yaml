@@ -322,6 +322,9 @@ importers:
       '@dtcg-editor/token-editor-contract':
         specifier: workspace:*
         version: link:../../packages/token-editor-contract
+      '@dtcg-editor/token-editor-cubic-bezier':
+        specifier: 'catalog:'
+        version: link:../../packages/token-editor-cubic-bezier
       '@dtcg-editor/token-editor-dimension':
         specifier: workspace:*
         version: link:../../packages/token-editor-dimension

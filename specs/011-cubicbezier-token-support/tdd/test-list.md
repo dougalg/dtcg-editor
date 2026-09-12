@@ -94,8 +94,8 @@ adds to `apps/web-app` to exercise end-to-end via Playwright).
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U29 | `BUILT_IN_TOKEN_TYPES` includes `"cubicBezier"` | FR-011 | example | PENDING | `built-in.test.ts::includes cubicBezier in BUILT_IN_TOKEN_TYPES` |
-| U30 | `resolveBuiltInContract("cubicBezier")` returns a contract of that type | FR-011 | example | PENDING | `built-in.test.ts::resolves the cubicBezier contract` |
+| U29 | `BUILT_IN_TOKEN_TYPES` includes `"cubicBezier"` | FR-011 | example | DONE | `built-in.test.ts::includes cubicBezier in BUILT_IN_TOKEN_TYPES` |
+| U30 | `resolveBuiltInContract("cubicBezier")` returns a contract of that type | FR-011 | example | DONE | `built-in.test.ts::resolves the cubicBezier contract` |
 
 ## Invariants and edge cases still to place
 

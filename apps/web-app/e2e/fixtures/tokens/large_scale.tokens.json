@@ -16,8 +16,8 @@
 			"$value": "{group-0.sub-0.token-0}"
 		},
 		"exotic": {
-			"$type": "cubicBezier",
-			"$value": [0.4, 0, 0.2, 1]
+			"$type": "fontFamily",
+			"$value": "Arial"
 		},
 		"broken": {
 			"$type": "dimension",

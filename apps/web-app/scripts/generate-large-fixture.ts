@@ -42,13 +42,18 @@ const HUB_REFERRERS = 130;
  * reaches each editor kind within a few stops (SC-003). Order:
  * color -> dimension -> reference -> unregistered-type (fallback) ->
  * invalid-value-for-type.
+ *
+ * "exotic" uses `fontFamily` as the still-unregistered-type exemplar — it has
+ * no dedicated built-in editor (unlike `cubicBezier`, which gained one and
+ * would no longer exercise the JSON-textarea fallback path this fixture is
+ * for).
  */
 function dispatchShowcase(): JsonObject {
 	return {
 		color: { $type: "color", $value: "#3366cc" },
 		dimension: { $type: "dimension", $value: { value: 8, unit: "px" } },
 		reference: { $type: "dimension", $value: `{${HUB_PATH}}` },
-		exotic: { $type: "cubicBezier", $value: [0.4, 0, 0.2, 1] },
+		exotic: { $type: "fontFamily", $value: "Arial" },
 		broken: { $type: "dimension", $value: "definitely-not-a-dimension" },
 	};
 }

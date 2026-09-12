@@ -206,7 +206,7 @@ a built-in registered type.
       trivially only because Phase 2's schema isn't invoked here — this test exists to lock in
       the behavior going forward, per Principle XIII's requirement that the acceptance
       criterion in spec.md (US3) has a real test, even if it is not the first to go red).
-- [ ] T021 [P] [US3] [U29][U30] Write a unit test in
+- [X] T021 [P] [US3] [U29][U30] Write a unit test in
       `apps/web-app/lib/token-editors/built-in.test.ts` (create if it doesn't already exist,
       matching this file's existing test conventions for `dimension`/`color`) asserting
       `"cubicBezier"` is present in `BUILT_IN_TOKEN_TYPES` and `resolveBuiltInContract
@@ -215,13 +215,13 @@ a built-in registered type.
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] [U29][U30] In `apps/web-app/lib/token-editors/built-in.ts`: import `cubicBezierTokenType`
+- [X] T022 [US3] [U29][U30] In `apps/web-app/lib/token-editors/built-in.ts`: import `cubicBezierTokenType`
       from `@dtcg-editor/token-editor-cubic-bezier`; add `"cubicBezier"` to
       `BUILT_IN_TOKEN_TYPES`; add a `cubicBezier: cubicBezierTokenType as unknown as
       TokenTypeContract<unknown>` entry to `builtInContractsByType`, with the same
       type-erasure justification comment style already used for `dimension`/`color`. Run
       T020/T021 again and confirm they now pass.
-- [ ] T023 [US3] Add `@dtcg-editor/token-editor-cubic-bezier` as a dependency of
+- [X] T023 [US3] Add `@dtcg-editor/token-editor-cubic-bezier` as a dependency of
       `apps/web-app`'s `package.json` via `pnpm --filter @dtcg-editor/web-app add
       @dtcg-editor/token-editor-cubic-bezier@workspace:*` (per CLAUDE.md: use `pnpm add`, never
       hand-edit `package.json` dependency lists)

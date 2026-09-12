@@ -138,6 +138,48 @@ existed and failed before the implementation.
   commit as Cycle 5, plus the `Preview: CubicBezierPreview` contract wiring
   and index export, which carry no behavior marker of their own)
 
+## Cycle 7: U29-U30 cubicBezier is registered as a built-in token type
+
+- test: `apps/web-app/lib/token-editors/built-in.test.ts` (extended: the
+  existing "includes both dimension and color" test updated to also expect
+  `"cubicBezier"`, since it's a direct, exact-array assertion about
+  `BUILT_IN_TOKEN_TYPES`'s contents — not a weakening, an update tracking the
+  new built-in type per FR-011; plus one new test,
+  "resolveBuiltInContract resolves the cubicBezier contract (spec 011
+  U29/U30)")
+- red: `pnpm exec vitest run apps/web-app/lib/token-editors/built-in.test.ts`
+  -> 2 failed: the array-contents assertion (`deepEqual` diff showing
+  `cubicBezier` missing) and `assert.ok(contract)` (`resolveBuiltInContract`
+  returned `undefined`)
+- green: added `cubicBezier` to `BUILT_IN_TOKEN_TYPES` and a
+  `cubicBezier: cubicBezierTokenType as unknown as TokenTypeContract<unknown>`
+  entry to `builtInContractsByType` in `apps/web-app/lib/token-editors/built-in.ts`,
+  after building `token-editor-cubic-bezier` and adding it as an
+  `apps/web-app` dependency via `pnpm --filter @dtcg-editor/web-app add
+  "@dtcg-editor/token-editor-cubic-bezier@workspace:*"` (never hand-edited
+  `package.json`, per CLAUDE.md). Re-ran -> 3 passed, 0 failed.
+- refactor: none needed
+- regression found and fixed in the same cycle (per playbook Phase 4 — "a
+  real regression, which you fix now as part of this cycle"): registering
+  `cubicBezier` as built-in broke two *other* pre-existing tests that
+  hard-code counts/behavior tied to `BUILT_IN_TOKEN_TYPES`:
+  - `apps/web-app/lib/token-editors/define-config.test.ts`'s two
+    `resolved.extensions.length` assertions (2->3, 3->4) — mechanically tied
+    to the built-in count, updated to match.
+  - `apps/web-app/scripts/generate-large-fixture.test.ts`'s
+    "puts one token of every editable dispatch path" test failed because its
+    fixture's `exotic` token used `$type: "cubicBezier"` as the
+    still-unregistered-type/fallback exemplar — no longer true once
+    `cubicBezier` gained a built-in editor. Fixed by changing
+    `generate-large-fixture.ts`'s `dispatchShowcase()` to use
+    `{ $type: "fontFamily", $value: "Arial" }` instead (a type with no
+    built-in editor), and regenerating + `biome format`-ing the committed
+    `apps/web-app/e2e/fixtures/tokens/large_scale.tokens.json` fixture (used
+    by several Playwright e2e specs) so its `_showcase.exotic` token matches —
+    a 2-line diff (`$type`/`$value` only; the rest of the 2,000-token fixture
+    is unchanged, same PRNG seed/sequence).
+- commit: `feat(web-app): register cubicBezier as a built-in token type`
+
 ## Notes and deviations
 
 - Cycles 1 and 2 are committed together in a single commit
