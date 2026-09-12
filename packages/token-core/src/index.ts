@@ -13,6 +13,8 @@ export {
 } from "./color.ts";
 export type { DimensionValue } from "./dimension.ts";
 export { DimensionValueSchema } from "./dimension.ts";
+export type { DurationValue } from "./duration.ts";
+export { DurationValueSchema } from "./duration.ts";
 export type { TokenEdit } from "./edit.ts";
 export { applyTokenEdits, TokenEditError } from "./edit.ts";
 export { parseTokenFile, TokenParseError } from "./parse.ts";

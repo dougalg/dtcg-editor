@@ -35,12 +35,12 @@ that component-export boundary rather than at a Playwright acceptance spec — s
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U1 | Accepts a valid `{value:200,unit:"ms"}` | FR-003 | example | PENDING | `duration.test.ts::accepts a valid ms value` |
-| U2 | Accepts a valid `{value:0,unit:"s"}` (zero is a valid boundary) | FR-003 | example | PENDING | `duration.test.ts::accepts a valid zero s value` |
-| U3 | Rejects a negative `value` (boundary just below 0) | FR-003, US1-AC3 | example | PENDING | `duration.test.ts::rejects a negative value` |
-| U4 | Rejects an unrecognized `unit` (e.g. `"vh"`) | FR-003 | example | PENDING | `duration.test.ts::rejects an unsupported unit` |
-| U5 | Rejects a missing `unit` | FR-003 | example | PENDING | `duration.test.ts::rejects a missing unit` |
-| U6 | Rejects a non-numeric `value` | FR-003 | example | PENDING | `duration.test.ts::rejects a non-numeric value` |
+| U1 | Accepts a valid `{value:200,unit:"ms"}` | FR-003 | example | DONE | `duration.test.ts::accepts a valid ms value` |
+| U2 | Accepts a valid `{value:0,unit:"s"}` (zero is a valid boundary) | FR-003 | example | DONE | `duration.test.ts::accepts a valid zero s value` |
+| U3 | Rejects a negative `value` (boundary just below 0) | FR-003, US1-AC3 | example | DONE | `duration.test.ts::rejects a negative value` |
+| U4 | Rejects an unrecognized `unit` (e.g. `"vh"`) | FR-003 | example | DONE | `duration.test.ts::rejects an unsupported unit` |
+| U5 | Rejects a missing `unit` | FR-003 | example | DONE | `duration.test.ts::rejects a missing unit` |
+| U6 | Rejects a non-numeric `value` | FR-003 | example | DONE | `duration.test.ts::rejects a non-numeric value` |
 
 ### `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.tsx`
 

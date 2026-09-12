@@ -16,9 +16,9 @@ description: "Task list for Duration Token Support (011)"
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `packages/token-editor-duration/` package skeleton (`package.json`, `tsconfig.json`, `src/css-modules.d.ts`, `src/vitest-env.d.ts`, `vitest.setup.ts`, `vitest-a11y-tags.ts`) mirroring `packages/token-editor-dimension`'s equivalents exactly (dependency list unchanged, package name `@dtcg-editor/token-editor-duration`)
-- [ ] T002 [P] Add `packages/token-editor-duration` to the `packages` array in `vitest.config.mts`
-- [ ] T003 Run `pnpm install` so the new workspace package is linked
+- [x] T001 Create `packages/token-editor-duration/` package skeleton (`package.json`, `tsconfig.json`, `src/css-modules.d.ts`, `src/vitest-env.d.ts`, `vitest.setup.ts`, `vitest-a11y-tags.ts`) mirroring `packages/token-editor-dimension`'s equivalents exactly (dependency list unchanged, package name `@dtcg-editor/token-editor-duration`)
+- [x] T002 [P] Add `packages/token-editor-duration` to the `packages` array in `vitest.config.mts`
+- [x] T003 Run `pnpm install` so the new workspace package is linked
 
 **Checkpoint**: Package scaffolding exists and installs cleanly; no source code yet.
 
@@ -28,9 +28,9 @@ description: "Task list for Duration Token Support (011)"
 
 **Purpose**: The `DurationValue`/`DurationValueSchema` that every user story's editor/preview code needs.
 
-- [ ] T004 [U1][U2][U3][U4][U5][U6] Write failing tests in `packages/token-core/src/duration.test.ts` (node:test): accepts `{value:200,unit:"ms"}` [U1], accepts `{value:0,unit:"s"}` [U2], rejects negative `value` [U3], rejects unrecognized `unit` [U4], rejects missing `unit` [U5], rejects non-numeric `value` [U6] — confirm red (schema doesn't exist yet)
-- [ ] T005 [U1][U2][U3][U4][U5][U6] Implement `DurationValueSchema`/`DurationValue` in `packages/token-core/src/duration.ts` (`z.object({ value: z.number().min(0), unit: z.enum(["ms","s"]) })`) — confirm T004 goes green
-- [ ] T006 Export `DurationValue`/`DurationValueSchema` from `packages/token-core/src/index.ts`
+- [x] T004 [U1][U2][U3][U4][U5][U6] Write failing tests in `packages/token-core/src/duration.test.ts` (node:test): accepts `{value:200,unit:"ms"}` [U1], accepts `{value:0,unit:"s"}` [U2], rejects negative `value` [U3], rejects unrecognized `unit` [U4], rejects missing `unit` [U5], rejects non-numeric `value` [U6] — confirm red (schema doesn't exist yet)
+- [x] T005 [U1][U2][U3][U4][U5][U6] Implement `DurationValueSchema`/`DurationValue` in `packages/token-core/src/duration.ts` (`z.object({ value: z.number().min(0), unit: z.enum(["ms","s"]) })`) — confirm T004 goes green
+- [x] T006 Export `DurationValue`/`DurationValueSchema` from `packages/token-core/src/index.ts`
 
 **Checkpoint**: `node --test packages/token-core/src/duration.test.ts` passes. Foundation ready for editor/preview work.
 
