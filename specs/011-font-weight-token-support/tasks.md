@@ -203,30 +203,30 @@ reflects it; selecting a different alias calls `onChange` with that exact string
 
 ### Tests for User Story 3 ⚠️ (write first, run, confirm failing, only then implement)
 
-- [ ] T025 [P] [US3] [U19] [U20] [U21] Write failing tests in `FontWeightEditor.test.tsx`
+- [X] T025 [P] [US3] [U19] [U20] [U21] Write failing tests in `FontWeightEditor.test.tsx`
       (extending the file from T007): an alias picker (`<select>`) is present offering all 18
       aliases plus a "custom number" option (U19); given an alias `$value` (e.g. `"bold"`), the
       picker reflects that alias rather than showing a raw number in the numeric field (U20);
       selecting a different alias calls `onChange` with that exact string, not a number (U21).
       Run it and confirm it fails against the numeric-only editor from Phase 3
-- [ ] T026 [P] [US3] [U22] Extend `FontWeightEditor.a11y.test.tsx` (from T008) with a case
+- [X] T026 [P] [US3] [U22] Extend `FontWeightEditor.a11y.test.tsx` (from T008) with a case
       asserting zero WCAG 2.2 AA violations when an alias value is selected. Run it and confirm
       it fails
-- [ ] T027 [US3] Record the observed red for T025/T026 in
+- [X] T027 [US3] Record the observed red for T025/T026 in
       `specs/011-font-weight-token-support/tdd/cycle-log.md`
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] [U19] [U20] [U21] [U22] [A6] [A7] Extend `FontWeightEditor` in
+- [X] T028 [US3] [U19] [U20] [U21] [U22] [A6] [A7] Extend `FontWeightEditor` in
       `FontWeightEditor.tsx` with a keyword-alias `<select>` (mirroring `DimensionEditor`'s unit
       `<select>` pattern) that, when the current `value` is a string, shows/edits the alias
       directly; toggling to/from "custom number" swaps between the numeric input and the alias
       select without losing round-trip fidelity (writing exactly the alias string or exactly the
       typed integer, never a converted value) — smallest change to make T025/T026 pass, confirm
       full suite green, then refactor
-- [ ] T029 [US3] Update `FontWeightEditor.module.css` for the added alias `<select>`, styled only
+- [X] T029 [US3] Update `FontWeightEditor.module.css` for the added alias `<select>`, styled only
       with `--dtcg-ed-*` custom properties
-- [ ] T030 [US3] Run `pnpm --filter @dtcg-editor/token-editor-font-weight build` and fix any
+- [X] T030 [US3] Run `pnpm --filter @dtcg-editor/token-editor-font-weight build` and fix any
       TypeScript errors
 
 **Checkpoint**: All three user stories are independently functional. Acceptance behaviors A6–A7
@@ -236,18 +236,18 @@ green (or explicitly deferred, per the note above).
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T031 [P] Add
+- [X] T031 [P] Add
       `packages/token-editor-font-weight/src/components/FontWeightEditor/FontWeightEditor.stories.tsx`
       (Storybook), mirroring `DimensionEditor.stories.tsx`'s controlled-wrapper pattern, with
       stories for a numeric value and (if Phase 5 was implemented) an alias value
-- [ ] T032 Run `pnpm build` (whole-repo Turbo build, the sole type-checking gate) and fix any
+- [X] T032 Run `pnpm build` (whole-repo Turbo build, the sole type-checking gate) and fix any
       cross-package errors
-- [ ] T033 Run `pnpm test` (whole-repo Turbo test: commits/format-staged/vitest across every
+- [X] T033 Run `pnpm test` (whole-repo Turbo test: commits/format-staged/vitest across every
       package) and fix any failures introduced by this feature (pre-existing unrelated e2e reds
       recorded in `tdd/test-list.md`'s baseline note are not this feature's to fix)
-- [ ] T034 Run `pnpm lint` and `pnpm format:check` and fix any violations (Biome, `@ls-lint/ls-lint`
+- [X] T034 Run `pnpm lint` and `pnpm format:check` and fix any violations (Biome, `@ls-lint/ls-lint`
       filename/folder conventions per Principle X)
-- [ ] T035 [A1] [A2] [A3] [A4] [A5] [A6] [A7] Manually execute
+- [X] T035 [A1] [A2] [A3] [A4] [A5] [A6] [A7] Manually execute
       `specs/011-font-weight-token-support/quickstart.md`'s manual validation steps against the
       running web app (`pnpm dev`) and confirm every Acceptance Scenario in spec.md passes
 

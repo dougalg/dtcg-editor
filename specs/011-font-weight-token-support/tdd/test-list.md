@@ -42,8 +42,8 @@ host's built-in-type registry for A1).
 | A3  | An out-of-range or non-numeric value entered in the editor is not committed                         | AC 1.3, FR-004        | example | DONE    | `FontWeightEditor.test.tsx::entering an out-of-range integer does not call onChange` (+ non-numeric/non-integer cases) |
 | A4  | A numeric `fontWeight` value shows as readable text in a reference/candidate preview                | AC 2.1, FR-005        | example | DONE    | `FontWeightPreview.test.tsx::renders a numeric value as text`        |
 | A5  | An alias `fontWeight` value shows as readable text in a reference/candidate preview                 | AC 2.2, FR-005        | example | DONE    | `FontWeightPreview.test.tsx::renders an alias value as text`         |
-| A6  | Selecting a keyword alias in the editor writes that exact string as `$value`                        | AC 3.1, FR-007        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightEditor.test.tsx::alias selection calls onChange`  |
-| A7  | Loading a token whose `$value` is already an alias shows that alias selected, not a raw number      | AC 3.2, FR-007        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightEditor.test.tsx::reflects existing alias`         |
+| A6  | Selecting a keyword alias in the editor writes that exact string as `$value`                        | AC 3.1, FR-007        | example | DONE    | `FontWeightEditor.test.tsx::selecting a different alias calls onChange with that exact string`  |
+| A7  | Loading a token whose `$value` is already an alias shows that alias selected, not a raw number      | AC 3.2, FR-007        | example | DONE    | `FontWeightEditor.test.tsx::reflects an existing alias value in the picker instead of a raw number`         |
 
 ## Inner loop: unit behaviors
 
@@ -94,10 +94,10 @@ host's built-in-type registry for A1).
 
 | id  | behavior                                                                           | traces        | kind    | state   | test                                                              |
 | --- | -------------------------------------------------------------------------------------| ------------- | ------- | ------- | -------------------------------------------------------------------- |
-| U19 | An alias picker is present, offering all 18 aliases plus a "custom number" option    | FR-007        | example | PENDING | `FontWeightEditor.test.tsx::offers an alias picker`               |
-| U20 | Given an alias `$value`, the picker reflects that alias rather than a raw number     | FR-007, AC 3.2 | example | PENDING | `FontWeightEditor.test.tsx::reflects existing alias`              |
-| U21 | Selecting a different alias calls `onChange` with that exact string                 | FR-007, AC 3.1 | example | PENDING | `FontWeightEditor.test.tsx::alias selection calls onChange`       |
-| U22 | Has no WCAG 2.2 AA violations when an alias value is selected                       | Principle X    | example | PENDING | `FontWeightEditor.a11y.test.tsx::alias value has no violations`   |
+| U19 | An alias picker is present, offering all 18 aliases plus a "custom number" option    | FR-007        | example | DONE    | `FontWeightEditor.test.tsx::offers an alias picker with all 18 aliases plus a custom-number option` |
+| U20 | Given an alias `$value`, the picker reflects that alias rather than a raw number     | FR-007, AC 3.2 | example | DONE    | `FontWeightEditor.test.tsx::reflects an existing alias value in the picker instead of a raw number` |
+| U21 | Selecting a different alias calls `onChange` with that exact string                 | FR-007, AC 3.1 | example | DONE    | `FontWeightEditor.test.tsx::selecting a different alias calls onChange with that exact string` |
+| U22 | Has no WCAG 2.2 AA violations when an alias value is selected                       | Principle X    | example | DONE    | `FontWeightEditor.a11y.test.tsx::an alias value selected has no WCAG 2.2 AA violations` |
 
 ## Invariants and edge cases still to place
 

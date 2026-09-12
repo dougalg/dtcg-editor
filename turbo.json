@@ -69,7 +69,8 @@
 				"@dtcg-editor/token-core#build",
 				"@dtcg-editor/token-editor-contract#build",
 				"@dtcg-editor/token-editor-color#build",
-				"@dtcg-editor/token-editor-dimension#build"
+				"@dtcg-editor/token-editor-dimension#build",
+				"@dtcg-editor/token-editor-font-weight#build"
 			],
 			"cache": false,
 			"persistent": true
@@ -80,7 +81,8 @@
 				"@dtcg-editor/token-core#build",
 				"@dtcg-editor/token-editor-contract#build",
 				"@dtcg-editor/token-editor-color#build",
-				"@dtcg-editor/token-editor-dimension#build"
+				"@dtcg-editor/token-editor-dimension#build",
+				"@dtcg-editor/token-editor-font-weight#build"
 			],
 			"outputs": ["storybook-static/**"]
 		}

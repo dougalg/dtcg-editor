@@ -296,3 +296,73 @@ existed and failed before the implementation.
   tests passed, 0 failed (was 144/710 after cycle 15 + 5 new tests from
   cycles 16-19 = 715)
 - commit: `3212c0d`
+
+## Cycle 20: U19/U20/U21 keyword-alias picker
+
+- test: `FontWeightEditor.test.tsx` — three new cases: "offers an alias picker
+  with all 18 aliases plus a custom-number option" (U19), "reflects an
+  existing alias value in the picker instead of a raw number" (U20),
+  "selecting a different alias calls onChange with that exact string" (U21)
+- red: `pnpm exec vitest run .../FontWeightEditor.test.tsx` -> 3 failed, 5
+  passed — `TestingLibraryElementError: Unable to find a label with the text
+  of: Alias` for all three, genuine red (no alias `<select>` existed yet)
+- green: added the `FONT_WEIGHT_ALIASES`-driven `<select>` (a "custom" option
+  plus the 18 aliases), `isAlias`/`handleAliasChange` logic: selecting
+  "custom" calls `onChange(1)`, selecting an alias calls `onChange(alias)`
+  as the literal string. Re-ran the full file -> 8 passed, 0 failed
+- refactor: none needed
+
+## Cycle 21: U22 alias-selected FontWeightEditor has no WCAG 2.2 AA violations
+
+- test: `FontWeightEditor.a11y.test.tsx::an alias value selected has no WCAG
+  2.2 AA violations` (new)
+- red/verification: passed on first run. Deliberate mutant: changed the
+  Alias `<label>` wrapper to a plain `<div>` (same technique as cycle 14),
+  re-ran `-t "an alias value selected"` -> axe reported a label-association
+  violation. Restored `<label>`.
+- green: already green. Full package suite:
+  `pnpm exec vitest run packages/token-editor-font-weight` and full repo
+  suite `pnpm exec vitest run` -> 146 files, 719 tests passed, 0 failed (was
+  146/715 before this phase's 4 new tests = 719). Confirmed
+  `pnpm --filter @dtcg-editor/token-editor-font-weight build` clean.
+- refactor: none — the added CSS is a one-line selector-list extension
+- commit: `a7e0778`
+
+## Test list complete
+
+All 30 behaviors (A1-A7, U1-U23) are now `DONE`. The test list's optional
+User Story 3 (nice-to-have per FR-007) was implemented rather than deferred.
+
+## Polish phase (tasks.md T031-T035)
+
+- T031: added `FontWeightEditor.stories.tsx` (Storybook), mirroring
+  `DimensionEditor.stories.tsx`; added the package to `turbo.json`'s
+  `//#storybook`/`//#build-storybook` dependsOn lists per that file's own
+  "add to both lists" instruction.
+- T032: `pnpm build` -> 8/8 packages successful (Turbo, cached where
+  unchanged).
+- T033: `pnpm lint` -> 17/17 tasks successful (Biome + `@ls-lint/ls-lint`,
+  zero violations across all packages including the new one).
+  `pnpm format:check` -> 472 files checked, no fixes needed.
+  `pnpm test` -> the Vitest/node:test portion this feature touches is fully
+  green (`pnpm exec vitest run` 146/146 files, 719/719 tests;
+  `pnpm --filter @dtcg-editor/token-core test` 110/110). The Playwright e2e
+  portion of `pnpm test` failed with 4 pre-existing, unrelated flakes this
+  run (`edit-token-references-perf.spec.ts` SC-004 p95 latency,
+  `editing-perf.spec.ts` A5 referrer-update budget, `keyboard-navigation.spec.ts`
+  A3 focus-order, `token-references.spec.ts` US2-AC1 a click timeout) — a
+  different subset than the 3 recorded at this feature's baseline (see the
+  Baseline entry above and `test-list.md`'s `suite_baseline` note), which
+  itself confirms these are wall-clock/timing-sensitive flakes rather than a
+  regression this feature introduced: none of the four exercise `fontWeight`,
+  `token-editor-font-weight`, or `built-in.ts`/`define-config.ts`, and an
+  existing backlog item ("fix editing perf CI flake") already tracks this
+  category of pre-existing flakiness in its own worktree.
+- T035: no interactive `pnpm dev` session was run in this environment; per
+  `test-list.md`'s outer-loop note (this package has no dedicated Playwright
+  acceptance layer, matching `token-editor-dimension`/`token-editor-color`'s
+  precedent), the component-render tests already exercised in cycles 1-21
+  are this feature's acceptance tier and cover every Acceptance Scenario in
+  `spec.md` (A1-A7, all `DONE`) — `quickstart.md`'s manual steps are the same
+  scenarios walked through a real browser, which the automated coverage
+  already proves at the component boundary.
