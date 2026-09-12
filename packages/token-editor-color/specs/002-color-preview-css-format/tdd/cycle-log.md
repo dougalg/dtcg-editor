@@ -158,7 +158,7 @@ existed and failed before the implementation.
   `pnpm exec vitest run --project 'packages/token-editor-color:unit' packages/token-editor-color/src/components/ColorPreview/ColorPreview.test.tsx -t "SC-002"` -> 1 passed.
 - **Confirmed not weakened**: re-applied the exact `Swatch value={value}` -> `Swatch value="#000000"` mutant from `U10`'s original cycle -> still 1 failed. Restored exactly (`git diff` empty).
 - Full `ColorPreview` suite: 12 passed, 0 failed.
-- commit: (recorded below)
+- commit: `98f1529`
 
 ## T017 (decision, no code behavior change): U11's redundancy — kept, documented
 
@@ -174,4 +174,4 @@ existed and failed before the implementation.
   was an oversight.
 - Not a behavior change — no test added, removed, or reworded in substance.
   Full `ColorPreview` suite re-confirmed: 12 passed, 0 failed.
-- commit: (recorded below)
+- commit: `98f1529`
