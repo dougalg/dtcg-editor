@@ -37,10 +37,10 @@ adds to `apps/web-app` to exercise end-to-end via Playwright).
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| A1 | `CubicBezierEditor` shows all four control-point values pre-filled, not the JSON fallback | US1.1 | example | PENDING | `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.test.tsx::renders the current value in four labeled fields` |
-| A2 | Editing P1y updates only that coordinate in the emitted value | US1.2 | example | PENDING | `CubicBezierEditor.test.tsx::editing P1y calls onChange with only that coordinate changed` |
-| A3 | Setting P1x above 1 never reaches the emitted value as `>1` | US1.3 | example | PENDING | `CubicBezierEditor.test.tsx::setting P1x above 1 clamps to 1` |
-| A4 | Setting P1x below 0 never reaches the emitted value as `<0` | US1.4 | example | PENDING | `CubicBezierEditor.test.tsx::setting P1x below 0 clamps to 0` |
+| A1 | `CubicBezierEditor` shows all four control-point values pre-filled, not the JSON fallback | US1.1 | example | DONE | `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.test.tsx::renders the current value in four labeled fields` |
+| A2 | Editing P1y updates only that coordinate in the emitted value | US1.2 | example | DONE | `CubicBezierEditor.test.tsx::editing P1y calls onChange with only that coordinate changed` |
+| A3 | Setting P1x above 1 never reaches the emitted value as `>1` | US1.3 | example | DONE | `CubicBezierEditor.test.tsx::setting P1x above 1 clamps to 1` |
+| A4 | Setting P1x below 0 never reaches the emitted value as `<0` | US1.4 | example | DONE | `CubicBezierEditor.test.tsx::setting P1x below 0 clamps to 0` |
 | A5 | `CubicBezierPreview` renders a short readable string for a valid resolved value | US2.1 | example | PENDING | `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.test.tsx::renders a cubic-bezier(...) string for a valid value` |
 | A6 | `CubicBezierPreview` renders nothing for a value that isn't a valid cubicBezier tuple | US2.2 | example | PENDING | `CubicBezierPreview.test.tsx::renders nothing for a malformed value` |
 | A7 | A `cubicBezier` token with out-of-range y-coordinates round-trips through parse -> serialize unchanged | US3.1, US3.2 | example | DONE | `packages/token-core/src/serialize.test.ts::round-trips a cubicBezier token with out-of-range y-coordinates unchanged (AC-07, spec 011 US3)` |
@@ -70,15 +70,15 @@ adds to `apps/web-app` to exercise end-to-end via Playwright).
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U15 | Renders four fields labeled P1x/P1y/P2x/P2y | FR-005 | example | PENDING | `CubicBezierEditor.test.tsx::labels each of the four fields` |
-| U16 | Editing P1x within range (e.g. `0.6`) commits that exact value | FR-008 | example | PENDING | `CubicBezierEditor.test.tsx::editing P1x within range commits it exactly` |
-| U17 | Editing P2x above 1 clamps to 1 | FR-006 | example | PENDING | `CubicBezierEditor.test.tsx::setting P2x above 1 clamps to 1` |
-| U18 | Editing P2x below 0 clamps to 0 | FR-006 | example | PENDING | `CubicBezierEditor.test.tsx::setting P2x below 0 clamps to 0` |
-| U19 | Editing P2y accepts a value greater than 1 unclamped | FR-007 | example | PENDING | `CubicBezierEditor.test.tsx::editing P2y accepts a value greater than 1` |
-| U20 | Editing P1y accepts a negative value unclamped | FR-007 | example | PENDING | `CubicBezierEditor.test.tsx::editing P1y accepts a negative value` |
-| U21 | A non-numeric typed value does not crash and does not commit `NaN` | Edge case (spec.md) | example | PENDING | `CubicBezierEditor.test.tsx::a non-numeric value does not commit NaN` |
-| U22 | Has no WCAG 2.2 AA violations for a typical value | Constitution Principle X | example | PENDING | `CubicBezierEditor.a11y.test.tsx::has no WCAG 2.2 AA violations` |
-| U23 | Has no WCAG 2.2 AA violations for an out-of-range-y value | Constitution Principle X | example | PENDING | `CubicBezierEditor.a11y.test.tsx::an overshoot value has no WCAG 2.2 AA violations` |
+| U15 | Renders four fields labeled P1x/P1y/P2x/P2y | FR-005 | example | DONE | `CubicBezierEditor.test.tsx::labels each of the four fields` |
+| U16 | Editing P1x within range (e.g. `0.6`) commits that exact value | FR-008 | example | DONE | `CubicBezierEditor.test.tsx::editing P1x within range commits it exactly` |
+| U17 | Editing P2x above 1 clamps to 1 | FR-006 | example | DONE | `CubicBezierEditor.test.tsx::setting P2x above 1 clamps to 1` |
+| U18 | Editing P2x below 0 clamps to 0 | FR-006 | example | DONE | `CubicBezierEditor.test.tsx::setting P2x below 0 clamps to 0` |
+| U19 | Editing P2y accepts a value greater than 1 unclamped | FR-007 | example | DONE | `CubicBezierEditor.test.tsx::editing P2y accepts a value greater than 1` |
+| U20 | Editing P1y accepts a negative value unclamped | FR-007 | example | DONE | `CubicBezierEditor.test.tsx::editing P1y accepts a negative value` |
+| U21 | A non-numeric typed value does not crash and does not commit `NaN` | Edge case (spec.md) | example | DONE | `CubicBezierEditor.test.tsx::a non-numeric value does not commit NaN` |
+| U22 | Has no WCAG 2.2 AA violations for a typical value | Constitution Principle X | example | DONE | `CubicBezierEditor.a11y.test.tsx::has no WCAG 2.2 AA violations` |
+| U23 | Has no WCAG 2.2 AA violations for an out-of-range-y value | Constitution Principle X | example | DONE | `CubicBezierEditor.a11y.test.tsx::an overshoot value has no WCAG 2.2 AA violations` |
 
 ### `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.tsx`
 

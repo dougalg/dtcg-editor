@@ -88,7 +88,7 @@ confirm an out-of-range x-coordinate attempt is clamped/rejected.
 
 ### Tests for User Story 1 (write FIRST, observe fail)
 
-- [ ] T008 [P] [US1] [A1][A2][A3][A4][U15][U16][U17][U18][U19][U20][U21] Write
+- [X] T008 [P] [US1] [A1][A2][A3][A4][U15][U16][U17][U18][U19][U20][U21] Write
       `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.test.tsx`
       (Vitest + `@testing-library/react`, mirroring
       `packages/token-editor-dimension/src/components/DimensionEditor/DimensionEditor.test.tsx`'s
@@ -101,7 +101,7 @@ confirm an out-of-range x-coordinate attempt is clamped/rejected.
       value in any field does not crash and does not call `onChange` with `NaN`. Run the
       package's test command and confirm every test fails (component doesn't exist) for the
       right reason.
-- [ ] T009 [P] [US1] [U22][U23] Write
+- [X] T009 [P] [US1] [U22][U23] Write
       `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.a11y.test.tsx`
       (Vitest Browser Mode + `axe-core`, mirroring `DimensionEditor.a11y.test.tsx`) asserting
       zero WCAG 2.2 AA violations for a rendered `CubicBezierEditor` with a typical value and
@@ -110,12 +110,12 @@ confirm an out-of-range x-coordinate attempt is clamped/rejected.
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Create
+- [X] T010 [US1] Create
       `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.module.css`
       styled exclusively with `packages/design-system`'s `--dtcg-ed-*` custom properties,
       mirroring `DimensionEditor.module.css`'s `.container`/`.field`/`.labelText`/input
       classes (four fields laid out inline instead of two)
-- [ ] T011 [US1] [A1][A2][A3][A4][U15][U16][U17][U18][U19][U20][U21] Create
+- [X] T011 [US1] [A1][A2][A3][A4][U15][U16][U17][U18][U19][U20][U21] Create
       `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.tsx`
       — a component receiving `TokenTypeEditorProps<CubicBezierValue>` from
       `@dtcg-editor/token-editor-contract`, rendering four labeled `<input type="number">`
@@ -125,12 +125,12 @@ confirm an out-of-range x-coordinate attempt is clamped/rejected.
       fields have no `min`/`max` and pass the parsed number through unclamped (FR-007); a
       non-numeric input (`Number.isNaN`) is treated the same way `DimensionEditor` treats it
       (reports `0`, does not throw). Run T008/T009 again and confirm they now pass.
-- [ ] T012 [US1] Create `packages/token-editor-cubic-bezier/src/token-type.ts` exporting
+- [X] T012 [US1] Create `packages/token-editor-cubic-bezier/src/token-type.ts` exporting
       `cubicBezierTokenType: TokenTypeContract<CubicBezierValue>` with `type: "cubicBezier"`,
       `valueSchema: CubicBezierValueSchema` (from `@dtcg-editor/token-core`),
       `serializeValue: (value) => value`, and `Editor: CubicBezierEditor` (per
       `contracts/token-type-contract.md`; `Preview` is added in Phase 4/US2, not here)
-- [ ] T013 [US1] Create `packages/token-editor-cubic-bezier/src/index.ts` exporting
+- [X] T013 [US1] Create `packages/token-editor-cubic-bezier/src/index.ts` exporting
       `CubicBezierEditor` and `cubicBezierTokenType`, mirroring
       `packages/token-editor-dimension/src/index.ts`
 

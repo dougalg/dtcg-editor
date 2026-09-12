@@ -56,6 +56,55 @@ existed and failed before the implementation.
 - commit: `docs/impl commit below — Cycles 1 and 2 landed together as one
   token-core commit`
 
+## Cycle 3: A1-A4, U15-U21 CubicBezierEditor renders and edits all four coordinates with the x-bound clamped
+
+- test: `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.test.tsx`
+  (new, 11 tests: labels each field; renders current values; edits P1x/P1y
+  within range; clamps P1x/P2x both above 1 and below 0; accepts unclamped
+  negative P1y and >1 P2y; a non-numeric input reports 0, not NaN)
+- red: `pnpm exec vitest run
+  packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/CubicBezierEditor.test.tsx`
+  -> `Error: Failed to resolve import "./CubicBezierEditor.tsx" ... Does the
+  file exist?` (1 failed suite, 0 tests ran — component didn't exist yet)
+- green: created `CubicBezierEditor.module.css` (styled via `--dtcg-ed-*`
+  tokens only, copied naming convention from `DimensionEditor.module.css`) and
+  `CubicBezierEditor.tsx` (four labeled `<input type="number">` fields, P1x/P2x
+  clamped to `[0,1]` via `Math.min(1, Math.max(0, next))`, P1y/P2y unclamped,
+  `Number.isNaN` guarded to `0`). Re-ran the same file -> 11 passed, 0 failed.
+- refactor: extracted the four fields into a `FIELDS` array of
+  `{ index, label, bounded }` objects mapped over in JSX, rather than
+  hand-writing four near-identical `<label>` blocks — done inline while
+  writing the passing implementation (not as a separate post-green step, since
+  the naive four-block version was never committed); re-ran the test file
+  after finalizing this shape, still 11 passed.
+- commit: `feat(token-editor-cubic-bezier): add CubicBezierEditor component`
+  (bundled with T012/T013's contract-wiring/index-export scaffolding, which
+  carry no behavior marker of their own — see tasks.md)
+
+## Cycle 4: U22-U23 CubicBezierEditor has no WCAG 2.2 AA violations
+
+- test: `CubicBezierEditor.a11y.test.tsx` (new, 2 tests: a typical value, an
+  out-of-range-y/"overshoot" value)
+- red: N/A — both tests passed on first run (`pnpm exec vitest run
+  .../CubicBezierEditor.a11y.test.tsx` -> 2 passed; a first attempt failed on
+  an unrelated Vite dependency-optimization reload, "Failed to fetch
+  dynamically imported module" — a documented infra flake, not a code issue;
+  the immediate re-run succeeded), since `CubicBezierEditor.tsx` already
+  existed from Cycle 3 with correctly labeled inputs. Per the loop playbook,
+  applied the deliberate-mutant check: temporarily added `aria-hidden="true"`
+  to each field's label `<span>` (removing the input's accessible name).
+  Re-ran -> both tests failed with an axe `label` rule violation
+  ("Form elements must have labels", target `input[value="..."]`\), for both
+  values tested. Confirmed the tests catch this class of regression, then
+  reverted the `aria-hidden` change exactly.
+- green: no implementation change was needed (see above) — re-ran
+  `packages/token-editor-cubic-bezier/src/components/CubicBezierEditor/` (unit
+  + a11y) -> 13 passed, 0 failed after the revert
+- refactor: none
+- commit: `feat(token-editor-cubic-bezier): add CubicBezierEditor component`
+  (same commit as Cycle 3 — both landed together as this component's complete
+  test suite)
+
 ## Notes and deviations
 
 - Cycles 1 and 2 are committed together in a single commit
