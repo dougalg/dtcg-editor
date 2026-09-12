@@ -243,3 +243,56 @@ existed and failed before the implementation.
   build` and `pnpm --filter @dtcg-editor/web-app build` are both clean.
 - refactor: none needed beyond the define-config.test.ts fix above
 - commit: `19c4e35`
+
+## Cycle 16: U15 renders a numeric value as text
+
+- test: `FontWeightPreview.test.tsx::renders a numeric value as text` (new)
+- red: `pnpm exec vitest run packages/token-editor-font-weight/src/components/
+  FontWeightPreview/FontWeightPreview.test.tsx` -> `Error: Failed to resolve
+  import "./FontWeightPreview.tsx"` (component didn't exist yet)
+- green: created `FontWeightPreview.tsx` (validate via
+  `FontWeightValueSchema.safeParse`, `null` on failure, else
+  `<span>{String(parsed.data)}</span>`) and its `.module.css`. Re-ran -> pass
+- refactor: none
+
+## Cycle 17: U16 renders an alias value as text
+
+- test: `...::renders an alias value as text` (new)
+- red/verification: passed on first run (cycle 16's implementation already
+  handles any parsed value generically). Deliberate mutant: changed the
+  render branch to print `"numeric-only"` for non-number values, re-ran `-t
+  "renders an alias value as text"` -> failed (`Unable to find an element
+  with the text: bold`). Restored the generic `String(parsed.data)` render.
+- green: already green
+- refactor: none
+
+## Cycle 18: U17 declines to render for a value that fails schema validation
+
+- test: `...::declines to render for a value that fails schema validation`
+  (new)
+- red/verification: passed on first run. Deliberate mutant: removed the
+  `if (!parsed.success) return null` guard, rendering `String(value)`
+  unconditionally, re-ran -> failed, showing `[object Object]` rendered
+  instead of nothing. Restored the guard.
+- green: already green. Full file: 3 passed, 0 failed
+- refactor: none needed — the module is 17 lines, one responsibility
+
+## Cycle 19: U18 FontWeightPreview has no WCAG 2.2 AA violations (numeric + alias)
+
+- test: `FontWeightPreview.a11y.test.tsx` — both cases (new)
+- red/verification: both passed on first run (a bare `<span>` has no
+  axe-flaggable semantics). Deliberate mutant: added `role="not-a-real-role"`
+  to the rendered `<span>`, re-ran -> both tests failed (axe reported an
+  `aria-allowed-role`-family violation). Restored the plain `<span>`.
+- green: already green. Full package suite:
+  `pnpm exec vitest run packages/token-editor-font-weight` -> 4 files, 11
+  tests passed, 0 failed
+- refactor: none needed
+- wiring: added `Preview: FontWeightPreview` to `fontWeightTokenType` in
+  `token-type.ts` (T021) and exported `FontWeightPreview` from `index.ts`
+  (T022) — both structural, no new behavior. Confirmed
+  `pnpm --filter @dtcg-editor/token-editor-font-weight build` clean (T023/T024)
+  and the full suite still green: `pnpm exec vitest run` -> 146 files, 715
+  tests passed, 0 failed (was 144/710 after cycle 15 + 5 new tests from
+  cycles 16-19 = 715)
+- commit: `3212c0d`

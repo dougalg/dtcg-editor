@@ -152,35 +152,35 @@ value, and an invalid value; confirm it renders text for the first two and `null
 
 ### Tests for User Story 2 ⚠️ (write first, run, confirm failing, only then implement)
 
-- [ ] T017 [P] [US2] [U15] [U16] [U17] Write failing tests in
+- [X] T017 [P] [US2] [U15] [U16] [U17] Write failing tests in
       `packages/token-editor-font-weight/src/components/FontWeightPreview/FontWeightPreview.test.tsx`:
       renders `"700"` for a numeric value `700` (U15); renders `"bold"` for the alias value
       `"bold"` (U16); renders nothing (`container.firstChild` is `null`) for a value that fails
       `FontWeightValueSchema`, e.g. `{ not: "valid" }` (U17) (mirror `ColorPreview.test.tsx`'s
       structure). Run it against the not-yet-created component and confirm it fails
-- [ ] T018 [P] [US2] [U18] Write failing tests in
+- [X] T018 [P] [US2] [U18] Write failing tests in
       `packages/token-editor-font-weight/src/components/FontWeightPreview/FontWeightPreview.a11y.test.tsx`:
       zero WCAG 2.2 AA `axe-core` violations for both a numeric and an alias value (mirror
       `ColorPreview.a11y.test.tsx`'s structure). Run it and confirm it fails
-- [ ] T019 [US2] Record the observed red for T017/T018 in
+- [X] T019 [US2] Record the observed red for T017/T018 in
       `specs/011-font-weight-token-support/tdd/cycle-log.md`
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] [U15] [U16] [U17] [U18] Implement `FontWeightPreview` in
+- [X] T020 [US2] [U15] [U16] [U17] [U18] Implement `FontWeightPreview` in
       `packages/token-editor-font-weight/src/components/FontWeightPreview/FontWeightPreview.tsx`:
       `{ value: unknown }` props, `FontWeightValueSchema.safeParse(value)`, return `null` on
       failure, otherwise render `<span>{String(parsed.data)}</span>` styled via
       `FontWeightPreview.module.css` (mirror `ColorPreview.tsx`'s validate-then-render shape) —
       smallest change to make T017/T018 pass, confirm full suite green, then refactor
-- [ ] T021 [US2] Add
+- [X] T021 [US2] Add
       `packages/token-editor-font-weight/src/components/FontWeightPreview/FontWeightPreview.module.css`
       styled only with `--dtcg-ed-*` custom properties (e.g. `var(--dtcg-ed-font-mono)`,
       matching `ColorPreview.module.css`)
-- [ ] T022 [US2] [A4] [A5] Wire `Preview: FontWeightPreview` into `fontWeightTokenType` in
+- [X] T022 [US2] [A4] [A5] Wire `Preview: FontWeightPreview` into `fontWeightTokenType` in
       `packages/token-editor-font-weight/src/token-type.ts`
-- [ ] T023 [US2] Export `FontWeightPreview` from `packages/token-editor-font-weight/src/index.ts`
-- [ ] T024 [US2] Run `pnpm --filter @dtcg-editor/token-editor-font-weight build` and fix any
+- [X] T023 [US2] Export `FontWeightPreview` from `packages/token-editor-font-weight/src/index.ts`
+- [X] T024 [US2] Run `pnpm --filter @dtcg-editor/token-editor-font-weight build` and fix any
       TypeScript errors
 
 **Checkpoint**: `fontWeight` tokens now show a readable preview wherever other types already do,

@@ -40,8 +40,8 @@ host's built-in-type registry for A1).
 | A1  | `fontWeight` is a registered built-in type, so the host stops routing it to the JSON fallback       | AC 1.1, FR-001        | example | DONE    | `apps/web-app/lib/token-editors/built-in.test.ts::BUILT_IN_TOKEN_TYPES includes dimension, color, and fontWeight` |
 | A2  | Changing the editor's value updates the token's `$value` to the new integer                         | AC 1.2, FR-003, FR-006 | example | DONE    | `FontWeightEditor.test.tsx::editing the numeric value calls onChange with the updated integer` |
 | A3  | An out-of-range or non-numeric value entered in the editor is not committed                         | AC 1.3, FR-004        | example | DONE    | `FontWeightEditor.test.tsx::entering an out-of-range integer does not call onChange` (+ non-numeric/non-integer cases) |
-| A4  | A numeric `fontWeight` value shows as readable text in a reference/candidate preview                | AC 2.1, FR-005        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightPreview.test.tsx::renders a numeric value`        |
-| A5  | An alias `fontWeight` value shows as readable text in a reference/candidate preview                 | AC 2.2, FR-005        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightPreview.test.tsx::renders an alias value`         |
+| A4  | A numeric `fontWeight` value shows as readable text in a reference/candidate preview                | AC 2.1, FR-005        | example | DONE    | `FontWeightPreview.test.tsx::renders a numeric value as text`        |
+| A5  | An alias `fontWeight` value shows as readable text in a reference/candidate preview                 | AC 2.2, FR-005        | example | DONE    | `FontWeightPreview.test.tsx::renders an alias value as text`         |
 | A6  | Selecting a keyword alias in the editor writes that exact string as `$value`                        | AC 3.1, FR-007        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightEditor.test.tsx::alias selection calls onChange`  |
 | A7  | Loading a token whose `$value` is already an alias shows that alias selected, not a raw number      | AC 3.2, FR-007        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightEditor.test.tsx::reflects existing alias`         |
 
@@ -75,10 +75,10 @@ host's built-in-type registry for A1).
 
 | id  | behavior                                                             | traces  | kind    | state   | test                                                                |
 | --- | ----------------------------------------------------------------------| ------- | ------- | ------- | --------------------------------------------------------------------- |
-| U15 | Renders `"700"` for a numeric value `700`                            | FR-005  | example | PENDING | `FontWeightPreview.test.tsx::renders a numeric value`               |
-| U16 | Renders `"bold"` for the alias value `"bold"`                        | FR-005  | example | PENDING | `FontWeightPreview.test.tsx::renders an alias value`                |
-| U17 | Renders nothing (`null`) for a value that fails schema validation    | FR-005  | example | PENDING | `FontWeightPreview.test.tsx::declines to render an invalid value`   |
-| U18 | Has no WCAG 2.2 AA violations for both a numeric and an alias value  | Principle X | example | PENDING | `FontWeightPreview.a11y.test.tsx::has no WCAG 2.2 AA violations`    |
+| U15 | Renders `"700"` for a numeric value `700`                            | FR-005  | example | DONE    | `FontWeightPreview.test.tsx::renders a numeric value as text`               |
+| U16 | Renders `"bold"` for the alias value `"bold"`                        | FR-005  | example | DONE    | `FontWeightPreview.test.tsx::renders an alias value as text`                |
+| U17 | Renders nothing (`null`) for a value that fails schema validation    | FR-005  | example | DONE    | `FontWeightPreview.test.tsx::declines to render for a value that fails schema validation`   |
+| U18 | Has no WCAG 2.2 AA violations for both a numeric and an alias value  | Principle X | example | DONE    | `FontWeightPreview.a11y.test.tsx::a numeric/alias font weight preview has no WCAG 2.2 AA violations`    |
 
 ### `apps/web-app/lib/token-editors/built-in.ts`
 
