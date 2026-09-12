@@ -125,7 +125,7 @@ existed and failed before the implementation.
 - refactor: none needed.
 - Full `ColorPreview` suite after restore: 10 passed, 0 failed.
 - State: `BASELINE`.
-- commit: (recorded below)
+- commit: `ceafe3c`
 
 ## Cycle 7 (characterization): U11 — no-alpha branch has no a11y violations
 
@@ -134,7 +134,7 @@ existed and failed before the implementation.
 - **Deliberate mutant** (the low-contrast style proven reliable during Cycle 5's U9 hunt): text span given `style={{ color: "#fafafa", backgroundColor: "#ffffff" }}` -> re-ran -> 1 failed, `color-contrast` violation. Restored exactly.
 - refactor: none needed.
 - State: `BASELINE`.
-- commit: (recorded below)
+- commit: `ceafe3c`
 
 ## Cycle 8 (characterization): U12 — legacy-hex branch has no a11y violations
 
@@ -144,4 +144,4 @@ existed and failed before the implementation.
 - refactor: none needed.
 - Full `ColorPreview` suite after restore and a `biome check --write` formatting fix (Prettier-equivalent JSX line-wrap, no semantic change): 12 passed, 0 failed.
 - State: `BASELINE`.
-- commit: (recorded below)
+- commit: `ceafe3c`
