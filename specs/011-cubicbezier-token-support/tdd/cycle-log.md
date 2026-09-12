@@ -105,6 +105,39 @@ existed and failed before the implementation.
   (same commit as Cycle 3 — both landed together as this component's complete
   test suite)
 
+## Cycle 5: A5-A6, U24-U27 CubicBezierPreview renders a short string, or declines on a bad value
+
+- test: `CubicBezierPreview.test.tsx` (new, 4 tests: a typical value, an
+  out-of-range-y value, a short array, a non-array value)
+- red: `pnpm exec vitest run
+  .../CubicBezierPreview/CubicBezierPreview.test.tsx` -> `Error: Failed to
+  resolve import "./CubicBezierPreview.tsx" ... Does the file exist?` (1
+  failed suite, 0 tests ran)
+- green: created `CubicBezierPreview.module.css` (mirrors `ColorPreview.module.css`
+  exactly — `--dtcg-ed-font-mono`) and `CubicBezierPreview.tsx`
+  (`CubicBezierValueSchema.safeParse` -> `null` on failure, else a `<span>`
+  with `cubic-bezier(p1x, p1y, p2x, p2y)` text, mirroring `ColorPreview`'s
+  `safeParse`-then-render pattern). Re-ran -> 4 passed, 0 failed.
+- refactor: none needed
+- commit: `feat(token-editor-*): add CubicBezierPreview component`
+
+## Cycle 6: U28 CubicBezierPreview has no WCAG 2.2 AA violations
+
+- test: `CubicBezierPreview.a11y.test.tsx` (new, 1 test)
+- red: N/A — passed on first run (component already existed from Cycle 5).
+  Per the loop playbook, applied the deliberate-mutant check: temporarily
+  replaced the rendered `<span>` with an `<img src="" />` (no `alt`). Re-ran
+  -> failed with an axe `image-alt` rule violation ("Images must have
+  alternate text"). Confirmed the test catches this class of regression, then
+  reverted to the original `<span>` exactly.
+- green: no implementation change needed — re-ran the full package suite
+  (`pnpm exec vitest run packages/token-editor-cubic-bezier/`) -> 18 passed, 0
+  failed after the revert
+- refactor: none
+- commit: `feat(token-editor-*): add CubicBezierPreview component` (same
+  commit as Cycle 5, plus the `Preview: CubicBezierPreview` contract wiring
+  and index export, which carry no behavior marker of their own)
+
 ## Notes and deviations
 
 - Cycles 1 and 2 are committed together in a single commit

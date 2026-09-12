@@ -149,7 +149,7 @@ confirm the short text output; render it with a malformed value and confirm it r
 
 ### Tests for User Story 2 (write FIRST, observe fail)
 
-- [ ] T014 [P] [US2] [A5][A6][U24][U25][U26][U27] Write
+- [X] T014 [P] [US2] [A5][A6][U24][U25][U26][U27] Write
       `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.test.tsx`
       (mirroring `packages/token-editor-color/src/components/ColorPreview/ColorPreview.tsx`'s
       test conventions) covering: given `[0.4, 0, 0.2, 1]`, renders text containing
@@ -157,26 +157,26 @@ confirm the short text output; render it with a malformed value and confirm it r
       (nothing) — US2 Scenario 2; given a non-array value (e.g. a string or object), renders
       `null`; given an in-range-but-extreme value (negative/`>1` y), still renders the text.
       Confirm these fail first (component doesn't exist).
-- [ ] T015 [P] [US2] [U28] Write
+- [X] T015 [P] [US2] [U28] Write
       `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.a11y.test.tsx`
       asserting zero WCAG 2.2 AA violations for a rendered `CubicBezierPreview` with a valid
       value. Confirm it fails first.
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Create
+- [X] T016 [US2] Create
       `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.module.css`
       styled exclusively via `--dtcg-ed-*` custom properties, mirroring
       `ColorPreview.module.css`'s text styling
-- [ ] T017 [US2] [A5][A6][U24][U25][U26][U27] Create
+- [X] T017 [US2] [A5][A6][U24][U25][U26][U27] Create
       `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.tsx`
       — receives `{ value: unknown }`, re-validates via `CubicBezierValueSchema.safeParse`
       (mirroring `ColorPreview`'s `safeParse` → `null`-on-failure pattern), and on success
       renders a `<span>` with text formatted as `` `cubic-bezier(${p1x}, ${p1y}, ${p2x},
       ${p2y})` ``. Run T014/T015 again and confirm they now pass.
-- [ ] T018 [US2] [A5][A6] Add `Preview: CubicBezierPreview` to `cubicBezierTokenType` in
+- [X] T018 [US2] [A5][A6] Add `Preview: CubicBezierPreview` to `cubicBezierTokenType` in
       `packages/token-editor-cubic-bezier/src/token-type.ts` (from Phase 3/T012)
-- [ ] T019 [US2] Export `CubicBezierPreview` from
+- [X] T019 [US2] Export `CubicBezierPreview` from
       `packages/token-editor-cubic-bezier/src/index.ts`
 
 **Checkpoint**: `cubicBezierTokenType` now satisfies the full `TokenTypeContract` shape

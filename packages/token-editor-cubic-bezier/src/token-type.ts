@@ -4,6 +4,7 @@ import {
 } from "@dtcg-editor/token-core";
 import type { TokenTypeContract } from "@dtcg-editor/token-editor-contract";
 import { CubicBezierEditor } from "./components/CubicBezierEditor/CubicBezierEditor.tsx";
+import { CubicBezierPreview } from "./components/CubicBezierPreview/CubicBezierPreview.tsx";
 
 /**
  * The `TokenTypeContract` implementation for the DTCG `cubicBezier` type,
@@ -16,4 +17,5 @@ export const cubicBezierTokenType: TokenTypeContract<CubicBezierValue> = {
 	valueSchema: CubicBezierValueSchema,
 	serializeValue: (value) => value,
 	Editor: CubicBezierEditor,
+	Preview: CubicBezierPreview,
 };

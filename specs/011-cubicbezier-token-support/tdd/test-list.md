@@ -41,8 +41,8 @@ adds to `apps/web-app` to exercise end-to-end via Playwright).
 | A2 | Editing P1y updates only that coordinate in the emitted value | US1.2 | example | DONE | `CubicBezierEditor.test.tsx::editing P1y calls onChange with only that coordinate changed` |
 | A3 | Setting P1x above 1 never reaches the emitted value as `>1` | US1.3 | example | DONE | `CubicBezierEditor.test.tsx::setting P1x above 1 clamps to 1` |
 | A4 | Setting P1x below 0 never reaches the emitted value as `<0` | US1.4 | example | DONE | `CubicBezierEditor.test.tsx::setting P1x below 0 clamps to 0` |
-| A5 | `CubicBezierPreview` renders a short readable string for a valid resolved value | US2.1 | example | PENDING | `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.test.tsx::renders a cubic-bezier(...) string for a valid value` |
-| A6 | `CubicBezierPreview` renders nothing for a value that isn't a valid cubicBezier tuple | US2.2 | example | PENDING | `CubicBezierPreview.test.tsx::renders nothing for a malformed value` |
+| A5 | `CubicBezierPreview` renders a short readable string for a valid resolved value | US2.1 | example | DONE | `packages/token-editor-cubic-bezier/src/components/CubicBezierPreview/CubicBezierPreview.test.tsx::renders a cubic-bezier(...) string for a valid value` |
+| A6 | `CubicBezierPreview` renders nothing for a value that isn't a valid cubicBezier tuple | US2.2 | example | DONE | `CubicBezierPreview.test.tsx::renders nothing for a malformed value` |
 | A7 | A `cubicBezier` token with out-of-range y-coordinates round-trips through parse -> serialize unchanged | US3.1, US3.2 | example | DONE | `packages/token-core/src/serialize.test.ts::round-trips a cubicBezier token with out-of-range y-coordinates unchanged (AC-07, spec 011 US3)` |
 
 ## Inner loop: unit behaviors
@@ -84,11 +84,11 @@ adds to `apps/web-app` to exercise end-to-end via Playwright).
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U24 | Renders `cubic-bezier(a, b, c, d)`-style text for a valid value | FR-009 | example | PENDING | `CubicBezierPreview.test.tsx::renders a cubic-bezier(...) string for a valid value` |
-| U25 | Renders the same for an extreme-but-valid (negative/`>1` y) value | FR-009 | example | PENDING | `CubicBezierPreview.test.tsx::renders text for an out-of-range-y value` |
-| U26 | Renders nothing for a 3-element array | FR-010 | example | PENDING | `CubicBezierPreview.test.tsx::renders nothing for a short array` |
-| U27 | Renders nothing for a non-array value (string/object) | FR-010 | example | PENDING | `CubicBezierPreview.test.tsx::renders nothing for a non-array value` |
-| U28 | Has no WCAG 2.2 AA violations | Constitution Principle X | example | PENDING | `CubicBezierPreview.a11y.test.tsx::has no WCAG 2.2 AA violations` |
+| U24 | Renders `cubic-bezier(a, b, c, d)`-style text for a valid value | FR-009 | example | DONE | `CubicBezierPreview.test.tsx::renders a cubic-bezier(...) string for a valid value` |
+| U25 | Renders the same for an extreme-but-valid (negative/`>1` y) value | FR-009 | example | DONE | `CubicBezierPreview.test.tsx::renders text for an out-of-range-y value` |
+| U26 | Renders nothing for a 3-element array | FR-010 | example | DONE | `CubicBezierPreview.test.tsx::renders nothing for a short array` |
+| U27 | Renders nothing for a non-array value (string/object) | FR-010 | example | DONE | `CubicBezierPreview.test.tsx::renders nothing for a non-array value` |
+| U28 | Has no WCAG 2.2 AA violations | Constitution Principle X | example | DONE | `CubicBezierPreview.a11y.test.tsx::has no WCAG 2.2 AA violations` |
 
 ### `apps/web-app/lib/token-editors/built-in.ts`
 
