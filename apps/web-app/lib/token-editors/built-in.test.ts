@@ -9,10 +9,10 @@ test("colorTokenType exports the color contract shape (AC-01)", () => {
 	assert.equal(parsed.success, true);
 });
 
-test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, and cubicBezier", () => {
+test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, and fontWeight", () => {
 	assert.deepEqual(
 		[...BUILT_IN_TOKEN_TYPES],
-		["dimension", "color", "duration", "cubicBezier"],
+		["dimension", "color", "duration", "cubicBezier", "fontWeight"],
 	);
 });
 

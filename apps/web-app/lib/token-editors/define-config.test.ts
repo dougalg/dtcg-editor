@@ -7,6 +7,9 @@ import { DtcgEditorConfigError, defineConfig } from "./define-config.ts";
 test("returns a resolved config with built-in defaults merged in when no extensions given", () => {
 	const resolved = defineConfig({ tokensDir: "./tokens" });
 	assert.equal(resolved.tokensDir, "./tokens");
+	// Derived from BUILT_IN_TOKEN_TYPES rather than a hardcoded literal, so
+	// this doesn't go stale the next time a built-in type is added (matches
+	// the AC-08 test's "derived dynamically" technique below).
 	assert.equal(resolved.extensions.length, BUILT_IN_TOKEN_TYPES.length);
 	assert.equal(resolved.extensions[0]?.type, "dimension");
 });
