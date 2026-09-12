@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-12
 
-**Status**: Draft
+**Status**: Implemented (2026-09-12)
 
 **Input**: User description: "Add support for \"cubicBezier\" tokens. DTCG cubicBezier $value is a 4-tuple [P1x, P1y, P2x, P2y] of numbers representing the two control points of a cubic bezier easing curve (designtokens.org/tr/2025.10/format, Cubic Bezier type). Per spec, P1x and P2x (indices 0 and 2) MUST be within [0,1]; P1y/P2y (indices 1 and 3) are unconstrained (can be negative or greater than 1, for overshoot/bounce easings). Currently the app can parse/display a cubicBezier token only as an unsupported type (readonly JSON textarea fallback via FallbackValueEditor) — there is no dedicated editor. This feature adds full editor support, following this repo's existing token-editor-dimension package as structural precedent."
 
