@@ -266,10 +266,12 @@ test.describe("US2 — see what a candidate resolves to before committing", () =
 		// editor (format-literal-value.tsx delegates to it) — not the raw DTCG
 		// JSON shape.
 		// This is the only remaining candidate, so it is also auto-highlighted;
-		// what `unaffected-sibling` would resolve to here is identical to this
-		// candidate's own literal preview (a plain one-hop repoint), so
-		// FR-012 (revised 2026-09-12) omits the "would resolve to" duplicate.
-		// `.first()` guards against a future regression reintroducing it.
+		// what's shown is what repointing `unaffected-sibling` here would
+		// produce, which for a plain one-hop repoint is identical to this
+		// candidate's own literal value (FR-009, revised 2026-09-12: the
+		// hypothetical replaces the candidate's own preview entirely, so
+		// there is only ever one value shown, never a duplicate).
+		// `.first()` guards against a future regression reintroducing one.
 		// The swatch's own `--swatch-color` value and the adjacent text are
 		// both asserted against the *same* literal string — `colorValueToCssColor`
 		// renders srgb {0.2, 0.4, 0.9} as `color(srgb 0.2 0.4 0.9)`
@@ -322,10 +324,10 @@ test.describe("US2 — see what a candidate resolves to before committing", () =
 		// light: {color.brand.blue} -> the base literal; dark: dark.tokens.json's
 		// own literal override — two distinct values, each labelled by mode.
 		// This candidate is also the sole match, so it is auto-highlighted;
-		// what `unaffected-sibling` would resolve to if repointed here is
-		// exactly this candidate's own per-mode preview (a plain one-hop
-		// repoint), so FR-012 (revised 2026-09-12) omits the "would resolve
-		// to" duplicate — each mode label is expected exactly *once*.
+		// what's shown is what repointing `unaffected-sibling` here would
+		// produce (FR-009, revised 2026-09-12), which for this plain one-hop
+		// repoint is exactly this candidate's own per-mode preview — each
+		// mode label appears exactly *once*, with no separate caption.
 		await expect(option.getByText("light:", { exact: true })).toHaveCount(1);
 		await expect(option.getByText("dark:", { exact: true })).toHaveCount(1);
 		await expect(option).toContainText(/0\.2.*0\.4.*0\.9/); // light
@@ -333,20 +335,25 @@ test.describe("US2 — see what a candidate resolves to before committing", () =
 		await expect(option).not.toContainText(/would resolve to/i);
 	});
 
-	test("the edited token's own hypothetical resolution previews before any save, when it differs from the candidate's own preview (A10)", async ({
+	test("the edited token's own hypothetical resolution previews before any save (A10)", async ({
 		page,
 	}) => {
 		const search = await openOn(page);
 		// color.action.hover -> action.default -> text.primary -> brand.blue:
 		// action.hover's own preview resolves through the multiply-defined
-		// text.primary with an ambiguous mode fallback (a single entry,
-		// A8's comment), whereas the hypothetical always spans every
-		// catalogue mode explicitly — a genuine divergence FR-012 (revised)
-		// still surfaces, unlike A9's plain one-hop text.primary case.
+		// text.primary with an ambiguous mode fallback (a single entry, A8's
+		// comment), whereas what `unaffected-sibling` would actually become
+		// if repointed here spans every catalogue mode explicitly and
+		// deterministically — both modes are shown, unambiguous, with no
+		// separate "would resolve to" caption (FR-009, revised 2026-09-12).
 		await search.fill("action.hover");
 
 		const option = page.getByRole("option", { name: "color.action.hover" });
-		await expect(option).toContainText(/would resolve to/i);
+		await expect(option.getByText("light:", { exact: true })).toHaveCount(1);
+		await expect(option.getByText("dark:", { exact: true })).toHaveCount(1);
+		await expect(option).toContainText(/0\.2.*0\.4.*0\.9/); // light
+		await expect(option).toContainText(/0\.95.*0\.95.*0\.95/); // dark
+		await expect(option).not.toContainText(/would resolve to/i);
 		// live region carries the same information for screen-reader users
 		// (U84) — updates as the highlight moves. Scoped to this token's own
 		// row: every `TokenReferencePicker` instance on the page renders its
@@ -354,7 +361,7 @@ test.describe("US2 — see what a candidate resolves to before committing", () =
 		const region = page
 			.getByTestId("token-color.unaffected-sibling")
 			.getByRole("status", { name: "Search results" });
-		await expect(region).toContainText(/would resolve to/i);
+		await expect(region).toContainText(/0\.2.*0\.4.*0\.9/);
 	});
 
 	test("re-opening after an unsaved selection marks the staged target as current (A11)", async ({
@@ -437,11 +444,11 @@ test.describe("US3 — circular candidates are unselectable; missing/group are f
 		await expect(option).toHaveAttribute("aria-disabled", "true");
 		await expect(option).toContainText(/circular-reference/i);
 
-		// The "would resolve to" preview (with the cycle named) attaches only
-		// to the *highlighted* row — hover sets cmdk's highlight even on a
+		// The hypothetical preview (with the cycle named, replacing this row's
+		// own value entirely per FR-009 revised 2026-09-12) attaches only to
+		// the *highlighted* row — hover sets cmdk's highlight even on a
 		// disabled item (only arrow-key navigation skips one, U11).
 		await option.hover();
-		await expect(option).toContainText(/would resolve to/i);
 		// FR-014: the preview names the tokens in the cycle.
 		await expect(option).toContainText(/text\.primary/i);
 

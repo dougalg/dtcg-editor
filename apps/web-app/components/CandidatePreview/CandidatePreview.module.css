@@ -20,10 +20,3 @@
 .icon {
 	flex: none;
 }
-.hypothetical {
-	display: inline-flex;
-	gap: var(--dtcg-ed-size-step--2, 0.25rem);
-}
-.hypotheticalCaption {
-	font-style: italic;
-}

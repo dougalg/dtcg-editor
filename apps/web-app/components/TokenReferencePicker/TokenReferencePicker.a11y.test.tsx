@@ -52,7 +52,7 @@ function renderOpen() {
 	);
 }
 
-test("the highlighted candidate's full preview shows in the picker's live region, and the redundant 'would resolve to' is omitted for a plain one-hop candidate", async () => {
+test("the highlighted candidate's live-region preview shows what selecting it would produce, with no separate 'would resolve to' block", async () => {
 	renderOpen();
 	const trigger = await screen.findByRole("combobox", {
 		name: /repoint reference for/i,
@@ -64,25 +64,27 @@ test("the highlighted candidate's full preview shows in the picker's live region
 	const region = () =>
 		screen.getByRole("status", { name: "Search results" }).textContent ?? "";
 
-	// cmdk auto-highlights the first row (color.accent -> {color.blue} -> #0000ff).
-	// What color.accent would resolve to if repointed at color.blue is
-	// exactly color.blue's own resolved value, already announced above —
-	// FR-012 (revised) omits the duplicate "would resolve to" here.
+	// cmdk auto-highlights the first row (color.accent -> {color.blue}).
+	// What's shown is what repointing color.accent at color.blue would
+	// produce (#0000ff) — the hypothetical fully replaces color.blue's own
+	// preview (FR-009, revised 2026-09-12); there is no separate "would
+	// resolve to" caption, ever.
 	await waitFor(() => {
 		expect(region()).toMatch(/#0000ff/i);
 	});
 	expect(region()).not.toMatch(/would resolve to/i);
 
-	// The edited token's own path (a circular candidate) is a case the
-	// hypothetical genuinely adds information for — but a disabled circular
-	// row is never auto-highlighted (FR-024/U11), so this shows up in the
-	// row's own (non-live-region) preview rather than the live region.
+	// The edited token's own path (a circular candidate) is a case where the
+	// hypothetical (circular) genuinely differs from the row's plain value —
+	// but a disabled circular row is never auto-highlighted (FR-024/U11), so
+	// this shows up in the row's own (non-live-region) preview rather than
+	// the live region. Only the circular outcome is shown, not a raw value.
 	fireEvent.change(field, { target: { value: "accent" } });
 	const ownRow = await screen.findByRole("option", { name: "color.accent" });
 	await waitFor(() => {
-		expect(ownRow.textContent).toMatch(/would resolve to/i);
 		expect(ownRow.textContent).toMatch(/circular/i);
 	});
+	expect(ownRow.textContent).not.toMatch(/would resolve to/i);
 });
 
 async function noViolations() {

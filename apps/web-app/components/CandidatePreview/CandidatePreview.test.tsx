@@ -136,11 +136,14 @@ test("diagnostic 'missing' and 'group' each render their own icon + label, disti
 	expect(group.queryByText("circular-reference")).toBeNull();
 });
 
-test("with a hypothetical that differs from the candidate's own preview, renders the 'would resolve to' block, naming the new cycle", () => {
+test("with a hypothetical, renders only the hypothetical outcome — not the candidate's own preview — naming a new cycle", () => {
 	// hub -> wheel is a perfectly clean, non-circular chain today, so
 	// `wheel`'s own preview resolves to a literal. Only *because* `hub` is
-	// being repointed at `wheel` does hub -> wheel -> hub become a cycle —
-	// exactly the case the hypothetical exists to surface (FR-012, FR-014).
+	// being repointed at `wheel` does hub -> wheel -> hub become a cycle.
+	// What the user cares about is the effect of picking this candidate, not
+	// the candidate's own value for its own sake (FR-009, revised
+	// 2026-09-12) — so the hypothetical fully replaces the own-preview
+	// display; there is no separate "would resolve to" caption or duplicate.
 	const files = [
 		file("base.json", {
 			hub: { $type: "color", $value: { hex: "#00f" } },
@@ -152,30 +155,22 @@ test("with a hypothetical that differs from the candidate's own preview, renders
 
 	// Repointing `hub` at `wheel` closes the cycle.
 	const hypothetical = resolveIfRepointed(["hub"], ["wheel"], catalogue);
-	const { getByText, getAllByRole } = render(
+	const { queryByText, getByRole } = render(
 		<CandidatePreview candidate={candidate} hypothetical={hypothetical} />,
 	);
 
-	// The candidate's own preview still shows the clean, resolved value...
-	expect(getByText(/#00f/)).toBeTruthy();
-	// ...while the hypothetical block additionally shows the cycle it would
-	// create, which the candidate's own preview cannot reveal on its own.
-	const caption = getByText(/would resolve to/i);
-	expect(caption).toBeTruthy();
-	const hypoBlock = caption.parentElement;
-	expect(hypoBlock?.textContent).toContain("Circular reference");
-	expect(
-		getAllByRole("alert").some((a) =>
-			a.textContent?.includes("Circular reference"),
-		),
-	).toBe(true);
+	// `wheel`'s own clean value (#00f) is not shown — only the hypothetical.
+	expect(queryByText(/#00f/)).toBeNull();
+	expect(queryByText(/would resolve to/i)).toBeNull();
+	const alert = getByRole("alert");
+	expect(alert.textContent).toContain("Circular reference");
 });
 
-test("FR-012 (revised): the hypothetical is omitted when it is identical to the candidate's own preview", () => {
+test("with a hypothetical identical to the candidate's own preview, the value is shown once — not duplicated", () => {
 	// Editing `accent`, currently pointing elsewhere, and highlighting
 	// `blue` (a plain one-hop literal): what `accent` would resolve to is
-	// exactly `blue`'s own resolved value, already shown — showing it a
-	// second time under "would resolve to" would be a pointless duplicate.
+	// exactly `blue`'s own resolved value. Rendering only the hypothetical
+	// naturally avoids ever duplicating it, with no comparison needed.
 	const files = [
 		file("base.json", {
 			blue: { $type: "color", $value: { hex: "#00f" } },
@@ -187,9 +182,10 @@ test("FR-012 (revised): the hypothetical is omitted when it is identical to the 
 	const candidate = candidateFor("blue", files);
 
 	const hypothetical = resolveIfRepointed(["accent"], ["blue"], catalogue);
-	const { queryByText } = render(
+	const { getAllByText, queryByText } = render(
 		<CandidatePreview candidate={candidate} hypothetical={hypothetical} />,
 	);
 
+	expect(getAllByText(/#00f/)).toHaveLength(1);
 	expect(queryByText(/would resolve to/i)).toBeNull();
 });

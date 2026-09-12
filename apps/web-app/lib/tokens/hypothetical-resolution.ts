@@ -4,10 +4,7 @@ import {
 	type ResolutionChain,
 	resolveReference,
 } from "@dtcg-editor/token-core";
-import type {
-	ReferenceCandidate,
-	ReferenceCatalogue,
-} from "./reference-catalogue-wire.ts";
+import type { ReferenceCatalogue } from "./reference-catalogue-wire.ts";
 
 export interface HypotheticalResolution {
 	readonly editedTokenPath: readonly string[];
@@ -108,65 +105,4 @@ export function resolveIfRepointed(
 		isSelf: samePath(candidatePath, editedTokenPath),
 		perMode,
 	};
-}
-
-/** Structurally covers both `ChainOutcome` (token-core) and its wire-decoded
- * equivalent (`reference-catalogue-wire.ts`), which differ only in whether
- * `resolved.type` is a required or optional key. */
-type OutcomeLike =
-	| {
-			readonly kind: "resolved";
-			readonly value: unknown;
-			readonly type?: string | undefined;
-	  }
-	| { readonly kind: "unresolved"; readonly missingPath: readonly string[] }
-	| { readonly kind: "group-target"; readonly groupPath: readonly string[] }
-	| { readonly kind: "circular"; readonly cyclePath: readonly string[] };
-
-/** A signature capturing everything about an outcome that would be visible
- * in the rendered preview (`CandidatePreview`'s `OutcomeValue`) — used only
- * to compare two outcomes for display purposes, not for correctness. */
-function outcomeSignature(outcome: OutcomeLike): string {
-	switch (outcome.kind) {
-		case "resolved":
-			return `resolved|${JSON.stringify(outcome.value)}|${outcome.type ?? ""}`;
-		case "unresolved":
-			return `unresolved|${outcome.missingPath.join(".")}`;
-		case "group-target":
-			return `group-target|${outcome.groupPath.join(".")}`;
-		case "circular":
-			return `circular|${outcome.cyclePath.join(".")}`;
-	}
-}
-
-/**
- * FR-012 (revised 2026-09-12): the hypothetical "would resolve to" preview
- * repeats the candidate's own preview whenever the edited token is reached
- * from the candidate in a single hop with no per-candidate ambiguity — the
- * two are the same value by construction, and showing both reads as a
- * pointless duplicate. This compares them mode-for-mode (same count of
- * modes, same outcome per matching mode) so the hypothetical is shown only
- * when it adds information: a cycle the repoint itself creates, a mode-count
- * mismatch, or any other divergence in the resolved outcome.
- */
-export function hypotheticalDiffersFromPreview(
-	candidate: ReferenceCandidate,
-	hypothetical: HypotheticalResolution,
-): boolean {
-	if (hypothetical.perMode.length !== candidate.preview.length) {
-		return true;
-	}
-	const previewByMode = new Map(
-		candidate.preview.map((entry) => [
-			entry.mode,
-			outcomeSignature(entry.outcome.outcome),
-		]),
-	);
-	return hypothetical.perMode.some((entry) => {
-		const signature = previewByMode.get(entry.mode);
-		return (
-			signature === undefined ||
-			signature !== outcomeSignature(entry.chain.outcome)
-		);
-	});
 }

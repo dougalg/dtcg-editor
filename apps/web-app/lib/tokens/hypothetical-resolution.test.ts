@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import { parseTokenFile } from "@dtcg-editor/token-core";
 import { test } from "vitest";
-import {
-	hypotheticalDiffersFromPreview,
-	resolveIfRepointed,
-} from "./hypothetical-resolution.ts";
+import { resolveIfRepointed } from "./hypothetical-resolution.ts";
 import type { LoadedTokenFile } from "./load-directory.ts";
 import { buildReferenceCatalogue } from "./reference-catalogue.ts";
 import { buildReferenceIndex } from "./reference-index.ts";
@@ -203,69 +200,4 @@ test("the synthetic lookup picks the definition for the requested mode, else the
 			`mode ${entry.mode} should still resolve`,
 		);
 	}
-});
-
-function candidateFor(
-	displayPath: string,
-	catalogue: ReturnType<typeof catalogueFrom>,
-) {
-	const found = catalogue.candidates.find((c) => c.displayPath === displayPath);
-	if (found === undefined) {
-		throw new Error(`no candidate ${displayPath}`);
-	}
-	return found;
-}
-
-test("hypotheticalDiffersFromPreview is false for a plain one-hop candidate — the hypothetical repeats the candidate's own preview", () => {
-	const catalogue = catalogueFrom([
-		file("base.json", {
-			blue: { $type: "color", $value: { hex: "#00f" } },
-			accent: { $type: "color", $value: "{other}" },
-			other: { $type: "color", $value: { hex: "#0f0" } },
-		}),
-	]);
-	const blue = candidateFor("blue", catalogue);
-	const hypothetical = resolveIfRepointed(["accent"], ["blue"], catalogue);
-	assert.equal(hypotheticalDiffersFromPreview(blue, hypothetical), false);
-});
-
-test("hypotheticalDiffersFromPreview is true when the repoint would create a cycle the candidate's own preview cannot show", () => {
-	const catalogue = catalogueFrom([
-		file("base.json", {
-			hub: { $type: "color", $value: { hex: "#00f" } },
-			wheel: { $type: "color", $value: "{hub}" },
-		}),
-	]);
-	const wheel = candidateFor("wheel", catalogue);
-	const hypothetical = resolveIfRepointed(["hub"], ["wheel"], catalogue);
-	assert.equal(hypotheticalDiffersFromPreview(wheel, hypothetical), true);
-});
-
-test("hypotheticalDiffersFromPreview is true when the mode counts differ", () => {
-	const resolver: ResolverModes = {
-		modes: ["light", "dark"],
-		filesByMode: new Map([
-			["light", ["base.json", "light.json"]],
-			["dark", ["base.json", "dark.json"]],
-		]),
-	};
-	const catalogue = catalogueFrom(
-		[
-			file("base.json", { edited: { $type: "color", $value: "{t}" } }),
-			file("light.json", { t: { $type: "color", $value: { hex: "#fff" } } }),
-			file("dark.json", { t: { $type: "color", $value: { hex: "#000" } } }),
-		],
-		resolver,
-	);
-	// `t` is defined for both modes, but the candidate whose own preview has
-	// only a single (unmoded) entry still gets a full per-mode hypothetical.
-	const single = catalogueFrom([
-		file("base.json", {
-			edited: { $type: "color", $value: "{t}" },
-			t: { $type: "color", $value: { hex: "#fff" } },
-		}),
-	]);
-	const t = candidateFor("t", single);
-	const hypothetical = resolveIfRepointed(["edited"], ["t"], catalogue);
-	assert.equal(hypotheticalDiffersFromPreview(t, hypothetical), true);
 });

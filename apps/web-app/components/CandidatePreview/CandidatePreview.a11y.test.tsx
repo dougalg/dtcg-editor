@@ -27,8 +27,9 @@ const FILES = [
 const CATALOGUE = buildReferenceCatalogue(buildReferenceIndex(FILES));
 const BLUE = CATALOGUE.candidates.find((c) => c.displayPath === "color.blue");
 // `wheel` resolves cleanly today; repointing `hub` at `wheel` (below) closes
-// a cycle that only the hypothetical reveals — the case where FR-012's
-// (revised) hypothetical is actually shown, not suppressed as a duplicate.
+// a cycle — the hypothetical fully replaces `wheel`'s own preview here
+// (FR-009, revised 2026-09-12), so this exercises the circular-warning
+// rendering path inside a hypothetical block.
 const WHEEL = CATALOGUE.candidates.find((c) => c.displayPath === "wheel");
 
 async function expectNoViolations(container: Element) {

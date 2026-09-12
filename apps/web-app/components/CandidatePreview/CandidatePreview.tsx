@@ -1,10 +1,7 @@
 import type { ResolutionChain } from "@dtcg-editor/token-core";
 import { memo, type ReactNode } from "react";
 import { formatLiteralValue } from "../../lib/tokens/format-literal-value.tsx";
-import {
-	type HypotheticalResolution,
-	hypotheticalDiffersFromPreview,
-} from "../../lib/tokens/hypothetical-resolution.ts";
+import type { HypotheticalResolution } from "../../lib/tokens/hypothetical-resolution.ts";
 import type { ReferenceCandidate } from "../../lib/tokens/reference-catalogue-wire.ts";
 import { ReferenceWarning } from "../ReferenceWarning/ReferenceWarning.tsx";
 import styles from "./CandidatePreview.module.css";
@@ -59,10 +56,17 @@ function DiagnosticIcon({
 }
 
 /**
- * The resolved-value preview for one candidate in the reference picker:
- * per mode, the concrete value it resolves to (shown the way an equivalent
- * literal of that type is shown elsewhere — e.g. a colour swatch) or a
- * `ReferenceWarning` for an outcome that does not resolve.
+ * The resolved-value preview for one candidate in the reference picker.
+ *
+ * What the user cares about is the effect of picking this row, not the
+ * candidate's own value for its own sake (FR-009, revised 2026-09-12): when
+ * `hypothetical` is supplied — the highlighted row, or a row FR-014 requires
+ * cycle-naming for — the preview shows *only* what the token being edited
+ * would itself resolve to if this candidate were chosen. Every other row has
+ * no `hypothetical` computed (perf budget, SC-004) and falls back to showing
+ * the candidate's own resolved value, per mode, the way an equivalent
+ * literal of that type is shown elsewhere in the editor (e.g. a colour
+ * swatch), or a `ReferenceWarning` for an outcome that does not resolve.
  */
 export const CandidatePreview = memo(function CandidatePreview({
 	candidate,
@@ -71,14 +75,22 @@ export const CandidatePreview = memo(function CandidatePreview({
 }: {
 	readonly candidate: ReferenceCandidate;
 	readonly diagnostic?: CandidateDiagnostic;
-	/** Set for the highlighted row: what the edited token would resolve to. */
+	/** Set for the highlighted row (or a forced-circular row, FR-014): what
+	 * the edited token would resolve to. Replaces the candidate's own
+	 * preview entirely rather than appending to it. */
 	readonly hypothetical?: HypotheticalResolution | undefined;
 }) {
-	const multiMode = candidate.preview.length > 1;
-	const showHypothetical =
-		hypothetical !== undefined &&
-		hypotheticalDiffersFromPreview(candidate, hypothetical);
-	const hypoMultiMode = showHypothetical && hypothetical.perMode.length > 1;
+	const entries =
+		hypothetical !== undefined
+			? hypothetical.perMode.map((entry) => ({
+					mode: entry.mode,
+					chain: entry.chain,
+				}))
+			: candidate.preview.map((entry) => ({
+					mode: entry.mode,
+					chain: entry.outcome as unknown as ResolutionChain,
+				}));
+	const multiMode = entries.length > 1;
 	return (
 		<span className={styles.preview}>
 			{diagnostic !== "none" ? (
@@ -89,29 +101,14 @@ export const CandidatePreview = memo(function CandidatePreview({
 					</span>
 				</span>
 			) : null}
-			{candidate.preview.map((entry, index) => (
+			{entries.map((entry, index) => (
 				<span className={styles.outcome} key={entry.mode ?? index}>
 					{multiMode && entry.mode !== undefined ? (
 						<span className={styles.modeLabel}>{entry.mode}:</span>
 					) : null}
-					<OutcomeValue chain={entry.outcome as unknown as ResolutionChain} />
+					<OutcomeValue chain={entry.chain} />
 				</span>
 			))}
-			{showHypothetical && hypothetical !== undefined ? (
-				<span className={styles.hypothetical}>
-					<span className={styles.hypotheticalCaption}>
-						This token would resolve to:
-					</span>
-					{hypothetical.perMode.map((entry, index) => (
-						<span className={styles.outcome} key={entry.mode ?? index}>
-							{hypoMultiMode && entry.mode !== undefined ? (
-								<span className={styles.modeLabel}>{entry.mode}:</span>
-							) : null}
-							<OutcomeValue chain={entry.chain} />
-						</span>
-					))}
-				</span>
-			) : null}
 		</span>
 	);
 });

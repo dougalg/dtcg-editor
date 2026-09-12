@@ -183,34 +183,17 @@ case (one edit at a time) is exact.
 - [ ] multiply-defined candidate → one `perMode` entry per mode, differing
       where the modes differ.
 
-### `hypotheticalDiffersFromPreview` (added 2026-09-12)
+### Rendering: hypothetical replaces the own preview (FR-009/FR-012, revised 2026-09-12, second pass)
 
-```ts
-export function hypotheticalDiffersFromPreview(
-  candidate: ReferenceCandidate,
-  hypothetical: HypotheticalResolution,
-): boolean;
-```
-
-FR-012 (revised): the caller (`CandidatePreview`) renders the "would resolve
-to" block only when this returns `true`. `false` means the hypothetical would
-just repeat the candidate's own preview already shown alongside it — the
-common case for a plain one-hop repoint, where the two are identical by
-construction.
-
-**Algorithm**: `false` iff `hypothetical.perMode.length === candidate.preview.length`
-**and** every `hypothetical.perMode[i]` has a same-mode entry in
-`candidate.preview` whose outcome is identical — same `kind`, and same
-`value`+`type` (resolved) / `missingPath` (unresolved) / `groupPath`
-(group-target) / `cyclePath` (circular). Any mode-count mismatch or per-mode
-divergence — including a cycle the repoint itself creates (the two chains
-having different `cyclePath`s) — returns `true`.
-
-**Tests**:
-
-- [ ] plain one-hop candidate → `false`.
-- [ ] repoint creates a new cycle (candidate's own chain doesn't pass through
-      the edited token today) → `true`.
-- [ ] candidate's own preview and the hypothetical have a different number of
-      modes (ambiguous single-entry own preview vs. full per-catalogue-mode
-      hypothetical) → `true`.
+`CandidatePreview` (the only consumer of `HypotheticalResolution`) does **not**
+compare the hypothetical against the candidate's own preview to decide
+whether to show it. When `hypothetical` is passed, it is rendered *instead
+of* `candidate.preview` — not alongside it, and with no "would resolve to"
+caption — for exactly the rows a hypothetical is computed for (the
+highlighted row, and any row FR-014 requires cycle-naming for). Every other
+row has no `hypothetical` (perf budget, SC-004) and renders `candidate.preview`
+unchanged. This replaced an earlier same-day revision that added a
+mode-for-mode identity comparison (`hypotheticalDiffersFromPreview`, since
+removed) to conditionally *append* the hypothetical only when it differed;
+user feedback simplified this further — the user only cares about the effect
+of the selection, so there is never a need to show both.
