@@ -18,7 +18,7 @@ Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not 
 - [ ] Add support for "fontFamily" tokens
 - [ ] Add support for "fontWeight" tokens (in progress — worktree `.claude/worktrees/font-weight-token-support`, branch `worktree-font-weight-token-support`)
 - [ ] Add support for "duration" tokens (in progress — worktree `.claude/worktrees/duration-token-support`, branch `worktree-duration-token-support`)
-- [ ] Add support for "cubicBezier" tokens
+- [ ] Add support for "cubicBezier" tokens (in progress — worktree `.claude/worktrees/cubicbezier-token-support`, branch `worktree-cubicbezier-token-support`)
 - [ ] Add support for "number" tokens (in progress — worktree `.claude/worktrees/number-token-support`, branch `worktree-number-token-support`)
 - [ ] Add support for "strokeStyle" tokens
 - [ ] Add support for "border" tokens
