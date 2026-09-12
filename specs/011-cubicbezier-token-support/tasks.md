@@ -24,16 +24,16 @@ wiring) and carries no behavior of its own.
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `packages/token-editor-cubic-bezier/` package skeleton (`package.json`,
+- [X] T001 Create `packages/token-editor-cubic-bezier/` package skeleton (`package.json`,
       `tsconfig.json`) copied from `packages/token-editor-dimension/package.json` and
       `tsconfig.json`, renaming the package to `@dtcg-editor/token-editor-cubic-bezier` and
       updating its `test` script glob if needed
-- [ ] T002 [P] Copy `packages/token-editor-dimension/vitest.setup.ts`,
+- [X] T002 [P] Copy `packages/token-editor-dimension/vitest.setup.ts`,
       `vitest-a11y-tags.ts`, `src/css-modules.d.ts`, and `src/vitest-env.d.ts` verbatim into
       `packages/token-editor-cubic-bezier/` (same relative paths)
-- [ ] T003 Add `packages/token-editor-cubic-bezier` to the `packages` array in
+- [X] T003 Add `packages/token-editor-cubic-bezier` to the `packages` array in
       `vitest.config.mts` so its unit + a11y projects run in the root Vitest run
-- [ ] T004 Run `pnpm install` at repo root to link the new workspace package (adds no new
+- [X] T004 Run `pnpm install` at repo root to link the new workspace package (adds no new
       third-party dependency — see plan.md Constitution Check / Principle VIII)
 
 **Checkpoint**: New package scaffold exists and is wired into the workspace/test runner, empty

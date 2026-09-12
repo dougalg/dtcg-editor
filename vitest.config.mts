@@ -138,6 +138,7 @@ const packages = [
 	"apps/web-app",
 	"packages/design-system",
 	"packages/token-editor-color",
+	"packages/token-editor-cubic-bezier",
 	"packages/token-editor-dimension",
 	"packages/token-editor-duration",
 ];
