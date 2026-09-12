@@ -96,4 +96,43 @@ existed and failed before the implementation.
   apps/web-app/lib/token-editors/built-in` -> 2 test files, 6 tests, all
   passed.
 - refactor: none needed
+- commit: `6a19250`
+
+## Cycle 5: Full-suite fallout fixes + deliberate-mutant spot check (Constitution XIII, T023/T025)
+
+- `pnpm build` (full monorepo, 8 packages including the new
+  `token-editor-duration`) -> all clean, no type errors.
+- `pnpm test` (full monorepo) surfaced 4 pre-existing-assumption fallout
+  failures caused by `duration` becoming a 3rd built-in type:
+  - `apps/web-app/lib/token-editors/define-config.test.ts` hardcoded
+    `resolved.extensions.length` as `2` and `3` (built-in count before this
+    feature) — fixed to derive from `BUILT_IN_TOKEN_TYPES.length` so it can't
+    go stale again.
+  - `apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx`'s
+    `fallbackToken()` fixture used `declaredType: "duration"` as its example
+    of "a standard DTCG type with no built-in contract" — no longer true.
+    Swapped to `"typography"` (still unregistered, not claimed by any
+    sibling in-flight worktree per `git worktree list`).
+  - Re-ran both files after the fix: 30/30 tests passed.
+- Re-ran `pnpm test` (full monorepo): the `token-core` (`node --test`, 107
+  tests) and `//#test:vitest` (704+ vitest tests across all packages)
+  gates are green. 3 unrelated Playwright e2e tests remain red both before
+  and after this feature's changes (`edit-token-references-perf.spec.ts`'s
+  Long-Task and p95-keystroke-latency budgets, `keyboard-navigation.spec.ts`'s
+  large-fixture focus-order check) — reproduced deterministically twice,
+  timing/fixture-order sensitive, touch no file this feature changed, and
+  match the known scope of the separately tracked `fix-editing-perf-ci-flake`
+  backlog item. Judged pre-existing and out of scope for this feature; not
+  fixed here.
+- Deliberate-mutant spot check (no mutation tool configured, per
+  `.specify/memory/tdd-profile.md`):
+  - `DurationEditor.tsx`'s negative-value guard: `next < 0` mutated to
+    `next <= 0` -> `DurationEditor.test.tsx`'s "a non-numeric value input is
+    rejected" case failed (0 became a rejected boundary too) -> reverted
+    exactly to `next < 0` -> suite green again.
+  - `DurationPreview.tsx`'s parse-failure branch: `!parsed.success` mutated
+    to `parsed.success` -> all 4 `DurationPreview.test.tsx` cases failed
+    (3 assertion failures + 1 `TypeError: Cannot read properties of
+    undefined`) -> reverted exactly to `!parsed.success` -> suite green
+    again (14/14 in `packages/token-editor-duration`).
 - commit: (this session, see repo history)

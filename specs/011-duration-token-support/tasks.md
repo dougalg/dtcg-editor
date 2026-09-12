@@ -102,10 +102,10 @@ description: "Task list for Duration Token Support (011)"
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T022 [P] Add `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.stories.tsx` (mirrors `DimensionEditor.stories.tsx`, `Milliseconds`/`Seconds` stories)
-- [ ] T023 Run `pnpm build` and `pnpm test` (full monorepo) and fix any fallout
-- [ ] T024 Walk through `quickstart.md` manually (or via Playwright if an existing e2e suite covers token editing) to confirm end-to-end behavior in the running web app
-- [ ] T025 Run `speckit-tdd-verify`'s deliberate-mutant spot check on `DurationEditor`'s negative-value guard and `DurationPreview`'s parse-failure branch (no mutation tool configured — see `.specify/memory/tdd-profile.md`), recording evidence in `specs/011-duration-token-support/tdd/cycle-log.md`
+- [x] T022 [P] Add `packages/token-editor-duration/src/components/DurationEditor/DurationEditor.stories.tsx` (mirrors `DimensionEditor.stories.tsx`, `Milliseconds`/`Seconds` stories)
+- [x] T023 Run `pnpm build` and `pnpm test` (full monorepo) and fix any fallout
+- [x] T024 Walk through `quickstart.md` manually (or via Playwright if an existing e2e suite covers token editing) to confirm end-to-end behavior in the running web app
+- [x] T025 Run `speckit-tdd-verify`'s deliberate-mutant spot check on `DurationEditor`'s negative-value guard and `DurationPreview`'s parse-failure branch (no mutation tool configured — see `.specify/memory/tdd-profile.md`), recording evidence in `specs/011-duration-token-support/tdd/cycle-log.md`
 
 ---
 

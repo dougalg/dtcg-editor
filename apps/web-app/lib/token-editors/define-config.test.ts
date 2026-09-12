@@ -7,7 +7,7 @@ import { DtcgEditorConfigError, defineConfig } from "./define-config.ts";
 test("returns a resolved config with built-in defaults merged in when no extensions given", () => {
 	const resolved = defineConfig({ tokensDir: "./tokens" });
 	assert.equal(resolved.tokensDir, "./tokens");
-	assert.equal(resolved.extensions.length, 2);
+	assert.equal(resolved.extensions.length, BUILT_IN_TOKEN_TYPES.length);
 	assert.equal(resolved.extensions[0]?.type, "dimension");
 });
 
@@ -17,7 +17,7 @@ test("merges a user-supplied extension ahead of the built-in default (AC-06)", (
 		tokensDir: "./tokens",
 		extensions: [{ type: "dimension", editor: customEditor }],
 	});
-	assert.equal(resolved.extensions.length, 3);
+	assert.equal(resolved.extensions.length, BUILT_IN_TOKEN_TYPES.length + 1);
 	assert.equal(resolved.extensions[0]?.editor, customEditor);
 });
 
