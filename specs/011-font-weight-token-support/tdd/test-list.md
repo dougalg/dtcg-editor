@@ -37,9 +37,9 @@ host's built-in-type registry for A1).
 
 | id  | behavior                                                                                          | traces               | kind    | state   | test                                                                                            |
 | --- | -------------------------------------------------------------------------------------------------- | --------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------ |
-| A1  | `fontWeight` is a registered built-in type, so the host stops routing it to the JSON fallback       | AC 1.1, FR-001        | example | PENDING | `apps/web-app/lib/token-editors/built-in.test.ts::BUILT_IN_TOKEN_TYPES includes fontWeight`       |
-| A2  | Changing the editor's value updates the token's `$value` to the new integer                         | AC 1.2, FR-003, FR-006 | example | PENDING | `packages/token-editor-font-weight/.../FontWeightEditor.test.tsx::calls onChange with updated value` |
-| A3  | An out-of-range or non-numeric value entered in the editor is not committed                         | AC 1.3, FR-004        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightEditor.test.tsx::rejects invalid input`           |
+| A1  | `fontWeight` is a registered built-in type, so the host stops routing it to the JSON fallback       | AC 1.1, FR-001        | example | DONE    | `apps/web-app/lib/token-editors/built-in.test.ts::BUILT_IN_TOKEN_TYPES includes dimension, color, and fontWeight` |
+| A2  | Changing the editor's value updates the token's `$value` to the new integer                         | AC 1.2, FR-003, FR-006 | example | DONE    | `FontWeightEditor.test.tsx::editing the numeric value calls onChange with the updated integer` |
+| A3  | An out-of-range or non-numeric value entered in the editor is not committed                         | AC 1.3, FR-004        | example | DONE    | `FontWeightEditor.test.tsx::entering an out-of-range integer does not call onChange` (+ non-numeric/non-integer cases) |
 | A4  | A numeric `fontWeight` value shows as readable text in a reference/candidate preview                | AC 2.1, FR-005        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightPreview.test.tsx::renders a numeric value`        |
 | A5  | An alias `fontWeight` value shows as readable text in a reference/candidate preview                 | AC 2.2, FR-005        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightPreview.test.tsx::renders an alias value`         |
 | A6  | Selecting a keyword alias in the editor writes that exact string as `$value`                        | AC 3.1, FR-007        | example | PENDING | `packages/token-editor-font-weight/.../FontWeightEditor.test.tsx::alias selection calls onChange`  |
@@ -65,11 +65,11 @@ host's built-in-type registry for A1).
 
 | id  | behavior                                                                                  | traces         | kind    | state   | test                                                                        |
 | --- | -------------------------------------------------------------------------------------------| -------------- | ------- | ------- | ----------------------------------------------------------------------------- |
-| U10 | Renders the current numeric value in a labeled number input with `min=1 max=1000 step=1`  | FR-003         | example | PENDING | `FontWeightEditor.test.tsx::renders the current value with range attributes` |
-| U11 | Editing the numeric value calls `onChange` with the updated integer                       | FR-003, AC 1.2 | example | PENDING | `FontWeightEditor.test.tsx::calls onChange with updated value`               |
-| U12 | Entering a non-numeric value does not call `onChange`                                     | FR-004         | example | PENDING | `FontWeightEditor.test.tsx::rejects non-numeric input`                       |
-| U13 | Entering an out-of-range integer (e.g. `1001` or `0`) does not call `onChange`             | FR-004         | example | PENDING | `FontWeightEditor.test.tsx::rejects out-of-range input`                      |
-| U14 | Has no WCAG 2.2 AA violations for a numeric value                                          | Principle X    | example | PENDING | `FontWeightEditor.a11y.test.tsx::has no WCAG 2.2 AA violations`              |
+| U10 | Renders the current numeric value in a labeled number input with `min=1 max=1000 step=1`  | FR-003         | example | DONE    | `FontWeightEditor.test.tsx::renders the current value in a number input with the DTCG range attributes` |
+| U11 | Editing the numeric value calls `onChange` with the updated integer                       | FR-003, AC 1.2 | example | DONE    | `FontWeightEditor.test.tsx::editing the numeric value calls onChange with the updated integer` |
+| U12 | Entering a non-numeric value does not call `onChange`                                     | FR-004         | example | DONE    | `FontWeightEditor.test.tsx::entering a non-numeric value does not call onChange` / `::entering a non-integer numeric value does not call onChange` |
+| U13 | Entering an out-of-range integer (e.g. `1001` or `0`) does not call `onChange`             | FR-004         | example | DONE    | `FontWeightEditor.test.tsx::entering an out-of-range integer does not call onChange` |
+| U14 | Has no WCAG 2.2 AA violations for a numeric value                                          | Principle X    | example | DONE    | `FontWeightEditor.a11y.test.tsx::has no WCAG 2.2 AA violations`              |
 
 ### `packages/token-editor-font-weight/src/components/FontWeightPreview/FontWeightPreview.tsx`
 
@@ -84,7 +84,7 @@ host's built-in-type registry for A1).
 
 | id  | behavior                                                          | traces  | kind    | state   | test                                                                     |
 | --- | -------------------------------------------------------------------| ------- | ------- | ------- | --------------------------------------------------------------------------- |
-| U23 | `BUILT_IN_TOKEN_TYPES` includes `"fontWeight"` alongside dimension/color | FR-001  | example | PENDING | `built-in.test.ts::BUILT_IN_TOKEN_TYPES includes fontWeight` |
+| U23 | `BUILT_IN_TOKEN_TYPES` includes `"fontWeight"` alongside dimension/color | FR-001  | example | DONE    | `built-in.test.ts::BUILT_IN_TOKEN_TYPES includes dimension, color, and fontWeight` |
 
 ### `packages/token-editor-font-weight/src/components/FontWeightEditor/FontWeightEditor.tsx` — keyword-alias picker (nice-to-have, Phase 5)
 

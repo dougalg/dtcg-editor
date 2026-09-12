@@ -26,16 +26,16 @@ directly.
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Create package scaffold `packages/token-editor-font-weight/` (package.json,
+- [X] T001 Create package scaffold `packages/token-editor-font-weight/` (package.json,
       tsconfig.json, vitest.setup.ts, vitest-a11y-tags.ts, src/css-modules.d.ts,
       src/vitest-env.d.ts), mirroring `packages/token-editor-dimension`'s equivalent files
       file-for-file (same devDependencies, same `build`/`test`/`lint` scripts, package name
       `@dtcg-editor/token-editor-font-weight`)
-- [ ] T002 Run `pnpm install` at repo root so the new workspace package and its
+- [X] T002 Run `pnpm install` at repo root so the new workspace package and its
       `@dtcg-editor/token-core`/`@dtcg-editor/token-editor-contract` dependencies (added via
       `pnpm add --filter @dtcg-editor/token-editor-font-weight`, per CLAUDE.md's pnpm rule) are
       linked
-- [ ] T003 [P] Add `"packages/token-editor-font-weight"` to the `packages` array in
+- [X] T003 [P] Add `"packages/token-editor-font-weight"` to the `packages` array in
       `vitest.config.mts` so its `.test.tsx`/`.a11y.test.tsx` files run under the shared
       unit/a11y Vitest projects
 
@@ -51,19 +51,19 @@ code yet.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] Write failing `node:test` cases in
+- [X] T004 [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] Write failing `node:test` cases in
       `packages/token-core/src/font-weight.test.ts` for `FontWeightValueSchema`: accepts integer
       `1` (U1), `1000` (U2), and a mid-range value `400` (U3); accepts each of the 18 keyword
       aliases (U4); rejects `0` (U5); rejects `1001` (U6); rejects a non-integer number `400.5`
       (U7); rejects an unrecognized string `"extra-bold-ish"` (U8); rejects a non-string/
       non-number value, e.g. an object (U9). Run it, confirm it fails (module doesn't exist yet),
       and record the observed red in `specs/011-font-weight-token-support/tdd/cycle-log.md`
-- [ ] T005 [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] Implement `FontWeightValueSchema`/
+- [X] T005 [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] Implement `FontWeightValueSchema`/
       `FontWeightValue` in `packages/token-core/src/font-weight.ts`
       (`z.union([z.number().int().min(1).max(1000), z.enum([...18 aliases])])`, matching
       `dimension.ts`'s file shape) — smallest change to make T004 pass, then run the full
       `token-core` suite and confirm still green, then refactor if needed
-- [ ] T006 Export `FontWeightValueSchema` (value) and `FontWeightValue` (type) from
+- [X] T006 Export `FontWeightValueSchema` (value) and `FontWeightValue` (type) from
       `packages/token-core/src/index.ts`, alongside the existing `DimensionValue`/
       `DimensionValueSchema` exports
 
@@ -83,46 +83,46 @@ type is registered so the web app no longer routes `fontWeight` to the JSON fall
 
 ### Tests for User Story 1 ⚠️ (write first, run, confirm failing for the right reason, only then implement)
 
-- [ ] T007 [P] [US1] [U10] [U11] [U12] [U13] Write failing tests in
+- [X] T007 [P] [US1] [U10] [U11] [U12] [U13] Write failing tests in
       `packages/token-editor-font-weight/src/components/FontWeightEditor/FontWeightEditor.test.tsx`:
       renders the current numeric value in a labeled number input with `min=1 max=1000 step=1`
       attributes (U10); calling `onChange` fires with an updated integer when the input changes
       (U11, mirror `DimensionEditor.test.tsx`'s structure); entering a non-numeric value does not
       call `onChange` (U12); entering an out-of-range integer (`1001` or `0`) does not call
       `onChange` (U13). Run it against the not-yet-created component and confirm it fails
-- [ ] T008 [P] [US1] [U14] Write failing tests in
+- [X] T008 [P] [US1] [U14] Write failing tests in
       `packages/token-editor-font-weight/src/components/FontWeightEditor/FontWeightEditor.a11y.test.tsx`:
       zero WCAG 2.2 AA `axe-core` violations for a numeric value (mirror
       `DimensionEditor.a11y.test.tsx`'s structure/tag set). Run it and confirm it fails
-- [ ] T009 [US1] Record the observed red for T007/T008 (exact failure output, e.g. "Cannot find
+- [X] T009 [US1] Record the observed red for T007/T008 (exact failure output, e.g. "Cannot find
       module") in `specs/011-font-weight-token-support/tdd/cycle-log.md`
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] [U10] [U11] [U12] [U13] [U14] Implement `FontWeightEditor` in
+- [X] T010 [US1] [U10] [U11] [U12] [U13] [U14] Implement `FontWeightEditor` in
       `packages/token-editor-font-weight/src/components/FontWeightEditor/FontWeightEditor.tsx`:
       a single labeled `<input type="number" min="1" max="1000" step="1">` bound to
       `TokenTypeEditorProps<FontWeightValue>`, calling `onChange` with the parsed integer only
       when it is a finite integer in `[1, 1000]` (only the numeric-literal branch of
       `FontWeightValue` is directly editable here — see plan.md's Design Decisions) — smallest
       change to make T007/T008 pass, run the full package suite, confirm green, then refactor
-- [ ] T011 [US1] Add
+- [X] T011 [US1] Add
       `packages/token-editor-font-weight/src/components/FontWeightEditor/FontWeightEditor.module.css`
       styled only with `--dtcg-ed-*` custom properties (Principle XII), matching
       `DimensionEditor.module.css`'s layout pattern
-- [ ] T012 [US1] Create `packages/token-editor-font-weight/src/token-type.ts` exporting
+- [X] T012 [US1] Create `packages/token-editor-font-weight/src/token-type.ts` exporting
       `fontWeightTokenType: TokenTypeContract<FontWeightValue>` with `type: "fontWeight"`,
       `valueSchema: FontWeightValueSchema`, `serializeValue: (value) => value`,
       `Editor: FontWeightEditor` (per contracts/token-type-contract.md; `Preview` added in
       Phase 4, US2)
-- [ ] T013 [US1] Create `packages/token-editor-font-weight/src/index.ts` exporting
+- [X] T013 [US1] Create `packages/token-editor-font-weight/src/index.ts` exporting
       `FontWeightEditor` and `fontWeightTokenType`, mirroring
       `token-editor-dimension/src/index.ts`
-- [ ] T014 [US1] [A1] [U23] Extend the existing assertion in
+- [X] T014 [US1] [A1] [U23] Extend the existing assertion in
       `apps/web-app/lib/token-editors/built-in.test.ts` (`"BUILT_IN_TOKEN_TYPES includes both
       dimension and color"`) to also expect `"fontWeight"`. Run it and confirm it fails against
       the current two-entry array before touching `built-in.ts`
-- [ ] T015 [US1] [A1] [U23] Register `"fontWeight"` in `apps/web-app/lib/token-editors/built-in.ts`:
+- [X] T015 [US1] [A1] [U23] Register `"fontWeight"` in `apps/web-app/lib/token-editors/built-in.ts`:
       add to `BUILT_IN_TOKEN_TYPES`, add `fontWeight: fontWeightTokenType as unknown as
       TokenTypeContract<unknown>` to `builtInContractsByType` (same erasure-safety comment
       rationale as the existing `dimension`/`color` entries), and add
@@ -130,9 +130,9 @@ type is registered so the web app no longer routes `fontWeight` to the JSON fall
       `pnpm add @dtcg-editor/token-editor-font-weight --filter @dtcg-editor/web-app` (per
       CLAUDE.md's pnpm rule — do not hand-edit the dependency) — smallest change to make T014
       pass
-- [ ] T015a [US1] Record the observed red for T014 and the green for T015 in
+- [X] T015a [US1] Record the observed red for T014 and the green for T015 in
       `specs/011-font-weight-token-support/tdd/cycle-log.md`
-- [ ] T016 [US1] Run `pnpm --filter @dtcg-editor/token-editor-font-weight build` and
+- [X] T016 [US1] Run `pnpm --filter @dtcg-editor/token-editor-font-weight build` and
       `pnpm --filter @dtcg-editor/web-app build`, fix any TypeScript errors (Principle III: no
       relaxed strictness)
 
