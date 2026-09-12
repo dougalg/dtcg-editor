@@ -50,3 +50,21 @@ existed and failed before the implementation.
   @dtcg-editor/token-editor-duration build` -> clean.
 - refactor: none needed
 - commit: (this session, see repo history)
+
+## Cycle 3: U15-U19, A4-A5 DurationPreview
+
+- test: `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.test.tsx`
+  (new, 4 cases) and `DurationPreview.a11y.test.tsx` (new, 1 case)
+- red: `pnpm exec vitest run .../DurationPreview.test.tsx` -> `Error: Failed
+  to resolve import "./DurationPreview.tsx" ... Does the file exist?` (1 test
+  file failed to collect, 0 tests ran — component doesn't exist yet)
+- green: `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.tsx`
+  added (mirrors `ColorPreview.tsx`: `DurationValueSchema.safeParse(value)`,
+  `null` on failure, else `${value}${unit}` text) + `DurationPreview.module.css`.
+  `pnpm exec vitest run packages/token-editor-duration/src/components/DurationPreview/`
+  -> 5 passed (4 unit + 1 a11y). `Preview: DurationPreview` wired into
+  `durationTokenType` (completes U20). `pnpm exec vitest run
+  packages/token-editor-duration` -> 4 test files, 14 tests, all passed.
+  `pnpm --filter @dtcg-editor/token-editor-duration build` -> clean.
+- refactor: none needed
+- commit: (this session, see repo history)

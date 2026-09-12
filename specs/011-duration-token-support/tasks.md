@@ -67,16 +67,16 @@ description: "Task list for Duration Token Support (011)"
 
 ### Tests for User Story 2 ⚠️ (write first, confirm red)
 
-- [ ] T013 [P] [US2] [U15][U16][U17][U18] Write failing tests in `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.test.tsx`: `{value:200,unit:"ms"}` renders text `"200ms"` [U15]; `{value:1,unit:"s"}` renders text `"1s"` [U16]; `{value:1.5,unit:"s"}` renders text `"1.5s"` [U17]; an invalid value (e.g. `{not:"a duration"}`) renders nothing (`container.firstChild` is `null`) [U18]
-- [ ] T014 [P] [US2] [U19] Write failing tests in `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.a11y.test.tsx`: zero WCAG 2.2 AA violations for a rendered preview (mirrors `ColorPreview.a11y.test.tsx`)
+- [x] T013 [P] [US2] [U15][U16][U17][U18] Write failing tests in `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.test.tsx`: `{value:200,unit:"ms"}` renders text `"200ms"` [U15]; `{value:1,unit:"s"}` renders text `"1s"` [U16]; `{value:1.5,unit:"s"}` renders text `"1.5s"` [U17]; an invalid value (e.g. `{not:"a duration"}`) renders nothing (`container.firstChild` is `null`) [U18]
+- [x] T014 [P] [US2] [U19] Write failing tests in `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.a11y.test.tsx`: zero WCAG 2.2 AA violations for a rendered preview (mirrors `ColorPreview.a11y.test.tsx`)
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] [U15][U16][U17][U18][U19] Implement `DurationPreview` in `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.tsx` (mirrors `ColorPreview.tsx`: `DurationValueSchema.safeParse(value)`, return `null` on failure, else render `` `${parsed.data.value}${parsed.data.unit}` `` in a `<span>`) — confirm T013/T014 go green
-- [ ] T016 [P] [US2] Add `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.module.css` (copy `ColorPreview.module.css`'s `--dtcg-ed-font-mono` text styling)
-- [ ] T017 [US2] [U20] Wire `Preview: DurationPreview` into `durationTokenType` in `packages/token-editor-duration/src/token-type.ts`
-- [ ] T018 [US2] Export `DurationPreview` from `packages/token-editor-duration/src/index.ts`
-- [ ] T018a [US2] [A4][A5] Confirm A4/A5 (outer-loop acceptance behaviors for US2) are green via T013's existing assertions
+- [x] T015 [US2] [U15][U16][U17][U18][U19] Implement `DurationPreview` in `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.tsx` (mirrors `ColorPreview.tsx`: `DurationValueSchema.safeParse(value)`, return `null` on failure, else render `` `${parsed.data.value}${parsed.data.unit}` `` in a `<span>`) — confirm T013/T014 go green
+- [x] T016 [P] [US2] Add `packages/token-editor-duration/src/components/DurationPreview/DurationPreview.module.css` (copy `ColorPreview.module.css`'s `--dtcg-ed-font-mono` text styling)
+- [x] T017 [US2] [U20] Wire `Preview: DurationPreview` into `durationTokenType` in `packages/token-editor-duration/src/token-type.ts`
+- [x] T018 [US2] Export `DurationPreview` from `packages/token-editor-duration/src/index.ts`
+- [x] T018a [US2] [A4][A5] Confirm A4/A5 (outer-loop acceptance behaviors for US2) are green via T013's existing assertions
 
 **Checkpoint**: `durationTokenType` now has both `Editor` and `Preview`; both are independently testable and functional.
 
