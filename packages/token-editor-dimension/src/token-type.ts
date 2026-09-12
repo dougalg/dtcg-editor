@@ -4,6 +4,7 @@ import {
 } from "@dtcg-editor/token-core";
 import type { TokenTypeContract } from "@dtcg-editor/token-editor-contract";
 import { DimensionEditor } from "./components/DimensionEditor/DimensionEditor.tsx";
+import { DimensionPreview } from "./components/DimensionPreview/DimensionPreview.tsx";
 
 /**
  * The first concrete implementation of `TokenTypeContract`. Kept in its own
@@ -17,4 +18,5 @@ export const dimensionTokenType: TokenTypeContract<DimensionValue> = {
 	valueSchema: DimensionValueSchema,
 	serializeValue: (value) => value,
 	Editor: DimensionEditor,
+	Preview: DimensionPreview,
 };

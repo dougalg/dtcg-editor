@@ -19,6 +19,13 @@ test("returns the type's built-in Preview output when a contract has one", () =>
 	expect(container.querySelector('[style*="--swatch-color"]')).not.toBeNull();
 });
 
+test("renders dimension's own Preview instead of raw JSON", () => {
+	const { getByText } = renderNode(
+		formatLiteralValue({ value: 16, unit: "px" }, "dimension"),
+	);
+	expect(getByText("16px")).toBeTruthy();
+});
+
 test("falls back to the raw text form when there is no usable Preview", () => {
 	// no type
 	const untyped = renderNode(formatLiteralValue("plain-string", undefined));
