@@ -154,28 +154,28 @@ value; confirm it renders text for the first and `null` for the second.
 
 ### Tests for User Story 2 ⚠️ (write first, run, confirm failing, only then implement)
 
-- [ ] T017 [P] [US2] [U18] [U19] [U20] Write failing tests in
+- [X] T017 [P] [US2] [U18] [U19] [U20] Write failing tests in
       `packages/token-editor-number/src/components/NumberPreview/NumberPreview.test.tsx`: renders
       `"1.5"` for a numeric value `1.5` (U18); renders `"-2"` for a negative value `-2` (U19);
       renders nothing (`container.firstChild` is `null`) for a value that fails
       `NumberValueSchema`, e.g. `{ not: "valid" }` (U20) (mirror `FontWeightPreview.test.tsx`'s
       structure). Run it against the not-yet-created component and confirm it fails
-- [ ] T018 [P] [US2] [U21] Write failing tests in
+- [X] T018 [P] [US2] [U21] Write failing tests in
       `packages/token-editor-number/src/components/NumberPreview/NumberPreview.a11y.test.tsx`:
       zero WCAG 2.2 AA `axe-core` violations for a numeric value (mirror
       `FontWeightPreview.a11y.test.tsx`'s structure). Run it and confirm it fails
-- [ ] T019 [US2] Record the observed red for T017/T018 in
+- [X] T019 [US2] Record the observed red for T017/T018 in
       `specs/013-number-token-support/tdd/cycle-log.md`
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] [U18] [U19] [U20] [U21] Implement `NumberPreview` in
+- [X] T020 [US2] [U18] [U19] [U20] [U21] Implement `NumberPreview` in
       `packages/token-editor-number/src/components/NumberPreview/NumberPreview.tsx`:
       `{ value: unknown }` props, `NumberValueSchema.safeParse(value)`, return `null` on failure,
       otherwise render `<span>{String(parsed.data)}</span>` styled via
       `NumberPreview.module.css` (mirror `FontWeightPreview.tsx`'s validate-then-render shape) —
       smallest change to make T017/T018 pass, confirm full suite green, then refactor
-- [ ] T021 [US2] Add
+- [X] T021 [US2] Add
       `packages/token-editor-number/src/components/NumberPreview/NumberPreview.module.css` styled
       only with `--dtcg-ed-*` custom properties (e.g. `var(--dtcg-ed-font-mono)`, matching
       `FontWeightPreview.module.css`)

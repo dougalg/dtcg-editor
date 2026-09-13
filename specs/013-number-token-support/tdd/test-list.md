@@ -38,7 +38,7 @@ rather than silently assumed.
 | A3 | The editor rejects/prevents a non-numeric value entered for a `number` token | AC-1.3 | example | PENDING | `NumberEditor.test.tsx` U-behaviors (component-level proxy) + manual quickstart step 4 |
 | A4 | The editor accepts a negative or fractional `number` value as-is | AC-1.4 | example | PENDING | `NumberEditor.test.tsx` U-behaviors + manual quickstart step 5 |
 | A5 | A reference/candidate preview of a `number` token renders its resolved value as readable text | AC-2.1 | example | PENDING | `NumberPreview.test.tsx` U-behaviors (component-level proxy) + manual quickstart step 6 |
-| A6 | A preview declines to render (falls back to generic rendering) for a value that fails the number schema | AC-2.2 | example | PENDING | `NumberPreview.test.tsx::declines for invalid value` |
+| A6 | A preview declines to render (falls back to generic rendering) for a value that fails the number schema | AC-2.2 | example | DONE | `NumberPreview.test.tsx::declines to render for a value that fails schema validation` |
 
 ## Inner loop: unit behaviors
 
@@ -75,10 +75,10 @@ Grouped by the component from `plan.md` that owns them.
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U18 | Renders a positive numeric value as text | AC-2.1, FR-005 | example | PENDING | `NumberPreview.test.tsx::renders a numeric value` |
-| U19 | Renders a negative numeric value as text | AC-2.1, FR-005 | example | PENDING | `NumberPreview.test.tsx::renders a negative value` |
-| U20 | Declines to render (`null`) for a value that fails schema validation | AC-2.2 | example | PENDING | `NumberPreview.test.tsx::declines for invalid value` |
-| U21 | Has zero WCAG 2.2 AA `axe-core` violations for a numeric value | Constitution X/Technology Stack (a11y tier) | example | PENDING | `NumberPreview.a11y.test.tsx::no violations` |
+| U18 | Renders a positive numeric value as text | AC-2.1, FR-005 | example | DONE | `NumberPreview.test.tsx::renders a numeric value` |
+| U19 | Renders a negative numeric value as text | AC-2.1, FR-005 | example | DONE | `NumberPreview.test.tsx::renders a negative value` |
+| U20 | Declines to render (`null`) for a value that fails schema validation | AC-2.2 | example | DONE | `NumberPreview.test.tsx::declines to render for a value that fails schema validation` |
+| U21 | Has zero WCAG 2.2 AA `axe-core` violations for a numeric value | Constitution X/Technology Stack (a11y tier) | example | DONE | `NumberPreview.a11y.test.tsx::a numeric value preview has no WCAG 2.2 AA violations` |
 
 ### `apps/web-app/lib/token-editors/built-in.ts`
 

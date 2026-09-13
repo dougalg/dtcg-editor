@@ -50,6 +50,31 @@ failed before the implementation.
   packages/token-editor-number`) -> 2 test files passed, 7 tests passed
 - refactor: none needed — matches `FontWeightEditor`'s file shape, already
   minimal (no alias branch, since this type has none)
+- commit: `705e71e`
+
+## Cycle 3: U18-U21 NumberPreview renders text and declines invalid values
+
+- test: `packages/token-editor-number/src/components/NumberPreview/NumberPreview.test.tsx`
+  (new, 3 cases: U18-U20) and `NumberPreview.a11y.test.tsx` (new, 1 case: U21;
+  covers A6 too)
+- red: `pnpm exec vitest run packages/token-editor-number --project
+  'packages/token-editor-number:unit'` -> `Error: Failed to resolve import
+  "./NumberPreview.tsx" ... Does the file exist?` (1 test file failed, 0 tests
+  collected)
+- green: `packages/token-editor-number/src/components/NumberPreview/NumberPreview.tsx`
+  added: `{ value: unknown }` props, `NumberValueSchema.safeParse`, `null` on
+  failure, otherwise `<span>{String(parsed.data)}</span>`. Plus
+  `NumberPreview.module.css`. Unit project -> 9 passed
+- a11y note: `NumberPreview.a11y.test.tsx` passed immediately. Deliberate-mutant
+  check: first tried `aria-labelledby="nonexistent-id"` (not caught — axe's
+  WCAG tag set doesn't flag a dangling `aria-labelledby` reference on its own),
+  then `role="button"` (not caught — a static role alone isn't a violation
+  without interaction), then `aria-hidden="true" tabIndex={0}` (caught:
+  `expected [ {...} ] to deeply equal []`, `aria-hidden-focus` rule violation,
+  confirming the test does catch a real a11y regression); restored the plain
+  `<span>` exactly. Full package suite -> 4 test files passed, 11 tests passed
+- refactor: none needed — matches `FontWeightPreview`'s exact
+  validate-then-render shape
 - commit: (recorded after this cycle's commit below)
 
 ## Notes and deviations
