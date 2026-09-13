@@ -27,14 +27,14 @@ directly.
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Create package scaffold `packages/token-editor-number/` (package.json, tsconfig.json,
+- [X] T001 Create package scaffold `packages/token-editor-number/` (package.json, tsconfig.json,
       vitest.setup.ts, vitest-a11y-tags.ts, src/css-modules.d.ts, src/vitest-env.d.ts), mirroring
       `packages/token-editor-font-weight`'s equivalent files file-for-file (same devDependencies,
       same `build`/`test`/`lint` scripts, package name `@dtcg-editor/token-editor-number`)
-- [ ] T002 Run `pnpm install` at repo root so the new workspace package and its
+- [X] T002 Run `pnpm install` at repo root so the new workspace package and its
       `@dtcg-editor/token-core`/`@dtcg-editor/token-editor-contract` dependencies (added via
       `pnpm add --filter @dtcg-editor/token-editor-number`, per CLAUDE.md's pnpm rule) are linked
-- [ ] T003 [P] Add `"packages/token-editor-number"` to the `packages` array in
+- [X] T003 [P] Add `"packages/token-editor-number"` to the `packages` array in
       `vitest.config.mts` so its `.test.tsx`/`.a11y.test.tsx` files run under the shared unit/a11y
       Vitest projects
 

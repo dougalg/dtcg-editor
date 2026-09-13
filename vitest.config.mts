@@ -144,6 +144,7 @@ const packages = [
 	"packages/token-editor-duration",
 	"packages/token-editor-font-family",
 	"packages/token-editor-font-weight",
+	"packages/token-editor-number",
 	"packages/token-editor-stroke-style",
 	"packages/token-editor-transition",
 ];
