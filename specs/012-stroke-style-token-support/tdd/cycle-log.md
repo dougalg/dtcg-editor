@@ -4,7 +4,7 @@ Append only. Newest last.
 
 ## Baseline
 
-- `pnpm --filter @dtcg-editor/token-core test` -> 147 passed, 0 failed (before this feature's
+- `pnpm --filter @dtcg-editor/token-core test` -> 131 passed, 0 failed (before this feature's
   first test).
 - commit: `741e94e` (claim commit)
 
@@ -21,9 +21,9 @@ Append only. Newest last.
   `StrokeStyleValueSchema = z.union([z.enum(STROKE_STYLE_KEYWORDS), z.object({ dashArray:
   z.array(DimensionValueSchema), lineCap: z.enum(["round","butt","square"]) })])`, importing
   `DimensionValueSchema` from `./dimension.ts`. Re-ran the single file -> 16/16 passed. Full
-  package suite: `node --test src/*.test.ts` -> 163 passed, 0 failed (was 147 before this
-  feature's file existed; 147 + 16 = 163)
-- green (confirmed): 163 passed, 0 failed
+  package suite: `node --test src/*.test.ts` -> 147 passed, 0 failed (was 131 before this
+  feature's file existed; 131 + 16 = 147)
+- green (confirmed): 147 passed, 0 failed
 - refactor: none needed — new module is 30 lines, one schema
 - exported `StrokeStyleValueSchema`/`StrokeStyleValue` from `packages/token-core/src/index.ts`
   (structural, no new behavior)
@@ -115,7 +115,7 @@ Append only. Newest last.
   6th built-in type required no fix there — unlike the `fontWeight` precedent, which had to
   patch two hardcoded literals.
 - green (full suite): `pnpm exec vitest run` -> 160 files, 781 tests passed, 0 failed.
-  `pnpm --filter @dtcg-editor/token-core test` -> 163 passed, 0 failed. `pnpm build` -> 11/11
+  `pnpm --filter @dtcg-editor/token-core test` -> 147 passed, 0 failed. `pnpm build` -> 11/11
   tasks successful.
 - refactor: none needed
 - commit: `0e6b564` feat(web-app): register strokeStyle as a built-in token type
@@ -126,7 +126,7 @@ Append only. Newest last.
   package to `turbo.json`'s `//#storybook`/`//#build-storybook` `dependsOn` lists.
 - T026: `pnpm build` -> 11/11 tasks successful.
 - T027: `pnpm exec vitest run` -> 160/160 files, 781/781 tests passed.
-  `pnpm --filter @dtcg-editor/token-core test` -> 163/163 passed.
+  `pnpm --filter @dtcg-editor/token-core test` -> 147/147 passed.
 - T028: `pnpm lint` -> 23/23 tasks successful (Biome, zero violations including the new
   package). `pnpm lint:filenames` (`ls-lint`) -> clean. `pnpm format:check` -> 532 files
   checked, no fixes needed (after one `biome format --write` pass to reflow 3 files this
@@ -145,7 +145,7 @@ Append only. Newest last.
   `fontWeight` feature's baseline already recorded, tracked by the open "fix editing perf CI
   flake" backlog item in its own worktree. The subset this feature actually touches —
   `pnpm exec vitest run` and `pnpm --filter @dtcg-editor/token-core test` — is fully green
-  (781/781 and 163/163 respectively), and `pnpm build`/`pnpm lint`/`pnpm lint:filenames`/
+  (781/781 and 147/147 respectively), and `pnpm build`/`pnpm lint`/`pnpm lint:filenames`/
   `pnpm format:check` are all clean.
 
 ## Test list complete

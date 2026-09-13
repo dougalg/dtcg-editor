@@ -10,7 +10,7 @@ suite_baseline: green
 
 **Baseline**: `pnpm exec vitest run` -> 781 passed prior to this feature's first test (at the
 `worktree-font-family-token-support` claim commit this branch started from);
-`pnpm --filter @dtcg-editor/token-core test` -> 147 passed. Fully green — no pre-existing reds to
+`pnpm --filter @dtcg-editor/token-core test` -> 131 passed. Fully green — no pre-existing reds to
 account for at this feature's start. The full CI gate (`pnpm test`, including Playwright e2e) has
 6 pre-existing, unrelated wall-clock/timing-sensitive flakes (perf budgets in
 `edit-token-references-perf.spec.ts`/`editing-perf.spec.ts`, focus-order/scroll-position timing
