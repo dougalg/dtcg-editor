@@ -15,7 +15,7 @@ Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not 
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
 - [ ] Add support for "number" tokens (in progress — worktree `.claude/worktrees/number-token-support`, branch `worktree-number-token-support`)
 - [ ] Add support for "border" tokens (in progress — worktree `.claude/worktrees/border-token-support`, branch `worktree-border-token-support`)
-- [ ] Add support for "transition" tokens
+- [ ] Add support for "transition" tokens (in progress — worktree `.claude/worktrees/transition-token-support`, branch `worktree-transition-token-support`)
 - [ ] Add support for "shadow" tokens
 - [ ] Add support for "gradient" tokens
 - [ ] Add support for "typography" tokens
