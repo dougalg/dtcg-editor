@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-13
 
-**Status**: Draft
+**Status**: Implemented (2026-09-13)
 
 **Input**: User description: "Add support for the DTCG \"shadow\" composite token type. \$value shape: a single shadow layer object `{ color: ColorValue, offsetX: DimensionValue, offsetY: DimensionValue, blur: DimensionValue, spread: DimensionValue }`, or an array of such layer objects for multiple stacked shadows. Reuse existing token-core schemas (ColorValueSchema, DimensionValueSchema) composed into a new ShadowValueSchema (single layer, or array of layers). Create a new token-editor-shadow package whose Editor embeds the existing ColorEditor and four DimensionEditor instances (offsetX/offsetY/blur/spread) for a single layer, plus an add/remove/reorder repeater UI for the multi-layer array case (adapting token-editor-font-family's list pattern to composite objects instead of plain strings). Preview renders a single-line summary for one layer (embedding ColorPreview) and collapses to \"N shadows\" for multiple layers. Register the new type in the web app's built-in editor registry."
 
