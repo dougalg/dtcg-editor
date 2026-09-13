@@ -102,6 +102,53 @@ failed before the implementation.
 - refactor: none needed
 - commit: `fecaa7d`
 
+## Cycle 5 (Polish, T028): manual acceptance validation against the running app
+
+- Started `pnpm dev` (`apps/web-app`) with `DTCG_EDITOR_TOKENS_DIR` pointed at a
+  scratch fixture directory (`apps/web-app/.scratch-number-demo/demo.tokens.json`,
+  never committed, deleted after) containing:
+  `{"opacity": {"$type":"number","$value":1.5}, "opacity-ref":
+  {"$type":"number","$value":"{opacity}"}}`.
+- Drove it with a throwaway Playwright script (chromium-cli was unavailable in
+  this sandbox; `playwright` was already a devDependency of `apps/web-app`, so a
+  minimal driver script was used instead, per the `run` skill's documented
+  fallback for that case).
+- Evidence captured:
+  - DOM inspection: `<input type="number" class="NumberEditor-module__...
+    valueInput" step="any" value="1.5">` — confirms the real `NumberEditor`
+    renders for the `opacity` token, not the generic JSON-textarea fallback
+    (**A1**).
+  - Screenshot 1 (`/tmp/number-demo-1-tree.png`): `opacity` shows a labeled,
+    editable `Value` field showing `1.5`; `opacity-ref` shows `Value {opacity}`
+    with a resolved preview `🔗 1.5` (**A5**, `NumberPreview` renders the
+    resolved literal as readable text).
+  - Filled the `opacity` input with `2.75` (a fractional value) via
+    Playwright's `fill` (goes through the real input pipeline, not a raw DOM
+    write) — DOM value updated to `2.75` (**A4**, fractional value accepted).
+  - Screenshot 2 (`/tmp/number-demo-3-edited.png`): after the edit, `opacity`
+    shows `2.75`, `opacity-ref`'s resolved preview live-updated to `🔗 2.75`
+    (**A2**, the edit propagates and the reference-consumer's preview reflects
+    it), and the page's `Save` button transitioned from disabled/pink-outline
+    to the active pink-filled state, confirming the app's dirty-state tracking
+    recognized the edit as a real, savable change.
+  - `console --errors` equivalent (page `console`/`pageerror` listeners): no
+    errors during navigation, read, or edit.
+- **A3** (rejects non-numeric input) and **A6** (preview declines an invalid
+  value) are not independently re-demonstrated here — a native
+  `<input type="number">` structurally prevents typing non-numeric characters
+  in the first place (the browser itself blocks it), so this scenario is
+  covered by `NumberEditor.test.tsx`'s `fireEvent.change` cases (which bypass
+  that browser-level guard to test the component's own `Number.isFinite`
+  fallback guard directly) rather than by a live browser interaction that
+  cannot actually produce non-numeric `input.value` to begin with.
+- Cleanup: dev server killed (port 3000), `.scratch-number-demo/` deleted,
+  and the Next.js dev server's auto-generated `apps/web-app/AGENTS.md`/
+  `CLAUDE.md` (an unrelated side effect of running `next dev`, not part of
+  this feature) removed before this cycle's commit.
+- No implementation change resulted from this cycle — it is acceptance
+  verification of behavior already made green in Cycles 1-4, closing A1-A5 to
+  `DONE`.
+
 ## Notes and deviations
 
 - The 21 failed `apps/web-app:a11y` test files (e.g.

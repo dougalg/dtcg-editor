@@ -33,11 +33,11 @@ rather than silently assumed.
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| A1 | A `number` token selected in the editor shows a dedicated editor control, not the generic JSON fallback | AC-1.1 | example | GREEN | `apps/web-app/lib/token-editors/built-in.test.ts::resolveBuiltInContract('number') returns the number contract` (registration proxy) + manual quickstart step 2 pending |
-| A2 | Changing a `number` token's value through the editor updates and persists its `$value` | AC-1.2 | example | PENDING | manual quickstart step 3 (no existing automated whole-app edit-persistence harness for a single new type; component-level `NumberEditor.test.tsx` U-behaviors are the automated proxy, matching `FontWeightEditor`'s precedent) |
-| A3 | The editor rejects/prevents a non-numeric value entered for a `number` token | AC-1.3 | example | PENDING | `NumberEditor.test.tsx` U-behaviors (component-level proxy) + manual quickstart step 4 |
-| A4 | The editor accepts a negative or fractional `number` value as-is | AC-1.4 | example | PENDING | `NumberEditor.test.tsx` U-behaviors + manual quickstart step 5 |
-| A5 | A reference/candidate preview of a `number` token renders its resolved value as readable text | AC-2.1 | example | PENDING | `NumberPreview.test.tsx` U-behaviors (component-level proxy) + manual quickstart step 6 |
+| A1 | A `number` token selected in the editor shows a dedicated editor control, not the generic JSON fallback | AC-1.1 | example | DONE | `built-in.test.ts::resolveBuiltInContract('number') returns the number contract` + manual run: DOM shows `<input type="number" ...>`, not JSON textarea |
+| A2 | Changing a `number` token's value through the editor updates and persists its `$value` | AC-1.2 | example | DONE | `NumberEditor.test.tsx` U-behaviors + manual run: editing to `2.75` updated the DOM and activated the Save button |
+| A3 | The editor rejects/prevents a non-numeric value entered for a `number` token | AC-1.3 | example | DONE | `NumberEditor.test.tsx::entering a non-numeric value does not call onChange` / `::clearing the field does not call onChange` |
+| A4 | The editor accepts a negative or fractional `number` value as-is | AC-1.4 | example | DONE | `NumberEditor.test.tsx` U15/U16 + manual run: `2.75` accepted live |
+| A5 | A reference/candidate preview of a `number` token renders its resolved value as readable text | AC-2.1 | example | DONE | `NumberPreview.test.tsx` U-behaviors + manual run: `opacity-ref`'s preview showed `1.5` then live-updated to `2.75` |
 | A6 | A preview declines to render (falls back to generic rendering) for a value that fails the number schema | AC-2.2 | example | DONE | `NumberPreview.test.tsx::declines to render for a value that fails schema validation` |
 
 ## Inner loop: unit behaviors

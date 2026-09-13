@@ -201,7 +201,7 @@ Stories 1 and 2 both work. Feature is functionally complete per spec.md.
       package) and fix any failures introduced by this feature
 - [X] T027 Run `pnpm lint` and `pnpm format:check` and fix any violations (Biome, `@ls-lint/ls-lint`
       filename/folder conventions per Principle X)
-- [ ] T028 [A1] [A2] [A3] [A4] [A5] [A6] Manually execute
+- [X] T028 [A1] [A2] [A3] [A4] [A5] [A6] Manually execute
       `specs/013-number-token-support/quickstart.md`'s manual validation steps against the
       running web app (`pnpm dev`) and confirm every Acceptance Scenario in spec.md passes —
       this is the outer-loop acceptance evidence for A1-A6 (see `tdd/test-list.md`'s Outer loop
