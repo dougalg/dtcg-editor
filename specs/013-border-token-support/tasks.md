@@ -16,7 +16,7 @@ independent implementation and testing.
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Scaffold `packages/token-editor-border` package skeleton
+- [x] T001 Scaffold `packages/token-editor-border` package skeleton
       (`package.json`, `tsconfig.json`, `vitest.setup.ts`,
       `vitest-a11y-tags.ts`, `src/css-modules.d.ts`, `src/vitest-env.d.ts`),
       copying the exact structure of `packages/token-editor-dimension`, with
@@ -26,10 +26,10 @@ independent implementation and testing.
       `@dtcg-editor/token-editor-stroke-style` (all `workspace:*`), added via
       `pnpm add <pkg>@workspace:* --filter @dtcg-editor/token-editor-border`
       per CLAUDE.md's pnpm rule, not hand-edited.
-- [ ] T002 [P] Add `packages/token-editor-border` to the `packages` array in
+- [x] T002 [P] Add `packages/token-editor-border` to the `packages` array in
       `vitest.config.mts` (both `unitProject`/`a11yProject` are generated from
       that one array) so its Vitest projects run in the aggregated suite.
-- [ ] T003 [P] Run `pnpm install` at the repo root to link the new package
+- [x] T003 [P] Run `pnpm install` at the repo root to link the new package
       and its new workspace dependencies.
 
 **Checkpoint**: Package scaffold exists, builds as an empty shell, is wired
