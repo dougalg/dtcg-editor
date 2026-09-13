@@ -46,4 +46,26 @@ existed and failed before the implementation.
   `--dtcg-ed-*`-only rules verbatim). Re-run -> 7 passed, 0 failed
 - refactor: none needed — the five-field embed is already the smallest
   faithful implementation, matching `TransitionEditor`'s precedent shape
+- commit: `600ddae`
+
+## Cycle 3: A8-A11 TypographyPreview composed one-line summary
+
+- test: `packages/token-editor-typography/src/components/TypographyPreview/TypographyPreview.test.tsx`
+  (new, 4 cases: A8 zero-letter-spacing renders one line with no spacing
+  mention; A9 non-zero letter spacing appends it to that line; A10 the
+  fontFamily-array/keyword-fontWeight formatting matches
+  FontFamilyPreview/FontWeightPreview's own conventions; A11 a schema-invalid
+  value renders nothing)
+- red: `pnpm exec vitest run --project packages/token-editor-typography:unit`
+  -> `Error: Failed to resolve import "./TypographyPreview.tsx" ... Does the
+  file exist?` (1 of 2 suites failed, component did not exist)
+- green: `packages/token-editor-typography/src/components/TypographyPreview/TypographyPreview.tsx`
+  added — `TypographyValueSchema.safeParse`, decline (`null`) on failure,
+  otherwise compose `{fontSize.value}{fontSize.unit}/{lineHeight}
+  {fontFamily} {fontWeight}` with letter spacing appended only when
+  non-zero. Added `TypographyPreview.module.css` (copied
+  `TransitionPreview.module.css`'s `--dtcg-ed-*`-only rules verbatim).
+  Re-run -> 11 passed, 0 failed (both TypographyEditor and TypographyPreview
+  suites)
+- refactor: none needed
 - commit: (recorded after this cycle's commit lands)

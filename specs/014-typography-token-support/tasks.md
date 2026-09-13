@@ -145,7 +145,7 @@ non-zero-letter-spacing value, and a schema-invalid value; confirm each renders 
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T012 [P] [US2] [A8] [A9] [A10] [A11] Write failing tests in
+- [X] T012 [P] [US2] [A8] [A9] [A10] [A11] Write failing tests in
       `packages/token-editor-typography/src/components/TypographyPreview/TypographyPreview.test.tsx`
       covering: a value with `letterSpacing.value === 0` renders one line combining font size,
       line height, font family, and font weight, with no letter-spacing mention (A8); a value
@@ -159,16 +159,16 @@ non-zero-letter-spacing value, and a schema-invalid value; confirm each renders 
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] [A8] [A9] [A10] [A11] Implement `TypographyPreview` in
+- [X] T013 [US2] [A8] [A9] [A10] [A11] Implement `TypographyPreview` in
       `packages/token-editor-typography/src/components/TypographyPreview/TypographyPreview.tsx`
       — `TypographyValueSchema.safeParse`, decline (`null`) on failure, otherwise compose one
       `<span>` text in the shape `{fontSize.value}{fontSize.unit}/{lineHeight} {fontFamily}
       {fontWeight}` (letter spacing appended only when non-zero as ` +{value}{unit}`),
       satisfying T012 — smallest change to go green; record the green in `tdd/cycle-log.md`
-- [ ] T014 [US2] Add
+- [X] T014 [US2] Add
       `packages/token-editor-typography/src/components/TypographyPreview/TypographyPreview.module.css`
       using `--dtcg-ed-*` custom properties only
-- [ ] T015 [US2] [A8] [A9] [A10] [A11] Run the new `TypographyPreview.test.tsx` suite, confirm
+- [X] T015 [US2] [A8] [A9] [A10] [A11] Run the new `TypographyPreview.test.tsx` suite, confirm
       all green (A8-A11 must be green before User Story 2 is considered complete); refactor
       while green
 
