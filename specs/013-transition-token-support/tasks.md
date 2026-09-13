@@ -26,19 +26,19 @@ directly.
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Create package scaffold `packages/token-editor-transition/` (package.json,
+- [X] T001 Create package scaffold `packages/token-editor-transition/` (package.json,
       tsconfig.json, vitest.setup.ts, vitest-a11y-tags.ts, src/css-modules.d.ts,
       src/vitest-env.d.ts), mirroring `packages/token-editor-duration`'s equivalent files
       file-for-file (same devDependencies, same `build`/`test`/`lint` scripts, package name
       `@dtcg-editor/token-editor-transition`)
-- [ ] T002 Run `pnpm add --filter @dtcg-editor/token-editor-transition @dtcg-editor/token-core
+- [X] T002 Run `pnpm add --filter @dtcg-editor/token-editor-transition @dtcg-editor/token-core
       @dtcg-editor/token-editor-contract @dtcg-editor/token-editor-duration
       @dtcg-editor/token-editor-cubic-bezier react zod` (workspace deps) plus the matching
       devDependencies (`@testing-library/react`, `@types/react`, `@types/react-dom`,
       `@vitejs/plugin-react`, `@vitest/browser`, `@vitest/browser-playwright`, `axe-core`,
       `jsdom`, `react-dom`, `typescript`, `vitest`, `@types/node`), per CLAUDE.md's pnpm rule
       (never hand-edit `package.json` dependency fields)
-- [ ] T003 [P] Add `"packages/token-editor-transition"` to the `packages` array in
+- [X] T003 [P] Add `"packages/token-editor-transition"` to the `packages` array in
       `vitest.config.mts` so its `.test.tsx`/`.a11y.test.tsx` files run under the shared
       unit/a11y Vitest projects
 

@@ -39,6 +39,7 @@ catalog:
   '@dtcg-editor/token-editor-dimension': workspace:*
   '@dtcg-editor/token-editor-stroke-style': workspace:*
   '@dtcg-editor/token-editor-border': workspace:*
+  '@dtcg-editor/token-editor-duration': workspace:*
 allowBuilds:
   esbuild: true
   sharp: true

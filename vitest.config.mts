@@ -145,6 +145,7 @@ const packages = [
 	"packages/token-editor-font-family",
 	"packages/token-editor-font-weight",
 	"packages/token-editor-stroke-style",
+	"packages/token-editor-transition",
 ];
 
 export default defineConfig({
