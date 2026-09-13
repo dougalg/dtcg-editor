@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-13
 
-**Status**: Draft
+**Status**: Implemented (2026-09-13)
 
 **Input**: User description: "Add support for \"transition\" tokens: implement full editor support for the DTCG transition composite token type. Per the DTCG 2025.10 Format spec (Transition type), $value is { duration: DurationValue, delay: DurationValue, timingFunction: CubicBezierValue }. Reuse the existing duration and cubicBezier schemas and editors rather than rebuilding sub-controls: the transition editor embeds the existing DurationEditor (twice, for duration and delay) and the existing CubicBezierEditor (for timingFunction) directly."
 

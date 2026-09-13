@@ -343,6 +343,9 @@ importers:
       '@dtcg-editor/token-editor-stroke-style':
         specifier: workspace:*
         version: link:../../packages/token-editor-stroke-style
+      '@dtcg-editor/token-editor-transition':
+        specifier: 'catalog:'
+        version: link:../../packages/token-editor-transition
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0

@@ -30,6 +30,7 @@
 		"@dtcg-editor/token-editor-font-family": "catalog:",
 		"@dtcg-editor/token-editor-font-weight": "workspace:*",
 		"@dtcg-editor/token-editor-stroke-style": "workspace:*",
+		"@dtcg-editor/token-editor-transition": "catalog:",
 		"neverthrow": "catalog:",
 		"next": "catalog:",
 		"react": "catalog:",

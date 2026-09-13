@@ -83,3 +83,33 @@ Cycles are appended below in order, one per behavior from `tdd/test-list.md`, by
 - **Refactor**: none needed.
 - **Commit**: recorded after this entry (see git log,
   `feat(token-editor-*): add TransitionPreview component`).
+
+## Wrap-up: contract wiring, registration, a11y, full-suite verification
+
+All 13 test-list behaviors (U1-U6, A1-A8) are `DONE`. Remaining `tasks.md` work
+(T016-T022) was structural/non-behavioral (contract wiring, `index.ts`,
+registration in the shared `built-in.ts`, `.a11y.test.tsx` files, Storybook
+story) and was completed directly rather than through a further red-green
+cycle, per this loop's own scope (only behavior tasks go through the cycle).
+
+- `transitionTokenType` wired (`token-type.ts`), exported (`index.ts`).
+- Registered in `apps/web-app/lib/token-editors/built-in.ts`
+  (`BUILT_IN_TOKEN_TYPES` + `builtInContractsByType`); web-app's `package.json`
+  gained a `workspace:*` dependency on `@dtcg-editor/token-editor-transition`
+  via `pnpm add`.
+- `.a11y.test.tsx` added for both components: 0 WCAG 2.2 AA violations; the two
+  `DurationEditor` instances' distinct accessible group names ("Duration",
+  "Delay") explicitly asserted.
+- One pre-existing test, `apps/web-app/lib/token-editors/built-in.test.ts`,
+  asserted `BUILT_IN_TOKEN_TYPES`'s exact contents and needed updating to
+  include `"transition"` (plus a new `resolveBuiltInContract("transition")`
+  case) — this is the test legitimately disagreeing with newly-correct code
+  (Constitution Principle XIII: spec decides), not a weakening.
+- Full verification: `pnpm build`, `pnpm lint`, `pnpm format:check` all green
+  repo-wide. `pnpm exec vitest run` (fast subset): 817-818 tests pass
+  consistently across two runs, 0 failures attributable to this feature.
+  `pnpm test` (full CI gate) surfaced two pre-existing, unrelated wall-clock
+  flakes under full-suite CPU contention (a reference-index benchmark and a
+  dialog-render timeout, both in files this feature never touches, both
+  passing in isolation) — matching the already-tracked
+  `fix-editing-perf-ci-flake` backlog item, not a regression from this work.

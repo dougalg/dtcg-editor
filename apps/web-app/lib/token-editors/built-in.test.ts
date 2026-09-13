@@ -9,7 +9,7 @@ test("colorTokenType exports the color contract shape (AC-01)", () => {
 	assert.equal(parsed.success, true);
 });
 
-test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fontWeight, strokeStyle, fontFamily, and border", () => {
+test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fontWeight, strokeStyle, fontFamily, border, and transition", () => {
 	assert.deepEqual(
 		[...BUILT_IN_TOKEN_TYPES],
 		[
@@ -21,6 +21,7 @@ test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fon
 			"strokeStyle",
 			"fontFamily",
 			"border",
+			"transition",
 		],
 	);
 });
@@ -59,6 +60,18 @@ test("resolveBuiltInContract('border') returns the border contract (spec 013 U28
 		color: { colorSpace: "srgb", components: [1, 0, 0] },
 		width: { value: 1, unit: "px" },
 		style: "solid",
+	});
+	assert.equal(parsed.success, true);
+});
+
+test("resolveBuiltInContract('transition') returns the transition contract", () => {
+	const contract = resolveBuiltInContract("transition");
+	assert.ok(contract);
+	assert.equal(contract.type, "transition");
+	const parsed = contract.valueSchema.safeParse({
+		duration: { value: 200, unit: "ms" },
+		delay: { value: 0, unit: "ms" },
+		timingFunction: [0.4, 0, 0.2, 1],
 	});
 	assert.equal(parsed.success, true);
 });

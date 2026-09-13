@@ -40,6 +40,7 @@ catalog:
   '@dtcg-editor/token-editor-stroke-style': workspace:*
   '@dtcg-editor/token-editor-border': workspace:*
   '@dtcg-editor/token-editor-duration': workspace:*
+  '@dtcg-editor/token-editor-transition': workspace:*
 allowBuilds:
   esbuild: true
   sharp: true

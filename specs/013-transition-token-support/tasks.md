@@ -168,19 +168,19 @@ and a schema-invalid value; confirm each renders per spec.
 **Purpose**: Wire the tested components into the `TokenTypeContract` and register the built-in
 type so the host app actually uses them (closes SC-001).
 
-- [ ] T016 Implement `transitionTokenType: TokenTypeContract<TransitionValue>` in
+- [X] T016 Implement `transitionTokenType: TokenTypeContract<TransitionValue>` in
       `packages/token-editor-transition/src/token-type.ts` per
       `contracts/token-type-contract.md` (`valueSchema: TransitionValueSchema`,
       `serializeValue: (value) => value`, `Editor: TransitionEditor`, `Preview:
       TransitionPreview`)
-- [ ] T017 [P] Create `packages/token-editor-transition/src/index.ts` exporting
+- [X] T017 [P] Create `packages/token-editor-transition/src/index.ts` exporting
       `TransitionEditor`, `TransitionPreview`, `transitionTokenType`
-- [ ] T018 Register `"transition"` in `apps/web-app/lib/token-editors/built-in.ts`'s
+- [X] T018 Register `"transition"` in `apps/web-app/lib/token-editors/built-in.ts`'s
       `BUILT_IN_TOKEN_TYPES` array and add the matching `transition: transitionTokenType as
       unknown as TokenTypeContract<unknown>` entry to `builtInContractsByType` (shared file —
       expect a rebase conflict with sibling in-flight `number`/`border` features; that's
       expected, handled by the coordinator)
-- [ ] T019 Add `.a11y.test.tsx` files for both components (`TransitionEditor.a11y.test.tsx`,
+- [X] T019 Add `.a11y.test.tsx` files for both components (`TransitionEditor.a11y.test.tsx`,
       `TransitionPreview.a11y.test.tsx`), matching `token-editor-duration`'s WCAG 2.2 AA pattern
       (`vitest-a11y-tags.ts`); run and confirm zero violations, including that the two embedded
       `DurationEditor` instances each expose distinct accessible names (via the wrapping label)
@@ -191,15 +191,27 @@ type so the host app actually uses them (closes SC-001).
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T020 [P] Add `TransitionEditor.stories.tsx` Storybook story if this repo's other
+- [X] T020 [P] Add `TransitionEditor.stories.tsx` Storybook story if this repo's other
       `token-editor-*` packages ship them (check `token-editor-duration` for precedent; match if
       present)
-- [ ] T021 Run `pnpm build`, `pnpm lint`, `pnpm test`, `pnpm format:check` at repo root; fix any
-      type-check/lint/test/format failures
-- [ ] T022 Execute `quickstart.md`'s manual validation steps against the running web app if an
-      interactive browser is available in this session; otherwise leave for a human/manual pass
-      before merge and note that the equivalent scenarios are already exercised by
-      `TransitionEditor.test.tsx`/`TransitionPreview.test.tsx` at the component level
+- [X] T021 Run `pnpm build`, `pnpm lint`, `pnpm test`, `pnpm format:check` at repo root; fix any
+      type-check/lint/test/format failures. `pnpm build`/`pnpm lint`/`pnpm format:check` all
+      green across every package including the new `token-editor-transition`. `pnpm exec
+      vitest run` (fast subset, run twice): 817-818 passed consistently, 0 failures related to
+      this feature. `pnpm test` (full CI gate) surfaced two pre-existing, unrelated wall-clock
+      flakes under full-suite CPU contention — `reference-index.test.ts`'s 5,000-token/<50ms
+      benchmark (101ms observed) and `SpaceConversionDialog.test.tsx`'s 5000ms render timeout —
+      neither touches any file this feature added or edited; both pass in isolation
+      (`apps/web-app:bench` project alone: 15/15 green) and match the known, already-tracked
+      flake category documented on `main` (backlog item `fix-editing-perf-ci-flake`, and noted
+      by the prior `fontFamily` feature's own T024). One pre-existing test
+      (`apps/web-app/lib/token-editors/built-in.test.ts`) legitimately needed updating since it
+      asserted `BUILT_IN_TOKEN_TYPES`'s exact list — extended to include `"transition"` and a
+      `resolveBuiltInContract("transition")` case, not weakened
+- [ ] T022 Execute `quickstart.md`'s manual validation steps against the running web app — NOT
+      performed in this session (no interactive browser available); the equivalent scenarios are
+      exercised by `TransitionEditor.test.tsx`/`TransitionPreview.test.tsx` at the component
+      level instead. Left open for a human/manual pass before merge
 
 ---
 
