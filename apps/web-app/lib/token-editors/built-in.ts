@@ -4,6 +4,7 @@ import { cubicBezierTokenType } from "@dtcg-editor/token-editor-cubic-bezier";
 import { dimensionTokenType } from "@dtcg-editor/token-editor-dimension";
 import { durationTokenType } from "@dtcg-editor/token-editor-duration";
 import { fontWeightTokenType } from "@dtcg-editor/token-editor-font-weight";
+import { strokeStyleTokenType } from "@dtcg-editor/token-editor-stroke-style";
 import type { TokenEditorExtension } from "./types.ts";
 
 /**
@@ -18,6 +19,7 @@ export const BUILT_IN_TOKEN_TYPES = [
 	"duration",
 	"cubicBezier",
 	"fontWeight",
+	"strokeStyle",
 ] as const;
 
 export type TokenType = (typeof BUILT_IN_TOKEN_TYPES)[number];
@@ -39,6 +41,8 @@ const builtInContractsByType: {
 	cubicBezier: cubicBezierTokenType as unknown as TokenTypeContract<unknown>,
 	// Same safety argument as `dimension` above.
 	fontWeight: fontWeightTokenType as unknown as TokenTypeContract<unknown>,
+	// Same safety argument as `dimension` above.
+	strokeStyle: strokeStyleTokenType as unknown as TokenTypeContract<unknown>,
 };
 
 /** Built-in `{ type, editor }` entries, one per `BUILT_IN_TOKEN_TYPES` member. */

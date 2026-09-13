@@ -27,6 +27,7 @@
 		"@dtcg-editor/token-editor-dimension": "workspace:*",
 		"@dtcg-editor/token-editor-duration": "workspace:*",
 		"@dtcg-editor/token-editor-font-weight": "workspace:*",
+		"@dtcg-editor/token-editor-stroke-style": "workspace:*",
 		"neverthrow": "catalog:",
 		"next": "catalog:",
 		"react": "catalog:",
