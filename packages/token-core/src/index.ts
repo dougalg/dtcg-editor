@@ -35,6 +35,8 @@ export type {
 export { resolveReference } from "./resolve-reference.ts";
 export { findNode } from "./resolve-type.ts";
 export { serializeTokenFile, TokenSerializeError } from "./serialize.ts";
+export type { StrokeStyleValue } from "./stroke-style.ts";
+export { StrokeStyleValueSchema } from "./stroke-style.ts";
 export type { DtcgTokenType } from "./token-types.ts";
 export { DTCG_TOKEN_TYPES, isDtcgTokenType } from "./token-types.ts";
 export type { DtcgNode, GroupNode, TokenDocument, TokenNode } from "./types.ts";
