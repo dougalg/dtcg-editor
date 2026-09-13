@@ -16,8 +16,26 @@
 			"$value": "{group-0.sub-0.token-0}"
 		},
 		"exotic": {
-			"$type": "fontFamily",
-			"$value": "Arial"
+			"$type": "shadow",
+			"$value": {
+				"color": "#000",
+				"offsetX": {
+					"value": 0,
+					"unit": "px"
+				},
+				"offsetY": {
+					"value": 2,
+					"unit": "px"
+				},
+				"blur": {
+					"value": 4,
+					"unit": "px"
+				},
+				"spread": {
+					"value": 0,
+					"unit": "px"
+				}
+			}
 		},
 		"broken": {
 			"$type": "dimension",

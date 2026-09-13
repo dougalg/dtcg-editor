@@ -9,7 +9,7 @@ test("colorTokenType exports the color contract shape (AC-01)", () => {
 	assert.equal(parsed.success, true);
 });
 
-test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fontWeight, and strokeStyle", () => {
+test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fontWeight, strokeStyle, and fontFamily", () => {
 	assert.deepEqual(
 		[...BUILT_IN_TOKEN_TYPES],
 		[
@@ -19,8 +19,16 @@ test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fon
 			"cubicBezier",
 			"fontWeight",
 			"strokeStyle",
+			"fontFamily",
 		],
 	);
+});
+
+test("resolveBuiltInContract('fontFamily') returns the fontFamily contract", () => {
+	const contract = resolveBuiltInContract("fontFamily");
+	assert.equal(contract?.type, "fontFamily");
+	const parsed = contract?.valueSchema.safeParse(["Helvetica", "Arial"]);
+	assert.equal(parsed?.success, true);
 });
 
 test("resolveBuiltInContract('duration') returns the duration contract", () => {
