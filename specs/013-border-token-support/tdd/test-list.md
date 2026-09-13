@@ -56,15 +56,15 @@ not a unit beneath it.
 
 | id  | behavior                                                                          | traces      | kind    | state   | test |
 | --- | ---------------------------------------------------------------------------------- | ----------- | ------- | ------- | ---- |
-| U1  | Accepts a value with a full color-object `color`, valid `width`, named-keyword `style` | FR-001      | example | PENDING |      |
-| U2  | Accepts a value with a legacy bare-hex-string `color`                              | FR-001, FR-007 | example | PENDING |      |
-| U3  | Accepts a value whose `style` is the custom dash-pattern object form               | FR-001, FR-007 | example | PENDING |      |
-| U4  | Rejects a value missing `color`                                                    | FR-001      | example | PENDING |      |
-| U5  | Rejects a value missing `width`                                                    | FR-001      | example | PENDING |      |
-| U6  | Rejects a value missing `style`                                                    | FR-001      | example | PENDING |      |
-| U7  | Rejects a value whose `width` is not a valid `DimensionValue` (e.g. missing `unit`) | FR-001, FR-007 | example | PENDING |      |
-| U8  | Rejects a value whose `color` is not a valid `ColorValue` (e.g. wrong-length hex)   | FR-001, FR-007 | example | PENDING |      |
-| U9  | Rejects a value whose `style` is not a valid `StrokeStyleValue` (e.g. unrecognized keyword) | FR-001, FR-007 | example | PENDING |      |
+| U1  | Accepts a value with a full color-object `color`, valid `width`, named-keyword `style` | FR-001      | example | DONE | `packages/token-core/src/border.test.ts` |
+| U2  | Accepts a value with a legacy bare-hex-string `color`                              | FR-001, FR-007 | example | DONE | `packages/token-core/src/border.test.ts` |
+| U3  | Accepts a value whose `style` is the custom dash-pattern object form               | FR-001, FR-007 | example | DONE | `packages/token-core/src/border.test.ts` |
+| U4  | Rejects a value missing `color`                                                    | FR-001      | example | DONE | `packages/token-core/src/border.test.ts` |
+| U5  | Rejects a value missing `width`                                                    | FR-001      | example | DONE | `packages/token-core/src/border.test.ts` |
+| U6  | Rejects a value missing `style`                                                    | FR-001      | example | DONE | `packages/token-core/src/border.test.ts` |
+| U7  | Rejects a value whose `width` is not a valid `DimensionValue` (e.g. missing `unit`) | FR-001, FR-007 | example | DONE | `packages/token-core/src/border.test.ts` |
+| U8  | Rejects a value whose `color` is not a valid `ColorValue` (e.g. wrong-length hex)   | FR-001, FR-007 | example | DONE | `packages/token-core/src/border.test.ts` |
+| U9  | Rejects a value whose `style` is not a valid `StrokeStyleValue` (e.g. unrecognized keyword) | FR-001, FR-007 | example | DONE | `packages/token-core/src/border.test.ts` |
 
 ### `packages/token-editor-border/src/components/BorderEditor/BorderEditor.tsx`
 

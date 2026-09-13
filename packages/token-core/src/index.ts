@@ -1,3 +1,5 @@
+export type { BorderValue } from "./border.ts";
+export { BorderValueSchema } from "./border.ts";
 export { classifyValue } from "./classify-value.ts";
 export type {
 	ColorComponent,

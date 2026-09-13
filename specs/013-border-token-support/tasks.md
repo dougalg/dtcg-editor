@@ -44,7 +44,7 @@ Editor/Preview/contract depends on.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [U1][U2][U3][U4][U5][U6][U7][U8][U9] Write failing tests for `BorderValueSchema` in
+- [x] T004 [U1][U2][U3][U4][U5][U6][U7][U8][U9] Write failing tests for `BorderValueSchema` in
       `packages/token-core/src/border.test.ts` (`node:test` +
       `node:assert/strict`, mirroring `dimension.test.ts`'s style): accepts a
       valid `{ color, width, style }` object (color as full object form,
@@ -55,14 +55,14 @@ Editor/Preview/contract depends on.
       whose `style` is not a valid `StrokeStyleValue`. Confirm these fail
       first (no `border.ts` module exists yet) and log the red in
       `specs/013-border-token-support/tdd/cycle-log.md`.
-- [ ] T005 [U1][U2][U3][U4][U5][U6][U7][U8][U9] Implement `BorderValueSchema`/`BorderValue` in
+- [x] T005 [U1][U2][U3][U4][U5][U6][U7][U8][U9] Implement `BorderValueSchema`/`BorderValue` in
       `packages/token-core/src/border.ts` as
       `z.object({ color: ColorValueSchema, width: DimensionValueSchema, style: StrokeStyleValueSchema })`,
       importing the three schemas from their existing sibling modules
       (`./color.ts`, `./dimension.ts`, `./stroke-style.ts`) — no redefinition
       of any sub-schema. Confirm T004's tests now pass; log the green in
       `tdd/cycle-log.md`.
-- [ ] T006 Export `BorderValue`/`BorderValueSchema` from
+- [x] T006 Export `BorderValue`/`BorderValueSchema` from
       `packages/token-core/src/index.ts`, alongside the existing exports for
       the other value schemas.
 

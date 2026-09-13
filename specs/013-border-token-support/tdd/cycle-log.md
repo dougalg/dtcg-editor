@@ -16,3 +16,19 @@ test existed and failed before the implementation.
 - build: `pnpm build` -> 12/12 tasks successful
 - commit: `dd8495e`
 - recorded: cycle 0, before any change
+
+## Cycle 1: U1-U9 BorderValueSchema accepts/rejects the border value shape
+
+- test: `packages/token-core/src/border.test.ts` (new, 9 cases)
+- red: `node --test src/border.test.ts` (run from `packages/token-core`) ->
+  `ERR_MODULE_NOT_FOUND: .../packages/token-core/src/border.ts` (1 failed —
+  module did not exist yet)
+- green: `packages/token-core/src/border.ts` added
+  (`BorderValueSchema = z.object({ color: ColorValueSchema, width:
+  DimensionValueSchema, style: StrokeStyleValueSchema })`, composed from the
+  three existing sibling schemas, no redefinition). `node --test
+  src/border.test.ts` -> 9 passed, 0 failed
+- refactor: none needed — the schema is a one-line composition
+- follow-up: exported `BorderValue`/`BorderValueSchema` from
+  `packages/token-core/src/index.ts`
+- commit: pending (batched with subsequent cycles, see Notes)
