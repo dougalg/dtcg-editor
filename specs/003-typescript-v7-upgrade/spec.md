@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-18
 
-**Status**: Draft
+**Status**: Implemented (2026-08-18)
 
 **Input**: User description: "Upgrade `typescript` to v7 repo-wide. The Biome migration prerequisite has already landed (removes the typescript-eslint <6.1.0 peer blocker). Next.js is already pinned to 16.2.12 which ships `experimental.useTypeScriptCli`, letting `next build` shell out to `tsc` instead of needing TS7's missing Compiler API — accept this experimental flag in production since it's the only path that unblocks the build today. Scope covers the whole monorepo (root, apps/web-app, all packages/*), not just apps/web-app. Follow all TypeScript 7 migration guidance and breaking-change notes from the official release notes/migration documentation. See docs/research/typescript-v7-upgrade-path.md for prior research on the framework/tooling compatibility landscape."
 
