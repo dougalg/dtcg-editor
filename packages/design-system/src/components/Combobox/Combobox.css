@@ -35,5 +35,7 @@ is a `--dtcg-ed-*` token (DESIGN.md rule 1); this file adds no behaviour.
 
 .combobox-selected-check {
 	margin-inline-start: auto;
+	width: 1.3em;
+	height: 1.3em;
 	color: var(--dtcg-ed-color-text-quiet);
 }

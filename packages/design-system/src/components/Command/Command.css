@@ -62,7 +62,7 @@ sub-pixel rounding guard in the two `round(calc(...), 1px)` font sizes.
 
 .command-item {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	user-select: none;
 	gap: var(--dtcg-ed-space-2xs);
 	padding-block: var(--dtcg-ed-space-2xs);
