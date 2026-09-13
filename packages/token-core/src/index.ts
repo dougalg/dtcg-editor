@@ -25,6 +25,8 @@ export type { FontFamilyValue } from "./font-family.ts";
 export { FontFamilyValueSchema } from "./font-family.ts";
 export type { FontWeightValue } from "./font-weight.ts";
 export { FontWeightValueSchema } from "./font-weight.ts";
+export type { NumberValue } from "./number.ts";
+export { NumberValueSchema } from "./number.ts";
 export { parseTokenFile, TokenParseError } from "./parse.ts";
 export type { TokenReference } from "./reference.ts";
 export { collectReferences, parseReference } from "./reference.ts";

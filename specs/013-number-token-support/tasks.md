@@ -50,7 +50,7 @@ code yet.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] [U10] Write failing `node:test` cases in
+- [X] T004 [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] [U10] Write failing `node:test` cases in
       `packages/token-core/src/number.test.ts` for `NumberValueSchema`: accepts a positive
       integer, e.g. `2` (U1); accepts a positive fraction, e.g. `1.5` (U2); accepts `0` (U3);
       accepts a negative number, e.g. `-1` (U4); accepts a negative fraction, e.g. `-0.5` (U5);
@@ -58,11 +58,11 @@ code yet.
       shape, a string `"1.5"` (U9); rejects a non-number shape, an object (U10). Run it, confirm
       it fails (module doesn't exist yet), and record the observed red in
       `specs/013-number-token-support/tdd/cycle-log.md`
-- [ ] T005 [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] [U10] Implement `NumberValueSchema`/
+- [X] T005 [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] [U10] Implement `NumberValueSchema`/
       `NumberValue` in `packages/token-core/src/number.ts` (`z.number()`, matching
       `font-weight.ts`'s file shape but without the union/enum) — smallest change to make T004
       pass, then run the full `token-core` suite and confirm still green, then refactor if needed
-- [ ] T006 Export `NumberValueSchema` (value) and `NumberValue` (type) from
+- [X] T006 Export `NumberValueSchema` (value) and `NumberValue` (type) from
       `packages/token-core/src/index.ts`, alongside the existing `FontWeightValue`/
       `FontWeightValueSchema` exports
 

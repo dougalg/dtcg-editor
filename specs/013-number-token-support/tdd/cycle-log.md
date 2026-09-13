@@ -12,6 +12,21 @@ failed before the implementation.
 - commit: `33cb73d`
 - recorded: cycle 0, before any change
 
+## Cycle 1: U1-U10 NumberValueSchema accepts/rejects the DTCG Number `$value` shape
+
+- test: `packages/token-core/src/number.test.ts` (new, 10 cases: U1-U10)
+- red: `node --test src/number.test.ts` (run from `packages/token-core`) ->
+  `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/number.ts'` (1 failed
+  — the file didn't exist yet)
+- green: `packages/token-core/src/number.ts` added, exporting
+  `NumberValueSchema = z.number()` and `NumberValue`. Test file suite ->
+  `tests 10, pass 10, fail 0`. Exported from `packages/token-core/src/index.ts`.
+  Full package suite `pnpm --filter @dtcg-editor/token-core test` -> 164 passed
+  (154 baseline + 10 new), 0 failed
+- refactor: none needed — matches `font-weight.ts`'s file shape exactly, already
+  minimal (a single `z.number()` schema plus its inferred type export)
+- commit: (recorded after this cycle's commit below)
+
 ## Notes and deviations
 
 - The 21 failed `apps/web-app:a11y` test files (e.g.

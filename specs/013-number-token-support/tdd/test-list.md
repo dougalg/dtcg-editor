@@ -48,16 +48,16 @@ Grouped by the component from `plan.md` that owns them.
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U1 | Accepts a positive integer, e.g. `2` | FR-002 | example | PENDING | `number.test.ts::accepts a positive integer` |
-| U2 | Accepts a positive fraction, e.g. `1.5` | FR-002 | example | PENDING | `number.test.ts::accepts a positive fraction` |
-| U3 | Accepts `0` | FR-002, Edge Case "0/-0" | example | PENDING | `number.test.ts::accepts zero` |
-| U4 | Accepts a negative number, e.g. `-1` | FR-002, FR-003 | example | PENDING | `number.test.ts::accepts a negative number` |
-| U5 | Accepts a negative fraction, e.g. `-0.5` | FR-002 | example | PENDING | `number.test.ts::accepts a negative fraction` |
-| U6 | Rejects `NaN` | FR-002, Edge Case "NaN/Infinity" | example | PENDING | `number.test.ts::rejects NaN` |
-| U7 | Rejects `Infinity` | FR-002, Edge Case "NaN/Infinity" | example | PENDING | `number.test.ts::rejects Infinity` |
-| U8 | Rejects `-Infinity` | FR-002, Edge Case "NaN/Infinity" | example | PENDING | `number.test.ts::rejects -Infinity` |
-| U9 | Rejects a non-number shape, a string, e.g. `"1.5"` | FR-002 | example | PENDING | `number.test.ts::rejects a string` |
-| U10 | Rejects a non-number shape, an object | FR-002 | example | PENDING | `number.test.ts::rejects an object` |
+| U1 | Accepts a positive integer, e.g. `2` | FR-002 | example | DONE | `number.test.ts::accepts a positive integer` |
+| U2 | Accepts a positive fraction, e.g. `1.5` | FR-002 | example | DONE | `number.test.ts::accepts a positive fraction` |
+| U3 | Accepts `0` | FR-002, Edge Case "0/-0" | example | DONE | `number.test.ts::accepts zero` |
+| U4 | Accepts a negative number, e.g. `-1` | FR-002, FR-003 | example | DONE | `number.test.ts::accepts a negative number` |
+| U5 | Accepts a negative fraction, e.g. `-0.5` | FR-002 | example | DONE | `number.test.ts::accepts a negative fraction` |
+| U6 | Rejects `NaN` | FR-002, Edge Case "NaN/Infinity" | example | DONE | `number.test.ts::rejects NaN` |
+| U7 | Rejects `Infinity` | FR-002, Edge Case "NaN/Infinity" | example | DONE | `number.test.ts::rejects Infinity` |
+| U8 | Rejects `-Infinity` | FR-002, Edge Case "NaN/Infinity" | example | DONE | `number.test.ts::rejects -Infinity` |
+| U9 | Rejects a non-number shape, a string, e.g. `"1.5"` | FR-002 | example | DONE | `number.test.ts::rejects a string` |
+| U10 | Rejects a non-number shape, an object | FR-002 | example | DONE | `number.test.ts::rejects an object` |
 
 ### `packages/token-editor-number/src/components/NumberEditor/NumberEditor.tsx`
 
