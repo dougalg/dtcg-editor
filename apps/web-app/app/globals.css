@@ -7,6 +7,7 @@
 @import "@dtcg-editor/design-system/components/Button/Button.css";
 @import "@dtcg-editor/design-system/components/Dialog/Dialog.css";
 @import "@dtcg-editor/design-system/components/Popover/Popover.css";
+@import "@dtcg-editor/design-system/components/RadioGroup/RadioGroup.css";
 
 html,
 body {
