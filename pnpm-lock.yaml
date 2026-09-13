@@ -349,6 +349,9 @@ importers:
       '@dtcg-editor/token-editor-transition':
         specifier: 'catalog:'
         version: link:../../packages/token-editor-transition
+      '@dtcg-editor/token-editor-typography':
+        specifier: 'catalog:'
+        version: link:../../packages/token-editor-typography
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0

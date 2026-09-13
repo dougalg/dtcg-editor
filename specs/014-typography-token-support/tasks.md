@@ -181,19 +181,19 @@ non-zero-letter-spacing value, and a schema-invalid value; confirm each renders 
 **Purpose**: Wire the tested components into the `TokenTypeContract` and register the built-in
 type so the host app actually uses them (closes SC-001).
 
-- [ ] T016 Implement `typographyTokenType: TokenTypeContract<TypographyValue>` in
+- [X] T016 Implement `typographyTokenType: TokenTypeContract<TypographyValue>` in
       `packages/token-editor-typography/src/token-type.ts` per
       `contracts/typography-token-type.md` (`valueSchema: TypographyValueSchema`,
       `serializeValue: (value) => value`, `Editor: TypographyEditor`, `Preview:
       TypographyPreview`)
-- [ ] T017 [P] Create `packages/token-editor-typography/src/index.ts` exporting
+- [X] T017 [P] Create `packages/token-editor-typography/src/index.ts` exporting
       `TypographyEditor`, `TypographyPreview`, `typographyTokenType`
-- [ ] T018 Register `"typography"` in `apps/web-app/lib/token-editors/built-in.ts`'s
+- [X] T018 Register `"typography"` in `apps/web-app/lib/token-editors/built-in.ts`'s
       `BUILT_IN_TOKEN_TYPES` array and add the matching `typography: typographyTokenType as
       unknown as TokenTypeContract<unknown>` entry to `builtInContractsByType` (shared file —
       expect a rebase conflict with the sibling in-flight `shadow` feature in another worktree;
       that's expected, handled by the coordinator)
-- [ ] T019 Add `.a11y.test.tsx` files for both components (`TypographyEditor.a11y.test.tsx`,
+- [X] T019 Add `.a11y.test.tsx` files for both components (`TypographyEditor.a11y.test.tsx`,
       `TypographyPreview.a11y.test.tsx`), matching `token-editor-transition`'s WCAG 2.2 AA
       pattern (`vitest-a11y-tags.ts`); run and confirm zero violations, including that the two
       embedded `DimensionEditor` instances each expose distinct accessible names (via the

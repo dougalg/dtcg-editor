@@ -43,6 +43,7 @@ catalog:
   '@dtcg-editor/token-editor-transition': workspace:*
   '@dtcg-editor/token-editor-number': workspace:*
   '@dtcg-editor/token-editor-font-weight': workspace:*
+  '@dtcg-editor/token-editor-typography': workspace:*
 allowBuilds:
   esbuild: true
   sharp: true

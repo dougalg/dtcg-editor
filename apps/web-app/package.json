@@ -33,6 +33,7 @@
 		"@dtcg-editor/token-editor-number": "catalog:",
 		"@dtcg-editor/token-editor-stroke-style": "workspace:*",
 		"@dtcg-editor/token-editor-transition": "catalog:",
+		"@dtcg-editor/token-editor-typography": "catalog:",
 		"neverthrow": "catalog:",
 		"next": "catalog:",
 		"react": "catalog:",
