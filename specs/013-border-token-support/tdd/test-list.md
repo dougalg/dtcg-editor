@@ -45,8 +45,8 @@ not a unit beneath it.
 | A1 | Changing a border token's width in `BorderEditor` updates the value to the new width, color and style unchanged | US1.1   | example | DONE | `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx` |
 | A2 | Changing a border token's color in `BorderEditor` leaves width and style unchanged in the emitted value        | US1.2   | example | DONE | `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx` |
 | A3 | Changing a border token's style in `BorderEditor` leaves color and width unchanged in the emitted value        | US1.3   | example | DONE | `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx` |
-| A4 | `BorderPreview` renders a resolved border value as one compact line (swatch + width + style text)              | US2.1   | example | PENDING |      |
-| A5 | `BorderPreview` declines to render (produces no output) for a value that isn't a valid border shape            | US2.2   | example | PENDING |      |
+| A4 | `BorderPreview` renders a resolved border value as one compact line (swatch + width + style text)              | US2.1   | example | DONE | `BorderPreview.test.tsx` |
+| A5 | `BorderPreview` declines to render (produces no output) for a value that isn't a valid border shape            | US2.2   | example | DONE | `BorderPreview.test.tsx` |
 | A6 | A `border`-typed token with a valid value uses `borderTokenType`'s dedicated `Editor`, not a generic fallback  | US3.1   | example | PENDING |      |
 | A7 | `borderTokenType`'s `valueSchema` rejects an invalid border value the same way `BorderValueSchema` does (so the host's existing invalid-value fallback path, not a dedicated `ValidationErrorHandler`, is what activates) | US3.2   | example | PENDING |      |
 
@@ -81,14 +81,14 @@ not a unit beneath it.
 
 | id  | behavior                                                                                          | traces      | kind    | state   | test |
 | --- | ---------------------------------------------------------------------------------------------------- | ----------- | ------- | ------- | ---- |
-| U16 | Renders an embedded `ColorPreview` plus width/style text for a valid border value                | FR-004      | example | PENDING |      |
-| U17 | Renders correctly when `style` is the custom dash-pattern object form                            | FR-004, edge case | example | PENDING |      |
-| U18 | Declines to render for a value missing one of `color`/`width`/`style`                             | FR-005, edge case | example | PENDING |      |
-| U19 | Declines to render when `width` is present but not a valid `DimensionValue`, even though `color`/`style` are valid | FR-005, edge case | example | PENDING |      |
-| U20 | Declines to render when `color` is present but not a valid `ColorValue`                          | FR-005      | example | PENDING |      |
-| U21 | Declines to render when `style` is present but not a valid `StrokeStyleValue`                    | FR-005      | example | PENDING |      |
-| U22 | Declines to render for a completely unrelated shape (e.g. a plain number)                        | FR-005      | example | PENDING |      |
-| U23 | Has zero WCAG 2.2 AA violations (axe-core) for a representative valid border value                | Principle X | example | PENDING |      |
+| U16 | Renders an embedded `ColorPreview` plus width/style text for a valid border value                | FR-004      | example | DONE | `BorderPreview.test.tsx` |
+| U17 | Renders correctly when `style` is the custom dash-pattern object form                            | FR-004, edge case | example | DONE | `BorderPreview.test.tsx` |
+| U18 | Declines to render for a value missing one of `color`/`width`/`style`                             | FR-005, edge case | example | DONE | `BorderPreview.test.tsx` |
+| U19 | Declines to render when `width` is present but not a valid `DimensionValue`, even though `color`/`style` are valid | FR-005, edge case | example | DONE | `BorderPreview.test.tsx` |
+| U20 | Declines to render when `color` is present but not a valid `ColorValue`                          | FR-005      | example | DONE | `BorderPreview.test.tsx` |
+| U21 | Declines to render when `style` is present but not a valid `StrokeStyleValue`                    | FR-005      | example | DONE | `BorderPreview.test.tsx` |
+| U22 | Declines to render for a completely unrelated shape (e.g. a plain number)                        | FR-005      | example | DONE | `BorderPreview.test.tsx` |
+| U23 | Has zero WCAG 2.2 AA violations (axe-core) for a representative valid border value                | Principle X | example | DONE | `BorderPreview.a11y.test.tsx` |
 
 ### `packages/token-editor-border/src/token-type.ts`
 

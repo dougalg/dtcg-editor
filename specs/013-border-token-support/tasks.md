@@ -147,7 +147,7 @@ compact inline unit and every invalid case renders nothing.
 > Write these tests FIRST; observe them fail (no `BorderPreview.tsx` exists
 > yet) before implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T012 [P] [US2] [A4][A5][U16][U17][U18][U19][U20][U21][U22] Write failing tests in
+- [x] T012 [P] [US2] [A4][A5][U16][U17][U18][U19][U20][U21][U22] Write failing tests in
       `packages/token-editor-border/src/components/BorderPreview/BorderPreview.test.tsx`
       (mirroring `DimensionPreview.test.tsx`/`ColorPreview.test.tsx`'s
       validate-then-render style) asserting: renders width/style text plus
@@ -158,14 +158,14 @@ compact inline unit and every invalid case renders nothing.
       `width` sub-value is invalid (e.g. a string instead of
       `{ value, unit }`) even though `color`/`style` are valid; declines for
       a completely unrelated shape (e.g. a plain number).
-- [ ] T013 [P] [US2] [U23] Write failing a11y test in
+- [x] T013 [P] [US2] [U23] Write failing a11y test in
       `packages/token-editor-border/src/components/BorderPreview/BorderPreview.a11y.test.tsx`
       asserting zero WCAG 2.2 AA violations for `BorderPreview` rendered with
       a representative valid `BorderValue`.
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] [A4][A5][U16][U17][U18][U19][U20][U21][U22] Implement `BorderPreview` in
+- [x] T014 [US2] [A4][A5][U16][U17][U18][U19][U20][U21][U22] Implement `BorderPreview` in
       `packages/token-editor-border/src/components/BorderPreview/BorderPreview.tsx`:
       accepts `{ value: unknown }`; validates via `BorderValueSchema` from
       `@dtcg-editor/token-core` and returns `null` on failure (matching
@@ -178,7 +178,7 @@ compact inline unit and every invalid case renders nothing.
       call per plan.md's embedding-where-reasonable guidance), all inside a
       `<span>` so it lays out as one line. Confirm T012/T013 now pass; log
       green in `tdd/cycle-log.md`.
-- [ ] T015 [US2] Add
+- [x] T015 [US2] Add
       `packages/token-editor-border/src/components/BorderPreview/BorderPreview.module.css`
       with layout-only rules (inline-flex/gap for the swatch+text), sourcing
       spacing from `--dtcg-ed-*` custom properties per Principle XII.

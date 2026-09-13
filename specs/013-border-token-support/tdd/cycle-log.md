@@ -54,4 +54,31 @@ test existed and failed before the implementation.
   `--dtcg-ed-text-*`/`--dtcg-ed-color-neutral-text-quiet` tokens, matching
   `DimensionEditor.module.css`/`StrokeStyleEditor.module.css` precedent) and
   `BorderEditor.stories.tsx` added.
+- commit: `b0c215e`
+
+## Cycle 3: A4-A5, U16-U22 BorderPreview renders compactly and declines correctly
+
+- test: `packages/token-editor-border/src/components/BorderPreview/BorderPreview.test.tsx`
+  (new, 7 cases)
+- red: `pnpm exec vitest run packages/token-editor-border/src/components/BorderPreview/BorderPreview.test.tsx`
+  -> `Error: Failed to resolve import "./BorderPreview.tsx"... Does the file
+  exist?` (1 suite failed — module did not exist yet)
+- green (2 steps):
+  1. First implementation attempt embedded `DimensionPreview` from
+     `@dtcg-editor/token-editor-dimension` for the width text — 5/7 passed,
+     2 failed with `TypeError: Cannot read properties of undefined (reading
+     'safeParse')`, then (after rebuilding `token-core` to pick up the new
+     `BorderValueSchema` export) `Element type is invalid... got:
+     undefined`. Root cause: `token-editor-dimension/src/index.ts` does not
+     export a `DimensionPreview` — only `token-editor-color` and
+     `token-editor-stroke-style` export their `Preview` components. Since
+     this feature must only consume siblings' *existing* exports (not add
+     to them), switched width to short plain text (`"1px"`) instead of an
+     embedded component, keeping `ColorPreview`/`StrokeStylePreview`
+     embedded for color/style.
+  2. Second attempt: same command -> 7 passed, 0 failed
+- refactor: none further needed
+- follow-up: `BorderPreview.a11y.test.tsx` (1 case) added and confirmed
+  green on first run. `BorderPreview.module.css` (layout only,
+  `--dtcg-ed-space-3xs-2xs`) added.
 - commit: pending (batched, see Notes)
