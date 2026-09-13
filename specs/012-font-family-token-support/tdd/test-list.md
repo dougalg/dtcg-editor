@@ -31,10 +31,10 @@ targets those files directly, one behavior per `spec.md` Acceptance Scenario.
 | A6  | A string `$value` renders as a single-entry list                                             | US2-AS1          | example | DONE   | `FontFamilyEditor.test.tsx::promotes string to one-item list`                |
 | A7  | Editing the sole entry of a string-sourced list keeps `$value` a string                       | US2-AS2, FR-005  | example | DONE   | `FontFamilyEditor.test.tsx::single-entry edit stays a string`                |
 | A8  | Adding a second entry to a string-sourced list produces an array `$value`                     | US2-AS3, FR-005  | example | DONE   | `FontFamilyEditor.test.tsx::growing to two entries becomes an array`         |
-| A9  | A short array value's preview renders the names comma-joined                                 | US3-AS1          | example | PENDING | `FontFamilyPreview.test.tsx::renders comma-joined array`                     |
-| A10 | A single-string value's preview renders that string                                          | US3-AS2          | example | PENDING | `FontFamilyPreview.test.tsx::renders string value`                           |
-| A11 | A stack of more than 3 entries previews the first 3 plus a "+N more" indicator                | US3-AS3, SC-005  | example | PENDING | `FontFamilyPreview.test.tsx::truncates a long list`                          |
-| A12 | A schema-invalid value's preview renders nothing                                              | US3-AS4, FR-007  | example | PENDING | `FontFamilyPreview.test.tsx::declines to render for a mismatched value`      |
+| A9  | A short array value's preview renders the names comma-joined                                 | US3-AS1          | example | DONE   | `FontFamilyPreview.test.tsx::renders comma-joined array`                     |
+| A10 | A single-string value's preview renders that string                                          | US3-AS2          | example | DONE   | `FontFamilyPreview.test.tsx::renders string value`                           |
+| A11 | A stack of more than 3 entries previews the first 3 plus a "+N more" indicator                | US3-AS3, SC-005  | example | DONE   | `FontFamilyPreview.test.tsx::truncates a long list`                          |
+| A12 | A schema-invalid value's preview renders nothing                                              | US3-AS4, FR-007  | example | DONE   | `FontFamilyPreview.test.tsx::declines to render for a mismatched value`      |
 
 ## Inner loop: unit behaviors
 
@@ -62,7 +62,7 @@ targets those files directly, one behavior per `spec.md` Acceptance Scenario.
 
 | id  | behavior                                                    | traces     | kind    | state   | test                                                              |
 | --- | ---------------------------------------------------------------- | ---------- | ------- | ------- | ---------------------------------------------------------------------- |
-| U11 | An empty array value's preview renders empty text without throwing | Edge Cases | example | PENDING | `FontFamilyPreview.test.tsx::renders empty text for an empty array`   |
+| U11 | An empty array value's preview renders empty text without throwing | Edge Cases | example | DONE   | `FontFamilyPreview.test.tsx::renders empty text for an empty array`   |
 
 ## Invariants and edge cases still to place
 

@@ -152,7 +152,7 @@ array (>3 entries), and a schema-invalid value; confirm each renders per spec.
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T015 [P] [US3] [A9] [A10] [A11] [A12] [U11] Write failing tests in
+- [X] T015 [P] [US3] [A9] [A10] [A11] [A12] [U11] Write failing tests in
       `packages/token-editor-font-family/src/components/FontFamilyPreview/FontFamilyPreview.test.tsx`
       covering: a string value renders as itself (A10); a short array
       (`["Arial", "sans-serif"]`) renders `"Arial, sans-serif"` (A9); an array of more than 3
@@ -163,14 +163,14 @@ array (>3 entries), and a schema-invalid value; confirm each renders per spec.
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] [A9] [A10] [A11] [A12] [U11] Implement `FontFamilyPreview` in
+- [X] T016 [US3] [A9] [A10] [A11] [A12] [U11] Implement `FontFamilyPreview` in
       `packages/token-editor-font-family/src/components/FontFamilyPreview/FontFamilyPreview.tsx`,
       mirroring `FontWeightPreview`'s validate-then-render pattern, satisfying T015 — smallest
       change to go green; record the green in `tdd/cycle-log.md`
-- [ ] T017 [US3] Add
+- [X] T017 [US3] Add
       `packages/token-editor-font-family/src/components/FontFamilyPreview/FontFamilyPreview.module.css`
       using `--dtcg-ed-*` custom properties only
-- [ ] T018 [US3] [A9] [A10] [A11] [A12] [U11] Run the new `FontFamilyPreview.test.tsx` suite,
+- [X] T018 [US3] [A9] [A10] [A11] [A12] [U11] Run the new `FontFamilyPreview.test.tsx` suite,
       confirm all green (A9-A12, U11 must be green before User Story 3 is considered complete);
       refactor while green
 

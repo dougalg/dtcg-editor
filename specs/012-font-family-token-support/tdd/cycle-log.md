@@ -76,3 +76,28 @@ existed and failed before the implementation.
   packages/token-editor-font-family/src/components/FontFamilyEditor/FontFamilyEditor.test.tsx`
   -> 12 passed, 0 failed (all of A1-A8, U8-U10 green together)
 - commit: same commit as Cycle 2 (both landed together; see repo history)
+
+## Cycle 4: A9-A12, U11 FontFamilyPreview comma-joined rendering and decline-on-mismatch
+
+- test: `packages/token-editor-font-family/src/components/FontFamilyPreview/FontFamilyPreview.test.tsx`
+  (new, 6 cases: A10 string value renders as itself, A9 short array renders
+  comma-joined, A11 a 5-entry list truncates to "Helvetica, Arial, Verdana, +2
+  more", U11 an empty array renders empty text without throwing, A12 a
+  schema-invalid object renders nothing, and an additional mismatch case: an
+  array containing a non-string element also renders nothing)
+- red: `pnpm exec vitest run
+  packages/token-editor-font-family/src/components/FontFamilyPreview/FontFamilyPreview.test.tsx`
+  -> `Error: Failed to resolve import "./FontFamilyPreview.tsx" ... Does the
+  file exist?` (1 failed suite, 0 tests ran — component doesn't exist yet)
+- green: `FontFamilyPreview.tsx`/`.module.css` added, mirroring
+  `FontWeightPreview`'s validate-then-render pattern plus a
+  `formatFamilies()` helper for the 3-entry truncation rule. First rerun
+  attempt failed for an unrelated reason (`@dtcg-editor/token-core`'s `dist/`
+  output didn't exist yet — the package had never been built in this
+  worktree), fixed with `pnpm --filter @dtcg-editor/token-core build`, then
+  the test file itself passed 6/6 on the next run. Full package suite
+  (`pnpm exec vitest run packages/token-editor-font-family`) -> 18 passed
+  (12 Editor + 6 Preview), 0 failed
+- refactor: none needed
+- commit: (see repo history — landed together with the contract-wiring cycle
+  that follows)
