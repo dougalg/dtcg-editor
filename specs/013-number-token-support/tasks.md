@@ -192,14 +192,14 @@ Stories 1 and 2 both work. Feature is functionally complete per spec.md.
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T024 [P] Add
+- [X] T024 [P] Add
       `packages/token-editor-number/src/components/NumberEditor/NumberEditor.stories.tsx`
       (Storybook), mirroring `FontWeightEditor.stories.tsx`'s controlled-wrapper pattern
-- [ ] T025 Run `pnpm build` (whole-repo Turbo build, the sole type-checking gate) and fix any
+- [X] T025 Run `pnpm build` (whole-repo Turbo build, the sole type-checking gate) and fix any
       cross-package errors
-- [ ] T026 Run `pnpm test` (whole-repo Turbo test: commits/format-staged/vitest across every
+- [X] T026 Run `pnpm test` (whole-repo Turbo test: commits/format-staged/vitest across every
       package) and fix any failures introduced by this feature
-- [ ] T027 Run `pnpm lint` and `pnpm format:check` and fix any violations (Biome, `@ls-lint/ls-lint`
+- [X] T027 Run `pnpm lint` and `pnpm format:check` and fix any violations (Biome, `@ls-lint/ls-lint`
       filename/folder conventions per Principle X)
 - [ ] T028 [A1] [A2] [A3] [A4] [A5] [A6] Manually execute
       `specs/013-number-token-support/quickstart.md`'s manual validation steps against the

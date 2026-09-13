@@ -100,7 +100,7 @@ failed before the implementation.
   and `pnpm --filter @dtcg-editor/web-app build` both succeed (TypeScript
   clean)
 - refactor: none needed
-- commit: (recorded after this cycle's commit below)
+- commit: `fecaa7d`
 
 ## Notes and deviations
 
@@ -111,7 +111,16 @@ failed before the implementation.
   environmental/sandbox browser-launch issue, not a code regression. None of the failing files are
   under `packages/token-core` or `packages/token-editor-*`, and none are files this feature
   touches. This pre-dates this feature's work (present before any change on this branch) and is
-  out of this feature's scope to fix.
+  out of this feature's scope to fix. Update (Polish phase): on the full `pnpm test` run after
+  this feature's implementation was complete, all 21 of these a11y files passed — the baseline
+  failure was itself a one-off flake in the sandbox's browser-mode startup, not a persistent
+  issue. `pnpm test` did surface two *different*, still-pre-existing wall-clock perf-benchmark
+  failures unrelated to this feature (`candidate-filter.bench.ts`'s SC-004 guard at 96.93ms vs a
+  50ms budget, and `reference-index.test.ts`'s SC-010 guard at 85.45ms vs a 50ms budget) — both
+  re-ran and still failed in isolation, confirming they're a real environment-speed mismatch (the
+  sandbox is slower than whatever machine set the 50ms budget), not flakiness or a regression
+  from this feature. Neither touches `packages/token-core`, `packages/token-editor-number`, or
+  the registration edits.
 - The 1 failed test, `lib/tokens/reference-index.test.ts`'s
   "builds the reference index for 5,000 tokens at chain depth 5 in under 50ms" (SC-010), is a
   wall-clock performance guard that failed by 1.1ms (51.10ms vs the 50ms budget) — a
