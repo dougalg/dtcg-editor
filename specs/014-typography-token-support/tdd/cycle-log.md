@@ -68,4 +68,15 @@ existed and failed before the implementation.
   Re-run -> 11 passed, 0 failed (both TypographyEditor and TypographyPreview
   suites)
 - refactor: none needed
-- commit: (recorded after this cycle's commit lands)
+- commit: `07b070c`
+
+## Notes and deviations
+
+- Contract wiring (`token-type.ts`, `index.ts`), built-in registration
+  (`apps/web-app/lib/token-editors/built-in.ts` + its test), a11y tests, the
+  Storybook story, and the full-suite polish pass are structural/non-behavioral
+  work with no `tdd/test-list.md` behavior marker — left for `/speckit-implement`
+  per this extension's division of labor, and completed there (`tasks.md`
+  T016-T022). See `tasks.md` T021 for the full-suite verification detail,
+  including the pre-existing-and-unrelated e2e flakes ruled out by comparison
+  against unmodified `main`.

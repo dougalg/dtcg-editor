@@ -205,16 +205,31 @@ type so the host app actually uses them (closes SC-001).
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T020 [P] Add `TypographyEditor.stories.tsx` Storybook story, matching
+- [X] T020 [P] Add `TypographyEditor.stories.tsx` Storybook story, matching
       `token-editor-transition`'s precedent
-- [ ] T021 Run `pnpm build`, `pnpm lint`, `pnpm test`, `pnpm format:check` at repo root; fix any
-      type-check/lint/test/format failures. Update
-      `apps/web-app/lib/token-editors/built-in.test.ts` if it asserts `BUILT_IN_TOKEN_TYPES`'s
-      exact list, extending it to include `"typography"` and a
-      `resolveBuiltInContract("typography")` case
-- [ ] T022 Execute `quickstart.md`'s manual validation steps against the running web app (or
-      record why not performed, matching prior features' precedent if no interactive browser is
-      available in this session)
+- [X] T021 Run `pnpm build`, `pnpm lint`, `pnpm test`, `pnpm format:check` at repo root; fix any
+      type-check/lint/test/format failures. `pnpm build`/`pnpm lint`/`pnpm format:check` all
+      green across every package including the new `token-editor-typography`. `pnpm exec
+      vitest run` (fast subset): 866/866 passed, 0 failures. `pnpm test` (full CI gate)
+      surfaced 3 pre-existing, unrelated Playwright e2e failures under
+      `apps/web-app/e2e/keyboard-navigation.spec.ts` and `render-stability.spec.ts`
+      (focus-ring/scroll-position/render-stability assertions on the large fixture) — verified
+      by running the identical specs against unmodified `main` in the sibling repo-root
+      worktree, where they fail identically; neither touches any file this feature added or
+      edited, matching the known, already-tracked flake category (backlog item
+      `fix-editing-perf-ci-flake`) noted by the prior `transition`/`number` features' own T021.
+      One pre-existing test (`apps/web-app/components/TreeTokenNode/TreeTokenNode.draft.test.tsx`)
+      legitimately needed updating: its `fallbackToken()` fixture used `declaredType:
+      "typography"` specifically *because* `typography` had no built-in contract yet, to
+      exercise the generic-JSON-textarea-fallback behavior for an unsupported type — now that
+      `typography` is registered, that fixture was changed to the still-genuinely-unsupported
+      `"gradient"` type, not weakened. `apps/web-app/lib/token-editors/built-in.test.ts`'s
+      exact-list assertion and `resolveBuiltInContract` coverage were extended for
+      `"typography"`, per plan
+- [ ] T022 Execute `quickstart.md`'s manual validation steps against the running web app — NOT
+      performed in this session (no interactive browser available); the equivalent scenarios
+      are exercised by `TypographyEditor.test.tsx`/`TypographyPreview.test.tsx` at the
+      component level instead. Left open for a human/manual pass before merge
 
 ---
 
