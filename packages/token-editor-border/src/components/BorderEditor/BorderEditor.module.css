@@ -1,0 +1,17 @@
+.container {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: var(--dtcg-ed-space-sm);
+}
+
+.field {
+	display: inline-flex;
+	flex-direction: column;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}
+
+.labelText {
+	font-size: var(--dtcg-ed-text-xs);
+	color: var(--dtcg-ed-color-neutral-text-quiet);
+}

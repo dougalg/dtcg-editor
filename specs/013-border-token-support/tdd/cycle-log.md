@@ -31,4 +31,27 @@ test existed and failed before the implementation.
 - refactor: none needed — the schema is a one-line composition
 - follow-up: exported `BorderValue`/`BorderValueSchema` from
   `packages/token-core/src/index.ts`
-- commit: pending (batched with subsequent cycles, see Notes)
+- commit: `e067892`
+
+## Cycle 2: A1-A3, U10-U14 BorderEditor delegates each sub-field without clobbering the others
+
+- test: `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx`
+  (new, 5 cases)
+- red: `pnpm exec vitest run packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx`
+  -> `Error: Failed to resolve import "./BorderEditor.tsx"... Does the file
+  exist?` (1 suite failed — module did not exist yet)
+- green: `packages/token-editor-border/src/components/BorderEditor/BorderEditor.tsx`
+  added, embedding `ColorEditor`/`DimensionEditor`/`StrokeStyleEditor`
+  directly, each wired as `onChange={(x) => onChange({ ...value, x })}`.
+  Same command -> 5 passed, 0 failed (first attempt — no bespoke sub-control
+  logic was written that needed a spread-vs-clobber fix)
+- refactor: none needed
+- follow-up: `BorderEditor.a11y.test.tsx` (2 cases) added and confirmed green
+  (a transient dep-optimization "Vite unexpectedly reloaded a test" failure
+  on the first run is the same pre-existing Vitest Browser Mode cold-start
+  flake noted in the Baseline entry — not a real failure; the retry passed
+  clean). `BorderEditor.module.css` (layout only, `--dtcg-ed-space-*`/
+  `--dtcg-ed-text-*`/`--dtcg-ed-color-neutral-text-quiet` tokens, matching
+  `DimensionEditor.module.css`/`StrokeStyleEditor.module.css` precedent) and
+  `BorderEditor.stories.tsx` added.
+- commit: pending (batched, see Notes)

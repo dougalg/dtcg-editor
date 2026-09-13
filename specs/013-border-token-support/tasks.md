@@ -86,7 +86,7 @@ emitted `onChange` value.
 > Write these tests FIRST; observe them fail (no `BorderEditor.tsx` exists
 > yet) before implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T007 [P] [US1] [A1][A2][A3][U10][U11][U12][U13][U14] Write failing tests in
+- [x] T007 [P] [US1] [A1][A2][A3][U10][U11][U12][U13][U14] Write failing tests in
       `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx`
       (Vitest + `@testing-library/react`, mirroring
       `DimensionEditor.test.tsx`'s style) asserting: it renders the embedded
@@ -97,7 +97,7 @@ emitted `onChange` value.
       `onChange` with only `color` changed; changing the style control calls
       `onChange` with only `style` changed; it works when `style` is the
       custom dash-pattern object form, not just a named keyword.
-- [ ] T008 [P] [US1] [U15] Write failing a11y test in
+- [x] T008 [P] [US1] [U15] Write failing a11y test in
       `packages/token-editor-border/src/components/BorderEditor/BorderEditor.a11y.test.tsx`
       (Vitest Browser Mode + `axe-core`, mirroring
       `DimensionEditor.a11y.test.tsx`) asserting zero WCAG 2.2 AA violations
@@ -105,7 +105,7 @@ emitted `onChange` value.
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] [A1][A2][A3][U10][U11][U12][U13][U14] Implement `BorderEditor` in
+- [x] T009 [US1] [A1][A2][A3][U10][U11][U12][U13][U14] Implement `BorderEditor` in
       `packages/token-editor-border/src/components/BorderEditor/BorderEditor.tsx`:
       accepts `TokenTypeEditorProps<BorderValue>`; renders
       `<ColorEditor value={value.color} onChange={(color) => onChange({ ...value, color })} />`,
@@ -116,11 +116,11 @@ emitted `onChange` value.
       `styles.container` precedent is the default choice unless it proves
       visually cramped). Confirm T007/T008 now pass; log green in
       `tdd/cycle-log.md`.
-- [ ] T010 [US1] Add `packages/token-editor-border/src/components/BorderEditor/BorderEditor.module.css`
+- [x] T010 [US1] Add `packages/token-editor-border/src/components/BorderEditor/BorderEditor.module.css`
       with layout-only rules (spacing between the three embedded editors),
       sourcing all values from `--dtcg-ed-*` custom properties per
       Constitution Principle XII — no hardcoded spacing/color/border values.
-- [ ] T011 [P] [US1] Add
+- [x] T011 [P] [US1] Add
       `packages/token-editor-border/src/components/BorderEditor/BorderEditor.stories.tsx`
       (Storybook), mirroring `DimensionEditor.stories.tsx`'s pattern, with at
       least one story using the named-keyword `style` form and one using the

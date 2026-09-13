@@ -42,9 +42,9 @@ not a unit beneath it.
 
 | id | behavior                                                                                                   | traces  | kind    | state   | test |
 | -- | ------------------------------------------------------------------------------------------------------------ | ------- | ------- | ------- | ---- |
-| A1 | Changing a border token's width in `BorderEditor` updates the value to the new width, color and style unchanged | US1.1   | example | PENDING |      |
-| A2 | Changing a border token's color in `BorderEditor` leaves width and style unchanged in the emitted value        | US1.2   | example | PENDING |      |
-| A3 | Changing a border token's style in `BorderEditor` leaves color and width unchanged in the emitted value        | US1.3   | example | PENDING |      |
+| A1 | Changing a border token's width in `BorderEditor` updates the value to the new width, color and style unchanged | US1.1   | example | DONE | `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx` |
+| A2 | Changing a border token's color in `BorderEditor` leaves width and style unchanged in the emitted value        | US1.2   | example | DONE | `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx` |
+| A3 | Changing a border token's style in `BorderEditor` leaves color and width unchanged in the emitted value        | US1.3   | example | DONE | `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx` |
 | A4 | `BorderPreview` renders a resolved border value as one compact line (swatch + width + style text)              | US2.1   | example | PENDING |      |
 | A5 | `BorderPreview` declines to render (produces no output) for a value that isn't a valid border shape            | US2.2   | example | PENDING |      |
 | A6 | A `border`-typed token with a valid value uses `borderTokenType`'s dedicated `Editor`, not a generic fallback  | US3.1   | example | PENDING |      |
@@ -70,12 +70,12 @@ not a unit beneath it.
 
 | id  | behavior                                                                                          | traces        | kind    | state   | test |
 | --- | ---------------------------------------------------------------------------------------------------- | ------------- | ------- | ------- | ---- |
-| U10 | Renders the embedded `ColorEditor`, `DimensionEditor`, and `StrokeStyleEditor` with each sub-field's current value | FR-002        | example | PENDING |      |
-| U11 | Changing only the width control calls `onChange` with `width` updated and `color`/`style` deep-equal to their originals | FR-002, FR-003 | example | PENDING |      |
-| U12 | Changing only the color control calls `onChange` with `color` updated and `width`/`style` deep-equal to their originals | FR-002, FR-003 | example | PENDING |      |
-| U13 | Changing only the style control calls `onChange` with `style` updated and `color`/`width` deep-equal to their originals | FR-002, FR-003 | example | PENDING |      |
-| U14 | Composes correctly when `style` starts as the custom dash-pattern object form, not just a named keyword | FR-002, edge case | example | PENDING |      |
-| U15 | Has zero WCAG 2.2 AA violations (axe-core) for a representative border value                     | Principle X   | example | PENDING |      |
+| U10 | Renders the embedded `ColorEditor`, `DimensionEditor`, and `StrokeStyleEditor` with each sub-field's current value | FR-002        | example | DONE | `BorderEditor.test.tsx` |
+| U11 | Changing only the width control calls `onChange` with `width` updated and `color`/`style` deep-equal to their originals | FR-002, FR-003 | example | DONE | `BorderEditor.test.tsx` |
+| U12 | Changing only the color control calls `onChange` with `color` updated and `width`/`style` deep-equal to their originals | FR-002, FR-003 | example | DONE | `BorderEditor.test.tsx` |
+| U13 | Changing only the style control calls `onChange` with `style` updated and `color`/`width` deep-equal to their originals | FR-002, FR-003 | example | DONE | `BorderEditor.test.tsx` |
+| U14 | Composes correctly when `style` starts as the custom dash-pattern object form, not just a named keyword | FR-002, edge case | example | DONE | `BorderEditor.test.tsx` |
+| U15 | Has zero WCAG 2.2 AA violations (axe-core) for a representative border value                     | Principle X   | example | DONE | `BorderEditor.a11y.test.tsx` |
 
 ### `packages/token-editor-border/src/components/BorderPreview/BorderPreview.tsx`
 
