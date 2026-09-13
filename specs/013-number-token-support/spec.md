@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-13
 
-**Status**: Draft
+**Status**: Implemented (2026-09-13)
 
 **Input**: User description: "Add support for \"number\" tokens: implement full editor support for the DTCG number token type in the dtcg-editor. Currently number tokens parse and display via the generic unsupported-type JSON textarea fallback (read-only) — there is no dedicated editor. Per the DTCG 2025.10 Format spec (Number type), $value is a bare, unitless number (used for things like opacity, line-height, z-index, or scale factors). Follow the token-core + token-editor-font-weight precedent, but simpler: no keyword aliases, no integer/range constraint."
 
