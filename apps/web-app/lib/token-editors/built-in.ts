@@ -6,6 +6,7 @@ import { dimensionTokenType } from "@dtcg-editor/token-editor-dimension";
 import { durationTokenType } from "@dtcg-editor/token-editor-duration";
 import { fontFamilyTokenType } from "@dtcg-editor/token-editor-font-family";
 import { fontWeightTokenType } from "@dtcg-editor/token-editor-font-weight";
+import { numberTokenType } from "@dtcg-editor/token-editor-number";
 import { strokeStyleTokenType } from "@dtcg-editor/token-editor-stroke-style";
 import { transitionTokenType } from "@dtcg-editor/token-editor-transition";
 import type { TokenEditorExtension } from "./types.ts";
@@ -26,6 +27,7 @@ export const BUILT_IN_TOKEN_TYPES = [
 	"fontFamily",
 	"border",
 	"transition",
+	"number",
 ] as const;
 
 export type TokenType = (typeof BUILT_IN_TOKEN_TYPES)[number];
@@ -55,6 +57,8 @@ const builtInContractsByType: {
 	border: borderTokenType as unknown as TokenTypeContract<unknown>,
 	// Same safety argument as `dimension` above.
 	transition: transitionTokenType as unknown as TokenTypeContract<unknown>,
+	// Same safety argument as `dimension` above.
+	number: numberTokenType as unknown as TokenTypeContract<unknown>,
 };
 
 /** Built-in `{ type, editor }` entries, one per `BUILT_IN_TOKEN_TYPES` member. */

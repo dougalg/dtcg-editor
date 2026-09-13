@@ -75,6 +75,31 @@ failed before the implementation.
   `<span>` exactly. Full package suite -> 4 test files passed, 11 tests passed
 - refactor: none needed — matches `FontWeightPreview`'s exact
   validate-then-render shape
+- commit: `3fff721`
+
+## Cycle 4: U22 (closes A1's automated proxy) — number registered in built-in.ts
+
+- test: `apps/web-app/lib/token-editors/built-in.test.ts` — extended the existing
+  `BUILT_IN_TOKEN_TYPES` array assertion to include `"number"`, and added
+  `resolveBuiltInContract('number') returns the number contract`
+- red: `pnpm exec vitest run apps/web-app/lib/token-editors/built-in.test.ts
+  --project 'apps/web-app:unit'` -> array assertion diff missing `"number"`;
+  `assert.ok(contract)` "The expression evaluated to a falsy value" (2 failed,
+  4 passed — pre-existing tests for other types unaffected)
+- green: `apps/web-app/lib/token-editors/built-in.ts` — added
+  `numberTokenType` import, `"number"` to `BUILT_IN_TOKEN_TYPES`, and
+  `number: numberTokenType as unknown as TokenTypeContract<unknown>` to
+  `builtInContractsByType` (same erasure-safety rationale as `dimension`/
+  `fontWeight`). Added `@dtcg-editor/token-editor-number` to
+  `apps/web-app/package.json` via `pnpm add
+  "@dtcg-editor/token-editor-number@workspace:*" --filter @dtcg-editor/web-app`
+  (pnpm auto-added it to the workspace catalog, resolving to `"catalog:"` in
+  `package.json` — consistent with `token-editor-cubic-bezier`/
+  `token-editor-font-family`'s existing catalog entries, not a deviation).
+  Test file -> 6 passed. `pnpm --filter @dtcg-editor/token-editor-number build`
+  and `pnpm --filter @dtcg-editor/web-app build` both succeed (TypeScript
+  clean)
+- refactor: none needed
 - commit: (recorded after this cycle's commit below)
 
 ## Notes and deviations

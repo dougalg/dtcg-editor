@@ -33,7 +33,7 @@ rather than silently assumed.
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| A1 | A `number` token selected in the editor shows a dedicated editor control, not the generic JSON fallback | AC-1.1 | example | PENDING | `apps/web-app/lib/token-editors/built-in.test.ts::includes number` (registration proxy) + manual quickstart step 2 |
+| A1 | A `number` token selected in the editor shows a dedicated editor control, not the generic JSON fallback | AC-1.1 | example | GREEN | `apps/web-app/lib/token-editors/built-in.test.ts::resolveBuiltInContract('number') returns the number contract` (registration proxy) + manual quickstart step 2 pending |
 | A2 | Changing a `number` token's value through the editor updates and persists its `$value` | AC-1.2 | example | PENDING | manual quickstart step 3 (no existing automated whole-app edit-persistence harness for a single new type; component-level `NumberEditor.test.tsx` U-behaviors are the automated proxy, matching `FontWeightEditor`'s precedent) |
 | A3 | The editor rejects/prevents a non-numeric value entered for a `number` token | AC-1.3 | example | PENDING | `NumberEditor.test.tsx` U-behaviors (component-level proxy) + manual quickstart step 4 |
 | A4 | The editor accepts a negative or fractional `number` value as-is | AC-1.4 | example | PENDING | `NumberEditor.test.tsx` U-behaviors + manual quickstart step 5 |
@@ -84,7 +84,7 @@ Grouped by the component from `plan.md` that owns them.
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U22 | `BUILT_IN_TOKEN_TYPES`/`builtInContractsByType` include `"number"` | AC-1.1, FR-001 | example | PENDING | `built-in.test.ts::includes number` |
+| U22 | `BUILT_IN_TOKEN_TYPES`/`builtInContractsByType` include `"number"` | AC-1.1, FR-001 | example | DONE | `built-in.test.ts::BUILT_IN_TOKEN_TYPES includes ... and number` + `built-in.test.ts::resolveBuiltInContract('number') returns the number contract` |
 
 ## Invariants and edge cases still to place
 

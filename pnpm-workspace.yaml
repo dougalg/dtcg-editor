@@ -41,6 +41,7 @@ catalog:
   '@dtcg-editor/token-editor-border': workspace:*
   '@dtcg-editor/token-editor-duration': workspace:*
   '@dtcg-editor/token-editor-transition': workspace:*
+  '@dtcg-editor/token-editor-number': workspace:*
 allowBuilds:
   esbuild: true
   sharp: true

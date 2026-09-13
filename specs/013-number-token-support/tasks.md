@@ -111,29 +111,29 @@ is registered so the web app no longer routes `number` to the JSON fallback.
       `packages/token-editor-number/src/components/NumberEditor/NumberEditor.module.css` styled
       only with `--dtcg-ed-*` custom properties (Principle XII), matching
       `FontWeightEditor.module.css`'s layout pattern
-- [ ] T012 [US1] Create `packages/token-editor-number/src/token-type.ts` exporting
+- [X] T012 [US1] Create `packages/token-editor-number/src/token-type.ts` exporting
       `numberTokenType: TokenTypeContract<NumberValue>` with `type: "number"`,
       `valueSchema: NumberValueSchema`, `serializeValue: (value) => value`,
       `Editor: NumberEditor`, `Preview: NumberPreview` (per contracts/token-type-contract.md;
       `Preview` is required on `TokenTypeContract`, so this task pulls forward the Phase 4
       component's import — see Phase 4 for `NumberPreview`'s own implementation)
-- [ ] T013 [US1] Create `packages/token-editor-number/src/index.ts` exporting `NumberEditor`,
+- [X] T013 [US1] Create `packages/token-editor-number/src/index.ts` exporting `NumberEditor`,
       `NumberPreview`, and `numberTokenType`, mirroring
       `token-editor-font-weight/src/index.ts`
-- [ ] T014 [US1] [A1] [U22] Extend the existing assertion in
+- [X] T014 [US1] [A1] [U22] Extend the existing assertion in
       `apps/web-app/lib/token-editors/built-in.test.ts` (the one enumerating
       `BUILT_IN_TOKEN_TYPES`) to also expect `"number"`. Run it and confirm it fails against the
       current array before touching `built-in.ts`
-- [ ] T015 [US1] [A1] [U22] Register `"number"` in `apps/web-app/lib/token-editors/built-in.ts`: add to
+- [X] T015 [US1] [A1] [U22] Register `"number"` in `apps/web-app/lib/token-editors/built-in.ts`: add to
       `BUILT_IN_TOKEN_TYPES`, add `number: numberTokenType as unknown as
       TokenTypeContract<unknown>` to `builtInContractsByType` (same erasure-safety comment
       rationale as the existing `dimension`/`fontWeight` entries), and add
       `"@dtcg-editor/token-editor-number": "workspace:*"` to `apps/web-app/package.json` via
       `pnpm add @dtcg-editor/token-editor-number --filter @dtcg-editor/web-app` (per CLAUDE.md's
       pnpm rule — do not hand-edit the dependency) — smallest change to make T014 pass
-- [ ] T015a [US1] Record the observed red for T014 and the green for T015 in
+- [X] T015a [US1] Record the observed red for T014 and the green for T015 in
       `specs/013-number-token-support/tdd/cycle-log.md`
-- [ ] T016 [US1] Run `pnpm --filter @dtcg-editor/token-editor-number build` and
+- [X] T016 [US1] Run `pnpm --filter @dtcg-editor/token-editor-number build` and
       `pnpm --filter @dtcg-editor/web-app build`, fix any TypeScript errors (Principle III: no
       relaxed strictness)
 
@@ -179,10 +179,10 @@ value; confirm it renders text for the first and `null` for the second.
       `packages/token-editor-number/src/components/NumberPreview/NumberPreview.module.css` styled
       only with `--dtcg-ed-*` custom properties (e.g. `var(--dtcg-ed-font-mono)`, matching
       `FontWeightPreview.module.css`)
-- [ ] T022 [US2] [A5] [A6] Confirm `Preview: NumberPreview` is wired into `numberTokenType` in
+- [X] T022 [US2] [A5] [A6] Confirm `Preview: NumberPreview` is wired into `numberTokenType` in
       `packages/token-editor-number/src/token-type.ts` (already referenced by T012 — this task
       is the point at which that reference actually resolves to a real component)
-- [ ] T023 [US2] Run `pnpm --filter @dtcg-editor/token-editor-number build` and fix any
+- [X] T023 [US2] Run `pnpm --filter @dtcg-editor/token-editor-number build` and fix any
       TypeScript errors
 
 **Checkpoint**: `number` tokens now show a readable preview wherever other types already do. User
