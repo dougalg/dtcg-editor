@@ -147,6 +147,7 @@ const packages = [
 	"packages/token-editor-number",
 	"packages/token-editor-stroke-style",
 	"packages/token-editor-transition",
+	"packages/token-editor-typography",
 ];
 
 export default defineConfig({

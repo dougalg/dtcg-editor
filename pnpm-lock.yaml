@@ -1117,6 +1117,73 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0(@types/node@26.5.1)(@vitest/browser-playwright@5.0.0)(@vitest/ui@5.0.0)(jsdom@30.0.1)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0))
 
+  packages/token-editor-typography:
+    dependencies:
+      '@dtcg-editor/token-core':
+        specifier: 'catalog:'
+        version: link:../token-core
+      '@dtcg-editor/token-editor-contract':
+        specifier: 'catalog:'
+        version: link:../token-editor-contract
+      '@dtcg-editor/token-editor-dimension':
+        specifier: 'catalog:'
+        version: link:../token-editor-dimension
+      '@dtcg-editor/token-editor-font-family':
+        specifier: 'catalog:'
+        version: link:../token-editor-font-family
+      '@dtcg-editor/token-editor-font-weight':
+        specifier: 'catalog:'
+        version: link:../token-editor-font-weight
+      '@dtcg-editor/token-editor-number':
+        specifier: 'catalog:'
+        version: link:../token-editor-number
+      react:
+        specifier: 'catalog:'
+        version: 19.3.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.1
+    devDependencies:
+      '@storybook/react-vite':
+        specifier: 'catalog:'
+        version: 10.6.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(storybook@10.6.0(@types/react@19.3.0)(react@19.3.0))(supports-color@7.2.0)(typescript@7.0.2)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0))
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.5.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 6.1.1(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0))
+      '@vitest/browser':
+        specifier: 'catalog:'
+        version: 5.0.0(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0))(vitest@5.0.0)
+      '@vitest/browser-playwright':
+        specifier: 'catalog:'
+        version: 5.0.0(playwright@1.63.0)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0))(vitest@5.0.0)
+      axe-core:
+        specifier: 'catalog:'
+        version: 4.13.0
+      jsdom:
+        specifier: 'catalog:'
+        version: 30.0.1
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.3.0(react@19.3.0)
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0(@types/node@26.5.1)(@vitest/browser-playwright@5.0.0)(@vitest/ui@5.0.0)(jsdom@30.0.1)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0))
+
 packages:
 
   '@adobe/css-tools@4.5.0':
