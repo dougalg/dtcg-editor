@@ -11,7 +11,11 @@ suite_baseline: green
 **Baseline**: `pnpm exec vitest run` -> 781 passed prior to this feature's first test (at the
 `worktree-font-family-token-support` claim commit this branch started from);
 `pnpm --filter @dtcg-editor/token-core test` -> 147 passed. Fully green — no pre-existing reds to
-account for at this feature's start.
+account for at this feature's start. The full CI gate (`pnpm test`, including Playwright e2e) has
+6 pre-existing, unrelated wall-clock/timing-sensitive flakes (perf budgets in
+`edit-token-references-perf.spec.ts`/`editing-perf.spec.ts`, focus-order/scroll-position timing
+in `keyboard-navigation.spec.ts`, and `render-stability.spec.ts`) — none exercise `strokeStyle`
+or any file this feature touches; see `tdd/cycle-log.md`'s polish-phase entry.
 
 This package has no dedicated Playwright acceptance layer of its own, matching every other
 `token-editor-*` package's precedent (per-type editors are validated at the component-render

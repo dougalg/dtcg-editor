@@ -135,6 +135,18 @@ Append only. Newest last.
   all covered by the component-render test suite; no interactive `pnpm dev` session run in this
   environment, matching every other `token-editor-*` package's precedent (no dedicated
   Playwright acceptance layer).
+- `pnpm test` (full CI gate, includes Playwright e2e): 6 pre-existing, unrelated failures —
+  two wall-clock performance-budget flakes (`edit-token-references-perf.spec.ts` A18/SC-004),
+  one perf-budget flake in `editing-perf.spec.ts` (A5, plus an unrelated preview-text-format
+  assertion mismatch in the same spec), and two focus-order/scroll-position timing flakes in
+  `keyboard-navigation.spec.ts` (A3), plus one in `render-stability.spec.ts` (A4). None of these
+  six specs exercise `strokeStyle`, `token-editor-stroke-style`, or `built-in.ts`/
+  `define-config.ts` — they are the same category of wall-clock/timing-sensitive flakiness the
+  `fontWeight` feature's baseline already recorded, tracked by the open "fix editing perf CI
+  flake" backlog item in its own worktree. The subset this feature actually touches —
+  `pnpm exec vitest run` and `pnpm --filter @dtcg-editor/token-core test` — is fully green
+  (781/781 and 163/163 respectively), and `pnpm build`/`pnpm lint`/`pnpm lint:filenames`/
+  `pnpm format:check` are all clean.
 
 ## Test list complete
 
