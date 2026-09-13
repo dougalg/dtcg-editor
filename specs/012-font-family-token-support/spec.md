@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-13
 
-**Status**: Draft
+**Status**: Implemented (2026-09-13)
 
 **Input**: User description: "Add support for \"fontFamily\" tokens: implement full editor support for the DTCG fontFamily token type. Currently fontFamily tokens parse and display via the generic unsupported-type JSON textarea fallback (read-only) — there is no dedicated editor. Per the DTCG 2025.10 Format spec (Font Family type), $value is either a single string (one font family name) or an array of strings (a preference-ordered fallback stack). Follow the token-core + token-editor-font-weight/token-editor-duration precedent."
 
