@@ -55,10 +55,12 @@ export interface TokenTypeContract<TValue> {
 	 * actually conforms to this contract's `valueSchema` (the resolver
 	 * doesn't cross-validate types), so an implementer should validate/parse
 	 * it itself and return `null` on a mismatch, letting the host fall back
-	 * to its own generic plain-text rendering. Types with nothing richer to
-	 * show than that generic fallback (e.g. dimension) omit this.
+	 * to its own generic plain-text rendering. Required (not optional) so a
+	 * new token-type contract can't silently regress to that generic JSON
+	 * fallback — every built-in type (`color`, `dimension`, `duration`,
+	 * `cubicBezier`, `fontWeight`) already has one.
 	 */
-	Preview?(props: { readonly value: unknown }): ReactElement | null;
+	Preview(props: { readonly value: unknown }): ReactElement | null;
 }
 
 /** One issue from a `valueSchema` parse, in the same shape Zod itself reports it. */

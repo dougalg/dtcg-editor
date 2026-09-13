@@ -10,6 +10,7 @@ const numberContract: TokenTypeContract<number> = {
 	valueSchema: z.number(),
 	serializeValue: (value) => value,
 	Editor: () => createElement("input"),
+	Preview: () => null,
 };
 
 const numberContractWithEditorOptionsSchema: TokenTypeContract<number> = {
@@ -46,8 +47,15 @@ test("a contract constructs without ValidationErrorHandler", () => {
 	assert.equal(numberContract.ValidationErrorHandler, undefined);
 });
 
-test("a contract constructs without Preview", () => {
-	assert.equal(numberContract.Preview, undefined);
+test("a TokenTypeContract object omitting Preview fails to type-check", () => {
+	// @ts-expect-error -- Preview is required; this object is deliberately missing it
+	const contractMissingPreview: TokenTypeContract<number> = {
+		type: "test-number-no-preview",
+		valueSchema: z.number(),
+		serializeValue: (value) => value,
+		Editor: () => createElement("input"),
+	};
+	assert.equal(contractMissingPreview.type, "test-number-no-preview");
 });
 
 test("a contract's Preview receives the raw, unvalidated value and can decline to render it", () => {
