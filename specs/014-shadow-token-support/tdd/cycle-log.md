@@ -99,4 +99,21 @@ existed and failed before the implementation.
 - refactor: none needed — the repeater logic is a direct structural
   adaptation of `FontFamilyEditor`'s existing splice-based
   add/remove/move handlers, not new logic needing extraction
-- commit: pending (batched with Phase 4 completion)
+- commit: `d1a0ea7`
+
+## Cycle 5: A10-A12, U34-U42 ShadowPreview single-line vs. "N shadows" vs. decline
+
+- test: `packages/token-editor-shadow/src/components/ShadowPreview/ShadowPreview.test.tsx`
+  (new, 8 tests) and `ShadowPreview.a11y.test.tsx` (new, 2 tests)
+- red: `pnpm exec vitest run packages/token-editor-shadow/src/components/ShadowPreview --project 'packages/token-editor-shadow:unit'`
+  -> `Failed to resolve import "./ShadowPreview.tsx"` (module did not exist
+  yet)
+- green: `ShadowPreview.tsx` added: validates `value` via `ShadowValueSchema`
+  and declines (`null`) on any mismatch, matching `BorderPreview`'s pattern;
+  for an array with more than one layer renders `"N shadows"`; otherwise
+  (bare object or one-item array) unwraps to the single layer and renders one
+  line — embedded `ColorPreview` plus offsetX/offsetY/blur/spread text — all
+  8 unit tests and both a11y tests passed on the first implementation attempt
+  (no fix-up cycle needed, unlike Cycles 2/4's assertion-API corrections).
+- refactor: none needed
+- commit: pending (batched with Phase 5 completion)

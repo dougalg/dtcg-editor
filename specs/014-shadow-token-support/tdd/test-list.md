@@ -31,9 +31,9 @@ own).
 | A7  | Removing the middle of three layers yields the first+third layers, unchanged and in order    | US2-AS2       | example | DONE |                                                                                             `ShadowEditor.test.tsx::removing the middle of three layers yields the first and third layers, unchanged and in order` |
 | A8  | Moving a layer up/down reorders layers without altering any layer's own sub-values           | US2-AS3       | example | DONE |                                                                                             `ShadowEditor.test.tsx::moving the first of two layers down swaps the layers without altering their values` |
 | A9  | Editing one sub-value of the second of two layers changes only that field of that layer      | US2-AS4       | example | DONE |                                                                                             `ShadowEditor.test.tsx::editing a sub-field of the second of two layers changes only that layer's field` |
-| A10 | A resolved single-layer shadow value previews as one line with a color swatch + offsets      | US3-AS1       | example | PENDING |                                                                                             |
-| A11 | A resolved 3-layer shadow value previews as the literal text "3 shadows"                     | US3-AS2       | example | PENDING |                                                                                             |
-| A12 | A non-shadow-shaped value declines to render in the preview                                  | US3-AS3       | example | PENDING |                                                                                             |
+| A10 | A resolved single-layer shadow value previews as one line with a color swatch + offsets      | US3-AS1       | example | DONE |                                                                                             `ShadowPreview.test.tsx::renders an embedded ColorPreview plus offsetX/offsetY/blur/spread text for a valid single-layer value` |
+| A11 | A resolved 3-layer shadow value previews as the literal text "3 shadows"                     | US3-AS2       | example | DONE |                                                                                             `ShadowPreview.test.tsx::renders the literal text "3 shadows" for a valid 3-layer array (N is dynamic)` |
+| A12 | A non-shadow-shaped value declines to render in the preview                                  | US3-AS3       | example | DONE |                                                                                             `ShadowPreview.test.tsx::declines to render for a completely unrelated shape` |
 | A13 | A `shadow`-typed token with a valid single-layer value renders the dedicated `ShadowEditor`  | US4-AS1       | example | PENDING |                                                                                             |
 | A14 | A `shadow`-typed token with a valid multi-layer array value renders `ShadowEditor`'s repeater | US4-AS2       | example | PENDING |                                                                                             |
 | A15 | A `shadow`-typed token with an invalid value falls back to generic invalid-value handling     | US4-AS3       | example | PENDING |                                                                                             |
@@ -94,15 +94,15 @@ Grouped by the component from `plan.md` that owns them.
 
 | id  | behavior                                                                                   | traces  | kind    | state   | test |
 | --- | --------------------------------------------------------------------------------------------| ------- | ------- | ------- | ---- |
-| U34 | Renders one line combining a `ColorPreview` swatch with offsetX/offsetY/blur/spread text for a single (bare-object) layer | FR-006 | example | PENDING | |
-| U35 | Renders the literal text "2 shadows" for a valid 2-layer array (boundary: smallest multi-layer case) | FR-007 | example | PENDING | |
-| U36 | Renders the literal text "3 shadows" for a valid 3-layer array (N is dynamic, not hardcoded)        | FR-007 | example | PENDING | |
-| U37 | Declines to render for a single layer missing one of its five required keys                | FR-008  | example | PENDING |      |
-| U38 | Declines to render for a layer whose `blur` sub-value is invalid, even though the other four are valid | FR-008 | example | PENDING | |
-| U39 | Declines to render for an array containing one invalid layer                               | FR-008  | example | PENDING |      |
-| U40 | Declines to render for an empty array                                                      | Edge Case | example | PENDING |    |
-| U41 | Declines to render for a completely unrelated shape (e.g. a plain number)                  | FR-008  | example | PENDING |      |
-| U42 | Has no WCAG 2.2 AA violations for a single-layer value and for a multi-layer value          | Const-X | example | PENDING |      |
+| U34 | Renders one line combining a `ColorPreview` swatch with offsetX/offsetY/blur/spread text for a single (bare-object) layer | FR-006 | example | DONE | `ShadowPreview.test.tsx::renders an embedded ColorPreview plus offsetX/offsetY/blur/spread text for a valid single-layer value` |
+| U35 | Renders the literal text "2 shadows" for a valid 2-layer array (boundary: smallest multi-layer case) | FR-007 | example | DONE | `ShadowPreview.test.tsx::renders the literal text "2 shadows" for a valid 2-layer array` |
+| U36 | Renders the literal text "3 shadows" for a valid 3-layer array (N is dynamic, not hardcoded)        | FR-007 | example | DONE | `ShadowPreview.test.tsx::renders the literal text "3 shadows" for a valid 3-layer array (N is dynamic)` |
+| U37 | Declines to render for a single layer missing one of its five required keys                | FR-008  | example | DONE |      `ShadowPreview.test.tsx::declines to render for a single layer missing one of its five required keys` |
+| U38 | Declines to render for a layer whose `blur` sub-value is invalid, even though the other four are valid | FR-008 | example | DONE | `ShadowPreview.test.tsx::declines to render for a layer whose blur sub-value is invalid, even though the other four are valid` |
+| U39 | Declines to render for an array containing one invalid layer                               | FR-008  | example | DONE |      `ShadowPreview.test.tsx::declines to render for an array containing one invalid layer` |
+| U40 | Declines to render for an empty array                                                      | Edge Case | example | DONE |    `ShadowPreview.test.tsx::declines to render for an empty array` |
+| U41 | Declines to render for a completely unrelated shape (e.g. a plain number)                  | FR-008  | example | DONE |      `ShadowPreview.test.tsx::declines to render for a completely unrelated shape` |
+| U42 | Has no WCAG 2.2 AA violations for a single-layer value and for a multi-layer value          | Const-X | example | DONE |      `ShadowPreview.a11y.test.tsx::has no WCAG 2.2 AA violations for a single-layer value and a multi-layer value` |
 
 ### `packages/token-editor-shadow/src/token-type.ts`
 

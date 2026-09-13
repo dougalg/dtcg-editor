@@ -254,7 +254,7 @@ nothing.
 > Write these tests FIRST; observe them fail (no `ShadowPreview.tsx` exists
 > yet) before implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T021 [P] [US3] [A10][A11][A12][U34][U35][U36][U37][U38][U39][U40][U41] Write failing tests in
+- [x] T021 [P] [US3] [A10][A11][A12][U34][U35][U36][U37][U38][U39][U40][U41] Write failing tests in
       `packages/token-editor-shadow/src/components/ShadowPreview/ShadowPreview.test.tsx`
       (mirroring `BorderPreview.test.tsx`'s validate-then-render style)
       asserting: renders offsetX/offsetY/blur/spread text plus an embedded
@@ -268,7 +268,7 @@ nothing.
       valid; declines for an array containing one invalid layer; declines
       for an empty array; declines for a completely unrelated shape (e.g. a
       plain number).
-- [ ] T022 [P] [US3] [U42] Write failing a11y test in
+- [x] T022 [P] [US3] [U42] Write failing a11y test in
       `packages/token-editor-shadow/src/components/ShadowPreview/ShadowPreview.a11y.test.tsx`
       asserting zero WCAG 2.2 AA violations for `ShadowPreview` rendered with
       a representative valid single-layer `ShadowValue` and with a
@@ -276,7 +276,7 @@ nothing.
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] [A10][A11][A12][U34][U35][U36][U37][U38][U39][U40][U41] Implement `ShadowPreview` in
+- [x] T023 [US3] [A10][A11][A12][U34][U35][U36][U37][U38][U39][U40][U41] Implement `ShadowPreview` in
       `packages/token-editor-shadow/src/components/ShadowPreview/ShadowPreview.tsx`:
       accepts `{ value: unknown }`; validates via `ShadowValueSchema` from
       `@dtcg-editor/token-core` and returns `null` on failure (matching
@@ -291,7 +291,7 @@ nothing.
       `"0px 2px 4px 0px"`) — for the single layer (unwrapping a one-item
       array to that one layer first). Confirm T021/T022 now pass; log green
       in `tdd/cycle-log.md`.
-- [ ] T024 [US3] Add
+- [x] T024 [US3] Add
       `packages/token-editor-shadow/src/components/ShadowPreview/ShadowPreview.module.css`
       with layout-only rules (inline-flex/gap for the swatch+text), sourcing
       spacing from `--dtcg-ed-*` custom properties per Principle XII.
