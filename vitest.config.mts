@@ -142,6 +142,7 @@ const packages = [
 	"packages/token-editor-dimension",
 	"packages/token-editor-duration",
 	"packages/token-editor-font-weight",
+	"packages/token-editor-stroke-style",
 ];
 
 export default defineConfig({

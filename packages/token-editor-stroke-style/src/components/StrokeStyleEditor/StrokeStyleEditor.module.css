@@ -1,0 +1,53 @@
+.container {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-sm);
+}
+
+.modeGroup {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--dtcg-ed-space-sm);
+}
+
+.modeOption {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}
+
+.field {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+	/* Overrides the design system's default `label { width: 100% }` (for
+	 * labels wrapping a text control), which would otherwise fight this
+	 * row's flex layout. Matches DimensionEditor.module.css's rationale. */
+	width: max-content;
+}
+
+.labelText {
+	font-size: var(--dtcg-ed-text-xs);
+	color: var(--dtcg-ed-color-neutral-text-quiet);
+}
+
+.styleSelect,
+.dashInput,
+.unitSelect,
+.lineCapSelect {
+	width: max-content;
+}
+
+.customFields {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-sm);
+}
+
+.dashRow {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}
