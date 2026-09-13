@@ -5,6 +5,7 @@
 .preview[data-multi-mode] {
 	flex-direction: column;
 	align-items: flex-start;
+	gap: var(--dtcg-ed-space-0, 0);
 }
 .outcome {
 	display: inline-flex;
@@ -19,7 +20,7 @@
 }
 .marker {
 	display: inline-flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--dtcg-ed-size-step--2, 0.25rem);
 }
 .markerLabel {

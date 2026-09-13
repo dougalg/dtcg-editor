@@ -37,8 +37,8 @@ function DiagnosticIcon({
 		<svg
 			className={styles.icon}
 			viewBox="0 0 16 16"
-			width="14"
-			height="14"
+			width="18"
+			height="18"
 			fill="none"
 			stroke="currentColor"
 			strokeWidth="1.6"
