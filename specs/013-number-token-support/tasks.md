@@ -82,7 +82,7 @@ is registered so the web app no longer routes `number` to the JSON fallback.
 
 ### Tests for User Story 1 ⚠️ (write first, run, confirm failing for the right reason, only then implement)
 
-- [ ] T007 [P] [US1] [U11] [U12] [U13] [U14] [U15] [U16] Write failing tests in
+- [X] T007 [P] [US1] [U11] [U12] [U13] [U14] [U15] [U16] Write failing tests in
       `packages/token-editor-number/src/components/NumberEditor/NumberEditor.test.tsx`: renders
       the current numeric value in a labeled number input (U11); calling `onChange` fires with an
       updated finite number when the input changes (U12, mirror `FontWeightEditor.test.tsx`'s
@@ -91,23 +91,23 @@ is registered so the web app no longer routes `number` to the JSON fallback.
       with that exact negative value (U15); entering a fractional number calls `onChange` with
       that exact fractional value (U16). Run it against the not-yet-created component and confirm
       it fails
-- [ ] T008 [P] [US1] [U17] Write failing tests in
+- [X] T008 [P] [US1] [U17] Write failing tests in
       `packages/token-editor-number/src/components/NumberEditor/NumberEditor.a11y.test.tsx`: zero
       WCAG 2.2 AA `axe-core` violations for a numeric value (mirror
       `FontWeightEditor.a11y.test.tsx`'s structure/tag set). Run it and confirm it fails
-- [ ] T009 [US1] Record the observed red for T007/T008 (exact failure output, e.g. "Cannot find
+- [X] T009 [US1] Record the observed red for T007/T008 (exact failure output, e.g. "Cannot find
       module") in `specs/013-number-token-support/tdd/cycle-log.md`
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] [U11] [U12] [U13] [U14] [U15] [U16] [U17] Implement `NumberEditor` in
+- [X] T010 [US1] [U11] [U12] [U13] [U14] [U15] [U16] [U17] Implement `NumberEditor` in
       `packages/token-editor-number/src/components/NumberEditor/NumberEditor.tsx`: a single
       labeled `<input type="number" step="any">` (no `min`/`max` — the spec places none) bound to
       `TokenTypeEditorProps<NumberValue>`, calling `onChange` with the parsed number only when it
       is finite (`Number.isFinite`, mirroring `FontWeightEditor`'s `Number.isInteger` guard
       pattern but without the integer/range check) — smallest change to make T007/T008 pass, run
       the full package suite, confirm green, then refactor
-- [ ] T011 [US1] Add
+- [X] T011 [US1] Add
       `packages/token-editor-number/src/components/NumberEditor/NumberEditor.module.css` styled
       only with `--dtcg-ed-*` custom properties (Principle XII), matching
       `FontWeightEditor.module.css`'s layout pattern

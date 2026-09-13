@@ -25,6 +25,31 @@ failed before the implementation.
   (154 baseline + 10 new), 0 failed
 - refactor: none needed — matches `font-weight.ts`'s file shape exactly, already
   minimal (a single `z.number()` schema plus its inferred type export)
+- commit: `965bd7e`
+
+## Cycle 2: U11-U17 NumberEditor renders, edits, validates, and is accessible
+
+- test: `packages/token-editor-number/src/components/NumberEditor/NumberEditor.test.tsx`
+  (new, 6 cases: U11-U16) and `NumberEditor.a11y.test.tsx` (new, 1 case: U17)
+- red: `pnpm exec vitest run packages/token-editor-number` (unit project) ->
+  `Error: Failed to resolve import "./NumberEditor.tsx" ... Does the file exist?`
+  (1 test file failed, 0 tests collected — component didn't exist yet)
+- green: `packages/token-editor-number/src/components/NumberEditor/NumberEditor.tsx`
+  added: a single labeled `<input type="number" step="any">` bound to
+  `TokenTypeEditorProps<NumberValue>`, calling `onChange` only when
+  `Number.isFinite` and the raw string isn't empty. Plus
+  `NumberEditor.module.css`. Unit suite -> 6 passed
+- a11y note: `NumberEditor.a11y.test.tsx` passed on first run against the
+  already-implemented component (the unit and a11y tests were written together
+  before either ran, per Hard Rule 1 — one cycle, one component). Per the
+  deliberate-mutant check for a test that passes immediately: removed the
+  `<label>` wrapper (input left with no accessible name), re-ran ->
+  `expected [ {...} ] to deeply equal []` (1 violation: `aria-input-field-name`
+  fail), confirming the test actually catches a missing label; restored the
+  `<label>` exactly. Full package suite (`pnpm exec vitest run
+  packages/token-editor-number`) -> 2 test files passed, 7 tests passed
+- refactor: none needed — matches `FontWeightEditor`'s file shape, already
+  minimal (no alias branch, since this type has none)
 - commit: (recorded after this cycle's commit below)
 
 ## Notes and deviations

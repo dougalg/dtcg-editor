@@ -63,13 +63,13 @@ Grouped by the component from `plan.md` that owns them.
 
 | id | behavior | traces | kind | state | test |
 | --- | --- | --- | --- | --- | --- |
-| U11 | Renders the current value in a labeled number input | AC-1.1, FR-003 | example | PENDING | `NumberEditor.test.tsx::renders current value` |
-| U12 | Editing the numeric value calls `onChange` with the updated finite number | AC-1.2, FR-003 | example | PENDING | `NumberEditor.test.tsx::calls onChange with updated number` |
-| U13 | Entering a non-numeric value does not call `onChange` | AC-1.3, FR-004 | example | PENDING | `NumberEditor.test.tsx::rejects non-numeric input` |
-| U14 | Clearing the field (empty string) does not call `onChange` | AC-1.3, FR-004 | example | PENDING | `NumberEditor.test.tsx::rejects empty input` |
-| U15 | Entering a negative number calls `onChange` with that exact negative value | AC-1.4, FR-003 | example | PENDING | `NumberEditor.test.tsx::accepts a negative value` |
-| U16 | Entering a fractional number calls `onChange` with that exact fractional value | AC-1.4, FR-003 | example | PENDING | `NumberEditor.test.tsx::accepts a fractional value` |
-| U17 | Has zero WCAG 2.2 AA `axe-core` violations for a numeric value | Constitution X/Technology Stack (a11y tier) | example | PENDING | `NumberEditor.a11y.test.tsx::no violations` |
+| U11 | Renders the current value in a labeled number input | AC-1.1, FR-003 | example | DONE | `NumberEditor.test.tsx::renders the current value in a number input` |
+| U12 | Editing the numeric value calls `onChange` with the updated finite number | AC-1.2, FR-003 | example | DONE | `NumberEditor.test.tsx::editing the value calls onChange with the updated finite number` |
+| U13 | Entering a non-numeric value does not call `onChange` | AC-1.3, FR-004 | example | DONE | `NumberEditor.test.tsx::entering a non-numeric value does not call onChange` |
+| U14 | Clearing the field (empty string) does not call `onChange` | AC-1.3, FR-004 | example | DONE | `NumberEditor.test.tsx::clearing the field does not call onChange` |
+| U15 | Entering a negative number calls `onChange` with that exact negative value | AC-1.4, FR-003 | example | DONE | `NumberEditor.test.tsx::entering a negative value calls onChange with that exact negative value` |
+| U16 | Entering a fractional number calls `onChange` with that exact fractional value | AC-1.4, FR-003 | example | DONE | `NumberEditor.test.tsx::entering a fractional value calls onChange with that exact fractional value` |
+| U17 | Has zero WCAG 2.2 AA `axe-core` violations for a numeric value | Constitution X/Technology Stack (a11y tier) | example | DONE | `NumberEditor.a11y.test.tsx::has no WCAG 2.2 AA violations` |
 
 ### `packages/token-editor-number/src/components/NumberPreview/NumberPreview.tsx`
 
