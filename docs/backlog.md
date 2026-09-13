@@ -3,6 +3,7 @@
 Planned features not yet in progress. Pick one and run `pick-up-task` (or `speckit-specify`) to start it.
 Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not marked `[x]` here.
 
+- [ ] Icon refinement: expand `--dtcg-ed-icon-size-*` to cover the full set of official design-system sizes, outlaw custom/ad hoc icon sizes (no hardcoded `em`/px overrides in component CSS — every icon must pick from the token scale), and replace all hand-rolled/custom SVG icons across the codebase with equivalents from `lucide-react` (via `pnpm add`, per this repo's dependency-management rule). Supersedes/subsumes the icon-size-token item below, raised while sizing `TokenReferencePicker`'s row icons. (in progress — worktree `.claude/worktrees/icon-refinement`, branch `worktree-icon-refinement`)
 - [ ] Add a `--dtcg-ed-icon-size-*` token family for multiple icon sizes (`packages/design-system/src/design-tokens/`) — today every icon defaults to a single blanket `svg { width/height: var(--dtcg-ed-icon-size, 1em) }` rule in `global.css`, so any component wanting a larger/smaller icon (e.g. a diagnostic marker or a selected-check indicator sized relative to its row) has to hardcode an ad hoc `em` value in its own CSS instead of picking from a real scale. Raised while sizing `TokenReferencePicker`'s row icons (2026-09-13).
 - [ ] Ability to repair, circular, group-reference, or unresolved token references in app
 - [ ] Ability to visualize linting errors (eg: a11y contrast checks for token pairs, naming convnetions, etc.)
