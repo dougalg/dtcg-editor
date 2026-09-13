@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-13
 
-**Status**: Draft
+**Status**: Implemented (2026-09-13)
 
 **Input**: User description: "Add support for \"typography\" tokens: implement full editor support for the DTCG typography composite token type. Per the DTCG 2025.10 Format spec (Typography type), $value is { fontFamily: FontFamilyValue, fontSize: DimensionValue, fontWeight: FontWeightValue, letterSpacing: DimensionValue, lineHeight: number }. Reuse the existing fontFamily, dimension, and fontWeight schemas and editors rather than rebuilding sub-controls: the typography editor embeds the existing FontFamilyEditor, DimensionEditor (twice, for fontSize and letterSpacing), FontWeightEditor, and a number control for lineHeight directly."
 
