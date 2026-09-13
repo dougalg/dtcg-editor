@@ -44,7 +44,7 @@ Editor/Preview/contract depends on.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Write failing tests for `BorderValueSchema` in
+- [ ] T004 [U1][U2][U3][U4][U5][U6][U7][U8][U9] Write failing tests for `BorderValueSchema` in
       `packages/token-core/src/border.test.ts` (`node:test` +
       `node:assert/strict`, mirroring `dimension.test.ts`'s style): accepts a
       valid `{ color, width, style }` object (color as full object form,
@@ -55,7 +55,7 @@ Editor/Preview/contract depends on.
       whose `style` is not a valid `StrokeStyleValue`. Confirm these fail
       first (no `border.ts` module exists yet) and log the red in
       `specs/013-border-token-support/tdd/cycle-log.md`.
-- [ ] T005 Implement `BorderValueSchema`/`BorderValue` in
+- [ ] T005 [U1][U2][U3][U4][U5][U6][U7][U8][U9] Implement `BorderValueSchema`/`BorderValue` in
       `packages/token-core/src/border.ts` as
       `z.object({ color: ColorValueSchema, width: DimensionValueSchema, style: StrokeStyleValueSchema })`,
       importing the three schemas from their existing sibling modules
@@ -86,7 +86,7 @@ emitted `onChange` value.
 > Write these tests FIRST; observe them fail (no `BorderEditor.tsx` exists
 > yet) before implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T007 [P] [US1] Write failing tests in
+- [ ] T007 [P] [US1] [A1][A2][A3][U10][U11][U12][U13][U14] Write failing tests in
       `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx`
       (Vitest + `@testing-library/react`, mirroring
       `DimensionEditor.test.tsx`'s style) asserting: it renders the embedded
@@ -97,7 +97,7 @@ emitted `onChange` value.
       `onChange` with only `color` changed; changing the style control calls
       `onChange` with only `style` changed; it works when `style` is the
       custom dash-pattern object form, not just a named keyword.
-- [ ] T008 [P] [US1] Write failing a11y test in
+- [ ] T008 [P] [US1] [U15] Write failing a11y test in
       `packages/token-editor-border/src/components/BorderEditor/BorderEditor.a11y.test.tsx`
       (Vitest Browser Mode + `axe-core`, mirroring
       `DimensionEditor.a11y.test.tsx`) asserting zero WCAG 2.2 AA violations
@@ -105,7 +105,7 @@ emitted `onChange` value.
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Implement `BorderEditor` in
+- [ ] T009 [US1] [A1][A2][A3][U10][U11][U12][U13][U14] Implement `BorderEditor` in
       `packages/token-editor-border/src/components/BorderEditor/BorderEditor.tsx`:
       accepts `TokenTypeEditorProps<BorderValue>`; renders
       `<ColorEditor value={value.color} onChange={(color) => onChange({ ...value, color })} />`,
@@ -147,7 +147,7 @@ compact inline unit and every invalid case renders nothing.
 > Write these tests FIRST; observe them fail (no `BorderPreview.tsx` exists
 > yet) before implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T012 [P] [US2] Write failing tests in
+- [ ] T012 [P] [US2] [A4][A5][U16][U17][U18][U19][U20][U21][U22] Write failing tests in
       `packages/token-editor-border/src/components/BorderPreview/BorderPreview.test.tsx`
       (mirroring `DimensionPreview.test.tsx`/`ColorPreview.test.tsx`'s
       validate-then-render style) asserting: renders width/style text plus
@@ -158,14 +158,14 @@ compact inline unit and every invalid case renders nothing.
       `width` sub-value is invalid (e.g. a string instead of
       `{ value, unit }`) even though `color`/`style` are valid; declines for
       a completely unrelated shape (e.g. a plain number).
-- [ ] T013 [P] [US2] Write failing a11y test in
+- [ ] T013 [P] [US2] [U23] Write failing a11y test in
       `packages/token-editor-border/src/components/BorderPreview/BorderPreview.a11y.test.tsx`
       asserting zero WCAG 2.2 AA violations for `BorderPreview` rendered with
       a representative valid `BorderValue`.
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Implement `BorderPreview` in
+- [ ] T014 [US2] [A4][A5][U16][U17][U18][U19][U20][U21][U22] Implement `BorderPreview` in
       `packages/token-editor-border/src/components/BorderPreview/BorderPreview.tsx`:
       accepts `{ value: unknown }`; validates via `BorderValueSchema` from
       `@dtcg-editor/token-core` and returns `null` on failure (matching
@@ -203,7 +203,7 @@ generic/JSON fallback).
 > Write these tests FIRST where a test is practical; observe them fail before
 > implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T016 [P] [US3] Write a failing unit test (co-located, e.g.
+- [ ] T016 [P] [US3] [A6][A7][U24][U25][U26][U27] Write a failing unit test (co-located, e.g.
       `packages/token-editor-border/src/token-type.test.ts` using
       `node:test`, mirroring how sibling contracts are exercised via
       `validateTokenValue` in `token-editor-contract`'s own tests) asserting
@@ -214,7 +214,7 @@ generic/JSON fallback).
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Implement `borderTokenType` in
+- [ ] T017 [US3] [A6][A7][U24][U25][U26][U27] Implement `borderTokenType` in
       `packages/token-editor-border/src/token-type.ts`
       (`TokenTypeContract<BorderValue>`, mirroring
       `token-editor-dimension/src/token-type.ts`): `type: "border"`,
@@ -225,7 +225,15 @@ generic/JSON fallback).
 - [ ] T018 [US3] Export `BorderEditor`, `BorderPreview`, and
       `borderTokenType` from `packages/token-editor-border/src/index.ts`,
       mirroring `token-editor-dimension/src/index.ts`'s export shape.
-- [ ] T019 [US3] Register `border` in
+- [ ] T018a [P] [US3] [U28][U29] Write a failing test in
+      `apps/web-app/lib/token-editors/built-in.test.ts` (extending the
+      existing test file's coverage, mirroring how it already asserts other
+      types) that `resolveBuiltInContract("border")` returns
+      `borderTokenType`, `BUILT_IN_TOKEN_TYPES` includes `"border"`, and
+      `builtInExtensions` contains a `{ type: "border", editor: BorderEditor }`
+      entry. Confirm it fails first (border not yet registered); log the red
+      in `tdd/cycle-log.md`.
+- [ ] T019 [US3] [A6][A7][U28][U29] Register `border` in
       `apps/web-app/lib/token-editors/built-in.ts`: add `"border"` to
       `BUILT_IN_TOKEN_TYPES`, import `borderTokenType` from
       `@dtcg-editor/token-editor-border`, and add the
