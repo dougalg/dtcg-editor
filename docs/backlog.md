@@ -16,7 +16,7 @@ Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not 
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
 - [ ] Add support for "fontFamily" tokens (in progress — worktree `.claude/worktrees/font-family-token-support`, branch `worktree-font-family-token-support`)
 - [ ] Add support for "number" tokens (in progress — worktree `.claude/worktrees/number-token-support`, branch `worktree-number-token-support`)
-- [ ] Add support for "strokeStyle" tokens
+- [ ] Add support for "strokeStyle" tokens (in progress — worktree `.claude/worktrees/stroke-style-token-support`, branch `worktree-stroke-style-token-support`)
 - [ ] Add support for "border" tokens
 - [ ] Add support for "transition" tokens
 - [ ] Add support for "shadow" tokens
