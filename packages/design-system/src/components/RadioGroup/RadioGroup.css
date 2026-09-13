@@ -17,7 +17,6 @@
 
 	border-radius: var(--dtcg-ed-radius-full);
 	box-shadow: var(--dtcg-ed-shadow-xs);
-	outline-style: none;
 	transition-property: border-color, box-shadow;
 	transition-timing-function: var(--dtcg-ed-ease-out);
 	transition-duration: var(--dtcg-ed-transition-normal);
@@ -28,22 +27,6 @@
 		--color-accent-border-normal,
 		var(--dtcg-ed-form-control-border-color)
 	);
-}
-
-.radio-toggle[data-state="checked"]:focus-visible {
-	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
-		color-mix(
-			in oklab,
-			var(--dtcg-ed-form-control-activated-color) 40%,
-			transparent
-		);
-	border-color: var(--dtcg-ed-form-control-activated-color);
-}
-
-.radio-toggle:focus-visible {
-	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
-		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
-	border-color: var(--dtcg-ed-color-neutral-400);
 }
 
 .radio-toggle[disabled] + .label,

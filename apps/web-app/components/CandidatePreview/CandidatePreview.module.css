@@ -2,9 +2,16 @@
 	display: inline-flex;
 	gap: var(--dtcg-ed-size-step--2, 0.25rem);
 }
+.preview[data-multi-mode] {
+	flex-direction: column;
+	align-items: flex-start;
+}
 .outcome {
 	display: inline-flex;
 	gap: var(--dtcg-ed-size-step--2, 0.25rem);
+}
+.preview[data-multi-mode] .outcome {
+	font-size: 0.875em;
 }
 .modeLabel {
 	font-weight: 600;

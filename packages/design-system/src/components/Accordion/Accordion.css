@@ -26,14 +26,10 @@
 	font-size: var(--dtcg-ed-text-base);
 	font-weight: var(--dtcg-ed-font-weight-medium);
 	line-height: var(--dtcg-ed-leading-tight);
-	outline-style: none;
 	border-radius: var(--dtcg-ed-form-control-radius);
 }
 
 .accordion-trigger:focus-visible {
-	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
-		color-mix(in oklab, var(--dtcg-ed-color-neutral-400) 25%, transparent);
-	border-color: var(--dtcg-ed-color-neutral-400);
 	z-index: var(--dtcg-ed-z-raised);
 }
 

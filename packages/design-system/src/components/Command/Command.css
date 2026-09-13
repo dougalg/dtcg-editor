@@ -47,7 +47,6 @@ sub-pixel rounding guard in the two `round(calc(...), 1px)` font sizes.
 	flex: 1;
 	border: none;
 	box-shadow: none;
-	outline-style: none;
 }
 
 .command-group {
@@ -71,6 +70,11 @@ sub-pixel rounding guard in the two `round(calc(...), 1px)` font sizes.
 	border-radius: var(--dtcg-ed-radius-md);
 }
 
+.command-item:not(:first-child) {
+	border-block-start: var(--dtcg-ed-border-width-thin)
+		var(--dtcg-ed-border-style) var(--dtcg-ed-color-surface-border);
+}
+
 .command-item[data-selected="true"] {
 	background-color: var(
 		--dtcg-ed-color-fill-normal,
@@ -80,6 +84,7 @@ sub-pixel rounding guard in the two `round(calc(...), 1px)` font sizes.
 
 .command-item[data-disabled="true"] {
 	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .command-shortcut {

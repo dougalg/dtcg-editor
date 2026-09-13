@@ -3,7 +3,6 @@
 	 * grows with its content instead of reserving multi-line height
 	 * up front. */
 	field-sizing: content;
-	outline-style: none;
 	transition-property: border-color, box-shadow;
 	transition-timing-function: var(--dtcg-ed-ease-out);
 	transition-duration: var(--dtcg-ed-transition-normal);
@@ -12,11 +11,4 @@
 .textarea:disabled {
 	cursor: not-allowed;
 	opacity: 0.5;
-}
-
-.textarea:focus-visible {
-	box-shadow: 0 0 0 var(--dtcg-ed-focus-ring-width)
-		color-mix(in oklab, var(--dtcg-ed-color-fill-loud) 25%, transparent);
-	outline: none;
-	border-color: var(--dtcg-ed-color-fill-loud);
 }
