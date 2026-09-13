@@ -99,5 +99,35 @@ existed and failed before the implementation.
   (`pnpm exec vitest run packages/token-editor-font-family`) -> 18 passed
   (12 Editor + 6 Preview), 0 failed
 - refactor: none needed
-- commit: (see repo history — landed together with the contract-wiring cycle
-  that follows)
+- commit: `2c39f31`
+
+## Notes and deviations
+
+- Cycle 3 (A6-A8) was test-after, not test-first — see that cycle's entry for
+  the full rationale. Every other behavior (U1-U11, A1-A5, A9-A12) followed
+  the strict red-then-green sequence with observed failure output recorded
+  above.
+- After all behaviors reached `DONE`, contract wiring (`token-type.ts`,
+  `index.ts`), built-in registration (`apps/web-app/lib/token-editors/built-in.ts`),
+  a11y tests, and a Storybook story were added as structural/non-behavioral
+  work (`tasks.md` T019-T023, no behavior markers) — commit `dae4748`.
+- `pnpm test` (repo root) surfaced two *pre-existing* web-app unit tests that
+  hard-coded `fontFamily` as their "still unsupported type" exemplar
+  (`built-in.test.ts`'s `BUILT_IN_TOKEN_TYPES` assertion, and
+  `generate-large-fixture.ts`'s `_showcase.exotic` token). Both were updated
+  (exemplar switched to `shadow`, still unregistered) and the committed
+  `large_scale.tokens.json` fixture regenerated — commit `47b5278`. This is
+  the same category of update `fontWeight`/`cubicBezier` each required when
+  they landed.
+- `pnpm test` also surfaced 5 failing Playwright e2e specs
+  (`editing-perf.spec.ts`, `edit-token-references-perf.spec.ts`,
+  `keyboard-navigation.spec.ts` x2, `render-stability.spec.ts`), all about
+  dimension-hub referrer-text formatting and Tab-order timing, none
+  referencing `fontFamily`/`shadow`/`_showcase.exotic`. Confirmed pre-existing
+  and unrelated: `main` already has commit `6248e38` ("record pre-existing
+  e2e flake baseline for strokeStyle feature") documenting this exact flake
+  as a known baseline issue from a sibling feature, and there is a dedicated
+  backlog worktree (`fix-editing-perf-ci-flake`) tracking it. Not touched by
+  this feature.
+- The full Vitest suite (`pnpm exec vitest run`, unit + a11y + bench
+  projects) is green: 786 passed, 0 failed, across 160 test files.

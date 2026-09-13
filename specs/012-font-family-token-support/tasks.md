@@ -208,9 +208,17 @@ type so the host app actually uses them (closes SC-001).
 - [X] T023 [P] Add `FontFamilyEditor.stories.tsx`/`FontFamilyPreview.stories.tsx` Storybook
       stories if this repo's other `token-editor-*` packages ship them (check
       `token-editor-font-weight` for precedent; match if present)
-- [ ] T024 Run `pnpm build` and `pnpm test` at repo root; fix any type-check/lint/test failures
+- [X] T024 Run `pnpm build` and `pnpm test` at repo root; fix any type-check/lint/test failures.
+      `pnpm build` green across all 11 packages. `pnpm exec vitest run` (unit+a11y+bench): 786
+      passed, 0 failed. `pnpm test` (full CI gate, including Playwright e2e) surfaced 2
+      pre-existing web-app unit tests that hard-coded `fontFamily` as their "still unsupported"
+      exemplar (fixed, see tdd/cycle-log.md) and 5 pre-existing, unrelated Playwright e2e
+      failures already documented on `main` (commit `6248e38`) as a known flake baseline with
+      its own tracked backlog item (`fix-editing-perf-ci-flake`) — not touched by this feature.
 - [ ] T025 Execute `quickstart.md`'s manual validation steps against the running web app
-      (`pnpm dev`)
+      (`pnpm dev`) — NOT performed in this session (no interactive browser available); the
+      equivalent scenarios are exercised by `FontFamilyEditor.test.tsx`/`FontFamilyPreview.test.tsx`
+      at the component level instead. Left open for a human/manual pass before merge.
 
 ---
 
