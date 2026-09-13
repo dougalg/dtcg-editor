@@ -34,6 +34,7 @@ catalog:
   '@dtcg-editor/design-system': workspace:*
   '@dtcg-editor/token-core': workspace:*
   '@dtcg-editor/token-editor-contract': workspace:*
+  '@dtcg-editor/token-editor-font-family': workspace:*
 
 allowBuilds:
   esbuild: true

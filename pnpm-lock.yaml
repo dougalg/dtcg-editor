@@ -331,6 +331,9 @@ importers:
       '@dtcg-editor/token-editor-duration':
         specifier: workspace:*
         version: link:../../packages/token-editor-duration
+      '@dtcg-editor/token-editor-font-family':
+        specifier: 'catalog:'
+        version: link:../../packages/token-editor-font-family
       '@dtcg-editor/token-editor-font-weight':
         specifier: workspace:*
         version: link:../../packages/token-editor-font-weight

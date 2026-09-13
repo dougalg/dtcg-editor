@@ -183,17 +183,17 @@ array (>3 entries), and a schema-invalid value; confirm each renders per spec.
 **Purpose**: Wire the tested components into the `TokenTypeContract` and register the built-in
 type so the host app actually uses them (closes SC-001).
 
-- [ ] T019 Implement `fontFamilyTokenType: TokenTypeContract<FontFamilyValue>` in
+- [X] T019 Implement `fontFamilyTokenType: TokenTypeContract<FontFamilyValue>` in
       `packages/token-editor-font-family/src/token-type.ts` per
       `contracts/token-type-contract.md` (`valueSchema: FontFamilyValueSchema`,
       `serializeValue: (value) => value`, `Editor: FontFamilyEditor`, `Preview: FontFamilyPreview`)
-- [ ] T020 [P] Create `packages/token-editor-font-family/src/index.ts` exporting
+- [X] T020 [P] Create `packages/token-editor-font-family/src/index.ts` exporting
       `FontFamilyEditor`, `FontFamilyPreview`, `fontFamilyTokenType`
-- [ ] T021 Register `"fontFamily"` in `apps/web-app/lib/token-editors/built-in.ts`'s
+- [X] T021 Register `"fontFamily"` in `apps/web-app/lib/token-editors/built-in.ts`'s
       `BUILT_IN_TOKEN_TYPES` array and add the matching `fontFamily: fontFamilyTokenType as
       unknown as TokenTypeContract<unknown>` entry to `builtInContractsByType` (shared file —
       expect a rebase conflict with a sibling `strokeStyle` in-flight feature; that's expected)
-- [ ] T022 Add `.a11y.test.tsx` files for both components
+- [X] T022 Add `.a11y.test.tsx` files for both components
       (`FontFamilyEditor.a11y.test.tsx`, `FontFamilyPreview.a11y.test.tsx`), matching
       `token-editor-font-weight`'s WCAG 2.2 AA pattern (`vitest-a11y-tags.ts`); run and confirm
       zero violations across representative value states (empty list, one entry, multiple
@@ -205,7 +205,7 @@ type so the host app actually uses them (closes SC-001).
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T023 [P] Add `FontFamilyEditor.stories.tsx`/`FontFamilyPreview.stories.tsx` Storybook
+- [X] T023 [P] Add `FontFamilyEditor.stories.tsx`/`FontFamilyPreview.stories.tsx` Storybook
       stories if this repo's other `token-editor-*` packages ship them (check
       `token-editor-font-weight` for precedent; match if present)
 - [ ] T024 Run `pnpm build` and `pnpm test` at repo root; fix any type-check/lint/test failures

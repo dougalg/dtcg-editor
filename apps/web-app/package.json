@@ -26,6 +26,7 @@
 		"@dtcg-editor/token-editor-cubic-bezier": "catalog:",
 		"@dtcg-editor/token-editor-dimension": "workspace:*",
 		"@dtcg-editor/token-editor-duration": "workspace:*",
+		"@dtcg-editor/token-editor-font-family": "catalog:",
 		"@dtcg-editor/token-editor-font-weight": "workspace:*",
 		"@dtcg-editor/token-editor-stroke-style": "workspace:*",
 		"neverthrow": "catalog:",
