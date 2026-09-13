@@ -92,7 +92,7 @@ confirm editing each one updates only its own field of `$value`.
 
 > Write these tests FIRST, run them, confirm they fail (component doesn't exist yet).
 
-- [ ] T008 [P] [US1] [A1] [A2] [A3] [A4] [A5] [A6] [A7] Write failing tests in
+- [X] T008 [P] [US1] [A1] [A2] [A3] [A4] [A5] [A6] [A7] Write failing tests in
       `packages/token-editor-typography/src/components/TypographyEditor/TypographyEditor.test.tsx`
       covering: renders "Font Family", "Font Size", "Font Weight", "Letter Spacing", and "Line
       Height" labeled controls, each showing the corresponding field's current value (A1);
@@ -110,7 +110,7 @@ confirm editing each one updates only its own field of `$value`.
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] [A1] [A2] [A3] [A4] [A5] [A6] [A7] Implement `TypographyEditor` in
+- [X] T009 [US1] [A1] [A2] [A3] [A4] [A5] [A6] [A7] Implement `TypographyEditor` in
       `packages/token-editor-typography/src/components/TypographyEditor/TypographyEditor.tsx`,
       embedding `FontFamilyEditor` (from `@dtcg-editor/token-editor-font-family`),
       `DimensionEditor` (from `@dtcg-editor/token-editor-dimension`) twice — wrapped in
@@ -120,12 +120,12 @@ confirm editing each one updates only its own field of `$value`.
       `<legend>` group for label consistency), each wired via
       `onChange={(next) => onChange({ ...value, field: next })}`, satisfying T008 — smallest
       change to go green; record the green in `tdd/cycle-log.md`
-- [ ] T010 [US1] Add
+- [X] T010 [US1] Add
       `packages/token-editor-typography/src/components/TypographyEditor/TypographyEditor.module.css`
       using `--dtcg-ed-*` custom properties only (Principle XII), for the wrapping
       layout/labels only (not the embedded sub-editors' own styling, which stays owned by their
       packages)
-- [ ] T011 [US1] [A1] [A2] [A3] [A4] [A5] [A6] [A7] Run the new `TypographyEditor.test.tsx`
+- [X] T011 [US1] [A1] [A2] [A3] [A4] [A5] [A6] [A7] Run the new `TypographyEditor.test.tsx`
       suite, confirm all green (A1-A7 must be green before User Story 1 is considered complete);
       refactor while green
 
