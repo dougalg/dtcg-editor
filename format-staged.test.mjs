@@ -65,6 +65,15 @@ test("filterFormattableFiles excludes markdown files (Biome has no Markdown supp
 	assert.equal(calls[0].command, "git");
 });
 
+test("filterFormattableFiles excludes YAML files (Biome has no YAML support)", () => {
+	const { exec, calls } = fakeExec([
+		"100644 abc123 0\tpnpm-lock.yaml\x00100644 def456 0\ta.ts\0",
+	]);
+	const result = filterFormattableFiles(["pnpm-lock.yaml", "a.ts"], exec);
+	assert.deepEqual(result, ["a.ts"]);
+	assert.equal(calls[0].command, "git");
+});
+
 test("filterFormattableFiles does nothing when given no files", () => {
 	const { exec, calls } = fakeExec([]);
 	assert.deepEqual(filterFormattableFiles([], exec), []);

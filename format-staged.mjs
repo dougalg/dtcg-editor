@@ -23,12 +23,16 @@ export function getStagedFiles(exec) {
  * links this repo uses — are excluded before formatting. They're already
  * staged as-is and need no reformatting or re-adding.
  *
- * Markdown files are also excluded: Biome's Markdown support is still
- * "in progress" (unsupported for formatting/linting as of 2.5.8). Passing
- * only unsupported-language paths to `biome check` errors out entirely
- * ("no files were processed") rather than a silent no-op, so a commit
- * touching only `.md` files would otherwise always fail the hook.
+ * Markdown and YAML files are also excluded: Biome doesn't support either
+ * language (Markdown formatting/linting is still "in progress" as of 2.5.8;
+ * YAML isn't supported at all). Passing only unsupported-language paths to
+ * `biome check` errors out entirely ("no files were processed") rather than
+ * a silent no-op, so a commit touching only `.md`/`.yaml`/`.yml` files
+ * (e.g. `pnpm-lock.yaml`, `pnpm-workspace.yaml`) would otherwise always
+ * fail the hook.
  */
+const UNSUPPORTED_EXTENSIONS = [".md", ".yaml", ".yml"];
+
 export function filterFormattableFiles(files, exec) {
 	if (files.length === 0) {
 		return files;
@@ -44,7 +48,11 @@ export function filterFormattableFiles(files, exec) {
 			symlinks.add(path);
 		}
 	}
-	return files.filter((file) => !symlinks.has(file) && !file.endsWith(".md"));
+	return files.filter(
+		(file) =>
+			!symlinks.has(file) &&
+			!UNSUPPORTED_EXTENSIONS.some((ext) => file.endsWith(ext)),
+	);
 }
 
 export function formatStagedFiles(files, exec) {
