@@ -33,4 +33,40 @@ existed and failed before the implementation.
   (178 baseline + 15 new), 0 failed.
 - refactor: none needed — schema composition only, no duplicated logic to
   extract
-- commit: pending (batched with Phase 2 completion)
+- commit: `d753a99`
+
+## Cycle 2: U16-U22 ShadowLayerFields embeds ColorEditor + 4 labeled DimensionEditors, no cross-talk
+
+- test: `packages/token-editor-shadow/src/components/ShadowLayerFields/ShadowLayerFields.test.tsx`
+  (new, 7 tests) and `ShadowLayerFields.a11y.test.tsx` (new, 1 test)
+- red: `pnpm exec vitest run packages/token-editor-shadow --project 'packages/token-editor-shadow:unit'`
+  -> `Failed to resolve import "./ShadowLayerFields.tsx"` (module did not
+  exist yet) for both files
+- green: `ShadowLayerFields.tsx` added, embedding `ColorEditor` (unlabeled,
+  matching `BorderEditor`'s single-instance precedent) and four
+  `DimensionEditor` instances each wrapped in its own `<fieldset>`/`<legend>`
+  ("Offset X"/"Offset Y"/"Blur"/"Spread", mirroring `TransitionEditor`'s
+  disambiguation pattern). Initial test draft used
+  `group.querySelector('input[aria-label="Value"]')`, which failed with
+  "Unable to fire a change event - please provide a DOM element" because
+  `DimensionEditor` labels its input via a wrapping `<label>`, not an
+  `aria-label` attribute — fixed by switching to
+  `within(group).getByLabelText("Value")`. After the fix: unit suite 9/9,
+  a11y suite 2/2 (including `ShadowEditor`'s a11y test from the same run).
+- refactor: none needed
+- commit: pending (batched with Phase 3 completion)
+
+## Cycle 3: A1-A5, U23-U24, U32 ShadowEditor renders one ShadowLayerFields for a bare-object value
+
+- test: `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.test.tsx`
+  (new, 2 tests) and `ShadowEditor.a11y.test.tsx` (new, 1 test)
+- red: same run as Cycle 2 — `Failed to resolve import "./ShadowEditor.tsx"`
+  (module did not exist yet)
+- green: `ShadowEditor.tsx` added: a bare (non-array) `value` renders exactly
+  one `ShadowLayerFields`, with an array branch stubbed in (iterating and
+  splicing per-index) so a value that arrives as an array does not crash
+  ahead of Phase 4's repeater work, though no repeater chrome exists yet.
+  `pnpm exec vitest run packages/token-editor-shadow` (both projects) -> unit
+  9/9, a11y 2/2.
+- refactor: none needed
+- commit: pending (batched with Phase 3 completion)

@@ -22,11 +22,11 @@ own).
 
 | id  | behavior                                                                                   | traces        | kind    | state   | test                                                                                     |
 | --- | ------------------------------------------------------------------------------------------- | ------------- | ------- | ------- | ----------------------------------------------------------------------------------------- |
-| A1  | Changing only offsetX on a single-layer shadow leaves color/offsetY/blur/spread unchanged   | US1-AS1       | example | PENDING |                                                                                             |
-| A2  | Changing only offsetY on a single-layer shadow leaves the other four sub-fields unchanged    | US1-AS2       | example | PENDING |                                                                                             |
-| A3  | Changing only blur on a single-layer shadow leaves the other four sub-fields unchanged       | US1-AS3       | example | PENDING |                                                                                             |
-| A4  | Changing only spread on a single-layer shadow leaves the other four sub-fields unchanged     | US1-AS4       | example | PENDING |                                                                                             |
-| A5  | Changing only color on a single-layer shadow leaves offsetX/offsetY/blur/spread unchanged    | US1-AS5       | example | PENDING |                                                                                             |
+| A1  | Changing only offsetX on a single-layer shadow leaves color/offsetY/blur/spread unchanged   | US1-AS1       | example | DONE |                                                                                             `ShadowEditor.test.tsx::a bare-object value's edit calls onChange with the updated bare object` |
+| A2  | Changing only offsetY on a single-layer shadow leaves the other four sub-fields unchanged    | US1-AS2       | example | DONE |                                                                                             `ShadowEditor.test.tsx::a bare-object value's edit calls onChange with the updated bare object` |
+| A3  | Changing only blur on a single-layer shadow leaves the other four sub-fields unchanged       | US1-AS3       | example | DONE |                                                                                             `ShadowEditor.test.tsx::a bare-object value's edit calls onChange with the updated bare object` |
+| A4  | Changing only spread on a single-layer shadow leaves the other four sub-fields unchanged     | US1-AS4       | example | DONE |                                                                                             `ShadowEditor.test.tsx::a bare-object value's edit calls onChange with the updated bare object` |
+| A5  | Changing only color on a single-layer shadow leaves offsetX/offsetY/blur/spread unchanged    | US1-AS5       | example | DONE |                                                                                             `ShadowLayerFields.test.tsx::changing only the color control calls onChange with color updated` |
 | A6  | Adding a layer to a two-layer shadow yields a 3-layer array, first two layers unchanged      | US2-AS1       | example | PENDING |                                                                                             |
 | A7  | Removing the middle of three layers yields the first+third layers, unchanged and in order    | US2-AS2       | example | PENDING |                                                                                             |
 | A8  | Moving a layer up/down reorders layers without altering any layer's own sub-values           | US2-AS3       | example | PENDING |                                                                                             |
@@ -66,20 +66,20 @@ Grouped by the component from `plan.md` that owns them.
 
 | id  | behavior                                                                                     | traces  | kind    | state   | test |
 | --- | ----------------------------------------------------------------------------------------------| ------- | ------- | ------- | ---- |
-| U16 | Renders the embedded `ColorEditor` and four `DimensionEditor`s, each labeled via its own fieldset/legend ("Offset X"/"Offset Y"/"Blur"/"Spread") | FR-002  | example | PENDING |      |
-| U17 | Changing offsetX calls `onChange` with only `offsetX` updated                                 | FR-003  | example | PENDING |      |
-| U18 | Changing offsetY calls `onChange` with only `offsetY` updated                                 | FR-003  | example | PENDING |      |
-| U19 | Changing blur calls `onChange` with only `blur` updated                                       | FR-003  | example | PENDING |      |
-| U20 | Changing spread calls `onChange` with only `spread` updated                                   | FR-003  | example | PENDING |      |
-| U21 | Changing color calls `onChange` with only `color` updated                                     | FR-003  | example | PENDING |      |
-| U22 | Has no WCAG 2.2 AA violations                                                                  | Const-X | example | PENDING |      |
+| U16 | Renders the embedded `ColorEditor` and four `DimensionEditor`s, each labeled via its own fieldset/legend ("Offset X"/"Offset Y"/"Blur"/"Spread") | FR-002  | example | DONE |      `ShadowLayerFields.test.tsx::renders the embedded ColorEditor and four DimensionEditor instances` |
+| U17 | Changing offsetX calls `onChange` with only `offsetX` updated                                 | FR-003  | example | DONE |      `ShadowLayerFields.test.tsx::changing only offsetX calls onChange with offsetX updated` |
+| U18 | Changing offsetY calls `onChange` with only `offsetY` updated                                 | FR-003  | example | DONE |      `ShadowLayerFields.test.tsx::changing only offsetY calls onChange with offsetY updated` |
+| U19 | Changing blur calls `onChange` with only `blur` updated                                       | FR-003  | example | DONE |      `ShadowLayerFields.test.tsx::changing only blur calls onChange with blur updated` |
+| U20 | Changing spread calls `onChange` with only `spread` updated                                   | FR-003  | example | DONE |      `ShadowLayerFields.test.tsx::changing only spread calls onChange with spread updated` |
+| U21 | Changing color calls `onChange` with only `color` updated                                     | FR-003  | example | DONE |      `ShadowLayerFields.test.tsx::changing only the color control calls onChange with color updated` |
+| U22 | Has no WCAG 2.2 AA violations                                                                  | Const-X | example | DONE |      `ShadowLayerFields.a11y.test.tsx::has no WCAG 2.2 AA violations` |
 
 ### `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.tsx`
 
 | id  | behavior                                                                                             | traces        | kind    | state   | test |
 | --- | ------------------------------------------------------------------------------------------------------| ------------- | ------- | ------- | ---- |
-| U23 | A bare-object value renders exactly one `ShadowLayerFields` block and no repeater controls            | Edge Case     | example | PENDING |      |
-| U24 | A bare-object value's edit calls `onChange` with the updated bare object (not array-wrapped)           | FR-002        | example | PENDING |      |
+| U23 | A bare-object value renders exactly one `ShadowLayerFields` block and no repeater controls            | Edge Case     | example | DONE |      `ShadowEditor.test.tsx::a bare-object value renders exactly one ShadowLayerFields block and no repeater controls` |
+| U24 | A bare-object value's edit calls `onChange` with the updated bare object (not array-wrapped)           | FR-002        | example | DONE |      `ShadowEditor.test.tsx::a bare-object value's edit calls onChange with the updated bare object` |
 | U25 | An array value renders one `ShadowLayerFields` row per layer plus add/remove/move controls             | FR-004        | example | PENDING |      |
 | U26 | "Add layer" appends a schema-valid default layer, existing layers unchanged                            | FR-004        | example | PENDING |      |
 | U27 | "Remove" on a middle layer drops exactly that layer, others unchanged and in order                     | FR-004, FR-005 | example | PENDING |     |
@@ -87,7 +87,7 @@ Grouped by the component from `plan.md` that owns them.
 | U29 | Editing a sub-field of one layer among several changes only that layer's field                         | FR-005        | example | PENDING |      |
 | U30 | "Remove" is disabled when exactly one layer remains                                                     | Edge Case     | example | PENDING |      |
 | U31 | A one-item *array* value keeps showing repeater chrome (not the bare-object UI) and round-trips as a one-item array, never unwrapped to a bare object | Edge Case | example | PENDING | |
-| U32 | Has no WCAG 2.2 AA violations for a bare-object value                                                   | Const-X       | example | PENDING |      |
+| U32 | Has no WCAG 2.2 AA violations for a bare-object value                                                   | Const-X       | example | DONE |      `ShadowEditor.a11y.test.tsx::has no WCAG 2.2 AA violations for a bare-object value` |
 | U33 | Has no WCAG 2.2 AA violations for a multi-layer array value                                            | Const-X       | example | PENDING |      |
 
 ### `packages/token-editor-shadow/src/components/ShadowPreview/ShadowPreview.tsx`

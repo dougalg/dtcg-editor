@@ -91,7 +91,7 @@ are present.
 > `ShadowEditor.tsx` exist yet) before implementing; log each red in
 > `tdd/cycle-log.md`.
 
-- [ ] T007 [P] [US1] [U16][U17][U18][U19][U20][U21] Write failing tests in
+- [x] T007 [P] [US1] [U16][U17][U18][U19][U20][U21] Write failing tests in
       `packages/token-editor-shadow/src/components/ShadowLayerFields/ShadowLayerFields.test.tsx`
       (Vitest + `@testing-library/react`, mirroring `BorderEditor.test.tsx`'s
       style) asserting: it renders the embedded `ColorEditor` and four
@@ -103,25 +103,25 @@ are present.
       `{ ...layer, offsetX: <new> }` and every other sub-field unchanged
       (deep-equal to originals); same assertion independently for offsetY,
       blur, spread, and color.
-- [ ] T008 [P] [US1] [U22] Write failing a11y test in
+- [x] T008 [P] [US1] [U22] Write failing a11y test in
       `packages/token-editor-shadow/src/components/ShadowLayerFields/ShadowLayerFields.a11y.test.tsx`
       (Vitest Browser Mode + `axe-core`, mirroring
       `BorderEditor.a11y.test.tsx`) asserting zero WCAG 2.2 AA violations for
       `ShadowLayerFields` rendered with a representative `ShadowLayer`.
-- [ ] T009 [P] [US1] [A1][A2][A3][A4][A5][U23][U24] Write failing tests in
+- [x] T009 [P] [US1] [A1][A2][A3][A4][A5][U23][U24] Write failing tests in
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.test.tsx`
       asserting: given a bare-object `ShadowValue` (not an array), it renders
       exactly one `ShadowLayerFields` block and no add/remove/move controls;
       changing a sub-field calls `onChange` with the updated bare object (not
       wrapped in an array).
-- [ ] T010 [P] [US1] [U32] Write failing a11y test in
+- [x] T010 [P] [US1] [U32] Write failing a11y test in
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.a11y.test.tsx`
       asserting zero WCAG 2.2 AA violations for `ShadowEditor` rendered with a
       representative bare-object `ShadowValue`.
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] [U16][U17][U18][U19][U20][U21] Implement `ShadowLayerFields` in
+- [x] T011 [US1] [U16][U17][U18][U19][U20][U21] Implement `ShadowLayerFields` in
       `packages/token-editor-shadow/src/components/ShadowLayerFields/ShadowLayerFields.tsx`:
       accepts `{ value: ShadowLayer; onChange: (layer: ShadowLayer) => void }`;
       renders `<ColorEditor value={value.color} onChange={(color) => onChange({ ...value, color })} />`
@@ -130,12 +130,12 @@ are present.
       `<DimensionEditor>` instances for offsetX/offsetY/blur/spread, each
       `onChange` updating only that key. Confirm T007/T008 now pass; log
       green in `tdd/cycle-log.md`.
-- [ ] T012 [US1] Add
+- [x] T012 [US1] Add
       `packages/token-editor-shadow/src/components/ShadowLayerFields/ShadowLayerFields.module.css`
       with layout-only rules (spacing between the five embedded editors),
       sourcing all values from `--dtcg-ed-*` custom properties per
       Constitution Principle XII — no hardcoded spacing/color/border values.
-- [ ] T013 [US1] [A1][A2][A3][A4][A5][U23][U24] Implement `ShadowEditor` in
+- [x] T013 [US1] [A1][A2][A3][A4][A5][U23][U24] Implement `ShadowEditor` in
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.tsx`:
       accepts `TokenTypeEditorProps<ShadowValue>`; when `value` is not an
       array, renders one `<ShadowLayerFields value={value} onChange={onChange} />`
@@ -145,10 +145,10 @@ are present.
       guard the array case with a minimal passthrough so T009/T010 for the
       bare-object case pass without depending on unwritten repeater code.)
       Confirm T009/T010 now pass; log green in `tdd/cycle-log.md`.
-- [ ] T014 [US1] Add `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.module.css`
+- [x] T014 [US1] Add `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.module.css`
       with layout-only rules, sourcing all values from `--dtcg-ed-*` custom
       properties per Principle XII.
-- [ ] T015 [P] [US1] Add
+- [x] T015 [P] [US1] Add
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.stories.tsx`
       (Storybook), mirroring `BorderEditor.stories.tsx`'s pattern, with a
       bare single-layer story.
