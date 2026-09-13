@@ -14,7 +14,7 @@ Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not 
 - [ ] Improve UI by adding visible rows, header delineation, and drag and drop reordering of token rows and resolved name visibility OR sticky headers?
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
 - [ ] Add support for "number" tokens (in progress — worktree `.claude/worktrees/number-token-support`, branch `worktree-number-token-support`)
-- [ ] Add support for "border" tokens
+- [ ] Add support for "border" tokens (in progress — worktree `.claude/worktrees/border-token-support`, branch `worktree-border-token-support`)
 - [ ] Add support for "transition" tokens
 - [ ] Add support for "shadow" tokens
 - [ ] Add support for "gradient" tokens
