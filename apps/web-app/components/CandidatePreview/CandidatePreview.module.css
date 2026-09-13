@@ -11,7 +11,8 @@
 	gap: var(--dtcg-ed-size-step--2, 0.25rem);
 }
 .preview[data-multi-mode] .outcome {
-	font-size: 0.875em;
+	scale: 80%;
+	transform-origin: left;
 }
 .modeLabel {
 	font-weight: 600;
