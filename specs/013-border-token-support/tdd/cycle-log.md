@@ -125,6 +125,61 @@ test existed and failed before the implementation.
   regression from the registration.
 - commit: pending (batched, see Notes)
 
+## Cycle 5: fix — token-editor-border's own `node --test` script broken by token-type.test.ts
+
+- Discovered during Phase 6 polish (`pnpm test`-equivalent verification),
+  not part of the original test list: `packages/token-editor-border`'s
+  `package.json` "test" script (`node --test src/*.test.ts`, copied from
+  the `token-editor-dimension` template) matched `src/token-type.test.ts`,
+  which imports `BorderEditor.tsx`/`BorderPreview.tsx` — JSX Node's
+  built-in type-stripping cannot parse, per the constitution's testing-tiers
+  rule that JSX-adjacent tests run only through the aggregated Vitest
+  config. `token-editor-dimension`'s own template has no top-level
+  `*.test.ts` file at all, so this gap was latent in the template and only
+  surfaced once a package actually added one.
+- red (evidence the bug was real): `node --test src/*.test.ts` (run from
+  `packages/token-editor-border`) -> 1 failed (`SyntaxError`-class parse
+  failure surfaced as a generic 'test failed', consistent with
+  `token-editor-color`'s own precedent of keeping `.test.ts` files
+  JSX-free and letting only `.test.tsx` files carry component imports)
+- green: renamed `src/token-type.test.ts` -> `src/token-type.test.tsx`
+  (content unchanged) so the package's own `node --test src/*.test.ts`
+  glob no longer matches it (now a harmless no-op, exactly matching
+  `token-editor-dimension`'s precedent of that script matching zero files),
+  while Vitest's aggregated `**/*.test.ts`/`**/*.test.tsx` include still
+  picks it up unchanged. `node --test src/*.test.ts` -> no matches (clean);
+  `pnpm exec vitest run packages/token-editor-border/src/token-type.test.tsx`
+  -> 4 passed, 0 failed (unchanged from Cycle 4)
+- refactor: none
+- commit: this Phase 6 polish commit (see repository log)
+
+## Final verification (Phase 6 polish)
+
+- `pnpm build` (repo root): 13/13 tasks successful, including
+  `@dtcg-editor/token-editor-border:build` and
+  `@dtcg-editor/web-app:build` with the new import — the constitution's
+  sole type-checking gate passes clean.
+- `pnpm lint` (repo root): 27/27 tasks successful (Biome + `@ls-lint/ls-lint`
+  filename/folder convention) — zero findings in
+  `packages/token-editor-border`.
+- `pnpm exec vitest run` (full aggregated suite): 824 passed, 2 failed, in
+  167/169 files. The 2 failures are `apps/web-app:bench`'s pre-existing
+  wall-clock performance guards (`candidate-filter.bench.ts`,
+  `reference-index.test.ts`, both p95-under-50ms timing assertions) — a
+  known, feature-unrelated flake tracked by this repo's own backlog item
+  `fix-editing-perf-ci-flake` (hardware/scheduling contention, not a
+  correctness regression). This is a strict improvement over the Baseline
+  entry's 20 pre-existing `apps/web-app:a11y (chromium)` import failures,
+  which did not reproduce on this run (they were a transient dev-server
+  cold-start condition, also seen and self-resolved on retry for this
+  feature's own new a11y tests — see Cycles 2/3). Every test this feature
+  added or touched (`packages/token-editor-border/**`,
+  `apps/web-app/lib/token-editors/built-in.test.ts`,
+  `apps/web-app/lib/token-editors/built-in.a11y.test.tsx`) is green.
+- `node --test src/*.test.ts` (`packages/token-core`): 163 passed, 0 failed.
+- `node --test src/*.test.ts` (`packages/token-editor-border`): no matches
+  (correct — see Cycle 5).
+
 ## Notes and deviations
 
 - Cycle 3's first `BorderPreview` implementation attempt embedded

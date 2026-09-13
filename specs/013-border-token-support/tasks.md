@@ -258,15 +258,15 @@ in a real token file renders the dedicated editor end-to-end.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T021 [P] Run `pnpm build` at the repo root (the sole type-checking
+- [x] T021 [P] Run `pnpm build` at the repo root (the sole type-checking
       gate per the constitution) and fix any type errors surfaced by the new
       package or the `built-in.ts` edit.
-- [ ] T022 [P] Run `pnpm lint` (Biome + `@ls-lint/ls-lint`) and fix any
+- [x] T022 [P] Run `pnpm lint` (Biome + `@ls-lint/ls-lint`) and fix any
       findings in the new package.
-- [ ] T023 Run the full suite (`pnpm test`) and confirm it passes, including
+- [x] T023 Run the full suite (`pnpm test`) and confirm it passes, including
       the new `packages/token-editor-border` Vitest unit + a11y projects and
       `packages/token-core`'s `node --test` suite.
-- [ ] T024 Run `speckit-tdd-verify` (or the manual deliberate-mutant spot
+- [x] T024 Run `speckit-tdd-verify` (or the manual deliberate-mutant spot
       check per `.specify/memory/tdd-profile.md`, since this repo has no
       mutation-testing tool configured) against the changed files in this
       feature and record the result in
