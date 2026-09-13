@@ -145,6 +145,7 @@ const packages = [
 	"packages/token-editor-font-family",
 	"packages/token-editor-font-weight",
 	"packages/token-editor-number",
+	"packages/token-editor-shadow",
 	"packages/token-editor-stroke-style",
 	"packages/token-editor-transition",
 	"packages/token-editor-typography",

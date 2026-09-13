@@ -41,6 +41,8 @@ export type {
 export { resolveReference } from "./resolve-reference.ts";
 export { findNode } from "./resolve-type.ts";
 export { serializeTokenFile, TokenSerializeError } from "./serialize.ts";
+export type { ShadowLayer, ShadowValue } from "./shadow.ts";
+export { ShadowLayerSchema, ShadowValueSchema } from "./shadow.ts";
 export type { StrokeStyleValue } from "./stroke-style.ts";
 export { StrokeStyleValueSchema } from "./stroke-style.ts";
 export type { DtcgTokenType } from "./token-types.ts";

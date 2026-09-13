@@ -46,21 +46,21 @@ Grouped by the component from `plan.md` that owns them.
 
 | id  | behavior                                                                          | traces      | kind    | state   | test |
 | --- | ---------------------------------------------------------------------------------- | ----------- | ------- | ------- | ---- |
-| U1  | Accepts a valid single-layer object `{ color, offsetX, offsetY, blur, spread }`    | FR-001      | example | PENDING |      |
-| U2  | Accepts a valid one-item array of layers                                          | FR-001      | example | PENDING |      |
-| U3  | Accepts a valid multi-layer (3-entry) array                                       | FR-001      | example | PENDING |      |
-| U4  | Rejects a single-layer object missing `color`                                     | FR-001      | example | PENDING |      |
-| U5  | Rejects a single-layer object missing `offsetX`                                   | FR-001      | example | PENDING |      |
-| U6  | Rejects a single-layer object missing `offsetY`                                   | FR-001      | example | PENDING |      |
-| U7  | Rejects a single-layer object missing `blur`                                      | FR-001      | example | PENDING |      |
-| U8  | Rejects a single-layer object missing `spread`                                    | FR-001      | example | PENDING |      |
-| U9  | Rejects a layer whose `color` is not a valid `ColorValue`                          | FR-001      | example | PENDING |      |
-| U10 | Rejects a layer whose `offsetX` is not a valid `DimensionValue`                    | FR-001      | example | PENDING |      |
-| U11 | Rejects a layer whose `offsetY` is not a valid `DimensionValue`                    | FR-001      | example | PENDING |      |
-| U12 | Rejects a layer whose `blur` is not a valid `DimensionValue`                       | FR-001      | example | PENDING |      |
-| U13 | Rejects a layer whose `spread` is not a valid `DimensionValue`                     | FR-001      | example | PENDING |      |
-| U14 | Rejects an array containing one invalid layer even when the others are valid       | FR-001      | example | PENDING |      |
-| U15 | Rejects an empty array                                                             | Edge Case   | example | PENDING |      |
+| U1  | Accepts a valid single-layer object `{ color, offsetX, offsetY, blur, spread }`    | FR-001      | example | DONE |      `shadow.test.ts::accepts a valid single-layer object` |
+| U2  | Accepts a valid one-item array of layers                                          | FR-001      | example | DONE |      `shadow.test.ts::accepts a valid one-item array of layers` |
+| U3  | Accepts a valid multi-layer (3-entry) array                                       | FR-001      | example | DONE |      `shadow.test.ts::accepts a valid multi-layer (3-entry) array` |
+| U4  | Rejects a single-layer object missing `color`                                     | FR-001      | example | DONE |      `shadow.test.ts::rejects a single-layer object missing color` |
+| U5  | Rejects a single-layer object missing `offsetX`                                   | FR-001      | example | DONE |      `shadow.test.ts::rejects a single-layer object missing offsetX` |
+| U6  | Rejects a single-layer object missing `offsetY`                                   | FR-001      | example | DONE |      `shadow.test.ts::rejects a single-layer object missing offsetY` |
+| U7  | Rejects a single-layer object missing `blur`                                      | FR-001      | example | DONE |      `shadow.test.ts::rejects a single-layer object missing blur` |
+| U8  | Rejects a single-layer object missing `spread`                                    | FR-001      | example | DONE |      `shadow.test.ts::rejects a single-layer object missing spread` |
+| U9  | Rejects a layer whose `color` is not a valid `ColorValue`                          | FR-001      | example | DONE |      `shadow.test.ts::rejects a layer whose color is not a valid ColorValue` |
+| U10 | Rejects a layer whose `offsetX` is not a valid `DimensionValue`                    | FR-001      | example | DONE |      `shadow.test.ts::rejects a layer whose offsetX is not a valid DimensionValue` |
+| U11 | Rejects a layer whose `offsetY` is not a valid `DimensionValue`                    | FR-001      | example | DONE |      `shadow.test.ts::rejects a layer whose offsetY is not a valid DimensionValue` |
+| U12 | Rejects a layer whose `blur` is not a valid `DimensionValue`                       | FR-001      | example | DONE |      `shadow.test.ts::rejects a layer whose blur is not a valid DimensionValue` |
+| U13 | Rejects a layer whose `spread` is not a valid `DimensionValue`                     | FR-001      | example | DONE |      `shadow.test.ts::rejects a layer whose spread is not a valid DimensionValue` |
+| U14 | Rejects an array containing one invalid layer even when the others are valid       | FR-001      | example | DONE |      `shadow.test.ts::rejects an array containing one invalid layer even when the others are valid` |
+| U15 | Rejects an empty array                                                             | Edge Case   | example | DONE |      `shadow.test.ts::rejects an empty array` |
 
 ### `packages/token-editor-shadow/src/components/ShadowLayerFields/ShadowLayerFields.tsx`
 

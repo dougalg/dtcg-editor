@@ -16,7 +16,7 @@ enable independent implementation and testing.
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Scaffold `packages/token-editor-shadow` package skeleton
+- [x] T001 Scaffold `packages/token-editor-shadow` package skeleton
       (`package.json`, `tsconfig.json`, `vitest.setup.ts`,
       `vitest-a11y-tags.ts`, `src/css-modules.d.ts`, `src/vitest-env.d.ts`),
       copying the exact structure of `packages/token-editor-border`, with
@@ -25,9 +25,9 @@ enable independent implementation and testing.
       `@dtcg-editor/token-editor-dimension` (all `workspace:*`), added via
       `pnpm add <pkg>@workspace:* --filter @dtcg-editor/token-editor-shadow`
       per CLAUDE.md's pnpm rule, not hand-edited.
-- [ ] T002 [P] Add `packages/token-editor-shadow` to the `packages` array in
+- [x] T002 [P] Add `packages/token-editor-shadow` to the `packages` array in
       `vitest.config.mts` so its Vitest projects run in the aggregated suite.
-- [ ] T003 [P] Run `pnpm install` at the repo root to link the new package
+- [x] T003 [P] Run `pnpm install` at the repo root to link the new package
       and its new workspace dependencies.
 
 **Checkpoint**: Package scaffold exists, builds as an empty shell, is wired
@@ -42,7 +42,7 @@ Editor/Preview/contract depends on.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [U1][U2][U3][U4][U5][U6][U7][U8][U9][U10][U11][U12][U13][U14][U15] Write failing tests for `ShadowValueSchema` in
+- [x] T004 [U1][U2][U3][U4][U5][U6][U7][U8][U9][U10][U11][U12][U13][U14][U15] Write failing tests for `ShadowValueSchema` in
       `packages/token-core/src/shadow.test.ts` (`node:test` +
       `node:assert/strict`, mirroring `border.test.ts`'s style): accepts a
       valid single-layer object `{ color, offsetX, offsetY, blur, spread }`;
@@ -54,7 +54,7 @@ Editor/Preview/contract depends on.
       even when the others are valid; rejects an empty array. Confirm these
       fail first (no `shadow.ts` module exists yet) and log the red in
       `specs/014-shadow-token-support/tdd/cycle-log.md`.
-- [ ] T005 [U1][U2][U3][U4][U5][U6][U7][U8][U9][U10][U11][U12][U13][U14][U15] Implement `ShadowLayerSchema`/`ShadowValueSchema`/`ShadowValue`/
+- [x] T005 [U1][U2][U3][U4][U5][U6][U7][U8][U9][U10][U11][U12][U13][U14][U15] Implement `ShadowLayerSchema`/`ShadowValueSchema`/`ShadowValue`/
       `ShadowLayer` in `packages/token-core/src/shadow.ts` as
       `ShadowLayerSchema = z.object({ color: ColorValueSchema, offsetX: DimensionValueSchema, offsetY: DimensionValueSchema, blur: DimensionValueSchema, spread: DimensionValueSchema })`
       and `ShadowValueSchema = z.union([ShadowLayerSchema, z.array(ShadowLayerSchema).min(1)])`,
@@ -63,7 +63,7 @@ Editor/Preview/contract depends on.
       The `.min(1)` on the array form enforces spec.md's "empty array is
       invalid" edge case. Confirm T004's tests now pass; log the green in
       `tdd/cycle-log.md`.
-- [ ] T006 Export `ShadowValue`, `ShadowLayer`, `ShadowValueSchema`, and
+- [x] T006 Export `ShadowValue`, `ShadowLayer`, `ShadowValueSchema`, and
       `ShadowLayerSchema` from `packages/token-core/src/index.ts`, alongside
       the existing exports for the other value schemas.
 
