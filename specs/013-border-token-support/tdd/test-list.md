@@ -47,8 +47,8 @@ not a unit beneath it.
 | A3 | Changing a border token's style in `BorderEditor` leaves color and width unchanged in the emitted value        | US1.3   | example | DONE | `packages/token-editor-border/src/components/BorderEditor/BorderEditor.test.tsx` |
 | A4 | `BorderPreview` renders a resolved border value as one compact line (swatch + width + style text)              | US2.1   | example | DONE | `BorderPreview.test.tsx` |
 | A5 | `BorderPreview` declines to render (produces no output) for a value that isn't a valid border shape            | US2.2   | example | DONE | `BorderPreview.test.tsx` |
-| A6 | A `border`-typed token with a valid value uses `borderTokenType`'s dedicated `Editor`, not a generic fallback  | US3.1   | example | PENDING |      |
-| A7 | `borderTokenType`'s `valueSchema` rejects an invalid border value the same way `BorderValueSchema` does (so the host's existing invalid-value fallback path, not a dedicated `ValidationErrorHandler`, is what activates) | US3.2   | example | PENDING |      |
+| A6 | A `border`-typed token with a valid value uses `borderTokenType`'s dedicated `Editor`, not a generic fallback  | US3.1   | example | DONE | `apps/web-app/lib/token-editors/built-in.test.ts` |
+| A7 | `borderTokenType`'s `valueSchema` rejects an invalid border value the same way `BorderValueSchema` does (so the host's existing invalid-value fallback path, not a dedicated `ValidationErrorHandler`, is what activates) | US3.2   | example | DONE | `packages/token-editor-border/src/token-type.test.ts` |
 
 ## Inner loop: unit behaviors
 
@@ -94,17 +94,17 @@ not a unit beneath it.
 
 | id  | behavior                                                                          | traces          | kind    | state   | test |
 | --- | ---------------------------------------------------------------------------------- | --------------- | ------- | ------- | ---- |
-| U24 | `borderTokenType.type` is `"border"`                                             | FR-006          | example | PENDING |      |
-| U25 | `borderTokenType.valueSchema` accepts/rejects the same fixtures as U1-U9 (it *is* `BorderValueSchema`) | FR-001, FR-006 | example | PENDING |      |
-| U26 | `borderTokenType.serializeValue` returns its input unchanged (identity) for a valid `BorderValue` | FR-007, Principle IX | example | PENDING |      |
-| U27 | `borderTokenType.Editor`/`Preview` are the `BorderEditor`/`BorderPreview` functions | FR-006          | example | PENDING |      |
+| U24 | `borderTokenType.type` is `"border"`                                             | FR-006          | example | DONE | `token-type.test.ts` |
+| U25 | `borderTokenType.valueSchema` accepts/rejects the same fixtures as U1-U9 (it *is* `BorderValueSchema`) | FR-001, FR-006 | example | DONE | `token-type.test.ts` |
+| U26 | `borderTokenType.serializeValue` returns its input unchanged (identity) for a valid `BorderValue` | FR-007, Principle IX | example | DONE | `token-type.test.ts` |
+| U27 | `borderTokenType.Editor`/`Preview` are the `BorderEditor`/`BorderPreview` functions | FR-006          | example | DONE | `token-type.test.ts` |
 
 ### `apps/web-app/lib/token-editors/built-in.ts`
 
 | id  | behavior                                                                          | traces | kind    | state   | test |
 | --- | ---------------------------------------------------------------------------------- | ------ | ------- | ------- | ---- |
-| U28 | `resolveBuiltInContract("border")` returns `borderTokenType`                     | FR-006 | example | PENDING |      |
-| U29 | `BUILT_IN_TOKEN_TYPES` includes `"border"`, and `builtInExtensions` has a `{ type: "border", editor: BorderEditor }` entry | FR-006 | example | PENDING |      |
+| U28 | `resolveBuiltInContract("border")` returns `borderTokenType`                     | FR-006 | example | DONE | `built-in.test.ts` |
+| U29 | `BUILT_IN_TOKEN_TYPES` includes `"border"`, and `builtInExtensions` has a `{ type: "border", editor: BorderEditor }` entry | FR-006 | example | DONE | `built-in.test.ts` |
 
 ## Invariants and edge cases still to place
 

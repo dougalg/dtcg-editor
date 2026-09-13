@@ -1,3 +1,4 @@
+import { borderTokenType } from "@dtcg-editor/token-editor-border";
 import { colorTokenType } from "@dtcg-editor/token-editor-color";
 import type { TokenTypeContract } from "@dtcg-editor/token-editor-contract";
 import { cubicBezierTokenType } from "@dtcg-editor/token-editor-cubic-bezier";
@@ -22,6 +23,7 @@ export const BUILT_IN_TOKEN_TYPES = [
 	"fontWeight",
 	"strokeStyle",
 	"fontFamily",
+	"border",
 ] as const;
 
 export type TokenType = (typeof BUILT_IN_TOKEN_TYPES)[number];
@@ -47,6 +49,8 @@ const builtInContractsByType: {
 	strokeStyle: strokeStyleTokenType as unknown as TokenTypeContract<unknown>,
 	// Same safety argument as `dimension` above.
 	fontFamily: fontFamilyTokenType as unknown as TokenTypeContract<unknown>,
+	// Same safety argument as `dimension` above.
+	border: borderTokenType as unknown as TokenTypeContract<unknown>,
 };
 
 /** Built-in `{ type, editor }` entries, one per `BUILT_IN_TOKEN_TYPES` member. */

@@ -38,6 +38,7 @@ catalog:
   '@dtcg-editor/token-editor-color': workspace:*
   '@dtcg-editor/token-editor-dimension': workspace:*
   '@dtcg-editor/token-editor-stroke-style': workspace:*
+  '@dtcg-editor/token-editor-border': workspace:*
 allowBuilds:
   esbuild: true
   sharp: true

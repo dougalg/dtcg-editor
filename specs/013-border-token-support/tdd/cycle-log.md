@@ -81,4 +81,63 @@ test existed and failed before the implementation.
 - follow-up: `BorderPreview.a11y.test.tsx` (1 case) added and confirmed
   green on first run. `BorderPreview.module.css` (layout only,
   `--dtcg-ed-space-3xs-2xs`) added.
+- commit: `696d43e`
+
+## Cycle 4: A6-A7, U24-U29 borderTokenType contract wiring and built-in registration
+
+- test: `packages/token-editor-border/src/token-type.test.ts` (new, 4 cases)
+- red: `pnpm exec vitest run packages/token-editor-border/src/token-type.test.ts`
+  -> `Error: Failed to resolve import "./token-type.ts"... Does the file
+  exist?` (1 suite failed — module did not exist yet). First draft of the
+  test imported `test` from `node:test`; Vitest ran the file (via node:test's
+  own runner as a side effect) but reported `No test suite found`, since
+  this package's JSX-adjacent modules run only through the aggregated
+  Vitest config, not `node --test` (Constitution's testing-tiers rule) —
+  corrected to import `test`/`expect` from `vitest`, matching every other
+  `.test.ts`/`.test.tsx` file in this package.
+- green: `packages/token-editor-border/src/token-type.ts` added
+  (`borderTokenType: TokenTypeContract<BorderValue>`, mirroring
+  `token-editor-dimension/src/token-type.ts`). `pnpm exec vitest run
+  packages/token-editor-border/src/token-type.test.ts` -> 4 passed, 0 failed
+- refactor: none needed
+- test: `apps/web-app/lib/token-editors/built-in.test.ts` extended with 2 new
+  cases (`BUILT_IN_TOKEN_TYPES includes border`,
+  `resolveBuiltInContract('border')...`)
+- red: `pnpm exec vitest run apps/web-app/lib/token-editors/built-in.test.ts`
+  -> 2 failed (`AssertionError: expected false`, `AssertionError: expected
+  undefined not to be undefined`) — `border` not yet registered
+- green: `apps/web-app/lib/token-editors/built-in.ts` edited — imported
+  `borderTokenType` from the new `@dtcg-editor/token-editor-border`
+  (added as a `workspace:*` dependency of `apps/web-app` via `pnpm add
+  --workspace`), added `"border"` to `BUILT_IN_TOKEN_TYPES`, added the
+  `border: borderTokenType as unknown as TokenTypeContract<unknown>` entry.
+  Same command -> 7 passed, 0 failed (5 pre-existing + 2 new). The
+  pre-existing exact-`deepEqual` test over the whole `BUILT_IN_TOKEN_TYPES`
+  array was extended to include `"border"` in the same commit as the
+  registration — not a weakening (the assertion still checks the exact,
+  now-larger, set), matching the same update every prior type's addition to
+  this file necessarily made to that same test.
+- refactor: none needed
+- follow-up: exported `BorderEditor`/`BorderPreview`/`borderTokenType` from
+  `packages/token-editor-border/src/index.ts`. Re-ran
+  `apps/web-app/lib/token-editors/built-in.a11y.test.tsx` (pre-existing,
+  unrelated to this feature's own new a11y tests) -> 3 passed, 0 failed, no
+  regression from the registration.
 - commit: pending (batched, see Notes)
+
+## Notes and deviations
+
+- Cycle 3's first `BorderPreview` implementation attempt embedded
+  `DimensionPreview`, discovered mid-cycle not to exist as a
+  `token-editor-dimension` export; corrected within the same cycle rather
+  than reverted, since no separate commit had been made for the first
+  attempt.
+- Cycle 4's `token-type.test.ts` first draft used the wrong test runner
+  import (`node:test` instead of `vitest`) for this package's testing tier;
+  corrected before the red evidence above was recorded, so the red shown is
+  against the corrected file.
+- Every commit in this log's `green`/`follow-up` steps was made once per
+  user-story phase (see Phase 3/4/5 tasks in `tasks.md`), not once per
+  individual behavior line — a deliberate batching to keep the commit
+  history at a reviewable grain, consistent with "commit as you go" rather
+  than one commit per test.

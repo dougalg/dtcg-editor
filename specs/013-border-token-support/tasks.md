@@ -203,7 +203,7 @@ generic/JSON fallback).
 > Write these tests FIRST where a test is practical; observe them fail before
 > implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T016 [P] [US3] [A6][A7][U24][U25][U26][U27] Write a failing unit test (co-located, e.g.
+- [x] T016 [P] [US3] [A6][A7][U24][U25][U26][U27] Write a failing unit test (co-located, e.g.
       `packages/token-editor-border/src/token-type.test.ts` using
       `node:test`, mirroring how sibling contracts are exercised via
       `validateTokenValue` in `token-editor-contract`'s own tests) asserting
@@ -214,7 +214,7 @@ generic/JSON fallback).
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] [A6][A7][U24][U25][U26][U27] Implement `borderTokenType` in
+- [x] T017 [US3] [A6][A7][U24][U25][U26][U27] Implement `borderTokenType` in
       `packages/token-editor-border/src/token-type.ts`
       (`TokenTypeContract<BorderValue>`, mirroring
       `token-editor-dimension/src/token-type.ts`): `type: "border"`,
@@ -222,10 +222,10 @@ generic/JSON fallback).
       `@dtcg-editor/token-core`), `serializeValue: (value) => value`,
       `Editor: BorderEditor`, `Preview: BorderPreview`. Confirm T016 now
       passes; log green in `tdd/cycle-log.md`.
-- [ ] T018 [US3] Export `BorderEditor`, `BorderPreview`, and
+- [x] T018 [US3] Export `BorderEditor`, `BorderPreview`, and
       `borderTokenType` from `packages/token-editor-border/src/index.ts`,
       mirroring `token-editor-dimension/src/index.ts`'s export shape.
-- [ ] T018a [P] [US3] [U28][U29] Write a failing test in
+- [x] T018a [P] [US3] [U28][U29] Write a failing test in
       `apps/web-app/lib/token-editors/built-in.test.ts` (extending the
       existing test file's coverage, mirroring how it already asserts other
       types) that `resolveBuiltInContract("border")` returns
@@ -233,7 +233,7 @@ generic/JSON fallback).
       `builtInExtensions` contains a `{ type: "border", editor: BorderEditor }`
       entry. Confirm it fails first (border not yet registered); log the red
       in `tdd/cycle-log.md`.
-- [ ] T019 [US3] [A6][A7][U28][U29] Register `border` in
+- [x] T019 [US3] [A6][A7][U28][U29] Register `border` in
       `apps/web-app/lib/token-editors/built-in.ts`: add `"border"` to
       `BUILT_IN_TOKEN_TYPES`, import `borderTokenType` from
       `@dtcg-editor/token-editor-border`, and add the
@@ -245,7 +245,7 @@ generic/JSON fallback).
       expect a merge conflict on rebase; resolve by keeping all three
       additions (this feature's `border` entry plus theirs), not by
       discarding either side.
-- [ ] T020 [US3] Add `@dtcg-editor/token-editor-border` as a `workspace:*`
+- [x] T020 [US3] Add `@dtcg-editor/token-editor-border` as a `workspace:*`
       dependency of `apps/web-app` via
       `pnpm add @dtcg-editor/token-editor-border@workspace:* --filter @dtcg-editor/web-app`
       (per CLAUDE.md's pnpm rule) if not already resolvable through the

@@ -316,6 +316,9 @@ importers:
       '@dtcg-editor/token-core':
         specifier: workspace:*
         version: link:../../packages/token-core
+      '@dtcg-editor/token-editor-border':
+        specifier: 'catalog:'
+        version: link:../../packages/token-editor-border
       '@dtcg-editor/token-editor-color':
         specifier: workspace:*
         version: link:../../packages/token-editor-color
