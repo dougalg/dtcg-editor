@@ -92,7 +92,7 @@ export const CandidatePreview = memo(function CandidatePreview({
 				}));
 	const multiMode = entries.length > 1;
 	return (
-		<span className={styles.preview}>
+		<span className={styles.preview} data-multi-mode={multiMode || undefined}>
 			{diagnostic !== "none" ? (
 				<span className={styles.marker} data-diagnostic={diagnostic}>
 					<DiagnosticIcon diagnostic={diagnostic} />
