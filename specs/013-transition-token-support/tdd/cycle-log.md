@@ -37,3 +37,26 @@ Cycles are appended below in order, one per behavior from `tdd/test-list.md`, by
   `token-types.ts`'s exports, before `types.ts`'s).
 - **Commit**: recorded after this entry (see git log,
   `feat(token-core): add TransitionValueSchema`).
+
+## Cycle: A1-A5 — `TransitionEditor` embeds `DurationEditor` (x2) + `CubicBezierEditor`, scoped onChange
+
+- **Test**: `packages/token-editor-transition/src/components/TransitionEditor/TransitionEditor.test.tsx`
+  — 5 cases: renders labeled Duration/Delay/timing-function controls showing
+  current values (A1); duration/delay/timing-function edits each update only
+  their own field (A2/A3/A4); the two `DurationEditor` instances are not
+  confused with one another when given distinct duration/delay values (A5).
+- **Red**: `pnpm exec vitest run --project "packages/token-editor-transition:unit"`
+  → `Error: Failed to resolve import "./TransitionEditor.tsx" ... Does the file
+  exist?` — the right reason (component doesn't exist yet), 1 test file failed
+  to load, 0 ran.
+- **Green**: implemented `TransitionEditor.tsx` embedding the real
+  `DurationEditor` (from `@dtcg-editor/token-editor-duration`) twice — each
+  wrapped in its own `<fieldset>`/`<legend>` ("Duration" / "Delay") so
+  `getByRole("group", { name: ... })` + `within(...)` disambiguates the two
+  instances' otherwise-identical "Value"/"Unit" labels — and the real
+  `CubicBezierEditor` once, each wired via
+  `onChange={(next) => onChange({ ...value, field: next })}`. Same run → 5/5
+  pass on the first implementation attempt (no iteration needed).
+- **Refactor**: none needed.
+- **Commit**: recorded after this entry (see git log,
+  `feat(token-editor-*): add TransitionEditor component`).
