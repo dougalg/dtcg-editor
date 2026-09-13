@@ -81,7 +81,7 @@ renders each entry, and add/remove/reorder interactions update `$value` correctl
 
 > Write these tests FIRST, run them, confirm they fail (module/component doesn't exist yet).
 
-- [ ] T008 [P] [US1] [A1] [A2] [A3] [A4] [A5] [U8] [U9] [U10] Write failing tests in
+- [X] T008 [P] [US1] [A1] [A2] [A3] [A4] [A5] [U8] [U9] [U10] Write failing tests in
       `packages/token-editor-font-family/src/components/FontFamilyEditor/FontFamilyEditor.test.tsx`
       covering: renders an array value as one row per entry (A1); "Add" appends a new entry
       (A2); "Remove" removes the targeted entry (A3), including removing the last remaining
@@ -93,15 +93,15 @@ renders each entry, and add/remove/reorder interactions update `$value` correctl
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] [A1] [A2] [A3] [A4] [A5] [U8] [U9] [U10] Implement `FontFamilyEditor` in
+- [X] T009 [US1] [A1] [A2] [A3] [A4] [A5] [U8] [U9] [U10] Implement `FontFamilyEditor` in
       `packages/token-editor-font-family/src/components/FontFamilyEditor/FontFamilyEditor.tsx`
       using `@dtcg-editor/design-system`'s `Input`/`Button` for rows and add/remove/move
       controls, satisfying T008 (array-form behaviors only in this pass) — smallest change to go
       green; record the green in `tdd/cycle-log.md`
-- [ ] T010 [US1] Add
+- [X] T010 [US1] Add
       `packages/token-editor-font-family/src/components/FontFamilyEditor/FontFamilyEditor.module.css`
       using `--dtcg-ed-*` custom properties only (Principle XII)
-- [ ] T011 [US1] [A1] [A2] [A3] [A4] [A5] [U8] [U9] [U10] Run the new `FontFamilyEditor.test.tsx`
+- [X] T011 [US1] [A1] [A2] [A3] [A4] [A5] [U8] [U9] [U10] Run the new `FontFamilyEditor.test.tsx`
       suite, confirm all green (all of A1-A5, U8-U10 must be green before User Story 1 is
       considered complete); refactor while green
 
@@ -121,7 +121,7 @@ adding a second entry switches `onChange` calls to an array.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T012 [P] [US2] [A6] [A7] [A8] Write failing tests (extending `FontFamilyEditor.test.tsx`)
+- [X] T012 [P] [US2] [A6] [A7] [A8] Write failing tests (extending `FontFamilyEditor.test.tsx`)
       covering: a string `value` prop renders exactly one row showing that string (A6); editing
       the sole entry's text calls `onChange` with a new string, not a one-item array (A7);
       adding a second entry to a string-sourced single-item list calls `onChange` with a
@@ -131,10 +131,10 @@ adding a second entry switches `onChange` calls to an array.
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] [A6] [A7] [A8] Extend `FontFamilyEditor.tsx`'s internal state/`onChange`
+- [X] T013 [US2] [A6] [A7] [A8] Extend `FontFamilyEditor.tsx`'s internal state/`onChange`
       boundary logic to satisfy T012's string-vs-array rules (see `data-model.md`'s boundary
       table) — smallest change to go green; record the green in `tdd/cycle-log.md`
-- [ ] T014 [US2] [A6] [A7] [A8] Run the full `FontFamilyEditor.test.tsx` suite (US1 + US2
+- [X] T014 [US2] [A6] [A7] [A8] Run the full `FontFamilyEditor.test.tsx` suite (US1 + US2
       cases), confirm all green (A6-A8 must be green before User Story 2 is considered
       complete); refactor while green
 

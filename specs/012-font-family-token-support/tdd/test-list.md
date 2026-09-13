@@ -23,14 +23,14 @@ targets those files directly, one behavior per `spec.md` Acceptance Scenario.
 
 | id  | behavior                                                                                   | traces           | kind    | state   | test                                                                          |
 | --- | -------------------------------------------------------------------------------------------- | ---------------- | ------- | ------- | ------------------------------------------------------------------------------ |
-| A1  | An array `$value` renders as one ordered row per entry                                       | US1-AS1          | example | PENDING | `FontFamilyEditor.test.tsx::renders array value`                              |
-| A2  | Adding a family name appends it to the array                                                 | US1-AS2          | example | PENDING | `FontFamilyEditor.test.tsx::add appends`                                     |
-| A3  | Removing an entry removes it from the array                                                  | US1-AS3          | example | PENDING | `FontFamilyEditor.test.tsx::remove removes`                                  |
-| A4  | Reordering two entries updates the array's order                                             | US1-AS4          | example | PENDING | `FontFamilyEditor.test.tsx::reorder`                                          |
-| A5  | Submitting a blank/whitespace-only entry does not update `$value`                             | US1-AS5, FR-004  | example | PENDING | `FontFamilyEditor.test.tsx::rejects blank entry`                             |
-| A6  | A string `$value` renders as a single-entry list                                             | US2-AS1          | example | PENDING | `FontFamilyEditor.test.tsx::promotes string to one-item list`                |
-| A7  | Editing the sole entry of a string-sourced list keeps `$value` a string                       | US2-AS2, FR-005  | example | PENDING | `FontFamilyEditor.test.tsx::single-entry edit stays a string`                |
-| A8  | Adding a second entry to a string-sourced list produces an array `$value`                     | US2-AS3, FR-005  | example | PENDING | `FontFamilyEditor.test.tsx::growing to two entries becomes an array`         |
+| A1  | An array `$value` renders as one ordered row per entry                                       | US1-AS1          | example | DONE   | `FontFamilyEditor.test.tsx::renders array value`                              |
+| A2  | Adding a family name appends it to the array                                                 | US1-AS2          | example | DONE   | `FontFamilyEditor.test.tsx::add appends`                                     |
+| A3  | Removing an entry removes it from the array                                                  | US1-AS3          | example | DONE   | `FontFamilyEditor.test.tsx::remove removes`                                  |
+| A4  | Reordering two entries updates the array's order                                             | US1-AS4          | example | DONE   | `FontFamilyEditor.test.tsx::reorder`                                          |
+| A5  | Submitting a blank/whitespace-only entry does not update `$value`                             | US1-AS5, FR-004  | example | DONE   | `FontFamilyEditor.test.tsx::rejects blank entry`                             |
+| A6  | A string `$value` renders as a single-entry list                                             | US2-AS1          | example | DONE   | `FontFamilyEditor.test.tsx::promotes string to one-item list`                |
+| A7  | Editing the sole entry of a string-sourced list keeps `$value` a string                       | US2-AS2, FR-005  | example | DONE   | `FontFamilyEditor.test.tsx::single-entry edit stays a string`                |
+| A8  | Adding a second entry to a string-sourced list produces an array `$value`                     | US2-AS3, FR-005  | example | DONE   | `FontFamilyEditor.test.tsx::growing to two entries becomes an array`         |
 | A9  | A short array value's preview renders the names comma-joined                                 | US3-AS1          | example | PENDING | `FontFamilyPreview.test.tsx::renders comma-joined array`                     |
 | A10 | A single-string value's preview renders that string                                          | US3-AS2          | example | PENDING | `FontFamilyPreview.test.tsx::renders string value`                           |
 | A11 | A stack of more than 3 entries previews the first 3 plus a "+N more" indicator                | US3-AS3, SC-005  | example | PENDING | `FontFamilyPreview.test.tsx::truncates a long list`                          |
@@ -54,9 +54,9 @@ targets those files directly, one behavior per `spec.md` Acceptance Scenario.
 
 | id  | behavior                                                                    | traces      | kind    | state   | test                                                                  |
 | --- | -------------------------------------------------------------------------------- | ----------- | ------- | ------- | -------------------------------------------------------------------------- |
-| U8  | Removing the only remaining entry results in an `onChange([])` call             | Edge Cases  | example | PENDING | `FontFamilyEditor.test.tsx::removing the last entry yields an empty array` |
-| U9  | The "move up" control is disabled/no-op for the first entry                     | US1 (implied by AS4) | example | PENDING | `FontFamilyEditor.test.tsx::move up disabled at the top`          |
-| U10 | The "move down" control is disabled/no-op for the last entry                    | US1 (implied by AS4) | example | PENDING | `FontFamilyEditor.test.tsx::move down disabled at the bottom`     |
+| U8  | Removing the only remaining entry results in an `onChange([])` call             | Edge Cases  | example | DONE   | `FontFamilyEditor.test.tsx::removing the last entry yields an empty array` |
+| U9  | The "move up" control is disabled/no-op for the first entry                     | US1 (implied by AS4) | example | DONE   | `FontFamilyEditor.test.tsx::move up disabled at the top`          |
+| U10 | The "move down" control is disabled/no-op for the last entry                    | US1 (implied by AS4) | example | DONE   | `FontFamilyEditor.test.tsx::move down disabled at the bottom`     |
 
 ### `packages/token-editor-font-family/src/components/FontFamilyPreview/FontFamilyPreview.tsx`
 

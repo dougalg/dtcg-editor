@@ -28,4 +28,51 @@ existed and failed before the implementation.
   test file — treated as one indivisible unit of implementation, per the
   playbook's guidance that a step should not be split smaller than the smallest
   sufficient move
-- commit: (recorded after this entry is written, see repo history)
+- commit: `49fc6e4`
+
+## Cycle 2: A1-A5, U8-U10 FontFamilyEditor array-form list editing
+
+- test: `packages/token-editor-font-family/src/components/FontFamilyEditor/FontFamilyEditor.test.tsx`
+  (new, 8 cases: A1 renders one row per array entry, A2 add appends, A3 remove
+  removes a targeted entry, U8 removing the last entry yields `onChange([])`,
+  A4 move-down+move-up reorder, U9 move-up disabled at the top, U10 move-down
+  disabled at the bottom, A5 blank entry does not call onChange)
+- red: `pnpm exec vitest run
+  packages/token-editor-font-family/src/components/FontFamilyEditor/FontFamilyEditor.test.tsx`
+  -> `Error: Failed to resolve import "./FontFamilyEditor.tsx" ... Does the file
+  exist?` (1 failed suite, 0 tests ran — component doesn't exist yet)
+- green: `FontFamilyEditor.tsx` and `FontFamilyEditor.module.css` added (list
+  editor over `@dtcg-editor/design-system`'s `Input`/`Button`, with
+  `toList`/`fromList` helpers implementing the array-form behaviors). Rerun ->
+  8 passed, 0 failed
+- refactor: none needed on first pass — extracted `commit()` helper was written
+  as part of the initial implementation, not a follow-up refactor
+- commit: `bc1a2c4` (placeholder, see repo history for the actual SHA this
+  cycle's changes landed in)
+
+## Cycle 3: A6-A8 FontFamilyEditor string-form promotion and boundary rule
+
+- test: extended `FontFamilyEditor.test.tsx` with 4 more cases (A6 a string
+  value renders one row, A7 editing the sole entry of a string-sourced list
+  calls `onChange` with a new string, A8 adding a second entry to a
+  string-sourced list produces an array, and the reverse direction: removing
+  back down to one entry from an array-sourced list calls `onChange` with a
+  bare string)
+- **notes (test-after admission)**: these 4 assertions passed immediately on
+  first run against the Cycle 2 implementation — no red observed for A6-A8.
+  This is because Cycle 2's `toList`/`fromList` helpers (`list.length === 1 ?
+  list[0] : [...list]`) were written as one atomic two-branch function
+  covering both the "promote a string to a list" and "collapse a list back to
+  a string" rules together — splitting that single length check into two
+  separate implementation steps (array-only now, string-boundary later) would
+  have meant shipping a `fromList` that always returns an array as
+  Cycle 2's "smallest sufficient move," which is not in fact smaller (the
+  boundary condition is one ternary, not extra code), and doing so would have
+  required knowingly implementing FR-005/data-model.md's boundary table
+  incorrectly for one cycle only to "discover" the fix already known from
+  planning. Recorded here transparently per Hard Rule 2 rather than silently
+  presented as a red-then-green cycle it was not.
+- verification: ran `pnpm exec vitest run
+  packages/token-editor-font-family/src/components/FontFamilyEditor/FontFamilyEditor.test.tsx`
+  -> 12 passed, 0 failed (all of A1-A8, U8-U10 green together)
+- commit: same commit as Cycle 2 (both landed together; see repo history)

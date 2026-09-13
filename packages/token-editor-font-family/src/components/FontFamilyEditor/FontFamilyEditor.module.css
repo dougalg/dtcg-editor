@@ -1,0 +1,18 @@
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.row {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--dtcg-ed-space-3xs-2xs);
+}
+
+.input {
+	width: max-content;
+}
