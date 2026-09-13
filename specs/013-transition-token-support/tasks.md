@@ -134,7 +134,7 @@ and a schema-invalid value; confirm each renders per spec.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T012 [P] [US2] [A6] [A7] [A8] [A9] Write failing tests in
+- [X] T012 [P] [US2] [A6] [A7] [A8] [A9] Write failing tests in
       `packages/token-editor-transition/src/components/TransitionPreview/TransitionPreview.test.tsx`
       covering: a value with `delay.value === 0` renders one line combining duration + timing
       function text with no delay mention (A6); a value with `delay.value !== 0` renders that
@@ -147,15 +147,15 @@ and a schema-invalid value; confirm each renders per spec.
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] [A6] [A7] [A8] [A9] Implement `TransitionPreview` in
+- [X] T013 [US2] [A6] [A7] [A8] [A9] Implement `TransitionPreview` in
       `packages/token-editor-transition/src/components/TransitionPreview/TransitionPreview.tsx`
       — `TransitionValueSchema.safeParse`, decline (`null`) on failure, otherwise compose one
       `<span>` text combining duration + timing function (delay appended only when non-zero),
       satisfying T012 — smallest change to go green; record the green in `tdd/cycle-log.md`
-- [ ] T014 [US2] Add
+- [X] T014 [US2] Add
       `packages/token-editor-transition/src/components/TransitionPreview/TransitionPreview.module.css`
       using `--dtcg-ed-*` custom properties only
-- [ ] T015 [US2] [A6] [A7] [A8] [A9] Run the new `TransitionPreview.test.tsx` suite, confirm all
+- [X] T015 [US2] [A6] [A7] [A8] [A9] Run the new `TransitionPreview.test.tsx` suite, confirm all
       green (A6-A9 must be green before User Story 2 is considered complete); refactor while
       green
 

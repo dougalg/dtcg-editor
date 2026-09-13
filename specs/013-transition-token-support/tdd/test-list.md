@@ -30,9 +30,9 @@ Acceptance Scenario.
 | A3  | Changing the delay control updates only `$value.delay`                                              | US1-AS3         | example | DONE  | `TransitionEditor.test.tsx::changing the delay control updates only delay`            |
 | A4  | Changing a timing-function control point updates only `$value.timingFunction`                       | US1-AS4         | example | DONE  | `TransitionEditor.test.tsx::changing a timing function control point updates only timingFunction`           |
 | A5  | The "Duration" control shows `duration`'s value and the "Delay" control shows `delay`'s value, not swapped, for two distinct values | US1-AS5 | example | DONE  | `TransitionEditor.test.tsx::the Duration and Delay controls are not confused with one another` |
-| A6  | A zero-delay value's preview renders one line combining duration + timing function, no delay mention | US2-AS1        | example | TODO  | `TransitionPreview.test.tsx::renders one line, delay omitted when zero` |
-| A7  | A non-zero-delay value's preview includes the delay in that same one line                           | US2-AS2         | example | TODO  | `TransitionPreview.test.tsx::includes delay when non-zero`              |
-| A8  | A schema-invalid value's preview renders nothing                                                    | US2-AS3, FR-008 | example | TODO  | `TransitionPreview.test.tsx::declines to render for a mismatched value` |
+| A6  | A zero-delay value's preview renders one line combining duration + timing function, no delay mention | US2-AS1        | example | DONE  | `TransitionPreview.test.tsx::renders one line combining duration and timing function, delay omitted when zero` |
+| A7  | A non-zero-delay value's preview includes the delay in that same one line                           | US2-AS2         | example | DONE  | `TransitionPreview.test.tsx::includes the delay in that same line when it is non-zero`              |
+| A8  | A schema-invalid value's preview renders nothing                                                    | US2-AS3, FR-008 | example | DONE  | `TransitionPreview.test.tsx::declines to render for a value that does not conform to the transition schema` |
 
 ## Inner loop: unit behaviors
 
@@ -61,7 +61,7 @@ boundary is worth its own unit-level check since it's easy to get subtly wrong:
 
 | id  | behavior                                                                                     | traces | kind    | state | test                                                                   |
 | --- | ----------------------------------------------------------------------------------------------- | ------ | ------- | ----- | --------------------------------------------------------------------------- |
-| U6  | The duration/timing-function portion of the preview text matches `DurationPreview`'s `{value}{unit}` and `CubicBezierPreview`'s `cubic-bezier(p1x, p1y, p2x, p2y)` formatting exactly | FR-007 | example | TODO | `TransitionPreview.test.tsx::matches sibling preview formatting` |
+| U6  | The duration/timing-function portion of the preview text matches `DurationPreview`'s `{value}{unit}` and `CubicBezierPreview`'s `cubic-bezier(p1x, p1y, p2x, p2y)` formatting exactly | FR-007 | example | DONE | `TransitionPreview.test.tsx::matches DurationPreview/CubicBezierPreview's own formatting exactly` |
 
 ## Invariants and edge cases still to place
 

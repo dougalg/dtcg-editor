@@ -60,3 +60,26 @@ Cycles are appended below in order, one per behavior from `tdd/test-list.md`, by
 - **Refactor**: none needed.
 - **Commit**: recorded after this entry (see git log,
   `feat(token-editor-*): add TransitionEditor component`).
+
+## Cycle: A6-A8, U6 — `TransitionPreview` composes one line, delay conditional, declines on mismatch
+
+- **Test**: `packages/token-editor-transition/src/components/TransitionPreview/TransitionPreview.test.tsx`
+  — 4 cases: zero-delay value renders one line without a delay mention (A6);
+  non-zero delay is appended to that same line (A7); the duration/timing-
+  function text matches `DurationPreview`/`CubicBezierPreview`'s own exact
+  formatting (U6, using a different value pair from A6/A7 to avoid the two
+  overlapping); a schema-invalid value renders nothing (A8).
+- **Red**: `pnpm exec vitest run --project "packages/token-editor-transition:unit"`
+  → `Error: Failed to resolve import "./TransitionPreview.tsx" ... Does the
+  file exist?` — the right reason (component doesn't exist yet); 1 file
+  failed (this one), the sibling `TransitionEditor.test.tsx` file still
+  passing (5/5) alongside it.
+- **Green**: implemented `TransitionPreview.tsx` —
+  `TransitionValueSchema.safeParse`, `null` on failure, otherwise composes
+  `"{duration.value}{duration.unit} cubic-bezier(p1x, p1y, p2x, p2y)"` and
+  appends `", delay {delay.value}{delay.unit}"` only when `delay.value !== 0`.
+  Same run → 9/9 pass (both component test files) on the first
+  implementation attempt.
+- **Refactor**: none needed.
+- **Commit**: recorded after this entry (see git log,
+  `feat(token-editor-*): add TransitionPreview component`).
