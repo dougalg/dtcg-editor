@@ -36,7 +36,6 @@ export function FontFamilyEditor({
 	const [rows, setRows] = useState<readonly string[]>(() => toList(value));
 	const serializedValue = JSON.stringify(value);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: re-sync only when the serialized value actually changes (e.g. a different token selected), not on every render.
 	useEffect(() => {
 		setRows(toList(value));
 	}, [serializedValue]);
@@ -81,7 +80,6 @@ export function FontFamilyEditor({
 	return (
 		<ul className={styles.list}>
 			{rows.map((entry, index) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: rows have no stable identity beyond position; reordering intentionally moves by index.
 				<li key={index} className={styles.row}>
 					<Input
 						aria-label={`Family name ${index + 1}`}
