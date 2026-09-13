@@ -54,7 +54,7 @@ existed and failed before the implementation.
   `within(group).getByLabelText("Value")`. After the fix: unit suite 9/9,
   a11y suite 2/2 (including `ShadowEditor`'s a11y test from the same run).
 - refactor: none needed
-- commit: pending (batched with Phase 3 completion)
+- commit: `cba651e`
 
 ## Cycle 3: A1-A5, U23-U24, U32 ShadowEditor renders one ShadowLayerFields for a bare-object value
 
@@ -69,4 +69,34 @@ existed and failed before the implementation.
   `pnpm exec vitest run packages/token-editor-shadow` (both projects) -> unit
   9/9, a11y 2/2.
 - refactor: none needed
-- commit: pending (batched with Phase 3 completion)
+- commit: `cba651e`
+
+## Cycle 4: A6-A9, U25-U31, U33 ShadowEditor's multi-layer repeater (add/remove/move)
+
+- test: extended `ShadowEditor.test.tsx` with 6 new tests (multi-layer render,
+  add, remove-middle, move-down, edit-second-layer-only, remove-disabled-at-
+  one-layer, one-item-array-keeps-repeater-chrome) and `ShadowEditor.a11y.test.tsx`
+  with 1 new test (multi-layer a11y)
+- red: `pnpm exec vitest run packages/token-editor-shadow --project 'packages/token-editor-shadow:unit'`
+  -> 6 of 16 tests in `ShadowEditor.test.tsx` failed — no "Add layer"/
+  "Remove"/"Move up"/"Move down" buttons existed yet (the bare-object-only
+  `ShadowEditor` from Cycle 3 had only a passthrough array stub with no
+  repeater chrome), confirmed by `TestingLibraryElementError: Unable to find
+  an accessible element with the role "button" and name /add layer/i`
+- green: `ShadowEditor.tsx` rewritten with a `wasArray` flag (captured from
+  whether the incoming `value` prop is an array, re-derived on prop change
+  via a `useEffect` keyed on `JSON.stringify(value)`, per plan.md's Design
+  Decisions) gating a repeater branch adapted from `FontFamilyEditor`'s
+  add/remove/move-up/move-down list pattern — one `ShadowLayerFields` row per
+  layer, `Button`s from `@dtcg-editor/design-system` for Move up/Move down/
+  Remove (disabled at the array boundaries and, uniquely for shadow, Remove
+  additionally disabled when exactly one layer remains since a zero-layer
+  shadow is not schema-valid), and an "Add layer" button appending a fixed
+  default layer. One test initially used `toBeDisabled()` (a jest-dom
+  matcher not installed in this stack) — fixed to check `.disabled` directly,
+  matching this repo's existing assertion style. After the fix: unit 16/16,
+  a11y 3/3.
+- refactor: none needed — the repeater logic is a direct structural
+  adaptation of `FontFamilyEditor`'s existing splice-based
+  add/remove/move handlers, not new logic needing extraction
+- commit: pending (batched with Phase 4 completion)

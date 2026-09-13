@@ -22,3 +22,13 @@ test("has no WCAG 2.2 AA violations for a bare-object value", async () => {
 	});
 	expect(results.violations).toEqual([]);
 });
+
+test("has no WCAG 2.2 AA violations for a multi-layer array value", async () => {
+	const { container } = render(
+		<ShadowEditor value={[LAYER, LAYER]} onChange={vi.fn()} />,
+	);
+	const results = await axe.run(container, {
+		runOnly: { type: "tag", values: [...WCAG_22_AA_TAGS] },
+	});
+	expect(results.violations).toEqual([]);
+});

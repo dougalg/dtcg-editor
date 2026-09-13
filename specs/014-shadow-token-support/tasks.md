@@ -179,7 +179,7 @@ as a one-item array, not a bare object.
 > Write these tests FIRST; observe them fail (no repeater logic exists yet in
 > `ShadowEditor`) before implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T016 [P] [US2] [A6][A7][A8][A9][U25][U26][U27][U28][U29][U30][U31] Extend
+- [x] T016 [P] [US2] [A6][A7][A8][A9][U25][U26][U27][U28][U29][U30][U31] Extend
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.test.tsx`
       with failing tests asserting: given a two-layer array `ShadowValue`, it
       renders two `ShadowLayerFields` blocks plus add/remove/move-up/
@@ -197,7 +197,7 @@ as a one-item array, not a bare object.
       bare object), it still renders repeater chrome (not the bare-object
       single-`ShadowLayerFields` UI) and any edit's `onChange` result is
       still wrapped in a one-item array, not unwrapped to a bare object.
-- [ ] T017 [P] [US2] [U33] Extend
+- [x] T017 [P] [US2] [U33] Extend
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.a11y.test.tsx`
       with a failing test asserting zero WCAG 2.2 AA violations for
       `ShadowEditor` rendered with a representative multi-layer array
@@ -205,7 +205,7 @@ as a one-item array, not a bare object.
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] [A6][A7][A8][A9][U25][U26][U27][U28][U29][U30][U31] Implement the repeater branch of `ShadowEditor` in
+- [x] T018 [US2] [A6][A7][A8][A9][U25][U26][U27][U28][U29][U30][U31] Implement the repeater branch of `ShadowEditor` in
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.tsx`:
       track a `wasArray` flag captured from whether the incoming `value` prop
       is an array (per plan.md's Design Decisions — re-derived on prop
@@ -222,11 +222,11 @@ as a one-item array, not a bare object.
       one layer) or if the array now has more than one layer, and to a bare
       object only when `wasArray` was false and exactly one layer remains.
       Confirm T016/T017 now pass; log green in `tdd/cycle-log.md`.
-- [ ] T019 [US2] Extend
+- [x] T019 [US2] Extend
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.module.css`
       with layout-only rules for the repeater rows/controls, sourcing all
       values from `--dtcg-ed-*` custom properties per Principle XII.
-- [ ] T020 [P] [US2] Extend
+- [x] T020 [P] [US2] Extend
       `packages/token-editor-shadow/src/components/ShadowEditor/ShadowEditor.stories.tsx`
       with a multi-layer array story.
 
