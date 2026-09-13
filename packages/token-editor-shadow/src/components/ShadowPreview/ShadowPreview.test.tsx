@@ -18,6 +18,12 @@ test("renders an embedded ColorPreview plus offsetX/offsetY/blur/spread text for
 	expect(container.querySelector('[style*="--swatch-color"]')).toBeTruthy();
 });
 
+test("renders a single line (not '1 shadows') for a valid one-item array value", () => {
+	render(<ShadowPreview value={[VALID_LAYER]} />);
+	expect(screen.getByText("0px 2px 4px 0px")).toBeTruthy();
+	expect(screen.queryByText("1 shadows")).toBeNull();
+});
+
 test('renders the literal text "2 shadows" for a valid 2-layer array', () => {
 	render(<ShadowPreview value={[VALID_LAYER, VALID_LAYER]} />);
 	expect(screen.getByText("2 shadows")).toBeTruthy();

@@ -317,7 +317,7 @@ token (single layer and array forms) in the app and confirm the dedicated
 > Write these tests FIRST where a test is practical; observe them fail before
 > implementing; log each red in `tdd/cycle-log.md`.
 
-- [ ] T025 [P] [US4] [U43] Write a failing unit test (co-located, e.g.
+- [x] T025 [P] [US4] [U43] Write a failing unit test (co-located, e.g.
       `packages/token-editor-shadow/src/token-type.test.ts` using
       `node:test`, mirroring `token-editor-border/src/token-type.test.ts`'s
       pattern if present, else `border.ts`'s own contract-shape assertions)
@@ -330,7 +330,7 @@ token (single layer and array forms) in the app and confirm the dedicated
 
 ### Implementation for User Story 4
 
-- [ ] T026 [US4] [U43] Implement `shadowTokenType` in
+- [x] T026 [US4] [U43] Implement `shadowTokenType` in
       `packages/token-editor-shadow/src/token-type.ts`
       (`TokenTypeContract<ShadowValue>`, mirroring
       `token-editor-border/src/token-type.ts`): `type: "shadow"`,
@@ -338,10 +338,10 @@ token (single layer and array forms) in the app and confirm the dedicated
       `@dtcg-editor/token-core`), `serializeValue: (value) => value`,
       `Editor: ShadowEditor`, `Preview: ShadowPreview`. Confirm T025 now
       passes; log green in `tdd/cycle-log.md`.
-- [ ] T027 [US4] Export `ShadowEditor`, `ShadowLayerFields`, `ShadowPreview`,
+- [x] T027 [US4] Export `ShadowEditor`, `ShadowLayerFields`, `ShadowPreview`,
       and `shadowTokenType` from `packages/token-editor-shadow/src/index.ts`,
       mirroring `token-editor-border/src/index.ts`'s export shape.
-- [ ] T028 [P] [US4] [A13][A14][A15][U44] Write a failing test in
+- [x] T028 [P] [US4] [A13][A14][A15][U44] Write a failing test in
       `apps/web-app/lib/token-editors/built-in.test.ts` (extending the
       existing test file's coverage, mirroring how it already asserts other
       types) that `resolveBuiltInContract("shadow")` returns
@@ -349,7 +349,7 @@ token (single layer and array forms) in the app and confirm the dedicated
       `builtInExtensions` contains a `{ type: "shadow", editor: ShadowEditor }`
       entry. Confirm it fails first (shadow not yet registered); log the red
       in `tdd/cycle-log.md`.
-- [ ] T029 [US4] [A13][A14][A15][U44] Register `shadow` in
+- [x] T029 [US4] [A13][A14][A15][U44] Register `shadow` in
       `apps/web-app/lib/token-editors/built-in.ts`: add `"shadow"` to
       `BUILT_IN_TOKEN_TYPES`, import `shadowTokenType` from
       `@dtcg-editor/token-editor-shadow`, and add the
@@ -361,7 +361,7 @@ token (single layer and array forms) in the app and confirm the dedicated
       worktree — expect a merge conflict on rebase; resolve by keeping both
       additions (this feature's `shadow` entry plus theirs), not by
       discarding either side.
-- [ ] T030 [US4] Add `@dtcg-editor/token-editor-shadow` as a `workspace:*`
+- [x] T030 [US4] Add `@dtcg-editor/token-editor-shadow` as a `workspace:*`
       dependency of `apps/web-app` via
       `pnpm add @dtcg-editor/token-editor-shadow@workspace:* --filter @dtcg-editor/web-app`
       (per CLAUDE.md's pnpm rule) if not already resolvable through the
@@ -375,15 +375,15 @@ single-layer and multi-layer values.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T031 [P] Run `pnpm build` at the repo root (the sole type-checking gate
+- [x] T031 [P] Run `pnpm build` at the repo root (the sole type-checking gate
       per the constitution) and fix any type errors surfaced by the new
       package or the `built-in.ts` edit.
-- [ ] T032 [P] Run `pnpm lint` (Biome + `@ls-lint/ls-lint`) and fix any
+- [x] T032 [P] Run `pnpm lint` (Biome + `@ls-lint/ls-lint`) and fix any
       findings in the new package.
-- [ ] T033 Run the full suite (`pnpm test`) and confirm it passes, including
+- [x] T033 Run the full suite (`pnpm test`) and confirm it passes, including
       the new `packages/token-editor-shadow` Vitest unit + a11y projects and
       `packages/token-core`'s `node --test` suite.
-- [ ] T034 Run `speckit-tdd-verify` (or the manual deliberate-mutant spot
+- [x] T034 Run `speckit-tdd-verify` (or the manual deliberate-mutant spot
       check per `.specify/memory/tdd-profile.md`, since this repo has no
       mutation-testing tool configured) against the changed files in this
       feature and record the result in

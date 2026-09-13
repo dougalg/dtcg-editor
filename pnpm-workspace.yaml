@@ -44,6 +44,7 @@ catalog:
   '@dtcg-editor/token-editor-number': workspace:*
   '@dtcg-editor/token-editor-font-weight': workspace:*
   '@dtcg-editor/token-editor-typography': workspace:*
+  '@dtcg-editor/token-editor-shadow': workspace:*
 allowBuilds:
   esbuild: true
   sharp: true

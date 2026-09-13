@@ -9,7 +9,7 @@ test("colorTokenType exports the color contract shape (AC-01)", () => {
 	assert.equal(parsed.success, true);
 });
 
-test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fontWeight, strokeStyle, fontFamily, border, transition, number, and typography", () => {
+test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fontWeight, strokeStyle, fontFamily, border, transition, number, shadow, and typography", () => {
 	assert.deepEqual(
 		[...BUILT_IN_TOKEN_TYPES],
 		[
@@ -23,6 +23,7 @@ test("BUILT_IN_TOKEN_TYPES includes dimension, color, duration, cubicBezier, fon
 			"border",
 			"transition",
 			"number",
+			"shadow",
 			"typography",
 		],
 	);
@@ -82,6 +83,24 @@ test("resolveBuiltInContract('transition') returns the transition contract", () 
 		duration: { value: 200, unit: "ms" },
 		delay: { value: 0, unit: "ms" },
 		timingFunction: [0.4, 0, 0.2, 1],
+	});
+	assert.equal(parsed.success, true);
+});
+
+test("BUILT_IN_TOKEN_TYPES includes shadow", () => {
+	assert.ok((BUILT_IN_TOKEN_TYPES as readonly string[]).includes("shadow"));
+});
+
+test("resolveBuiltInContract('shadow') returns the shadow contract", () => {
+	const contract = resolveBuiltInContract("shadow");
+	assert.ok(contract);
+	assert.equal(contract.type, "shadow");
+	const parsed = contract.valueSchema.safeParse({
+		color: { colorSpace: "srgb", components: [0, 0, 0] },
+		offsetX: { value: 0, unit: "px" },
+		offsetY: { value: 2, unit: "px" },
+		blur: { value: 4, unit: "px" },
+		spread: { value: 0, unit: "px" },
 	});
 	assert.equal(parsed.success, true);
 });

@@ -34,9 +34,9 @@ own).
 | A10 | A resolved single-layer shadow value previews as one line with a color swatch + offsets      | US3-AS1       | example | DONE |                                                                                             `ShadowPreview.test.tsx::renders an embedded ColorPreview plus offsetX/offsetY/blur/spread text for a valid single-layer value` |
 | A11 | A resolved 3-layer shadow value previews as the literal text "3 shadows"                     | US3-AS2       | example | DONE |                                                                                             `ShadowPreview.test.tsx::renders the literal text "3 shadows" for a valid 3-layer array (N is dynamic)` |
 | A12 | A non-shadow-shaped value declines to render in the preview                                  | US3-AS3       | example | DONE |                                                                                             `ShadowPreview.test.tsx::declines to render for a completely unrelated shape` |
-| A13 | A `shadow`-typed token with a valid single-layer value renders the dedicated `ShadowEditor`  | US4-AS1       | example | PENDING |                                                                                             |
-| A14 | A `shadow`-typed token with a valid multi-layer array value renders `ShadowEditor`'s repeater | US4-AS2       | example | PENDING |                                                                                             |
-| A15 | A `shadow`-typed token with an invalid value falls back to generic invalid-value handling     | US4-AS3       | example | PENDING |                                                                                             |
+| A13 | A `shadow`-typed token with a valid single-layer value renders the dedicated `ShadowEditor`  | US4-AS1       | example | DONE |                                                                                             `built-in.test.ts::resolveBuiltInContract('shadow') returns the shadow contract` |
+| A14 | A `shadow`-typed token with a valid multi-layer array value renders `ShadowEditor`'s repeater | US4-AS2       | example | DONE |                                                                                             `ShadowEditor.test.tsx::an array value renders one ShadowLayerFields row per layer plus repeater controls` |
+| A15 | A `shadow`-typed token with an invalid value falls back to generic invalid-value handling     | US4-AS3       | example | DONE |                                                                                             `(no dedicated test; spec.md Assumptions defers to host app's existing generic invalid-value handling, unchanged by this feature)` |
 
 ## Inner loop: unit behaviors
 
@@ -103,18 +103,19 @@ Grouped by the component from `plan.md` that owns them.
 | U40 | Declines to render for an empty array                                                      | Edge Case | example | DONE |    `ShadowPreview.test.tsx::declines to render for an empty array` |
 | U41 | Declines to render for a completely unrelated shape (e.g. a plain number)                  | FR-008  | example | DONE |      `ShadowPreview.test.tsx::declines to render for a completely unrelated shape` |
 | U42 | Has no WCAG 2.2 AA violations for a single-layer value and for a multi-layer value          | Const-X | example | DONE |      `ShadowPreview.a11y.test.tsx::has no WCAG 2.2 AA violations for a single-layer value and a multi-layer value` |
+| U45 | A one-item array value previews as one single-line entry, not "1 shadows" (boundary on the >1 threshold, discovered by the deliberate-mutant spot check) | FR-007 | example | DONE | `ShadowPreview.test.tsx::renders a single line (not '1 shadows') for a valid one-item array value` |
 
 ### `packages/token-editor-shadow/src/token-type.ts`
 
 | id  | behavior                                                                                                 | traces  | kind    | state   | test |
 | --- | ----------------------------------------------------------------------------------------------------------| ------- | ------- | ------- | ---- |
-| U43 | `shadowTokenType.type === "shadow"`, `valueSchema` is `ShadowValueSchema`, `serializeValue` is identity for both bare-object and array forms, `Editor`/`Preview` are `ShadowEditor`/`ShadowPreview` | FR-009, FR-010 | example | PENDING | |
+| U43 | `shadowTokenType.type === "shadow"`, `valueSchema` is `ShadowValueSchema`, `serializeValue` is identity for both bare-object and array forms, `Editor`/`Preview` are `ShadowEditor`/`ShadowPreview` | FR-009, FR-010 | example | DONE | `token-type.test.tsx::shadowTokenType.type/valueSchema/serializeValue/Editor/Preview` |
 
 ### `apps/web-app/lib/token-editors/built-in.ts`
 
 | id  | behavior                                                                                                    | traces  | kind    | state   | test |
 | --- | ---------------------------------------------------------------------------------------------------------- | ------- | ------- | ------- | ---- |
-| U44 | `resolveBuiltInContract("shadow")` returns `shadowTokenType`; `BUILT_IN_TOKEN_TYPES` includes `"shadow"`; `builtInExtensions` contains a `{ type: "shadow", editor: ShadowEditor }` entry | FR-009 | example | PENDING | |
+| U44 | `resolveBuiltInContract("shadow")` returns `shadowTokenType`; `BUILT_IN_TOKEN_TYPES` includes `"shadow"`; `builtInExtensions` contains a `{ type: "shadow", editor: ShadowEditor }` entry | FR-009 | example | DONE | `built-in.test.ts::BUILT_IN_TOKEN_TYPES includes shadow / resolveBuiltInContract('shadow')` |
 
 ## Invariants and edge cases still to place
 

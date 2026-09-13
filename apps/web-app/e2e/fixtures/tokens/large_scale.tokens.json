@@ -16,26 +16,17 @@
 			"$value": "{group-0.sub-0.token-0}"
 		},
 		"exotic": {
-			"$type": "shadow",
-			"$value": {
-				"color": "#000",
-				"offsetX": {
-					"value": 0,
-					"unit": "px"
+			"$type": "gradient",
+			"$value": [
+				{
+					"color": "#000",
+					"position": 0
 				},
-				"offsetY": {
-					"value": 2,
-					"unit": "px"
-				},
-				"blur": {
-					"value": 4,
-					"unit": "px"
-				},
-				"spread": {
-					"value": 0,
-					"unit": "px"
+				{
+					"color": "#fff",
+					"position": 1
 				}
-			}
+			]
 		},
 		"broken": {
 			"$type": "dimension",

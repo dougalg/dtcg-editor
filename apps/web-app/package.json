@@ -31,6 +31,7 @@
 		"@dtcg-editor/token-editor-font-family": "catalog:",
 		"@dtcg-editor/token-editor-font-weight": "workspace:*",
 		"@dtcg-editor/token-editor-number": "catalog:",
+		"@dtcg-editor/token-editor-shadow": "catalog:",
 		"@dtcg-editor/token-editor-stroke-style": "workspace:*",
 		"@dtcg-editor/token-editor-transition": "catalog:",
 		"@dtcg-editor/token-editor-typography": "catalog:",

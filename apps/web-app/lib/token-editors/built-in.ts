@@ -7,6 +7,7 @@ import { durationTokenType } from "@dtcg-editor/token-editor-duration";
 import { fontFamilyTokenType } from "@dtcg-editor/token-editor-font-family";
 import { fontWeightTokenType } from "@dtcg-editor/token-editor-font-weight";
 import { numberTokenType } from "@dtcg-editor/token-editor-number";
+import { shadowTokenType } from "@dtcg-editor/token-editor-shadow";
 import { strokeStyleTokenType } from "@dtcg-editor/token-editor-stroke-style";
 import { transitionTokenType } from "@dtcg-editor/token-editor-transition";
 import { typographyTokenType } from "@dtcg-editor/token-editor-typography";
@@ -29,6 +30,7 @@ export const BUILT_IN_TOKEN_TYPES = [
 	"border",
 	"transition",
 	"number",
+	"shadow",
 	"typography",
 ] as const;
 
@@ -61,6 +63,8 @@ const builtInContractsByType: {
 	transition: transitionTokenType as unknown as TokenTypeContract<unknown>,
 	// Same safety argument as `dimension` above.
 	number: numberTokenType as unknown as TokenTypeContract<unknown>,
+	// Same safety argument as `dimension` above.
+	shadow: shadowTokenType as unknown as TokenTypeContract<unknown>,
 	// Same safety argument as `dimension` above.
 	typography: typographyTokenType as unknown as TokenTypeContract<unknown>,
 };
