@@ -14,7 +14,7 @@ Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not 
 - [ ] Add sugarcube and refactor existing UI to use new their tokens and components
 - [ ] Improve UI by adding visible rows, header delineation, and drag and drop reordering of token rows and resolved name visibility OR sticky headers?
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
-- [ ] Add support for "fontFamily" tokens
+- [ ] Add support for "fontFamily" tokens (in progress — worktree `.claude/worktrees/font-family-token-support`, branch `worktree-font-family-token-support`)
 - [ ] Add support for "number" tokens (in progress — worktree `.claude/worktrees/number-token-support`, branch `worktree-number-token-support`)
 - [ ] Add support for "strokeStyle" tokens
 - [ ] Add support for "border" tokens
