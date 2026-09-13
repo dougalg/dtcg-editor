@@ -15,7 +15,7 @@ Completed items are moved to `docs/backlog-completed.md` by `archive-task`, not 
 - [ ] Add sugarcube and refactor existing UI to use new their tokens and components
 - [ ] Improve UI by adding visible rows, header delineation, and drag and drop reordering of token rows and resolved name visibility OR sticky headers?
 - [ ] Add support for additional "non-standard" behaviours, like custom fields
-- [ ] Add support for "shadow" tokens
+- [ ] Add support for "shadow" tokens (in progress — worktree `.claude/worktrees/shadow-token-support`, branch `worktree-shadow-token-support`)
 - [ ] Add support for "gradient" tokens
 - [ ] Add support for "typography" tokens
 - [ ] Allow the user/configurer to specify in config additional non-standard token types to support. They must also register an editor for it, or the config is invalid. This should be enforced via build-time script checks and TS checks for fast feedback.
