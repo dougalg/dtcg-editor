@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-13
 
-**Status**: Draft
+**Status**: Implemented (2026-09-13)
 
 **Input**: User description: "Add support for the DTCG \"border\" composite token type. \$value shape: { color: ColorValue, width: DimensionValue, style: StrokeStyleValue }. Reuse existing token-core schemas composed into a new BorderValueSchema. Create a new token-editor-border package whose Editor and Preview embed the existing ColorEditor/DimensionEditor/StrokeStyleEditor and their Previews rather than reimplementing sub-controls. Register the new type in the web app's built-in editor registry."
 
