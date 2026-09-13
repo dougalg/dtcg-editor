@@ -15,6 +15,7 @@
 		"lint:root": "biome lint commit-conventions.json commitlint.config.mjs commit-conventions.test.mjs format-staged.mjs format-staged.test.mjs",
 		"lint:filenames": "ls-lint",
 		"test": "turbo run test",
+		"test:perf": "turbo run test:perf",
 		"test:commits": "node --test commit-conventions.test.mjs",
 		"test:format-staged": "node --test format-staged.test.mjs",
 		"test:vitest": "pnpm --filter @dtcg-editor/web-app generate:icons && vitest run",

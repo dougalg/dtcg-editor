@@ -11,9 +11,10 @@
 		"lint:write": "biome lint --write .",
 		"test": "pnpm test:a11y",
 		"test:headed": "pnpm test:a11y:headed",
-		"test:a11y": "playwright test",
+		"test:a11y": "playwright test --project=default --project=token-references --project=inferred-type",
 		"test:a11y:headed": "playwright test --headed",
 		"test:a11y:ui": "playwright test --ui",
+		"test:perf": "playwright test --project=perf",
 		"init-config": "node scripts/init-config.ts",
 		"generate:icons": "node scripts/generate-icon-sprite.ts"
 	},

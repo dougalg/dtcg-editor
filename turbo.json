@@ -31,6 +31,11 @@
 			"cache": false,
 			"dependsOn": ["^build", "//#test:vitest:headed"]
 		},
+		"test:perf": {
+			// Split out from "test" so CI can run the perf budgets as their
+			// own job/workflow, isolated from functional test failures.
+			"dependsOn": ["^build"]
+		},
 		"//#lint:root": {
 			"outputs": []
 		},

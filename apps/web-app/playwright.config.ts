@@ -48,6 +48,27 @@ export default defineConfig({
 				"token-references.spec.ts",
 				"inferred-type.spec.ts",
 				"edit-token-references.spec.ts",
+				// perf specs run in their own "perf" project/CI job below, so a
+				// failing perf budget doesn't get bundled in with functional
+				// e2e failures.
+				"editing-perf.spec.ts",
+				"color-editor-perf.spec.ts",
+				"edit-token-references-perf.spec.ts",
+			],
+			use: { baseURL: `http://localhost:${E2E_PORT}` },
+		},
+		{
+			// Timing-budget specs, split out from "default" so CI can run them
+			// as a separate job/workflow: a perf regression then shows up as
+			// its own red check instead of looking like a functional failure.
+			// Same server/fixtures as "default" (large_scale.tokens.json
+			// already has ≥1,000 candidate paths — see edit-token-references
+			// comment above).
+			name: "perf",
+			testMatch: [
+				"editing-perf.spec.ts",
+				"color-editor-perf.spec.ts",
+				"edit-token-references-perf.spec.ts",
 			],
 			use: { baseURL: `http://localhost:${E2E_PORT}` },
 		},
