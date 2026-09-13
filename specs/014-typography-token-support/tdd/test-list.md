@@ -43,13 +43,13 @@ Acceptance Scenario, mirroring `013-transition-token-support`'s precedent.
 
 | id  | behavior                                                                                            | traces             | kind    | state   | test                                                       |
 | --- | ------------------------------------------------------------------------------------------------------ | ------------------ | ------- | ------- | --------------------------------------------------------------- |
-| U1  | Accepts a valid object with all five fields (`fontFamily`, `fontSize`, `fontWeight`, `letterSpacing`, `lineHeight`) | FR-002              | example | PENDING | `typography.test.ts::accepts a valid typography value`         |
-| U2  | Rejects a value missing `fontFamily`                                                                   | FR-002              | example | PENDING | `typography.test.ts::rejects a value missing fontFamily`       |
-| U3  | Rejects a value missing `fontSize`                                                                     | FR-002              | example | PENDING | `typography.test.ts::rejects a value missing fontSize`         |
-| U4  | Rejects a value missing `fontWeight`                                                                   | FR-002              | example | PENDING | `typography.test.ts::rejects a value missing fontWeight`       |
-| U5  | Rejects a value missing `letterSpacing`                                                                | FR-002              | example | PENDING | `typography.test.ts::rejects a value missing letterSpacing`    |
-| U6  | Rejects a value missing `lineHeight`                                                                   | FR-002              | example | PENDING | `typography.test.ts::rejects a value missing lineHeight`       |
-| U7  | Rejects a value whose nested `fontSize` is itself invalid (e.g. missing `unit`), proving the nested schema is enforced | FR-002, Edge Cases | example | PENDING | `typography.test.ts::rejects an invalid nested fontSize` |
+| U1  | Accepts a valid object with all five fields (`fontFamily`, `fontSize`, `fontWeight`, `letterSpacing`, `lineHeight`) | FR-002              | example | DONE | `typography.test.ts::accepts a valid typography value`         |
+| U2  | Rejects a value missing `fontFamily`                                                                   | FR-002              | example | DONE | `typography.test.ts::rejects a value missing fontFamily`       |
+| U3  | Rejects a value missing `fontSize`                                                                     | FR-002              | example | DONE | `typography.test.ts::rejects a value missing fontSize`         |
+| U4  | Rejects a value missing `fontWeight`                                                                   | FR-002              | example | DONE | `typography.test.ts::rejects a value missing fontWeight`       |
+| U5  | Rejects a value missing `letterSpacing`                                                                | FR-002              | example | DONE | `typography.test.ts::rejects a value missing letterSpacing`    |
+| U6  | Rejects a value missing `lineHeight`                                                                   | FR-002              | example | DONE | `typography.test.ts::rejects a value missing lineHeight`       |
+| U7  | Rejects a value whose nested `fontSize` is itself invalid (e.g. missing `unit`), proving the nested schema is enforced | FR-002, Edge Cases | example | DONE | `typography.test.ts::rejects an invalid nested fontSize` |
 
 ### `packages/token-editor-typography/src/components/TypographyEditor/TypographyEditor.tsx`
 

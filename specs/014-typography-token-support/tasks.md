@@ -55,7 +55,7 @@ wired into the workspace/test runner; no source code yet.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [U1] [U2] [U3] [U4] [U5] [U6] [U7] Write failing `node:test` cases in
+- [X] T004 [U1] [U2] [U3] [U4] [U5] [U6] [U7] Write failing `node:test` cases in
       `packages/token-core/src/typography.test.ts` for `TypographyValueSchema`: accepts a valid
       object with all five fields (U1); rejects a value missing `fontFamily` (U2); rejects a
       value missing `fontSize` (U3); rejects a value missing `fontWeight` (U4); rejects a value
@@ -64,15 +64,15 @@ wired into the workspace/test runner; no source code yet.
       actually enforced, not just field presence (U7). Run it, confirm it fails (module doesn't
       exist yet), and record the observed red in
       `specs/014-typography-token-support/tdd/cycle-log.md`
-- [ ] T005 [U1] [U2] [U3] [U4] [U5] [U6] [U7] Implement `TypographyValueSchema`/`TypographyValue`
+- [X] T005 [U1] [U2] [U3] [U4] [U5] [U6] [U7] Implement `TypographyValueSchema`/`TypographyValue`
       in `packages/token-core/src/typography.ts` (`z.object({ fontFamily: FontFamilyValueSchema,
       fontSize: DimensionValueSchema, fontWeight: FontWeightValueSchema, letterSpacing:
       DimensionValueSchema, lineHeight: z.number() })`, importing the three sub-schemas rather
       than redefining them, matching `border.ts`/`transition.ts`'s JSDoc/export shape) —
       smallest change to make T004 pass; record the green in `tdd/cycle-log.md`
-- [ ] T006 [P] Export `TypographyValueSchema`/`TypographyValue` from
+- [X] T006 [P] Export `TypographyValueSchema`/`TypographyValue` from
       `packages/token-core/src/index.ts`
-- [ ] T007 [U1] [U2] [U3] [U4] [U5] [U6] [U7] Run `pnpm --filter @dtcg-editor/token-core test`
+- [X] T007 [U1] [U2] [U3] [U4] [U5] [U6] [U7] Run `pnpm --filter @dtcg-editor/token-core test`
       and confirm all typography cases (U1-U7) pass (green); refactor while green if needed
 
 **Checkpoint**: `TypographyValueSchema` exists, tested, exported — user story work can begin.

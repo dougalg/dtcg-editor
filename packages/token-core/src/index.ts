@@ -48,3 +48,5 @@ export { DTCG_TOKEN_TYPES, isDtcgTokenType } from "./token-types.ts";
 export type { TransitionValue } from "./transition.ts";
 export { TransitionValueSchema } from "./transition.ts";
 export type { DtcgNode, GroupNode, TokenDocument, TokenNode } from "./types.ts";
+export type { TypographyValue } from "./typography.ts";
+export { TypographyValueSchema } from "./typography.ts";
